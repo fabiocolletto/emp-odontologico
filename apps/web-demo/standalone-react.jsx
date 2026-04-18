@@ -1,10 +1,49 @@
-const { useEffect, useState } = React;
+const { useEffect, useRef, useState } = React;
+const STORAGE_KEY = 'odontoflow-ui-state-v1';
+const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
+const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
+const PAGE_SIZE_PATIENTS = 9;
+const PAGE_SIZE_APPOINTMENTS = 6;
 
 const tabs = [
-  { id: 'overview', label: 'Painel' },
-  { id: 'patients', label: 'Pacientes' },
-  { id: 'settings', label: 'Configurações' }
+  { id: 'overview', label: 'Painel', icon: 'home' },
+  { id: 'patients', label: 'Pacientes', icon: 'users' },
+  { id: 'settings', label: 'Configurações', icon: 'settings' }
 ];
+
+const AppIcon = ({ name, size = 14, className = '' }) => {
+  const icons = {
+    home: <path d="M3 10.5 12 3l9 7.5M6.5 9.8V21h11V9.8" />,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16.5 3.2a3.2 3.2 0 0 1 0 6.2" /></>,
+    settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a1.8 1.8 0 1 1-2.5 2.5l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a1.8 1.8 0 1 1-3.6 0v-.1a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a1.8 1.8 0 1 1-2.5-2.5l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a1.8 1.8 0 1 1 0-3.6h.1a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a1.8 1.8 0 1 1 2.5-2.5l.1.1a1 1 0 0 0 1.1.2h.2a1 1 0 0 0 .6-.9V4a1.8 1.8 0 1 1 3.6 0v.1a1 1 0 0 0 .6.9h.2a1 1 0 0 0 1.1-.2l.1-.1a1.8 1.8 0 1 1 2.5 2.5l-.1.1a1 1 0 0 0-.2 1.1v.2a1 1 0 0 0 .9.6H20a1.8 1.8 0 1 1 0 3.6h-.1a1 1 0 0 0-.9.6Z" /></>,
+    phone: <path d="M22 16.8v3a2 2 0 0 1-2.2 2 19.7 19.7 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.7 19.7 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.7.8 2.5a2 2 0 0 1-.4 2.1L8.1 9.6a16 16 0 0 0 6.3 6.3l1.3-1.3a2 2 0 0 1 2.1-.4c.8.4 1.6.7 2.5.8A2 2 0 0 1 22 16.8Z" />,
+    calendar: <><rect x="3" y="4" width="18" height="17" rx="2.5" /><path d="M8 2v4M16 2v4M3 10h18" /></>,
+    birth: <><path d="M12 4v16M4 10h16M7 4v4M17 4v4M7 16v4M17 16v4" /></>,
+    plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
+    email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
+    filter: <path d="M4 6h16M7 12h10M10 18h4" />,
+    info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>
+  };
+
+  return (
+    <svg className={`app-icon ${className}`} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      {icons[name]}
+    </svg>
+  );
+};
+
+const TransientNotice = ({ message, tone = 'info', onClose, visible }) => {
+  if (!visible) return null;
+  return (
+    <div className={`transient-notice transient-notice--${tone}`}>
+      <div className="transient-notice__content">
+        <AppIcon name="info" size={14} />
+        <span>{message}</span>
+      </div>
+      <button className="btn btn--ghost transient-notice__close" onClick={onClose} aria-label="Fechar aviso">OK</button>
+    </div>
+  );
+};
 
 
 const CSV_PATH = './backend/supabase/sample-data';
@@ -134,19 +173,98 @@ const FALLBACK_PATIENTS = [
   }
 ];
 
+const getInitials = (name) =>
+  String(name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((chunk) => chunk[0]?.toUpperCase() || '')
+    .join('');
+
+const filterBySearchTerm = (records, searchTerm) => {
+  const normalizedTerm = String(searchTerm || '').trim().toLowerCase();
+  if (!normalizedTerm) return records;
+
+  return records.filter((record) =>
+    Object.values(record || {}).some((value) =>
+      String(value ?? '').toLowerCase().includes(normalizedTerm)
+    )
+  );
+};
+
+const paginateRecords = (records, page, pageSize) => {
+  const totalPages = Math.max(1, Math.ceil(records.length / pageSize));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  return {
+    page: safePage,
+    totalPages,
+    items: records.slice(startIndex, startIndex + pageSize)
+  };
+};
+
+const applyPatientQuickFilter = (records, filter) => {
+  if (filter === 'with-visit') return records.filter((p) => p.lastVisit && p.lastVisit !== '-');
+  if (filter === 'without-visit') return records.filter((p) => !p.lastVisit || p.lastVisit === '-');
+  if (filter === 'private-plan') return records.filter((p) => String(p.plan || '').toLowerCase().includes('particular'));
+  if (filter === 'insurance-plan') return records.filter((p) => String(p.plan || '').toLowerCase().includes('convênio'));
+  if (filter === 'with-email') return records.filter((p) => p.email && p.email !== '-');
+  return records;
+};
+
+const readStoredUiState = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
+const readStoredNotesDraft = () => {
+  try {
+    return JSON.parse(localStorage.getItem(NOTES_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
 function App() {
-  const [view, setView] = useState('loader');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [initialUiState] = useState(() => readStoredUiState());
+  const [view, setView] = useState(initialUiState.view || 'loader');
+  const [activeTab, setActiveTab] = useState(initialUiState.activeTab || 'overview');
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [showPatientN2, setShowPatientN2] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState(initialUiState.selectedPatientId || null);
+  const [showPatientN2, setShowPatientN2] = useState(Boolean(initialUiState.showPatientN2));
   const [patients, setPatients] = useState(FALLBACK_PATIENTS);
   const [appointments, setAppointments] = useState(FALLBACK_APPOINTMENTS);
   const [usingFallbackData, setUsingFallbackData] = useState(true);
+  const [notesDraft, setNotesDraft] = useState(() => readStoredNotesDraft());
+  const [patientsQuery, setPatientsQuery] = useState('');
+  const [patientsPage, setPatientsPage] = useState(1);
+  const [quickPatientFilter, setQuickPatientFilter] = useState('all');
+  const [appointmentsQuery, setAppointmentsQuery] = useState('');
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const quickFiltersRef = useRef(null);
+  const [showPatientHint, setShowPatientHint] = useState(false);
 
   const openPatientN2 = (patient) => {
     setSelectedPatient(patient);
+    setSelectedPatientId(patient?.id || null);
     setShowPatientN2(true);
   };
+
+  const scrollQuickFilters = (direction) => {
+    if (!quickFiltersRef.current) return;
+    const delta = direction === 'right' ? 260 : -260;
+    quickFiltersRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
+  const filteredPatients = filterBySearchTerm(quickFilteredPatients, patientsQuery);
+  const patientsPagination = paginateRecords(filteredPatients, patientsPage, PAGE_SIZE_PATIENTS);
+
+  const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
+  const appointmentsPagination = paginateRecords(filteredAppointments, appointmentsPage, PAGE_SIZE_APPOINTMENTS);
 
   useEffect(() => {
     const t = setTimeout(() => setView('landing'), 700);
@@ -170,9 +288,53 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!selectedPatientId) return;
+    const source = patients.find((p) => p.id === selectedPatientId);
+    if (source) {
+      setSelectedPatient(source);
+    }
+  }, [patients, selectedPatientId]);
+
+  useEffect(() => {
+    const state = {
+      view,
+      activeTab,
+      showPatientN2,
+      selectedPatientId
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [view, activeTab, showPatientN2, selectedPatientId]);
+
+  useEffect(() => {
+    localStorage.setItem(NOTES_DRAFT_KEY, JSON.stringify(notesDraft));
+  }, [notesDraft]);
+
+  useEffect(() => {
+    setPatientsPage(1);
+  }, [patientsQuery, quickPatientFilter]);
+
+  useEffect(() => {
+    setAppointmentsPage(1);
+  }, [appointmentsQuery]);
+
+  useEffect(() => {
+    const alreadySeen = localStorage.getItem(FIRST_PATIENT_HINT_KEY) === '1';
+    if (!alreadySeen) {
+      setShowPatientHint(true);
+      localStorage.setItem(FIRST_PATIENT_HINT_KEY, '1');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showPatientHint) return;
+    const timer = setTimeout(() => setShowPatientHint(false), 7000);
+    return () => clearTimeout(timer);
+  }, [showPatientHint]);
+
   if (view === 'loader') {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-white space-y-4">
+      <div className="app-viewport flex flex-col items-center justify-center bg-white space-y-4">
         <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
       </div>
@@ -181,7 +343,7 @@ function App() {
 
   if (view === 'landing') {
     return (
-      <div className="h-screen flex flex-col items-center justify-between bg-[#F2F2F7] p-10 py-24 text-center">
+      <div className="app-viewport flex flex-col items-center justify-between bg-[#F2F2F7] p-10 py-24 text-center">
         <div className="space-y-8">
           <div className="w-20 h-20 bg-sky-700 rounded-2xl flex items-center justify-center text-white shadow-2xl mx-auto text-3xl">🦷</div>
           <div className="space-y-3">
@@ -195,7 +357,7 @@ function App() {
         </div>
         <button
           onClick={() => setView('dashboard')}
-          className="w-full max-w-sm py-5 bg-sky-700 text-white rounded-2xl font-bold text-xl shadow-xl shadow-blue-200 active:scale-95 transition-all hover:bg-sky-800"
+          className="btn btn--primary btn--lg landing-cta"
         >
           Acessar Unidade
         </button>
@@ -221,37 +383,192 @@ function App() {
 
           <div className="bg-white rounded-2xl border p-5 space-y-3">
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">Agenda de Hoje (N2 ao clicar)</h3>
-            {appointments.map((item) => {
-              const patient = patients.find((p) => p.name === item.name);
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => openPatientN2(patient)}
-                  className="list-button data-card data-card--m"
-                >
-                  <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
-                  <p className="font-bold text-slate-900">{item.name}</p>
-                </button>
-              );
-            })}
+            <div className="search-row">
+              <input
+                className="search-input"
+                placeholder="Pesquisar agendamentos (nome, horário, procedimento...)"
+                value={appointmentsQuery}
+                onChange={(e) => setAppointmentsQuery(e.target.value)}
+              />
+              <span className="search-count">{filteredAppointments.length} registro(s)</span>
+            </div>
+
+            <div className="agenda-list">
+              {appointmentsPagination.items.length === 0 ? (
+                <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
+              ) : (
+                appointmentsPagination.items.map((item) => {
+                  const patient = patients.find((p) => p.name === item.name);
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => openPatientN2(patient)}
+                      className="list-button data-card data-card--m"
+                    >
+                      <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
+                      <p className="font-bold text-slate-900">{item.name}</p>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="pagination-row">
+              <button
+                className="btn btn--pager"
+                onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
+                disabled={appointmentsPagination.page === 1}
+              >
+                ← Anterior
+              </button>
+              <span className="pagination-label">
+                Página {appointmentsPagination.page} de {appointmentsPagination.totalPages}
+              </span>
+              <button
+                className="btn btn--pager"
+                onClick={() => setAppointmentsPage((prev) => Math.min(appointmentsPagination.totalPages, prev + 1))}
+                disabled={appointmentsPagination.page === appointmentsPagination.totalPages}
+              >
+                Próxima →
+              </button>
+            </div>
           </div>
         </div>
       );
     }
 
     if (activeTab === 'patients') {
+      const patientsWithVisit = patients.filter((p) => p.lastVisit && p.lastVisit !== '-').length;
+      const patientsWithoutVisit = patients.filter((p) => !p.lastVisit || p.lastVisit === '-').length;
+      const patientsPrivatePlan = patients.filter((p) => String(p.plan || '').toLowerCase().includes('particular')).length;
+      const patientsInsurancePlan = patients.filter((p) => String(p.plan || '').toLowerCase().includes('convênio')).length;
+      const patientsWithEmail = patients.filter((p) => p.email && p.email !== '-').length;
       return (
         <div className="space-y-6">
           <h2 className="page-title">Base de Pacientes</h2>
-          <p className="page-subtitle">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
-          <div className="data-grid">
-            {patients.map((p) => (
-              <button key={p.id} onClick={() => openPatientN2(p)} className="list-button data-card data-card--m">
-                <p className="font-bold text-slate-900">{p.name}</p>
-                <p className="text-sm text-slate-500">{p.phone}</p>
-                <p className="text-xs text-slate-400 mt-2">Última visita: {p.lastVisit}</p>
+          <TransientNotice
+            visible={showPatientHint}
+            message="Clique em um paciente para abrir a tela N2 com os dados completos."
+            onClose={() => setShowPatientHint(false)}
+          />
+          <div className="quick-filters-shell">
+            <button className="btn btn--icon btn--quick-nav" onClick={() => scrollQuickFilters('left')} aria-label="Rolar filtros para esquerda">←</button>
+            <div className="quick-filters-grid" ref={quickFiltersRef}>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'all' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('all')}
+              >
+                <span className="quick-filter__label"><AppIcon name="filter" size={13} />Total cadastrado</span>
+                <strong className="quick-filter__value">{patients.length}</strong>
               </button>
-            ))}
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'with-visit' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('with-visit')}
+              >
+                <span className="quick-filter__label"><AppIcon name="calendar" size={13} />Com última visita</span>
+                <strong className="quick-filter__value">{patientsWithVisit}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'without-visit' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('without-visit')}
+              >
+                <span className="quick-filter__label"><AppIcon name="calendar" size={13} />Sem visita registrada</span>
+                <strong className="quick-filter__value">{patientsWithoutVisit}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'private-plan' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('private-plan')}
+              >
+                <span className="quick-filter__label"><AppIcon name="plan" size={13} />Plano particular</span>
+                <strong className="quick-filter__value">{patientsPrivatePlan}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'insurance-plan' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('insurance-plan')}
+              >
+                <span className="quick-filter__label"><AppIcon name="plan" size={13} />Com convênio</span>
+                <strong className="quick-filter__value">{patientsInsurancePlan}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'with-email' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('with-email')}
+              >
+                <span className="quick-filter__label"><AppIcon name="email" size={13} />Com e-mail</span>
+                <strong className="quick-filter__value">{patientsWithEmail}</strong>
+              </button>
+            </div>
+            <button className="btn btn--icon btn--quick-nav" onClick={() => scrollQuickFilters('right')} aria-label="Rolar filtros para direita">→</button>
+          </div>
+          <div className="search-row">
+            <input
+              className="search-input"
+              placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
+              value={patientsQuery}
+              onChange={(e) => setPatientsQuery(e.target.value)}
+            />
+            <span className="search-count">{filteredPatients.length} registro(s)</span>
+          </div>
+          <div className="data-grid patients-grid">
+            {patientsPagination.items.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
+            ) : (
+              patientsPagination.items.map((p) => (
+                <article key={p.id} className="data-card data-card--m patient-card">
+                  <button
+                    onClick={() => openPatientN2(p)}
+                    className="btn btn--icon patient-card__open"
+                    aria-label={`Abrir prontuário de ${p.name}`}
+                    title="Abrir prontuário N2"
+                  >
+                    ↗
+                  </button>
+                  <div className="patient-card__header">
+                    <div className="patient-avatar">{getInitials(p.name)}</div>
+                    <div>
+                      <p className="font-bold text-slate-900">{p.name}</p>
+                    </div>
+                  </div>
+
+                  <div className="patient-card__grid">
+                    <div className="patient-meta">
+                      <p className="patient-meta__label"><AppIcon name="phone" size={13} />Telefone</p>
+                      <p className="patient-meta__value">{p.phone}</p>
+                    </div>
+                    <div className="patient-meta">
+                      <p className="patient-meta__label"><AppIcon name="calendar" size={13} />Última visita</p>
+                      <p className="patient-meta__value">{p.lastVisit}</p>
+                    </div>
+                    <div className="patient-meta">
+                      <p className="patient-meta__label"><AppIcon name="birth" size={13} />Nascimento</p>
+                      <p className="patient-meta__value">{p.birth}</p>
+                    </div>
+                    <div className="patient-meta">
+                      <p className="patient-meta__label"><AppIcon name="plan" size={13} />Plano</p>
+                      <p className="patient-meta__value">{p.plan}</p>
+                    </div>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+          <div className="pagination-row">
+            <button
+              className="btn btn--pager"
+              onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
+              disabled={patientsPagination.page === 1}
+            >
+              ← Anterior
+            </button>
+            <span className="pagination-label">
+              Página {patientsPagination.page} de {patientsPagination.totalPages}
+            </span>
+            <button
+              className="btn btn--pager"
+              onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
+              disabled={patientsPagination.page === patientsPagination.totalPages}
+            >
+              Próxima →
+            </button>
           </div>
         </div>
       );
@@ -283,8 +600,9 @@ function App() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`nav-btn ${activeTab === tab.id ? 'is-active' : ''}`}
+                className={`btn btn--nav ${activeTab === tab.id ? 'is-active' : ''}`}
               >
+                <AppIcon name={tab.icon} size={14} />
                 {tab.label}
               </button>
             ))}
@@ -301,8 +619,9 @@ function App() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold ${activeTab === tab.id ? 'bg-sky-700 text-white' : 'bg-slate-100 text-slate-600'}`}
+            className={`btn btn--mobile-tab ${activeTab === tab.id ? 'is-active' : ''}`}
           >
+            <AppIcon name={tab.icon} size={13} />
             {tab.label}
           </button>
         ))}
@@ -317,7 +636,7 @@ function App() {
                 <p className="text-xs font-black uppercase tracking-widest text-slate-500">Tela N2 · Prontuário</p>
                 <h3 className="text-xl font-bold text-slate-900">{selectedPatient.name}</h3>
               </div>
-              <button onClick={() => setShowPatientN2(false)} className="btn-ghost">Fechar</button>
+              <button onClick={() => setShowPatientN2(false)} className="btn btn--ghost">Fechar</button>
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -329,7 +648,17 @@ function App() {
                 <p className="text-slate-400">Última visita</p>
                 <p className="font-bold text-slate-900 mb-3">{selectedPatient.lastVisit}</p>
                 <p className="text-slate-400">Observações clínicas</p>
-                <p className="font-medium text-slate-800">{selectedPatient.notes}</p>
+                <textarea
+                  className="modal-notes-input"
+                  value={notesDraft[selectedPatient.id] ?? selectedPatient.notes}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNotesDraft((prev) => ({
+                      ...prev,
+                      [selectedPatient.id]: value
+                    }));
+                  }}
+                />
               </div>
             </div>
           </div>
