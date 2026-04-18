@@ -20,3 +20,52 @@ body {
   background: #f2f2f7;
   color: #0f172a;
 }
+
+
+/* Sistema de tamanhos para containers de dados (P, M, G) */
+:root {
+  --card-p-min: 220px;
+  --card-p-h: 112px;
+  --card-m-min: 280px;
+  --card-m-h: 140px;
+  --card-g-min: 360px;
+  --card-g-h: 188px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --card-p-min: 240px;
+    --card-m-min: 320px;
+    --card-g-min: 400px;
+  }
+}
+
+.data-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min, 280px)), 1fr));
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.data-card {
+  width: 100%;
+  min-height: var(--card-h, 140px);
+  border-radius: 1rem;
+  padding: 1.25rem;
+}
+
+.data-card--p {
+  --card-min: var(--card-p-min);
+  --card-h: var(--card-p-h);
+}
+
+.data-card--m {
+  --card-min: var(--card-m-min);
+  --card-h: var(--card-m-h);
+}
+
+.data-card--g {
+  --card-min: var(--card-g-min);
+  --card-h: var(--card-g-h);
+}

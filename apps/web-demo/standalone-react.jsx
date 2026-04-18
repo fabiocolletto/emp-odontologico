@@ -99,10 +99,10 @@ function App() {
       return (
         <div className="space-y-6">
           <h2 className="text-3xl font-bold text-slate-900">Painel Diário</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-6 rounded-2xl border"><p className="text-xs text-slate-400 uppercase">Atendimentos</p><p className="text-3xl font-bold">12</p></div>
-            <div className="bg-white p-6 rounded-2xl border"><p className="text-xs text-slate-400 uppercase">Faturamento</p><p className="text-3xl font-bold">R$ 8.4k</p></div>
-            <div className="bg-white p-6 rounded-2xl border"><p className="text-xs text-slate-400 uppercase">Ocupação</p><p className="text-3xl font-bold">92%</p></div>
+          <div className="data-grid">
+            <div className="bg-white border data-card data-card--p"><p className="text-xs text-slate-400 uppercase">Atendimentos</p><p className="text-3xl font-bold">12</p></div>
+            <div className="bg-white border data-card data-card--p"><p className="text-xs text-slate-400 uppercase">Faturamento</p><p className="text-3xl font-bold">R$ 8.4k</p></div>
+            <div className="bg-white border data-card data-card--p"><p className="text-xs text-slate-400 uppercase">Ocupação</p><p className="text-3xl font-bold">92%</p></div>
           </div>
 
           <div className="bg-white rounded-2xl border p-5 space-y-3">
@@ -113,7 +113,7 @@ function App() {
                 <button
                   key={item.id}
                   onClick={() => openPatientN2(patient)}
-                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200"
+                  className="w-full text-left rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200 data-card data-card--m"
                 >
                   <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
                   <p className="font-bold text-slate-900">{item.name}</p>
@@ -130,9 +130,9 @@ function App() {
         <div className="space-y-6">
           <h2 className="text-3xl font-bold text-slate-900">Base de Pacientes</h2>
           <p className="text-sm text-slate-500">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="data-grid">
             {patients.map((p) => (
-              <button key={p.id} onClick={() => openPatientN2(p)} className="text-left bg-white p-6 rounded-2xl border hover:shadow-md transition">
+              <button key={p.id} onClick={() => openPatientN2(p)} className="text-left bg-white border hover:shadow-md transition data-card data-card--m">
                 <p className="font-bold text-slate-900">{p.name}</p>
                 <p className="text-sm text-slate-500">{p.phone}</p>
                 <p className="text-xs text-slate-400 mt-2">Última visita: {p.lastVisit}</p>
@@ -146,7 +146,7 @@ function App() {
     return (
       <div className="space-y-6">
         <h2 className="text-3xl font-bold text-slate-900">Configurações</h2>
-        <div className="bg-white p-6 rounded-2xl border">
+        <div className="bg-white border data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
             <li>Limpeza Profilática</li>
