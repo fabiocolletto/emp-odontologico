@@ -245,7 +245,9 @@ function App() {
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
   const quickFiltersRef = useRef(null);
+  const quickFiltersScrollTimeoutRef = useRef(null);
   const [showPatientHint, setShowPatientHint] = useState(false);
+  const [showQuickFilterNav, setShowQuickFilterNav] = useState(true);
 
   const openPatientN2 = (patient) => {
     setSelectedPatient(patient);
@@ -255,8 +257,32 @@ function App() {
 
   const scrollQuickFilters = (direction) => {
     if (!quickFiltersRef.current) return;
+    const container = quickFiltersRef.current;
     const delta = direction === 'right' ? 260 : -260;
-    quickFiltersRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    const maxScrollLeft = container.scrollWidth - container.clientWidth;
+    const nextScrollLeft = container.scrollLeft + delta;
+
+    if (direction === 'right' && nextScrollLeft >= maxScrollLeft - 2) {
+      container.scrollTo({ left: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (direction === 'left' && nextScrollLeft <= 0) {
+      container.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
+      return;
+    }
+
+    container.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  const handleQuickFiltersScroll = () => {
+    setShowQuickFilterNav(false);
+    if (quickFiltersScrollTimeoutRef.current) {
+      clearTimeout(quickFiltersScrollTimeoutRef.current);
+    }
+    quickFiltersScrollTimeoutRef.current = setTimeout(() => {
+      setShowQuickFilterNav(true);
+    }, 280);
   };
 
   const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
@@ -317,6 +343,12 @@ function App() {
   useEffect(() => {
     setAppointmentsPage(1);
   }, [appointmentsQuery]);
+
+  useEffect(() => () => {
+    if (quickFiltersScrollTimeoutRef.current) {
+      clearTimeout(quickFiltersScrollTimeoutRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     const alreadySeen = localStorage.getItem(FIRST_PATIENT_HINT_KEY) === '1';
@@ -452,8 +484,16 @@ function App() {
             onClose={() => setShowPatientHint(false)}
           />
           <div className="quick-filters-shell">
-            <button className="btn btn--icon btn--quick-nav" onClick={() => scrollQuickFilters('left')} aria-label="Rolar filtros para esquerda">←</button>
-            <div className="quick-filters-grid" ref={quickFiltersRef}>
+            <button
+              className={`btn btn--icon btn--quick-nav ${showQuickFilterNav ? '' : 'is-hidden'}`}
+              onClick={() => scrollQuickFilters('left')}
+              aria-label="Rolar filtros para esquerda"
+              aria-hidden={!showQuickFilterNav}
+              tabIndex={showQuickFilterNav ? 0 : -1}
+            >
+              ←
+            </button>
+            <div className="quick-filters-grid" ref={quickFiltersRef} onScroll={handleQuickFiltersScroll}>
               <button
                 className={`btn btn--quick-filter ${quickPatientFilter === 'all' ? 'is-active' : ''}`}
                 onClick={() => setQuickPatientFilter('all')}
@@ -497,11 +537,19 @@ function App() {
                 <strong className="quick-filter__value">{patientsWithEmail}</strong>
               </button>
             </div>
-            <button className="btn btn--icon btn--quick-nav" onClick={() => scrollQuickFilters('right')} aria-label="Rolar filtros para direita">→</button>
+            <button
+              className={`btn btn--icon btn--quick-nav ${showQuickFilterNav ? '' : 'is-hidden'}`}
+              onClick={() => scrollQuickFilters('right')}
+              aria-label="Rolar filtros para direita"
+              aria-hidden={!showQuickFilterNav}
+              tabIndex={showQuickFilterNav ? 0 : -1}
+            >
+              →
+            </button>
           </div>
           <div className="search-row">
             <input
-              className="search-input"
+              className="search-input search-input--compact"
               placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
               value={patientsQuery}
               onChange={(e) => setPatientsQuery(e.target.value)}
@@ -525,7 +573,7 @@ function App() {
                   <div className="patient-card__header">
                     <div className="patient-avatar">{getInitials(p.name)}</div>
                     <div>
-                      <p className="font-bold text-slate-900">{p.name}</p>
+                      <p className="patient-card__name">{p.name}</p>
                     </div>
                   </div>
 

@@ -275,7 +275,7 @@ select {
   height: var(--viewport-h);
   overflow-y: auto;
   padding: clamp(1.2rem, 2vw, 2.2rem);
-  padding-bottom: 6.5rem;
+  padding-bottom: 7.8rem;
 }
 
 .page-title {
@@ -390,12 +390,15 @@ select {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .quick-filters-grid {
   display: flex;
   flex-wrap: nowrap;
   gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
@@ -408,9 +411,26 @@ select {
 
 .btn--quick-nav {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  font-size: 0.78rem;
+  width: 34px;
+  height: 34px;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 82%, #dbeafe);
+  border: 1px solid color-mix(in srgb, var(--brand-600) 20%, #dbe3ef);
+  color: var(--brand-700);
+  box-shadow: 0 8px 18px rgba(15, 35, 72, 0.08);
+  transition: opacity 0.24s ease, transform 0.24s ease, box-shadow 0.24s ease, background-color 0.24s ease;
+}
+
+.btn--quick-nav:hover {
+  background: color-mix(in srgb, #fff 68%, #dbeafe);
+  box-shadow: 0 10px 22px rgba(15, 35, 72, 0.12);
+}
+
+.btn--quick-nav.is-hidden {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
 }
 
 .btn--quick-filter {
@@ -450,15 +470,17 @@ select {
 
 .quick-filter__value {
   color: var(--text-strong);
-  font-size: 1.3rem;
+  font-size: 1.22rem;
+  font-weight: 600;
 }
 
 .search-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-3);
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  padding-inline: var(--space-2);
 }
 
 .search-input {
@@ -471,6 +493,11 @@ select {
   padding: 0.58rem 0.75rem;
 }
 
+.search-input--compact {
+  flex: 0 1 68%;
+  max-width: 740px;
+}
+
 .search-input:focus {
   outline: 2px solid color-mix(in srgb, var(--brand-600) 28%, white);
   outline-offset: 1px;
@@ -480,13 +507,26 @@ select {
   font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 700;
+  min-width: 110px;
+  text-align: center;
 }
 
 .pagination-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  width: fit-content;
+  margin-left: auto;
   gap: var(--space-2);
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 20;
+  padding: 0.55rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 78%, white);
+  background: color-mix(in srgb, #ffffff 88%, #e7eef8);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 22px rgba(15, 35, 72, 0.12);
 }
 
 .pagination-label {
@@ -559,7 +599,14 @@ select {
   margin: 0.3rem 0 0;
   color: var(--text-base);
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.patient-card__name {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 1.01rem;
+  font-weight: 600;
 }
 
 /* ---------- Modal ---------- */
@@ -656,12 +703,22 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .search-input--compact {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+
   .patient-card__grid {
     grid-template-columns: 1fr;
   }
 
   .agenda-list {
     gap: var(--space-2);
+  }
+
+  .pagination-row {
+    bottom: 4.6rem;
+    margin-inline: auto;
   }
 }
 
