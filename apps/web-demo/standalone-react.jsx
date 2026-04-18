@@ -336,23 +336,25 @@ function App() {
               <span className="search-count">{filteredAppointments.length} registro(s)</span>
             </div>
 
-            {appointmentsPagination.items.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
-            ) : (
-              appointmentsPagination.items.map((item) => {
-                const patient = patients.find((p) => p.name === item.name);
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => openPatientN2(patient)}
-                    className="list-button data-card data-card--m"
-                  >
-                    <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
-                    <p className="font-bold text-slate-900">{item.name}</p>
-                  </button>
-                );
-              })
-            )}
+            <div className="agenda-list">
+              {appointmentsPagination.items.length === 0 ? (
+                <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
+              ) : (
+                appointmentsPagination.items.map((item) => {
+                  const patient = patients.find((p) => p.name === item.name);
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => openPatientN2(patient)}
+                      className="list-button data-card data-card--m"
+                    >
+                      <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
+                      <p className="font-bold text-slate-900">{item.name}</p>
+                    </button>
+                  );
+                })
+              )}
+            </div>
 
             <div className="pagination-row">
               <button
