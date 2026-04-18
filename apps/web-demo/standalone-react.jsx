@@ -98,11 +98,11 @@ function App() {
     if (activeTab === 'overview') {
       return (
         <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-slate-900">Painel Diário</h2>
+          <h2 className="page-title">Painel Diário</h2>
           <div className="data-grid">
-            <div className="bg-white border data-card data-card--p"><p className="text-xs text-slate-400 uppercase">Atendimentos</p><p className="text-3xl font-bold">12</p></div>
-            <div className="bg-white border data-card data-card--p"><p className="text-xs text-slate-400 uppercase">Faturamento</p><p className="text-3xl font-bold">R$ 8.4k</p></div>
-            <div className="bg-white border data-card data-card--p"><p className="text-xs text-slate-400 uppercase">Ocupação</p><p className="text-3xl font-bold">92%</p></div>
+            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Atendimentos</p><p className="kpi-value">12</p></div>
+            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Faturamento</p><p className="kpi-value">R$ 8.4k</p></div>
+            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Ocupação</p><p className="kpi-value">92%</p></div>
           </div>
 
           <div className="bg-white rounded-2xl border p-5 space-y-3">
@@ -113,7 +113,7 @@ function App() {
                 <button
                   key={item.id}
                   onClick={() => openPatientN2(patient)}
-                  className="w-full text-left rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200 data-card data-card--m"
+                  className="list-button data-card data-card--m"
                 >
                   <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
                   <p className="font-bold text-slate-900">{item.name}</p>
@@ -128,11 +128,11 @@ function App() {
     if (activeTab === 'patients') {
       return (
         <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-slate-900">Base de Pacientes</h2>
-          <p className="text-sm text-slate-500">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
+          <h2 className="page-title">Base de Pacientes</h2>
+          <p className="page-subtitle">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
           <div className="data-grid">
             {patients.map((p) => (
-              <button key={p.id} onClick={() => openPatientN2(p)} className="text-left bg-white border hover:shadow-md transition data-card data-card--m">
+              <button key={p.id} onClick={() => openPatientN2(p)} className="list-button data-card data-card--m">
                 <p className="font-bold text-slate-900">{p.name}</p>
                 <p className="text-sm text-slate-500">{p.phone}</p>
                 <p className="text-xs text-slate-400 mt-2">Última visita: {p.lastVisit}</p>
@@ -145,7 +145,7 @@ function App() {
 
     return (
       <div className="space-y-6">
-        <h2 className="text-3xl font-bold text-slate-900">Configurações</h2>
+        <h2 className="page-title">Configurações</h2>
         <div className="bg-white border data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
@@ -160,16 +160,16 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EAEEF2]">
-      <div className="flex">
-        <aside className="hidden md:flex md:w-64 lg:w-72 bg-white border-r border-slate-200 min-h-screen sticky top-0 flex-col p-6 gap-6">
-          <div className="text-2xl font-bold text-slate-900">Odonto<span className="text-sky-700">Flow</span></div>
-          <nav className="flex flex-col gap-2">
+    <div className="app-shell">
+      <div className="app-frame">
+        <aside className="app-sidebar">
+          <div className="app-brand">Odonto<span>Flow</span></div>
+          <nav className="app-nav">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`text-left px-4 py-3 rounded-xl font-bold transition-all ${activeTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                className={`nav-btn ${activeTab === tab.id ? 'is-active' : ''}`}
               >
                 {tab.label}
               </button>
@@ -177,12 +177,12 @@ function App() {
           </nav>
         </aside>
 
-        <main className="flex-1 p-6 md:p-10 pb-28 md:pb-10">
+        <main className="app-content">
           {renderContent()}
         </main>
       </div>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 flex justify-between gap-2 z-50">
+      <nav className="mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 flex justify-between gap-2 z-50">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -195,15 +195,15 @@ function App() {
       </nav>
 
       {showPatientN2 && selectedPatient && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setShowPatientN2(false)}></div>
-          <div className="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+        <div className="modal-wrap">
+          <div className="modal-backdrop" onClick={() => setShowPatientN2(false)}></div>
+          <div className="modal-card">
+            <div className="modal-header">
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-slate-500">Tela N2 · Prontuário</p>
                 <h3 className="text-xl font-bold text-slate-900">{selectedPatient.name}</h3>
               </div>
-              <button onClick={() => setShowPatientN2(false)} className="px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300">Fechar</button>
+              <button onClick={() => setShowPatientN2(false)} className="btn-ghost">Fechar</button>
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
