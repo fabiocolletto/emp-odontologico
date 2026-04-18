@@ -307,6 +307,14 @@ select {
   justify-items: stretch;
 }
 
+.patients-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.patients-grid > p {
+  grid-column: 1 / -1;
+}
+
 .data-card {
   width: 100%;
   min-height: var(--card-h, 140px);
@@ -536,7 +544,17 @@ select {
   .mobile-nav { display: none !important; }
 }
 
+@media (max-width: 1180px) {
+  .patients-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
+  .patients-grid {
+    grid-template-columns: 1fr;
+  }
+
   .patient-card__grid {
     grid-template-columns: 1fr;
   }

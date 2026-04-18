@@ -441,7 +441,7 @@ function App() {
             />
             <span className="search-count">{filteredPatients.length} registro(s)</span>
           </div>
-          <div className="data-grid">
+          <div className="data-grid patients-grid">
             {patientsPagination.items.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
             ) : (
