@@ -434,6 +434,23 @@ select {
   margin-inline: auto;
 }
 
+.modal-notes-input {
+  margin-top: 0.45rem;
+  width: 100%;
+  min-height: 96px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.75rem;
+  resize: vertical;
+  background: #fff;
+  color: var(--text-base);
+}
+
+.modal-notes-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand-600) 30%, white);
+  outline-offset: 1px;
+}
+
 /* ---------- Responsive ---------- */
 @media (min-width: 768px) {
   :root {

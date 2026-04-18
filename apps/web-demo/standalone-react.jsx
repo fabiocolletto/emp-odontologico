@@ -1,4 +1,6 @@
 const { useEffect, useState } = React;
+const STORAGE_KEY = 'odontoflow-ui-state-v1';
+const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
 
 const tabs = [
   { id: 'overview', label: 'Painel' },
@@ -142,17 +144,37 @@ const getInitials = (name) =>
     .map((chunk) => chunk[0]?.toUpperCase() || '')
     .join('');
 
+const readStoredUiState = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
+const readStoredNotesDraft = () => {
+  try {
+    return JSON.parse(localStorage.getItem(NOTES_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
 function App() {
-  const [view, setView] = useState('loader');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [initialUiState] = useState(() => readStoredUiState());
+  const [view, setView] = useState(initialUiState.view || 'loader');
+  const [activeTab, setActiveTab] = useState(initialUiState.activeTab || 'overview');
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [showPatientN2, setShowPatientN2] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState(initialUiState.selectedPatientId || null);
+  const [showPatientN2, setShowPatientN2] = useState(Boolean(initialUiState.showPatientN2));
   const [patients, setPatients] = useState(FALLBACK_PATIENTS);
   const [appointments, setAppointments] = useState(FALLBACK_APPOINTMENTS);
   const [usingFallbackData, setUsingFallbackData] = useState(true);
+  const [notesDraft, setNotesDraft] = useState(() => readStoredNotesDraft());
 
   const openPatientN2 = (patient) => {
     setSelectedPatient(patient);
+    setSelectedPatientId(patient?.id || null);
     setShowPatientN2(true);
   };
 
@@ -177,6 +199,28 @@ function App() {
       clearTimeout(t);
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedPatientId) return;
+    const source = patients.find((p) => p.id === selectedPatientId);
+    if (source) {
+      setSelectedPatient(source);
+    }
+  }, [patients, selectedPatientId]);
+
+  useEffect(() => {
+    const state = {
+      view,
+      activeTab,
+      showPatientN2,
+      selectedPatientId
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [view, activeTab, showPatientN2, selectedPatientId]);
+
+  useEffect(() => {
+    localStorage.setItem(NOTES_DRAFT_KEY, JSON.stringify(notesDraft));
+  }, [notesDraft]);
 
   if (view === 'loader') {
     return (
@@ -382,7 +426,17 @@ function App() {
                 <p className="text-slate-400">Última visita</p>
                 <p className="font-bold text-slate-900 mb-3">{selectedPatient.lastVisit}</p>
                 <p className="text-slate-400">Observações clínicas</p>
-                <p className="font-medium text-slate-800">{selectedPatient.notes}</p>
+                <textarea
+                  className="modal-notes-input"
+                  value={notesDraft[selectedPatient.id] ?? selectedPatient.notes}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNotesDraft((prev) => ({
+                      ...prev,
+                      [selectedPatient.id]: value
+                    }));
+                  }}
+                />
               </div>
             </div>
           </div>
