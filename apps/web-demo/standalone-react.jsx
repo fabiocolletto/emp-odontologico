@@ -203,6 +203,180 @@ const paginateRecords = (records, page, pageSize) => {
   };
 };
 
+const PATIENT_FORM_TABS = [
+  { id: 'identity', label: '1. Identificação' },
+  { id: 'contact', label: '2. Contato' },
+  { id: 'clinical', label: '3. Dados clínicos' }
+];
+
+const createEmptyPatientForm = () => ({
+  name: '',
+  birth: '',
+  phone: '',
+  email: '',
+  plan: 'Particular',
+  notes: ''
+});
+
+const toPatientFromForm = (form) => ({
+  id: `new-${Date.now()}`,
+  name: form.name.trim(),
+  phone: form.phone.trim(),
+  email: form.email.trim() || '-',
+  birth: form.birth ? toDate(form.birth) : '-',
+  plan: form.plan.trim() || 'Particular',
+  notes: form.notes.trim() || 'Sem observações clínicas.',
+  lastVisit: '-'
+});
+
+const PatientN2Modal = ({
+  isOpen,
+  mode,
+  patient,
+  form,
+  activeTab,
+  notesValue,
+  onClose,
+  onTabChange,
+  onFormChange,
+  onPreviousTab,
+  onNextTab,
+  onSubmit
+}) => {
+  if (!isOpen) return null;
+  const isCreateMode = mode === 'create';
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            {!isCreateMode && (
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+                Tela N2 · Prontuário
+              </p>
+            )}
+            <h3 className="text-xl font-bold text-slate-900">
+              {isCreateMode ? 'Novo paciente' : patient?.name}
+            </h3>
+          </div>
+          <button onClick={onClose} className="btn btn--ghost">Fechar</button>
+        </div>
+
+        <div className="modal-tabs" role="tablist" aria-label="Etapas do formulário">
+          {PATIENT_FORM_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              className={`btn modal-tab ${activeTab === tab.id ? 'is-active' : ''}`}
+              onClick={() => onTabChange(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="modal-body">
+          {activeTab === 'identity' && (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Nome completo</span>
+                <input
+                  className="form-input"
+                  value={isCreateMode ? form.name : patient?.name || ''}
+                  onChange={(e) => onFormChange('name', e.target.value)}
+                  disabled={!isCreateMode}
+                  placeholder="Ex: Mariana Albuquerque"
+                />
+              </label>
+              <label className="form-field">
+                <span>Data de nascimento</span>
+                <input
+                  className="form-input"
+                  type={isCreateMode ? 'date' : 'text'}
+                  value={isCreateMode ? form.birth : patient?.birth || '-'}
+                  onChange={(e) => onFormChange('birth', e.target.value)}
+                  disabled={!isCreateMode}
+                />
+              </label>
+            </div>
+          )}
+
+          {activeTab === 'contact' && (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Telefone</span>
+                <input
+                  className="form-input"
+                  value={isCreateMode ? form.phone : patient?.phone || ''}
+                  onChange={(e) => onFormChange('phone', e.target.value)}
+                  disabled={!isCreateMode}
+                  placeholder="(11) 90000-0000"
+                />
+              </label>
+              <label className="form-field">
+                <span>E-mail</span>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={isCreateMode ? form.email : patient?.email || ''}
+                  onChange={(e) => onFormChange('email', e.target.value)}
+                  disabled={!isCreateMode}
+                  placeholder="nome@email.com"
+                />
+              </label>
+            </div>
+          )}
+
+          {activeTab === 'clinical' && (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Plano</span>
+                <input
+                  className="form-input"
+                  value={isCreateMode ? form.plan : patient?.plan || ''}
+                  onChange={(e) => onFormChange('plan', e.target.value)}
+                  disabled={!isCreateMode}
+                  placeholder="Particular ou convênio"
+                />
+              </label>
+              {!isCreateMode && (
+                <div className="form-field">
+                  <span>Última visita</span>
+                  <div className="form-static">{patient?.lastVisit || '-'}</div>
+                </div>
+              )}
+              <label className={`form-field ${!isCreateMode ? 'form-field--full' : ''}`}>
+                <span>Observações clínicas</span>
+                <textarea
+                  className="modal-notes-input"
+                  value={isCreateMode ? form.notes : notesValue}
+                  onChange={(e) => onFormChange('notes', e.target.value)}
+                  placeholder="Alergias, histórico, cuidados e recomendações..."
+                />
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn--ghost" onClick={onPreviousTab}>Etapa anterior</button>
+          <div className="modal-footer__right">
+            <button className="btn btn--ghost" onClick={onNextTab}>Próxima etapa</button>
+            {isCreateMode && (
+              <button className="btn btn--primary modal-save" onClick={onSubmit}>
+                Salvar paciente
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const applyPatientQuickFilter = (records, filter) => {
   if (filter === 'with-visit') return records.filter((p) => p.lastVisit && p.lastVisit !== '-');
   if (filter === 'without-visit') return records.filter((p) => !p.lastVisit || p.lastVisit === '-');
@@ -248,11 +422,71 @@ function App() {
   const quickFiltersScrollTimeoutRef = useRef(null);
   const [showPatientHint, setShowPatientHint] = useState(false);
   const [showQuickFilterNav, setShowQuickFilterNav] = useState(true);
+  const [patientModalMode, setPatientModalMode] = useState('view');
+  const [patientFormTab, setPatientFormTab] = useState(PATIENT_FORM_TABS[0].id);
+  const [newPatientForm, setNewPatientForm] = useState(() => createEmptyPatientForm());
+  const [formFeedback, setFormFeedback] = useState('');
 
   const openPatientN2 = (patient) => {
+    setPatientModalMode('view');
+    setPatientFormTab(PATIENT_FORM_TABS[0].id);
     setSelectedPatient(patient);
     setSelectedPatientId(patient?.id || null);
     setShowPatientN2(true);
+  };
+
+  const openCreatePatientN2 = () => {
+    setPatientModalMode('create');
+    setPatientFormTab(PATIENT_FORM_TABS[0].id);
+    setSelectedPatient(null);
+    setSelectedPatientId(null);
+    setNewPatientForm(createEmptyPatientForm());
+    setFormFeedback('');
+    setShowPatientN2(true);
+  };
+
+  const handlePatientFormChange = (field, value) => {
+    if (patientModalMode === 'create') {
+      setNewPatientForm((prev) => ({ ...prev, [field]: value }));
+      return;
+    }
+
+    if (field === 'notes' && selectedPatient) {
+      setNotesDraft((prev) => ({
+        ...prev,
+        [selectedPatient.id]: value
+      }));
+    }
+  };
+
+  const moveFormTab = (direction) => {
+    const currentIndex = PATIENT_FORM_TABS.findIndex((tab) => tab.id === patientFormTab);
+    const nextIndex = Math.min(
+      PATIENT_FORM_TABS.length - 1,
+      Math.max(0, currentIndex + direction)
+    );
+    setPatientFormTab(PATIENT_FORM_TABS[nextIndex].id);
+  };
+
+  const handleCreatePatientSubmit = () => {
+    if (!newPatientForm.name.trim() || !newPatientForm.phone.trim()) {
+      setFormFeedback('Preencha ao menos nome e telefone para salvar o paciente.');
+      return;
+    }
+
+    const newPatient = toPatientFromForm(newPatientForm);
+    setPatients((prev) => [newPatient, ...prev]);
+    setQuickPatientFilter('all');
+    setPatientsQuery('');
+    setPatientsPage(1);
+    setSelectedPatient(null);
+    setSelectedPatientId(null);
+    setPatientModalMode('create');
+    setPatientFormTab(PATIENT_FORM_TABS[0].id);
+    setShowPatientN2(false);
+    setNewPatientForm(createEmptyPatientForm());
+    setFormFeedback('');
+    setShowPatientHint(true);
   };
 
   const scrollQuickFilters = (direction) => {
@@ -363,6 +597,12 @@ function App() {
     const timer = setTimeout(() => setShowPatientHint(false), 7000);
     return () => clearTimeout(timer);
   }, [showPatientHint]);
+
+  useEffect(() => {
+    if (!formFeedback) return;
+    const timer = setTimeout(() => setFormFeedback(''), 4000);
+    return () => clearTimeout(timer);
+  }, [formFeedback]);
 
   if (view === 'loader') {
     return (
@@ -477,11 +717,22 @@ function App() {
       const patientsWithEmail = patients.filter((p) => p.email && p.email !== '-').length;
       return (
         <div className="space-y-6">
-          <h2 className="page-title">Base de Pacientes</h2>
+          <div className="page-header">
+            <h2 className="page-title">Base de Pacientes</h2>
+            <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
+              + Novo paciente
+            </button>
+          </div>
           <TransientNotice
             visible={showPatientHint}
             message="Clique em um paciente para abrir a tela N2 com os dados completos."
             onClose={() => setShowPatientHint(false)}
+          />
+          <TransientNotice
+            visible={Boolean(formFeedback)}
+            message={formFeedback}
+            tone="info"
+            onClose={() => setFormFeedback('')}
           />
           <div className="quick-filters-shell">
             <button
@@ -675,43 +926,20 @@ function App() {
         ))}
       </nav>
 
-      {showPatientN2 && selectedPatient && (
-        <div className="modal-wrap">
-          <div className="modal-backdrop" onClick={() => setShowPatientN2(false)}></div>
-          <div className="modal-card">
-            <div className="modal-header">
-              <div>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Tela N2 · Prontuário</p>
-                <h3 className="text-xl font-bold text-slate-900">{selectedPatient.name}</h3>
-              </div>
-              <button onClick={() => setShowPatientN2(false)} className="btn btn--ghost">Fechar</button>
-            </div>
-
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Telefone</p><p className="font-bold text-slate-900">{selectedPatient.phone}</p></div>
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">E-mail</p><p className="font-bold text-slate-900">{selectedPatient.email}</p></div>
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Nascimento</p><p className="font-bold text-slate-900">{selectedPatient.birth}</p></div>
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Plano</p><p className="font-bold text-slate-900">{selectedPatient.plan}</p></div>
-              <div className="md:col-span-2 bg-slate-50 rounded-xl p-4">
-                <p className="text-slate-400">Última visita</p>
-                <p className="font-bold text-slate-900 mb-3">{selectedPatient.lastVisit}</p>
-                <p className="text-slate-400">Observações clínicas</p>
-                <textarea
-                  className="modal-notes-input"
-                  value={notesDraft[selectedPatient.id] ?? selectedPatient.notes}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setNotesDraft((prev) => ({
-                      ...prev,
-                      [selectedPatient.id]: value
-                    }));
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <PatientN2Modal
+        isOpen={showPatientN2 && (patientModalMode === 'create' || Boolean(selectedPatient))}
+        mode={patientModalMode}
+        patient={selectedPatient}
+        form={newPatientForm}
+        activeTab={patientFormTab}
+        notesValue={selectedPatient ? (notesDraft[selectedPatient.id] ?? selectedPatient.notes) : ''}
+        onClose={() => setShowPatientN2(false)}
+        onTabChange={setPatientFormTab}
+        onFormChange={handlePatientFormChange}
+        onPreviousTab={() => moveFormTab(-1)}
+        onNextTab={() => moveFormTab(1)}
+        onSubmit={handleCreatePatientSubmit}
+      />
     </div>
   );
 }
