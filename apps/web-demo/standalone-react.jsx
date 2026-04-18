@@ -168,6 +168,15 @@ const paginateRecords = (records, page, pageSize) => {
   };
 };
 
+const applyPatientQuickFilter = (records, filter) => {
+  if (filter === 'with-visit') return records.filter((p) => p.lastVisit && p.lastVisit !== '-');
+  if (filter === 'without-visit') return records.filter((p) => !p.lastVisit || p.lastVisit === '-');
+  if (filter === 'private-plan') return records.filter((p) => String(p.plan || '').toLowerCase().includes('particular'));
+  if (filter === 'insurance-plan') return records.filter((p) => String(p.plan || '').toLowerCase().includes('convênio'));
+  if (filter === 'with-email') return records.filter((p) => p.email && p.email !== '-');
+  return records;
+};
+
 const readStoredUiState = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -197,6 +206,7 @@ function App() {
   const [notesDraft, setNotesDraft] = useState(() => readStoredNotesDraft());
   const [patientsQuery, setPatientsQuery] = useState('');
   const [patientsPage, setPatientsPage] = useState(1);
+  const [quickPatientFilter, setQuickPatientFilter] = useState('all');
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
 
@@ -206,7 +216,8 @@ function App() {
     setShowPatientN2(true);
   };
 
-  const filteredPatients = filterBySearchTerm(patients, patientsQuery);
+  const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
+  const filteredPatients = filterBySearchTerm(quickFilteredPatients, patientsQuery);
   const patientsPagination = paginateRecords(filteredPatients, patientsPage, PAGE_SIZE_PATIENTS);
 
   const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
@@ -258,7 +269,7 @@ function App() {
 
   useEffect(() => {
     setPatientsPage(1);
-  }, [patientsQuery]);
+  }, [patientsQuery, quickPatientFilter]);
 
   useEffect(() => {
     setAppointmentsPage(1);
@@ -369,23 +380,57 @@ function App() {
 
     if (activeTab === 'patients') {
       const patientsWithVisit = patients.filter((p) => p.lastVisit && p.lastVisit !== '-').length;
+      const patientsWithoutVisit = patients.filter((p) => !p.lastVisit || p.lastVisit === '-').length;
+      const patientsPrivatePlan = patients.filter((p) => String(p.plan || '').toLowerCase().includes('particular')).length;
+      const patientsInsurancePlan = patients.filter((p) => String(p.plan || '').toLowerCase().includes('convênio')).length;
+      const patientsWithEmail = patients.filter((p) => p.email && p.email !== '-').length;
       return (
         <div className="space-y-6">
           <h2 className="page-title">Base de Pacientes</h2>
           <p className="page-subtitle">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
-          <div className="summary-grid">
-            <div className="summary-pill">
-              <span className="summary-pill__label">Total cadastrado</span>
-              <strong className="summary-pill__value">{patients.length}</strong>
-            </div>
-            <div className="summary-pill">
-              <span className="summary-pill__label">Com última visita</span>
-              <strong className="summary-pill__value">{patientsWithVisit}</strong>
-            </div>
-            <div className="summary-pill">
-              <span className="summary-pill__label">Sem visita registrada</span>
-              <strong className="summary-pill__value">{patients.length - patientsWithVisit}</strong>
-            </div>
+          <div className="quick-filters-grid">
+            <button
+              className={`btn btn--quick-filter ${quickPatientFilter === 'all' ? 'is-active' : ''}`}
+              onClick={() => setQuickPatientFilter('all')}
+            >
+              <span className="quick-filter__label">Total cadastrado</span>
+              <strong className="quick-filter__value">{patients.length}</strong>
+            </button>
+            <button
+              className={`btn btn--quick-filter ${quickPatientFilter === 'with-visit' ? 'is-active' : ''}`}
+              onClick={() => setQuickPatientFilter('with-visit')}
+            >
+              <span className="quick-filter__label">Com última visita</span>
+              <strong className="quick-filter__value">{patientsWithVisit}</strong>
+            </button>
+            <button
+              className={`btn btn--quick-filter ${quickPatientFilter === 'without-visit' ? 'is-active' : ''}`}
+              onClick={() => setQuickPatientFilter('without-visit')}
+            >
+              <span className="quick-filter__label">Sem visita registrada</span>
+              <strong className="quick-filter__value">{patientsWithoutVisit}</strong>
+            </button>
+            <button
+              className={`btn btn--quick-filter ${quickPatientFilter === 'private-plan' ? 'is-active' : ''}`}
+              onClick={() => setQuickPatientFilter('private-plan')}
+            >
+              <span className="quick-filter__label">Plano particular</span>
+              <strong className="quick-filter__value">{patientsPrivatePlan}</strong>
+            </button>
+            <button
+              className={`btn btn--quick-filter ${quickPatientFilter === 'insurance-plan' ? 'is-active' : ''}`}
+              onClick={() => setQuickPatientFilter('insurance-plan')}
+            >
+              <span className="quick-filter__label">Com convênio</span>
+              <strong className="quick-filter__value">{patientsInsurancePlan}</strong>
+            </button>
+            <button
+              className={`btn btn--quick-filter ${quickPatientFilter === 'with-email' ? 'is-active' : ''}`}
+              onClick={() => setQuickPatientFilter('with-email')}
+            >
+              <span className="quick-filter__label">Com e-mail</span>
+              <strong className="quick-filter__value">{patientsWithEmail}</strong>
+            </button>
           </div>
           <div className="search-row">
             <input
