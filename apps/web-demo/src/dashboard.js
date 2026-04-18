@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity as ActivityIcon,
   ArrowRight,
@@ -26,6 +26,7 @@ import { loadClinicDataset } from './data-gateway.js';
 import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, ViewLayout } from './components.js';
 
 const Dashboard = () => {
+  const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
   const [activeTab, setActiveTab] = useState('overview');
   const [allPatients, setAllPatients] = useState(INITIAL_PATIENTS);
   const [allProcedures, setAllProcedures] = useState(INITIAL_PROCEDURES);
@@ -38,6 +39,35 @@ const Dashboard = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [newProcName, setNewProcName] = useState('');
+  const [patientsSort, setPatientsSort] = useState('name-asc');
+
+  useEffect(() => {
+    const savedSortPreference = window.localStorage.getItem(PATIENTS_SORT_KEY);
+
+    if (savedSortPreference) {
+      setPatientsSort(savedSortPreference);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(PATIENTS_SORT_KEY, patientsSort);
+  }, [patientsSort]);
+
+  const sortedPatients = useMemo(() => {
+    const patients = [...allPatients];
+
+    switch (patientsSort) {
+      case 'name-desc':
+        return patients.sort((a, b) => b.name.localeCompare(a.name, 'pt-BR'));
+      case 'id-asc':
+        return patients.sort((a, b) => a.id - b.id);
+      case 'id-desc':
+        return patients.sort((a, b) => b.id - a.id);
+      case 'name-asc':
+      default:
+        return patients.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    }
+  }, [allPatients, patientsSort]);
 
   const handleOpenPatientRecord = (patient) => {
     setSelectedPatient(patient);
@@ -145,10 +175,24 @@ const Dashboard = () => {
             <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
               <Search className="text-slate-300" size={20} />
               <input type="text" placeholder="Pesquisar..." className="flex-1 bg-transparent border-none outline-none text-base font-bold text-slate-900 placeholder:text-slate-300" />
+              <div className="flex items-center gap-3 pl-3 border-l border-slate-100">
+                <label htmlFor="patients-sort" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ordenar</label>
+                <select
+                  id="patients-sort"
+                  value={patientsSort}
+                  onChange={(event) => setPatientsSort(event.target.value)}
+                  className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-100"
+                >
+                  <option value="name-asc">Nome (A → Z)</option>
+                  <option value="name-desc">Nome (Z → A)</option>
+                  <option value="id-asc">ID (menor → maior)</option>
+                  <option value="id-desc">ID (maior → menor)</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allPatients.map((p) => (
+              {sortedPatients.map((p) => (
                 <div key={p.id} onClick={() => handleOpenPatientRecord(p)} className="bg-white p-8 rounded-3xl border border-slate-50 shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all cursor-pointer group">
                   <div className="flex items-center gap-5 mb-8">
                     <div className="w-14 h-14 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-700 font-bold text-xl group-hover:bg-sky-700 group-hover:text-white transition-all">{p.name[0]}</div>
