@@ -1,6 +1,8 @@
 const { useEffect, useState } = React;
 const STORAGE_KEY = 'odontoflow-ui-state-v1';
 const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
+const PAGE_SIZE_PATIENTS = 9;
+const PAGE_SIZE_APPOINTMENTS = 6;
 
 const tabs = [
   { id: 'overview', label: 'Painel' },
@@ -144,6 +146,28 @@ const getInitials = (name) =>
     .map((chunk) => chunk[0]?.toUpperCase() || '')
     .join('');
 
+const filterBySearchTerm = (records, searchTerm) => {
+  const normalizedTerm = String(searchTerm || '').trim().toLowerCase();
+  if (!normalizedTerm) return records;
+
+  return records.filter((record) =>
+    Object.values(record || {}).some((value) =>
+      String(value ?? '').toLowerCase().includes(normalizedTerm)
+    )
+  );
+};
+
+const paginateRecords = (records, page, pageSize) => {
+  const totalPages = Math.max(1, Math.ceil(records.length / pageSize));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  return {
+    page: safePage,
+    totalPages,
+    items: records.slice(startIndex, startIndex + pageSize)
+  };
+};
+
 const readStoredUiState = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -171,12 +195,22 @@ function App() {
   const [appointments, setAppointments] = useState(FALLBACK_APPOINTMENTS);
   const [usingFallbackData, setUsingFallbackData] = useState(true);
   const [notesDraft, setNotesDraft] = useState(() => readStoredNotesDraft());
+  const [patientsQuery, setPatientsQuery] = useState('');
+  const [patientsPage, setPatientsPage] = useState(1);
+  const [appointmentsQuery, setAppointmentsQuery] = useState('');
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
 
   const openPatientN2 = (patient) => {
     setSelectedPatient(patient);
     setSelectedPatientId(patient?.id || null);
     setShowPatientN2(true);
   };
+
+  const filteredPatients = filterBySearchTerm(patients, patientsQuery);
+  const patientsPagination = paginateRecords(filteredPatients, patientsPage, PAGE_SIZE_PATIENTS);
+
+  const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
+  const appointmentsPagination = paginateRecords(filteredAppointments, appointmentsPage, PAGE_SIZE_APPOINTMENTS);
 
   useEffect(() => {
     const t = setTimeout(() => setView('landing'), 700);
@@ -221,6 +255,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem(NOTES_DRAFT_KEY, JSON.stringify(notesDraft));
   }, [notesDraft]);
+
+  useEffect(() => {
+    setPatientsPage(1);
+  }, [patientsQuery]);
+
+  useEffect(() => {
+    setAppointmentsPage(1);
+  }, [appointmentsQuery]);
 
   if (view === 'loader') {
     return (
@@ -273,19 +315,53 @@ function App() {
 
           <div className="bg-white rounded-2xl border p-5 space-y-3">
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">Agenda de Hoje (N2 ao clicar)</h3>
-            {appointments.map((item) => {
-              const patient = patients.find((p) => p.name === item.name);
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => openPatientN2(patient)}
-                  className="list-button data-card data-card--m"
-                >
-                  <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
-                  <p className="font-bold text-slate-900">{item.name}</p>
-                </button>
-              );
-            })}
+            <div className="search-row">
+              <input
+                className="search-input"
+                placeholder="Pesquisar agendamentos (nome, horário, procedimento...)"
+                value={appointmentsQuery}
+                onChange={(e) => setAppointmentsQuery(e.target.value)}
+              />
+              <span className="search-count">{filteredAppointments.length} registro(s)</span>
+            </div>
+
+            {appointmentsPagination.items.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
+            ) : (
+              appointmentsPagination.items.map((item) => {
+                const patient = patients.find((p) => p.name === item.name);
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => openPatientN2(patient)}
+                    className="list-button data-card data-card--m"
+                  >
+                    <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
+                    <p className="font-bold text-slate-900">{item.name}</p>
+                  </button>
+                );
+              })
+            )}
+
+            <div className="pagination-row">
+              <button
+                className="btn btn--pager"
+                onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
+                disabled={appointmentsPagination.page === 1}
+              >
+                ← Anterior
+              </button>
+              <span className="pagination-label">
+                Página {appointmentsPagination.page} de {appointmentsPagination.totalPages}
+              </span>
+              <button
+                className="btn btn--pager"
+                onClick={() => setAppointmentsPage((prev) => Math.min(appointmentsPagination.totalPages, prev + 1))}
+                disabled={appointmentsPagination.page === appointmentsPagination.totalPages}
+              >
+                Próxima →
+              </button>
+            </div>
           </div>
         </div>
       );
@@ -311,44 +387,76 @@ function App() {
               <strong className="summary-pill__value">{patients.length - patientsWithVisit}</strong>
             </div>
           </div>
+          <div className="search-row">
+            <input
+              className="search-input"
+              placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
+              value={patientsQuery}
+              onChange={(e) => setPatientsQuery(e.target.value)}
+            />
+            <span className="search-count">{filteredPatients.length} registro(s)</span>
+          </div>
           <div className="data-grid">
-            {patients.map((p) => (
-              <article key={p.id} className="data-card data-card--m patient-card">
-                <button
-                  onClick={() => openPatientN2(p)}
-                  className="btn btn--icon patient-card__open"
-                  aria-label={`Abrir prontuário de ${p.name}`}
-                  title="Abrir prontuário N2"
-                >
-                  ↗
-                </button>
-                <div className="patient-card__header">
-                  <div className="patient-avatar">{getInitials(p.name)}</div>
-                  <div>
-                    <p className="font-bold text-slate-900">{p.name}</p>
+            {patientsPagination.items.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
+            ) : (
+              patientsPagination.items.map((p) => (
+                <article key={p.id} className="data-card data-card--m patient-card">
+                  <button
+                    onClick={() => openPatientN2(p)}
+                    className="btn btn--icon patient-card__open"
+                    aria-label={`Abrir prontuário de ${p.name}`}
+                    title="Abrir prontuário N2"
+                  >
+                    ↗
+                  </button>
+                  <div className="patient-card__header">
+                    <div className="patient-avatar">{getInitials(p.name)}</div>
+                    <div>
+                      <p className="font-bold text-slate-900">{p.name}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="patient-card__grid">
-                  <div className="patient-meta">
-                    <p className="patient-meta__label">📞 Telefone</p>
-                    <p className="patient-meta__value">{p.phone}</p>
+                  <div className="patient-card__grid">
+                    <div className="patient-meta">
+                      <p className="patient-meta__label">📞 Telefone</p>
+                      <p className="patient-meta__value">{p.phone}</p>
+                    </div>
+                    <div className="patient-meta">
+                      <p className="patient-meta__label">🗓️ Última visita</p>
+                      <p className="patient-meta__value">{p.lastVisit}</p>
+                    </div>
+                    <div className="patient-meta">
+                      <p className="patient-meta__label">🎂 Nascimento</p>
+                      <p className="patient-meta__value">{p.birth}</p>
+                    </div>
+                    <div className="patient-meta">
+                      <p className="patient-meta__label">🧾 Plano</p>
+                      <p className="patient-meta__value">{p.plan}</p>
+                    </div>
                   </div>
-                  <div className="patient-meta">
-                    <p className="patient-meta__label">🗓️ Última visita</p>
-                    <p className="patient-meta__value">{p.lastVisit}</p>
-                  </div>
-                  <div className="patient-meta">
-                    <p className="patient-meta__label">🎂 Nascimento</p>
-                    <p className="patient-meta__value">{p.birth}</p>
-                  </div>
-                  <div className="patient-meta">
-                    <p className="patient-meta__label">🧾 Plano</p>
-                    <p className="patient-meta__value">{p.plan}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))
+            )}
+          </div>
+          <div className="pagination-row">
+            <button
+              className="btn btn--pager"
+              onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
+              disabled={patientsPagination.page === 1}
+            >
+              ← Anterior
+            </button>
+            <span className="pagination-label">
+              Página {patientsPagination.page} de {patientsPagination.totalPages}
+            </span>
+            <button
+              className="btn btn--pager"
+              onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
+              disabled={patientsPagination.page === patientsPagination.totalPages}
+            >
+              Próxima →
+            </button>
           </div>
         </div>
       );

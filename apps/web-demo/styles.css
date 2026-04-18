@@ -168,6 +168,23 @@ select {
   transform: translateY(-1px);
 }
 
+.btn--pager {
+  background: #fff;
+  border-color: var(--border-subtle);
+  color: var(--text-base);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+.btn--pager:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.btn--pager:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ---------- Atomic Utilities ---------- */
 .text-strong { color: var(--text-strong); }
 .text-muted { color: var(--text-muted); }
@@ -335,6 +352,48 @@ select {
 .summary-pill__value {
   color: var(--text-strong);
   font-size: 1.3rem;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 260px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--text-base);
+  padding: 0.58rem 0.75rem;
+}
+
+.search-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand-600) 28%, white);
+  outline-offset: 1px;
+}
+
+.search-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.pagination-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .patient-card {
