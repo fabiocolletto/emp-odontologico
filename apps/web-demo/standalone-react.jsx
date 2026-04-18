@@ -5,10 +5,30 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 
 const tabs = [
-  { id: 'overview', label: 'Painel' },
-  { id: 'patients', label: 'Pacientes' },
-  { id: 'settings', label: 'Configurações' }
+  { id: 'overview', label: 'Painel', icon: 'home' },
+  { id: 'patients', label: 'Pacientes', icon: 'users' },
+  { id: 'settings', label: 'Configurações', icon: 'settings' }
 ];
+
+const AppIcon = ({ name, size = 14, className = '' }) => {
+  const icons = {
+    home: <path d="M3 10.5 12 3l9 7.5M6.5 9.8V21h11V9.8" />,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16.5 3.2a3.2 3.2 0 0 1 0 6.2" /></>,
+    settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a1.8 1.8 0 1 1-2.5 2.5l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a1.8 1.8 0 1 1-3.6 0v-.1a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a1.8 1.8 0 1 1-2.5-2.5l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a1.8 1.8 0 1 1 0-3.6h.1a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a1.8 1.8 0 1 1 2.5-2.5l.1.1a1 1 0 0 0 1.1.2h.2a1 1 0 0 0 .6-.9V4a1.8 1.8 0 1 1 3.6 0v.1a1 1 0 0 0 .6.9h.2a1 1 0 0 0 1.1-.2l.1-.1a1.8 1.8 0 1 1 2.5 2.5l-.1.1a1 1 0 0 0-.2 1.1v.2a1 1 0 0 0 .9.6H20a1.8 1.8 0 1 1 0 3.6h-.1a1 1 0 0 0-.9.6Z" /></>,
+    phone: <path d="M22 16.8v3a2 2 0 0 1-2.2 2 19.7 19.7 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.7 19.7 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.7.8 2.5a2 2 0 0 1-.4 2.1L8.1 9.6a16 16 0 0 0 6.3 6.3l1.3-1.3a2 2 0 0 1 2.1-.4c.8.4 1.6.7 2.5.8A2 2 0 0 1 22 16.8Z" />,
+    calendar: <><rect x="3" y="4" width="18" height="17" rx="2.5" /><path d="M8 2v4M16 2v4M3 10h18" /></>,
+    birth: <><path d="M12 4v16M4 10h16M7 4v4M17 4v4M7 16v4M17 16v4" /></>,
+    plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
+    email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
+    filter: <path d="M4 6h16M7 12h10M10 18h4" />
+  };
+
+  return (
+    <svg className={`app-icon ${className}`} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      {icons[name]}
+    </svg>
+  );
+};
 
 
 const CSV_PATH = './backend/supabase/sample-data';
@@ -404,42 +424,42 @@ function App() {
                 className={`btn btn--quick-filter ${quickPatientFilter === 'all' ? 'is-active' : ''}`}
                 onClick={() => setQuickPatientFilter('all')}
               >
-                <span className="quick-filter__label">Total cadastrado</span>
+                <span className="quick-filter__label"><AppIcon name="filter" size={13} />Total cadastrado</span>
                 <strong className="quick-filter__value">{patients.length}</strong>
               </button>
               <button
                 className={`btn btn--quick-filter ${quickPatientFilter === 'with-visit' ? 'is-active' : ''}`}
                 onClick={() => setQuickPatientFilter('with-visit')}
               >
-                <span className="quick-filter__label">Com última visita</span>
+                <span className="quick-filter__label"><AppIcon name="calendar" size={13} />Com última visita</span>
                 <strong className="quick-filter__value">{patientsWithVisit}</strong>
               </button>
               <button
                 className={`btn btn--quick-filter ${quickPatientFilter === 'without-visit' ? 'is-active' : ''}`}
                 onClick={() => setQuickPatientFilter('without-visit')}
               >
-                <span className="quick-filter__label">Sem visita registrada</span>
+                <span className="quick-filter__label"><AppIcon name="calendar" size={13} />Sem visita registrada</span>
                 <strong className="quick-filter__value">{patientsWithoutVisit}</strong>
               </button>
               <button
                 className={`btn btn--quick-filter ${quickPatientFilter === 'private-plan' ? 'is-active' : ''}`}
                 onClick={() => setQuickPatientFilter('private-plan')}
               >
-                <span className="quick-filter__label">Plano particular</span>
+                <span className="quick-filter__label"><AppIcon name="plan" size={13} />Plano particular</span>
                 <strong className="quick-filter__value">{patientsPrivatePlan}</strong>
               </button>
               <button
                 className={`btn btn--quick-filter ${quickPatientFilter === 'insurance-plan' ? 'is-active' : ''}`}
                 onClick={() => setQuickPatientFilter('insurance-plan')}
               >
-                <span className="quick-filter__label">Com convênio</span>
+                <span className="quick-filter__label"><AppIcon name="plan" size={13} />Com convênio</span>
                 <strong className="quick-filter__value">{patientsInsurancePlan}</strong>
               </button>
               <button
                 className={`btn btn--quick-filter ${quickPatientFilter === 'with-email' ? 'is-active' : ''}`}
                 onClick={() => setQuickPatientFilter('with-email')}
               >
-                <span className="quick-filter__label">Com e-mail</span>
+                <span className="quick-filter__label"><AppIcon name="email" size={13} />Com e-mail</span>
                 <strong className="quick-filter__value">{patientsWithEmail}</strong>
               </button>
             </div>
@@ -477,19 +497,19 @@ function App() {
 
                   <div className="patient-card__grid">
                     <div className="patient-meta">
-                      <p className="patient-meta__label">📞 Telefone</p>
+                      <p className="patient-meta__label"><AppIcon name="phone" size={13} />Telefone</p>
                       <p className="patient-meta__value">{p.phone}</p>
                     </div>
                     <div className="patient-meta">
-                      <p className="patient-meta__label">🗓️ Última visita</p>
+                      <p className="patient-meta__label"><AppIcon name="calendar" size={13} />Última visita</p>
                       <p className="patient-meta__value">{p.lastVisit}</p>
                     </div>
                     <div className="patient-meta">
-                      <p className="patient-meta__label">🎂 Nascimento</p>
+                      <p className="patient-meta__label"><AppIcon name="birth" size={13} />Nascimento</p>
                       <p className="patient-meta__value">{p.birth}</p>
                     </div>
                     <div className="patient-meta">
-                      <p className="patient-meta__label">🧾 Plano</p>
+                      <p className="patient-meta__label"><AppIcon name="plan" size={13} />Plano</p>
                       <p className="patient-meta__value">{p.plan}</p>
                     </div>
                   </div>
@@ -548,6 +568,7 @@ function App() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`btn btn--nav ${activeTab === tab.id ? 'is-active' : ''}`}
               >
+                <AppIcon name={tab.icon} size={14} />
                 {tab.label}
               </button>
             ))}
@@ -566,6 +587,7 @@ function App() {
             onClick={() => setActiveTab(tab.id)}
             className={`btn btn--mobile-tab ${activeTab === tab.id ? 'is-active' : ''}`}
           >
+            <AppIcon name={tab.icon} size={13} />
             {tab.label}
           </button>
         ))}

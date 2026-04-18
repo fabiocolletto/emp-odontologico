@@ -6,6 +6,7 @@
   --bg-page: #eef2f6;
   --bg-surface: #ffffff;
   --bg-surface-soft: #f7f9fc;
+  --bg-surface-elevated: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
   --bg-sidebar: #ffffff;
   --bg-overlay: rgba(8, 15, 33, 0.52);
 
@@ -132,6 +133,9 @@ select {
   text-align: left;
   width: 100%;
   padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 .btn--nav:hover { background: #e7edf5; }
@@ -150,6 +154,10 @@ select {
   color: #475569;
   font-size: 0.76rem;
   font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
 }
 
 .btn--mobile-tab.is-active {
@@ -383,7 +391,7 @@ select {
   flex: 0 0 210px;
   border-radius: var(--radius-md);
   border-color: var(--border-subtle);
-  background: var(--bg-surface);
+  background: var(--bg-surface-elevated);
   padding: 0.75rem 0.95rem;
   display: flex;
   flex-direction: column;
@@ -407,8 +415,11 @@ select {
   color: var(--text-muted);
   font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.045em;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .quick-filter__value {
@@ -468,6 +479,8 @@ select {
   justify-content: flex-start;
   min-height: 210px;
   gap: var(--space-4);
+  background: var(--bg-surface-elevated);
+  border-color: #dce5f0;
 }
 
 .patient-card__open {
@@ -511,6 +524,9 @@ select {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .patient-meta__value {
@@ -575,6 +591,10 @@ select {
 .modal-notes-input:focus {
   outline: 2px solid color-mix(in srgb, var(--brand-600) 30%, white);
   outline-offset: 1px;
+}
+
+.app-icon {
+  opacity: 0.9;
 }
 
 /* ---------- Responsive ---------- */
