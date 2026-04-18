@@ -1,4 +1,4 @@
-const { useEffect, useState } = React;
+const { useEffect, useRef, useState } = React;
 const STORAGE_KEY = 'odontoflow-ui-state-v1';
 const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
 const PAGE_SIZE_PATIENTS = 9;
@@ -209,11 +209,18 @@ function App() {
   const [quickPatientFilter, setQuickPatientFilter] = useState('all');
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const quickFiltersRef = useRef(null);
 
   const openPatientN2 = (patient) => {
     setSelectedPatient(patient);
     setSelectedPatientId(patient?.id || null);
     setShowPatientN2(true);
+  };
+
+  const scrollQuickFilters = (direction) => {
+    if (!quickFiltersRef.current) return;
+    const delta = direction === 'right' ? 260 : -260;
+    quickFiltersRef.current.scrollBy({ left: delta, behavior: 'smooth' });
   };
 
   const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
@@ -390,49 +397,53 @@ function App() {
         <div className="space-y-6">
           <h2 className="page-title">Base de Pacientes</h2>
           <p className="page-subtitle">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
-          <div className="quick-filters-grid">
-            <button
-              className={`btn btn--quick-filter ${quickPatientFilter === 'all' ? 'is-active' : ''}`}
-              onClick={() => setQuickPatientFilter('all')}
-            >
-              <span className="quick-filter__label">Total cadastrado</span>
-              <strong className="quick-filter__value">{patients.length}</strong>
-            </button>
-            <button
-              className={`btn btn--quick-filter ${quickPatientFilter === 'with-visit' ? 'is-active' : ''}`}
-              onClick={() => setQuickPatientFilter('with-visit')}
-            >
-              <span className="quick-filter__label">Com última visita</span>
-              <strong className="quick-filter__value">{patientsWithVisit}</strong>
-            </button>
-            <button
-              className={`btn btn--quick-filter ${quickPatientFilter === 'without-visit' ? 'is-active' : ''}`}
-              onClick={() => setQuickPatientFilter('without-visit')}
-            >
-              <span className="quick-filter__label">Sem visita registrada</span>
-              <strong className="quick-filter__value">{patientsWithoutVisit}</strong>
-            </button>
-            <button
-              className={`btn btn--quick-filter ${quickPatientFilter === 'private-plan' ? 'is-active' : ''}`}
-              onClick={() => setQuickPatientFilter('private-plan')}
-            >
-              <span className="quick-filter__label">Plano particular</span>
-              <strong className="quick-filter__value">{patientsPrivatePlan}</strong>
-            </button>
-            <button
-              className={`btn btn--quick-filter ${quickPatientFilter === 'insurance-plan' ? 'is-active' : ''}`}
-              onClick={() => setQuickPatientFilter('insurance-plan')}
-            >
-              <span className="quick-filter__label">Com convênio</span>
-              <strong className="quick-filter__value">{patientsInsurancePlan}</strong>
-            </button>
-            <button
-              className={`btn btn--quick-filter ${quickPatientFilter === 'with-email' ? 'is-active' : ''}`}
-              onClick={() => setQuickPatientFilter('with-email')}
-            >
-              <span className="quick-filter__label">Com e-mail</span>
-              <strong className="quick-filter__value">{patientsWithEmail}</strong>
-            </button>
+          <div className="quick-filters-shell">
+            <button className="btn btn--icon btn--quick-nav" onClick={() => scrollQuickFilters('left')} aria-label="Rolar filtros para esquerda">←</button>
+            <div className="quick-filters-grid" ref={quickFiltersRef}>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'all' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('all')}
+              >
+                <span className="quick-filter__label">Total cadastrado</span>
+                <strong className="quick-filter__value">{patients.length}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'with-visit' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('with-visit')}
+              >
+                <span className="quick-filter__label">Com última visita</span>
+                <strong className="quick-filter__value">{patientsWithVisit}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'without-visit' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('without-visit')}
+              >
+                <span className="quick-filter__label">Sem visita registrada</span>
+                <strong className="quick-filter__value">{patientsWithoutVisit}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'private-plan' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('private-plan')}
+              >
+                <span className="quick-filter__label">Plano particular</span>
+                <strong className="quick-filter__value">{patientsPrivatePlan}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'insurance-plan' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('insurance-plan')}
+              >
+                <span className="quick-filter__label">Com convênio</span>
+                <strong className="quick-filter__value">{patientsInsurancePlan}</strong>
+              </button>
+              <button
+                className={`btn btn--quick-filter ${quickPatientFilter === 'with-email' ? 'is-active' : ''}`}
+                onClick={() => setQuickPatientFilter('with-email')}
+              >
+                <span className="quick-filter__label">Com e-mail</span>
+                <strong className="quick-filter__value">{patientsWithEmail}</strong>
+              </button>
+            </div>
+            <button className="btn btn--icon btn--quick-nav" onClick={() => scrollQuickFilters('right')} aria-label="Rolar filtros para direita">→</button>
           </div>
           <div className="search-row">
             <input

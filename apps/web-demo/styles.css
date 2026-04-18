@@ -327,9 +327,6 @@ select {
 
 .patients-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-height: min(52vh, 650px);
-  overflow-y: auto;
-  padding-right: 0.3rem;
   align-content: start;
 }
 
@@ -355,13 +352,35 @@ select {
 .data-card--m { --card-min: var(--card-m-min); --card-h: var(--card-m-h); }
 .data-card--g { --card-min: var(--card-g-min); --card-h: var(--card-g-h); }
 
+.quick-filters-shell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .quick-filters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
   gap: var(--space-3);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.quick-filters-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.btn--quick-nav {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  font-size: 0.78rem;
 }
 
 .btn--quick-filter {
+  flex: 0 0 210px;
   border-radius: var(--radius-md);
   border-color: var(--border-subtle);
   background: var(--bg-surface);
@@ -442,9 +461,6 @@ select {
 .agenda-list {
   display: grid;
   gap: var(--space-3);
-  max-height: min(40vh, 420px);
-  overflow-y: auto;
-  padding-right: 0.3rem;
 }
 
 .patient-card {
@@ -581,11 +597,17 @@ select {
 }
 
 @media (max-width: 640px) {
+  .quick-filters-shell {
+    gap: 0.35rem;
+  }
+
+  .btn--quick-nav {
+    width: 28px;
+    height: 28px;
+  }
+
   .patients-grid {
     grid-template-columns: 1fr;
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
   }
 
   .patient-card__grid {
@@ -593,9 +615,7 @@ select {
   }
 
   .agenda-list {
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
+    gap: var(--space-2);
   }
 }
 
