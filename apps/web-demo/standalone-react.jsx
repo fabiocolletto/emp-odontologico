@@ -724,7 +724,7 @@ function App() {
             </button>
           </div>
           <TransientNotice
-            visible={showPatientHint}
+            visible={showPatientHint && !formFeedback}
             message="Clique em um paciente para abrir a tela N2 com os dados completos."
             onClose={() => setShowPatientHint(false)}
           />

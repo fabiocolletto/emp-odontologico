@@ -307,6 +307,11 @@ select {
 }
 
 .transient-notice {
+  position: fixed;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(calc(100vw - 1.5rem), 760px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -316,6 +321,8 @@ select {
   background: linear-gradient(180deg, #f3f9ff 0%, #eaf4ff 100%);
   padding: 0.7rem 0.85rem;
   color: #0f3558;
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.24);
+  z-index: 1200;
 }
 
 .transient-notice__content {
@@ -794,6 +801,10 @@ select {
 }
 
 @media (max-width: 640px) {
+  .transient-notice {
+    bottom: calc(5.6rem + env(safe-area-inset-bottom));
+  }
+
   .page-header {
     align-items: stretch;
   }
