@@ -238,6 +238,97 @@ select {
 .data-card--m { --card-min: var(--card-m-min); --card-h: var(--card-m-h); }
 .data-card--g { --card-min: var(--card-g-min); --card-h: var(--card-g-h); }
 
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.summary-pill {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.summary-pill__label {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.summary-pill__value {
+  color: var(--text-strong);
+  font-size: 1.3rem;
+}
+
+.patient-card {
+  justify-content: flex-start;
+  min-height: 210px;
+  gap: var(--space-4);
+}
+
+.patient-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.patient-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--brand-700);
+  background: var(--brand-100);
+}
+
+.patient-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.patient-meta {
+  border: 1px solid var(--border-soft);
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+}
+
+.patient-meta__label {
+  margin: 0;
+  font-size: 0.67rem;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.patient-meta__value {
+  margin: 0.3rem 0 0;
+  color: var(--text-base);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.patient-card__cta {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--brand-600);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* ---------- Modal ---------- */
 .modal-wrap {
   position: fixed;
@@ -296,6 +387,12 @@ select {
   .app-sidebar { display: flex; }
   .app-content { padding-bottom: clamp(1.2rem, 2vw, 2.2rem); }
   .mobile-nav { display: none !important; }
+}
+
+@media (max-width: 640px) {
+  .patient-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

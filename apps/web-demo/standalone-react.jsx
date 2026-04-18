@@ -134,6 +134,14 @@ const FALLBACK_PATIENTS = [
   }
 ];
 
+const getInitials = (name) =>
+  String(name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((chunk) => chunk[0]?.toUpperCase() || '')
+    .join('');
+
 function App() {
   const [view, setView] = useState('loader');
   const [activeTab, setActiveTab] = useState('overview');
@@ -240,16 +248,56 @@ function App() {
     }
 
     if (activeTab === 'patients') {
+      const patientsWithVisit = patients.filter((p) => p.lastVisit && p.lastVisit !== '-').length;
       return (
         <div className="space-y-6">
           <h2 className="page-title">Base de Pacientes</h2>
           <p className="page-subtitle">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
+          <div className="summary-grid">
+            <div className="summary-pill">
+              <span className="summary-pill__label">Total cadastrado</span>
+              <strong className="summary-pill__value">{patients.length}</strong>
+            </div>
+            <div className="summary-pill">
+              <span className="summary-pill__label">Com última visita</span>
+              <strong className="summary-pill__value">{patientsWithVisit}</strong>
+            </div>
+            <div className="summary-pill">
+              <span className="summary-pill__label">Sem visita registrada</span>
+              <strong className="summary-pill__value">{patients.length - patientsWithVisit}</strong>
+            </div>
+          </div>
           <div className="data-grid">
             {patients.map((p) => (
-              <button key={p.id} onClick={() => openPatientN2(p)} className="list-button data-card data-card--m">
-                <p className="font-bold text-slate-900">{p.name}</p>
-                <p className="text-sm text-slate-500">{p.phone}</p>
-                <p className="text-xs text-slate-400 mt-2">Última visita: {p.lastVisit}</p>
+              <button key={p.id} onClick={() => openPatientN2(p)} className="list-button data-card data-card--m patient-card">
+                <div className="patient-card__header">
+                  <div className="patient-avatar">{getInitials(p.name)}</div>
+                  <div>
+                    <p className="font-bold text-slate-900">{p.name}</p>
+                    <p className="text-xs text-slate-400">ID: {p.id}</p>
+                  </div>
+                </div>
+
+                <div className="patient-card__grid">
+                  <div className="patient-meta">
+                    <p className="patient-meta__label">📞 Telefone</p>
+                    <p className="patient-meta__value">{p.phone}</p>
+                  </div>
+                  <div className="patient-meta">
+                    <p className="patient-meta__label">🗓️ Última visita</p>
+                    <p className="patient-meta__value">{p.lastVisit}</p>
+                  </div>
+                  <div className="patient-meta">
+                    <p className="patient-meta__label">🎂 Nascimento</p>
+                    <p className="patient-meta__value">{p.birth}</p>
+                  </div>
+                  <div className="patient-meta">
+                    <p className="patient-meta__label">🧾 Plano</p>
+                    <p className="patient-meta__value">{p.plan}</p>
+                  </div>
+                </div>
+
+                <p className="patient-card__cta">Abrir prontuário N2 →</p>
               </button>
             ))}
           </div>
