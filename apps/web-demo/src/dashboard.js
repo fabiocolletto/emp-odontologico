@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Activity as ActivityIcon,
   ArrowRight,
@@ -22,12 +22,15 @@ import {
   X
 } from 'lucide-react';
 import { APPOINTMENTS, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
+import { loadClinicDataset } from './data-gateway.js';
 import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, ViewLayout } from './components.js';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [allPatients, setAllPatients] = useState(INITIAL_PATIENTS);
   const [allProcedures, setAllProcedures] = useState(INITIAL_PROCEDURES);
+  const [appointments, setAppointments] = useState(APPOINTMENTS);
+  const [usingFallbackData, setUsingFallbackData] = useState(true);
 
   const [modalPatient, setModalPatient] = useState(false);
   const [modalSettingsProc, setModalSettingsProc] = useState(false);
@@ -41,6 +44,31 @@ const Dashboard = () => {
     setModalPatient(true);
     setIsEditing(false);
   };
+
+  useEffect(() => {
+    let mounted = true;
+
+    const hydrateFromSupabaseFiles = async () => {
+      try {
+        const dataset = await loadClinicDataset();
+        if (!mounted) return;
+
+        setAllPatients(dataset.patients);
+        setAllProcedures(dataset.procedures);
+        setAppointments(dataset.appointments);
+        setUsingFallbackData(false);
+      } catch (error) {
+        if (!mounted) return;
+        setUsingFallbackData(true);
+      }
+    };
+
+    hydrateFromSupabaseFiles();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#EAEEF2] flex flex-col md:flex-row font-sans selection:bg-sky-100">
@@ -70,6 +98,11 @@ const Dashboard = () => {
       {activeTab === 'overview' && (
         <ViewLayout title="Painel Diário" badge="Clínica Matriz SP">
           <div className="space-y-12">
+            {usingFallbackData && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl px-5 py-4 text-xs font-semibold">
+                Dados locais de contingência ativos. Assim que os arquivos em <code>backend/supabase/sample-data</code> estiverem disponíveis no servidor, a UI passa a usar esses dados automaticamente.
+              </div>
+            )}
             <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto scrollbar-hide pb-4 px-1">
               <KpiCard title="Atendimentos" value="12" subtitle="Agendados hoje" trend="up" trendValue="24" icon={Calendar} color="bg-sky-600" />
               <KpiCard title="Faturamento" value="R$ 8.4k" subtitle="Projeção diária" trend="up" trendValue="12" icon={TrendingUp} color="bg-emerald-600" />
@@ -80,7 +113,7 @@ const Dashboard = () => {
               <div className="p-10 flex justify-between items-center bg-slate-50/30">
                 <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest">Agenda de Hoje</h3>
               </div>
-              {APPOINTMENTS.map((item, idx) => (
+              {appointments.map((item, idx) => (
                 <button key={idx} onClick={() => handleOpenPatientRecord(allPatients.find((p) => p.name === item.name))} className="w-full flex items-center justify-between px-10 py-8 hover:bg-slate-50 transition-all text-left group">
                   <div className="flex items-center gap-10">
                     <span className="text-sm font-black text-sky-700 w-12">{item.time}</span>

@@ -17,6 +17,17 @@ Sistema de gestão empresarial para clínicas odontológicas.
 │           ├── dashboard.js
 │           ├── main.js
 │           └── modelagem.js
+├── backend/
+│   └── supabase/
+│       ├── migrations/
+│       │   └── 0001_core_schema.sql
+│       ├── sample-data/
+│       │   ├── appointments.csv
+│       │   ├── clinics.csv
+│       │   ├── patients.csv
+│       │   ├── procedures.csv
+│       │   └── staff_profiles.csv
+│       └── README.md
 ├── docs/
 │   ├── api/
 │   │   └── v1.md
@@ -36,3 +47,9 @@ Sistema de gestão empresarial para clínicas odontológicas.
 - **`apps/web-demo/`**: demo temporária da UI OdontoFlow (sem backend acoplado).
 
 Para detalhes da organização e evolução, consulte `docs/estrutura-repositorio.md`.
+
+
+## Migração futura para Supabase
+- Base SQL inicial e massa de dados estão em `backend/supabase/`.
+- Aplicar migration + importar CSVs quando iniciar a troca de `localStorage` para banco.
+- O frontend demo já está preparado para ler `backend/supabase/sample-data/*.csv` como fonte principal (com fallback local).
