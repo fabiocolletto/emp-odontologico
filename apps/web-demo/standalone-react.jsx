@@ -6,15 +6,55 @@ const tabs = [
   { id: 'settings', label: 'Configurações' }
 ];
 
+const appointments = [
+  { id: 1, name: 'Ana Paula Souza', time: '09:00', procedure: 'Limpeza Profilática' },
+  { id: 2, name: 'Ricardo Albuquerque', time: '10:30', procedure: 'Extração Siso' },
+  { id: 3, name: 'Juliana Ferreira', time: '14:15', procedure: 'Avaliação Ortodôntica' }
+];
+
 function App() {
   const [view, setView] = useState('loader');
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [showPatientN2, setShowPatientN2] = useState(false);
 
   const patients = [
-    { id: 1, name: 'Ana Paula Souza', phone: '(11) 98877-6655', lastVisit: '12 Abr 2024' },
-    { id: 2, name: 'Ricardo Albuquerque', phone: '(11) 97766-5544', lastVisit: '08 Abr 2024' },
-    { id: 3, name: 'Juliana Ferreira', phone: '(11) 96655-4433', lastVisit: '15 Abr 2024' }
+    {
+      id: 1,
+      name: 'Ana Paula Souza',
+      phone: '(11) 98877-6655',
+      lastVisit: '12 Abr 2024',
+      birth: '15/05/1992',
+      email: 'ana.souza@email.com',
+      plan: 'Particular',
+      notes: 'Paciente com histórico de sensibilidade em molares.'
+    },
+    {
+      id: 2,
+      name: 'Ricardo Albuquerque',
+      phone: '(11) 97766-5544',
+      lastVisit: '08 Abr 2024',
+      birth: '22/10/1985',
+      email: 'ricardo.albuquerque@email.com',
+      plan: 'Convênio Odonto+',
+      notes: 'Em acompanhamento de pós-extração.'
+    },
+    {
+      id: 3,
+      name: 'Juliana Ferreira',
+      phone: '(11) 96655-4433',
+      lastVisit: '15 Abr 2024',
+      birth: '03/01/1998',
+      email: 'juliana.ferreira@email.com',
+      plan: 'Particular',
+      notes: 'Avaliação ortodôntica solicitada.'
+    }
   ];
+
+  const openPatientN2 = (patient) => {
+    setSelectedPatient(patient);
+    setShowPatientN2(true);
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setView('landing'), 700);
@@ -64,6 +104,23 @@ function App() {
             <div className="bg-white p-6 rounded-2xl border"><p className="text-xs text-slate-400 uppercase">Faturamento</p><p className="text-3xl font-bold">R$ 8.4k</p></div>
             <div className="bg-white p-6 rounded-2xl border"><p className="text-xs text-slate-400 uppercase">Ocupação</p><p className="text-3xl font-bold">92%</p></div>
           </div>
+
+          <div className="bg-white rounded-2xl border p-5 space-y-3">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">Agenda de Hoje (N2 ao clicar)</h3>
+            {appointments.map((item) => {
+              const patient = patients.find((p) => p.name === item.name);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => openPatientN2(patient)}
+                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200"
+                >
+                  <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
+                  <p className="font-bold text-slate-900">{item.name}</p>
+                </button>
+              );
+            })}
+          </div>
         </div>
       );
     }
@@ -72,13 +129,14 @@ function App() {
       return (
         <div className="space-y-6">
           <h2 className="text-3xl font-bold text-slate-900">Base de Pacientes</h2>
+          <p className="text-sm text-slate-500">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {patients.map((p) => (
-              <div key={p.id} className="bg-white p-6 rounded-2xl border">
+              <button key={p.id} onClick={() => openPatientN2(p)} className="text-left bg-white p-6 rounded-2xl border hover:shadow-md transition">
                 <p className="font-bold text-slate-900">{p.name}</p>
                 <p className="text-sm text-slate-500">{p.phone}</p>
                 <p className="text-xs text-slate-400 mt-2">Última visita: {p.lastVisit}</p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -135,6 +193,34 @@ function App() {
           </button>
         ))}
       </nav>
+
+      {showPatientN2 && selectedPatient && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setShowPatientN2(false)}></div>
+          <div className="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Tela N2 · Prontuário</p>
+                <h3 className="text-xl font-bold text-slate-900">{selectedPatient.name}</h3>
+              </div>
+              <button onClick={() => setShowPatientN2(false)} className="px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300">Fechar</button>
+            </div>
+
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Telefone</p><p className="font-bold text-slate-900">{selectedPatient.phone}</p></div>
+              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">E-mail</p><p className="font-bold text-slate-900">{selectedPatient.email}</p></div>
+              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Nascimento</p><p className="font-bold text-slate-900">{selectedPatient.birth}</p></div>
+              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Plano</p><p className="font-bold text-slate-900">{selectedPatient.plan}</p></div>
+              <div className="md:col-span-2 bg-slate-50 rounded-xl p-4">
+                <p className="text-slate-400">Última visita</p>
+                <p className="font-bold text-slate-900 mb-3">{selectedPatient.lastVisit}</p>
+                <p className="text-slate-400">Observações clínicas</p>
+                <p className="font-medium text-slate-800">{selectedPatient.notes}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
