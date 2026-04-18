@@ -203,7 +203,7 @@ function App() {
         </div>
         <button
           onClick={() => setView('dashboard')}
-          className="w-full max-w-sm py-5 bg-sky-700 text-white rounded-2xl font-bold text-xl shadow-xl shadow-blue-200 active:scale-95 transition-all hover:bg-sky-800"
+          className="btn btn--primary btn--lg landing-cta"
         >
           Acessar Unidade
         </button>
@@ -269,12 +269,19 @@ function App() {
           </div>
           <div className="data-grid">
             {patients.map((p) => (
-              <button key={p.id} onClick={() => openPatientN2(p)} className="list-button data-card data-card--m patient-card">
+              <article key={p.id} className="data-card data-card--m patient-card">
+                <button
+                  onClick={() => openPatientN2(p)}
+                  className="btn btn--icon patient-card__open"
+                  aria-label={`Abrir prontuário de ${p.name}`}
+                  title="Abrir prontuário N2"
+                >
+                  ↗
+                </button>
                 <div className="patient-card__header">
                   <div className="patient-avatar">{getInitials(p.name)}</div>
                   <div>
                     <p className="font-bold text-slate-900">{p.name}</p>
-                    <p className="text-xs text-slate-400">ID: {p.id}</p>
                   </div>
                 </div>
 
@@ -296,9 +303,7 @@ function App() {
                     <p className="patient-meta__value">{p.plan}</p>
                   </div>
                 </div>
-
-                <p className="patient-card__cta">Abrir prontuário N2 →</p>
-              </button>
+              </article>
             ))}
           </div>
         </div>
@@ -331,7 +336,7 @@ function App() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`nav-btn ${activeTab === tab.id ? 'is-active' : ''}`}
+                className={`btn btn--nav ${activeTab === tab.id ? 'is-active' : ''}`}
               >
                 {tab.label}
               </button>
@@ -349,7 +354,7 @@ function App() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold ${activeTab === tab.id ? 'bg-sky-700 text-white' : 'bg-slate-100 text-slate-600'}`}
+            className={`btn btn--mobile-tab ${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
           </button>
@@ -365,7 +370,7 @@ function App() {
                 <p className="text-xs font-black uppercase tracking-widest text-slate-500">Tela N2 · Prontuário</p>
                 <h3 className="text-xl font-bold text-slate-900">{selectedPatient.name}</h3>
               </div>
-              <button onClick={() => setShowPatientN2(false)} className="btn-ghost">Fechar</button>
+              <button onClick={() => setShowPatientN2(false)} className="btn btn--ghost">Fechar</button>
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

@@ -76,6 +76,98 @@ select {
   font: inherit;
 }
 
+/* ---------- Global Buttons ---------- */
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--text-base);
+}
+
+.btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand-600) 38%, white);
+  outline-offset: 2px;
+}
+
+.btn--primary {
+  background: var(--brand-600);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.btn--primary:hover { background: #095a8f; }
+
+.btn--lg {
+  width: 100%;
+  max-width: 420px;
+  padding: 1.2rem 1.4rem;
+  border-radius: var(--radius-xl);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.btn--ghost {
+  border-color: var(--border-subtle);
+  background: #f1f5f9;
+  color: #334155;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn--ghost:hover { background: #e2e8f0; }
+
+.btn--nav {
+  background: #eef2f6;
+  color: #475569;
+  text-align: left;
+  width: 100%;
+  padding: 0.85rem 1rem;
+}
+
+.btn--nav:hover { background: #e7edf5; }
+
+.btn--nav.is-active {
+  background: var(--brand-700);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.btn--mobile-tab {
+  flex: 1;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.btn--mobile-tab.is-active {
+  background: var(--brand-600);
+  color: #fff;
+}
+
+.btn--icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  border-color: #dbe3ff;
+  color: var(--brand-700);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.btn--icon:hover {
+  background: #e1e9ff;
+  transform: translateY(-1px);
+}
+
 /* ---------- Atomic Utilities ---------- */
 .text-strong { color: var(--text-strong); }
 .text-muted { color: var(--text-muted); }
@@ -135,28 +227,6 @@ select {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-}
-
-.nav-btn {
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: #eef2f6;
-  color: #475569;
-  font-weight: 700;
-  text-align: left;
-  padding: 0.85rem 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.nav-btn:hover {
-  background: #e7edf5;
-}
-
-.nav-btn.is-active {
-  background: var(--brand-700);
-  color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .app-content {
@@ -268,9 +338,16 @@ select {
 }
 
 .patient-card {
+  position: relative;
   justify-content: flex-start;
   min-height: 210px;
   gap: var(--space-4);
+}
+
+.patient-card__open {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
 }
 
 .patient-card__header {
@@ -298,10 +375,7 @@ select {
 }
 
 .patient-meta {
-  border: 1px solid var(--border-soft);
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 0.6rem 0.7rem;
+  padding: 0.15rem 0.1rem;
 }
 
 .patient-meta__label {
@@ -318,15 +392,6 @@ select {
   color: var(--text-base);
   font-size: 0.84rem;
   font-weight: 700;
-}
-
-.patient-card__cta {
-  margin: 0;
-  font-size: 0.76rem;
-  color: var(--brand-600);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 /* ---------- Modal ---------- */
@@ -365,16 +430,9 @@ select {
   border-bottom: 1px solid var(--border-soft);
 }
 
-.btn-ghost {
-  border: 1px solid var(--border-subtle);
-  background: #f1f5f9;
-  color: #334155;
-  border-radius: var(--radius-sm);
-  padding: 0.45rem 0.8rem;
-  cursor: pointer;
+.landing-cta {
+  margin-inline: auto;
 }
-
-.btn-ghost:hover { background: #e2e8f0; }
 
 /* ---------- Responsive ---------- */
 @media (min-width: 768px) {
