@@ -1,6 +1,7 @@
 const { useEffect, useRef, useState } = React;
 const STORAGE_KEY = 'odontoflow-ui-state-v1';
 const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
+const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
 const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 
@@ -20,13 +21,27 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     birth: <><path d="M12 4v16M4 10h16M7 4v4M17 4v4M7 16v4M17 16v4" /></>,
     plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
     email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
-    filter: <path d="M4 6h16M7 12h10M10 18h4" />
+    filter: <path d="M4 6h16M7 12h10M10 18h4" />,
+    info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>
   };
 
   return (
     <svg className={`app-icon ${className}`} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
       {icons[name]}
     </svg>
+  );
+};
+
+const TransientNotice = ({ message, tone = 'info', onClose, visible }) => {
+  if (!visible) return null;
+  return (
+    <div className={`transient-notice transient-notice--${tone}`}>
+      <div className="transient-notice__content">
+        <AppIcon name="info" size={14} />
+        <span>{message}</span>
+      </div>
+      <button className="btn btn--ghost transient-notice__close" onClick={onClose} aria-label="Fechar aviso">OK</button>
+    </div>
   );
 };
 
@@ -230,6 +245,7 @@ function App() {
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
   const quickFiltersRef = useRef(null);
+  const [showPatientHint, setShowPatientHint] = useState(false);
 
   const openPatientN2 = (patient) => {
     setSelectedPatient(patient);
@@ -301,6 +317,20 @@ function App() {
   useEffect(() => {
     setAppointmentsPage(1);
   }, [appointmentsQuery]);
+
+  useEffect(() => {
+    const alreadySeen = localStorage.getItem(FIRST_PATIENT_HINT_KEY) === '1';
+    if (!alreadySeen) {
+      setShowPatientHint(true);
+      localStorage.setItem(FIRST_PATIENT_HINT_KEY, '1');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showPatientHint) return;
+    const timer = setTimeout(() => setShowPatientHint(false), 7000);
+    return () => clearTimeout(timer);
+  }, [showPatientHint]);
 
   if (view === 'loader') {
     return (
@@ -416,7 +446,11 @@ function App() {
       return (
         <div className="space-y-6">
           <h2 className="page-title">Base de Pacientes</h2>
-          <p className="page-subtitle">Clique em um paciente para abrir a tela N2 com os dados completos.</p>
+          <TransientNotice
+            visible={showPatientHint}
+            message="Clique em um paciente para abrir a tela N2 com os dados completos."
+            onClose={() => setShowPatientHint(false)}
+          />
           <div className="quick-filters-shell">
             <button className="btn btn--icon btn--quick-nav" onClick={() => scrollQuickFilters('left')} aria-label="Rolar filtros para esquerda">←</button>
             <div className="quick-filters-grid" ref={quickFiltersRef}>

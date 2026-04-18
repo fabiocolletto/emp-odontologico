@@ -292,6 +292,32 @@ select {
   font-size: 1.05rem;
 }
 
+.transient-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid #c9dff5;
+  background: linear-gradient(180deg, #f3f9ff 0%, #eaf4ff 100%);
+  padding: 0.7rem 0.85rem;
+  color: #0f3558;
+}
+
+.transient-notice__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.transient-notice__close {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.73rem;
+  background: #ffffff;
+}
+
 /* ---------- Reusable Components ---------- */
 .kpi-value {
   font-size: clamp(1.8rem, 2.7vw, 2.4rem);
