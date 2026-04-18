@@ -6,10 +6,132 @@ const tabs = [
   { id: 'settings', label: 'Configurações' }
 ];
 
-const appointments = [
+
+const CSV_PATH = './backend/supabase/sample-data';
+
+const parseCsv = (csvText) => {
+  const [headersLine, ...lines] = csvText.trim().split('\n');
+  if (!headersLine) return [];
+  const headers = headersLine.split(',').map((item) => item.trim());
+
+  return lines
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const values = line.split(',').map((value) => value.trim());
+      return headers.reduce((acc, key, index) => {
+        acc[key] = values[index] ?? '';
+        return acc;
+      }, {});
+    });
+};
+
+const toDate = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('pt-BR');
+};
+
+const toTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '--:--';
+  return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+};
+
+const fetchCsv = async (fileName) => {
+  const response = await fetch(`${CSV_PATH}/${fileName}`);
+  if (!response.ok) throw new Error(fileName);
+  return response.text();
+};
+
+const loadClinicDataset = async () => {
+  const [patientsCsv, proceduresCsv, appointmentsCsv] = await Promise.all([
+    fetchCsv('patients.csv'),
+    fetchCsv('procedures.csv'),
+    fetchCsv('appointments.csv')
+  ]);
+
+  const patientsRaw = parseCsv(patientsCsv);
+  const proceduresRaw = parseCsv(proceduresCsv);
+  const appointmentsRaw = parseCsv(appointmentsCsv);
+
+  const procedureMap = new Map(proceduresRaw.map((item) => [item.id, item.name]));
+  const patients = patientsRaw.map((item) => ({
+    id: item.id,
+    name: item.full_name,
+    phone: item.phone,
+    email: item.email,
+    birth: toDate(item.birth_date),
+    plan: 'Particular',
+    notes: item.notes,
+    lastVisit: '-'
+  }));
+
+  const lastVisitMap = new Map();
+  appointmentsRaw.forEach((item) => {
+    if (item.status !== 'done') return;
+    const prev = lastVisitMap.get(item.patient_id);
+    if (!prev || new Date(item.starts_at) > new Date(prev)) {
+      lastVisitMap.set(item.patient_id, item.starts_at);
+    }
+  });
+
+  const appointments = appointmentsRaw.map((item) => {
+    const patient = patients.find((p) => p.id === item.patient_id);
+    return {
+      id: item.id,
+      name: patient?.name ?? 'Paciente não encontrado',
+      time: toTime(item.starts_at),
+      procedure: procedureMap.get(item.procedure_id) ?? 'Procedimento não encontrado'
+    };
+  });
+
+  return {
+    appointments,
+    patients: patients.map((item) => ({
+      ...item,
+      lastVisit: toDate(lastVisitMap.get(item.id))
+    }))
+  };
+};
+
+const FALLBACK_APPOINTMENTS = [
   { id: 1, name: 'Ana Paula Souza', time: '09:00', procedure: 'Limpeza Profilática' },
   { id: 2, name: 'Ricardo Albuquerque', time: '10:30', procedure: 'Extração Siso' },
   { id: 3, name: 'Juliana Ferreira', time: '14:15', procedure: 'Avaliação Ortodôntica' }
+];
+
+const FALLBACK_PATIENTS = [
+  {
+    id: 1,
+    name: 'Ana Paula Souza',
+    phone: '(11) 98877-6655',
+    lastVisit: '12 Abr 2024',
+    birth: '15/05/1992',
+    email: 'ana.souza@email.com',
+    plan: 'Particular',
+    notes: 'Paciente com histórico de sensibilidade em molares.'
+  },
+  {
+    id: 2,
+    name: 'Ricardo Albuquerque',
+    phone: '(11) 97766-5544',
+    lastVisit: '08 Abr 2024',
+    birth: '22/10/1985',
+    email: 'ricardo.albuquerque@email.com',
+    plan: 'Convênio Odonto+',
+    notes: 'Em acompanhamento de pós-extração.'
+  },
+  {
+    id: 3,
+    name: 'Juliana Ferreira',
+    phone: '(11) 96655-4433',
+    lastVisit: '15 Abr 2024',
+    birth: '03/01/1998',
+    email: 'juliana.ferreira@email.com',
+    plan: 'Particular',
+    notes: 'Avaliação ortodôntica solicitada.'
+  }
 ];
 
 function App() {
@@ -17,39 +139,9 @@ function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showPatientN2, setShowPatientN2] = useState(false);
-
-  const patients = [
-    {
-      id: 1,
-      name: 'Ana Paula Souza',
-      phone: '(11) 98877-6655',
-      lastVisit: '12 Abr 2024',
-      birth: '15/05/1992',
-      email: 'ana.souza@email.com',
-      plan: 'Particular',
-      notes: 'Paciente com histórico de sensibilidade em molares.'
-    },
-    {
-      id: 2,
-      name: 'Ricardo Albuquerque',
-      phone: '(11) 97766-5544',
-      lastVisit: '08 Abr 2024',
-      birth: '22/10/1985',
-      email: 'ricardo.albuquerque@email.com',
-      plan: 'Convênio Odonto+',
-      notes: 'Em acompanhamento de pós-extração.'
-    },
-    {
-      id: 3,
-      name: 'Juliana Ferreira',
-      phone: '(11) 96655-4433',
-      lastVisit: '15 Abr 2024',
-      birth: '03/01/1998',
-      email: 'juliana.ferreira@email.com',
-      plan: 'Particular',
-      notes: 'Avaliação ortodôntica solicitada.'
-    }
-  ];
+  const [patients, setPatients] = useState(FALLBACK_PATIENTS);
+  const [appointments, setAppointments] = useState(FALLBACK_APPOINTMENTS);
+  const [usingFallbackData, setUsingFallbackData] = useState(true);
 
   const openPatientN2 = (patient) => {
     setSelectedPatient(patient);
@@ -58,7 +150,24 @@ function App() {
 
   useEffect(() => {
     const t = setTimeout(() => setView('landing'), 700);
-    return () => clearTimeout(t);
+
+    let mounted = true;
+    loadClinicDataset()
+      .then((dataset) => {
+        if (!mounted) return;
+        setPatients(dataset.patients);
+        setAppointments(dataset.appointments);
+        setUsingFallbackData(false);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setUsingFallbackData(true);
+      });
+
+    return () => {
+      mounted = false;
+      clearTimeout(t);
+    };
   }, []);
 
   if (view === 'loader') {
@@ -99,6 +208,11 @@ function App() {
       return (
         <div className="space-y-6">
           <h2 className="page-title">Painel Diário</h2>
+          {usingFallbackData && (
+            <p className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3 py-2">
+              Dados de fallback ativos. Quando os arquivos em backend/supabase/sample-data estiverem disponíveis no servidor, os dados reais serão usados automaticamente.
+            </p>
+          )}
           <div className="data-grid">
             <div className="bg-white border data-card data-card--p"><p className="kpi-label">Atendimentos</p><p className="kpi-value">12</p></div>
             <div className="bg-white border data-card data-card--p"><p className="kpi-label">Faturamento</p><p className="kpi-value">R$ 8.4k</p></div>
