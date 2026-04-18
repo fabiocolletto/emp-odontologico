@@ -253,10 +253,10 @@ const PatientN2Modal = ({
         <div className="modal-header">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">
-              Tela N2 · {isCreateMode ? 'Novo cadastro' : 'Prontuário'}
+              Tela N2 · {isCreateMode ? 'Novo paciente' : 'Prontuário'}
             </p>
             <h3 className="text-xl font-bold text-slate-900">
-              {isCreateMode ? 'Novo cliente' : patient?.name}
+              {isCreateMode ? 'Novo paciente' : patient?.name}
             </h3>
           </div>
           <button onClick={onClose} className="btn btn--ghost">Fechar</button>
@@ -365,7 +365,7 @@ const PatientN2Modal = ({
             <button className="btn btn--ghost" onClick={onNextTab}>Próxima etapa</button>
             {isCreateMode && (
               <button className="btn btn--primary modal-save" onClick={onSubmit}>
-                Salvar cliente
+                Salvar paciente
               </button>
             )}
           </div>
@@ -468,7 +468,7 @@ function App() {
 
   const handleCreatePatientSubmit = () => {
     if (!newPatientForm.name.trim() || !newPatientForm.phone.trim()) {
-      setFormFeedback('Preencha ao menos nome e telefone para salvar o cliente.');
+      setFormFeedback('Preencha ao menos nome e telefone para salvar o paciente.');
       return;
     }
 
@@ -714,7 +714,7 @@ function App() {
           <div className="page-header">
             <h2 className="page-title">Base de Pacientes</h2>
             <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
-              + Novo cliente
+              + Novo paciente
             </button>
           </div>
           <TransientNotice
