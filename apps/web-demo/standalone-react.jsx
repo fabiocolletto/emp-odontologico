@@ -277,7 +277,7 @@ function App() {
 
   if (view === 'loader') {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-white space-y-4">
+      <div className="app-viewport flex flex-col items-center justify-center bg-white space-y-4">
         <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
       </div>
@@ -286,7 +286,7 @@ function App() {
 
   if (view === 'landing') {
     return (
-      <div className="h-screen flex flex-col items-center justify-between bg-[#F2F2F7] p-10 py-24 text-center">
+      <div className="app-viewport flex flex-col items-center justify-between bg-[#F2F2F7] p-10 py-24 text-center">
         <div className="space-y-8">
           <div className="w-20 h-20 bg-sky-700 rounded-2xl flex items-center justify-center text-white shadow-2xl mx-auto text-3xl">🦷</div>
           <div className="space-y-3">

@@ -1,5 +1,6 @@
 :root {
   color-scheme: light;
+  --viewport-h: 100vh;
 
   /* Core palette */
   --bg-page: #eef2f6;
@@ -45,6 +46,12 @@
   --card-m-h: 144px;
   --card-g-min: 360px;
   --card-g-h: 192px;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --viewport-h: 100dvh;
+  }
 }
 
 * {
@@ -210,16 +217,20 @@ select {
   border-radius: var(--radius-xl);
 }
 
+.app-viewport {
+  min-height: var(--viewport-h);
+}
+
 /* ---------- Layout ---------- */
 .app-shell {
-  min-height: 100vh;
+  min-height: var(--viewport-h);
   background: var(--bg-page);
 }
 
 .app-frame {
   display: flex;
-  min-height: 100vh;
-  height: 100vh;
+  min-height: var(--viewport-h);
+  height: var(--viewport-h);
   overflow: hidden;
 }
 
@@ -231,7 +242,7 @@ select {
   display: none;
   flex-direction: column;
   gap: var(--space-6);
-  height: 100vh;
+  height: var(--viewport-h);
   overflow-y: auto;
 }
 
@@ -253,7 +264,7 @@ select {
 .app-content {
   flex: 1;
   min-height: 0;
-  height: 100vh;
+  height: var(--viewport-h);
   overflow-y: auto;
   padding: clamp(1.2rem, 2vw, 2.2rem);
   padding-bottom: 6.5rem;
