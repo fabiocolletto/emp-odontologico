@@ -165,6 +165,115 @@ select {
   color: #fff;
 }
 
+.mobile-drawer-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+}
+
+.mobile-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(2, 8, 23, 0.36);
+}
+
+.mobile-drawer-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 76vh;
+  overflow-y: auto;
+  border-radius: 18px 18px 0 0;
+  background: #fff;
+  border-top: 1px solid var(--border-subtle);
+  box-shadow: 0 -14px 34px rgba(2, 8, 23, 0.22);
+  padding: 0.95rem 0.95rem calc(6.6rem + env(safe-area-inset-bottom));
+}
+
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.mobile-drawer-header h3 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 1.02rem;
+}
+
+.mobile-drawer-kicker {
+  margin: 0 0 0.1rem;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.mobile-drawer-section {
+  padding-top: 0.55rem;
+}
+
+.mobile-drawer-section__title {
+  margin: 0 0 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mobile-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.mobile-shortcut-shell {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.mobile-shortcut {
+  flex: 1;
+  border: 1px solid var(--border-subtle);
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 12px;
+  padding: 0.5rem 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.mobile-shortcut span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.mobile-shortcut-fav {
+  width: 30px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.mobile-shortcut-fav.is-active {
+  color: #0b6aa7;
+  border-color: #bcd7ff;
+  background: #ebf4ff;
+}
+
 .btn--icon {
   width: 34px;
   height: 34px;

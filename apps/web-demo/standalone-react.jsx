@@ -4,11 +4,20 @@ const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
 const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
 const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
+const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
   { id: 'patients', label: 'Pacientes', icon: 'users' },
   { id: 'settings', label: 'Configurações', icon: 'settings' }
+];
+
+const MOBILE_NAV_SHORTCUTS = [
+  { id: 'overview', label: 'Painel diário', tab: 'overview', icon: 'home', group: 'Atendimento' },
+  { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
+  { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
+  { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
+  { id: 'settings', label: 'Configurações', tab: 'settings', icon: 'settings', group: 'Gestão' }
 ];
 
 const AppIcon = ({ name, size = 14, className = '' }) => {
@@ -22,7 +31,11 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
     email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
     filter: <path d="M4 6h16M7 12h10M10 18h4" />,
-    info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>
+    info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>,
+    star: <path d="m12 3.4 2.7 5.5 6 0.9-4.4 4.3 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.8l6-0.9L12 3.4Z" />,
+    clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
+    map: <><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13L15 19.5 9 17 3.5 19.5v-13Z" /><path d="M9 4v13M15 6.5v13" /></>,
+    menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>
   };
 
   return (
@@ -402,6 +415,14 @@ const readStoredNotesDraft = () => {
   }
 };
 
+const readStoredMobileNavState = () => {
+  try {
+    return JSON.parse(localStorage.getItem(MOBILE_NAV_STATE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
 function App() {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
@@ -429,8 +450,22 @@ function App() {
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
   );
+  const [showMobileNavDrawer, setShowMobileNavDrawer] = useState(false);
+  const [mobileNavState, setMobileNavState] = useState(() => {
+    const stored = readStoredMobileNavState();
+    return {
+      favorites: Array.isArray(stored.favorites) ? stored.favorites : ['patients', 'overview'],
+      recents: Array.isArray(stored.recents) ? stored.recents : []
+    };
+  });
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
+
+  const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
+    if (!acc[shortcut.group]) acc[shortcut.group] = [];
+    acc[shortcut.group].push(shortcut);
+    return acc;
+  }, {});
 
   const openPatientN2 = (patient) => {
     setPatientModalMode('view');
@@ -492,6 +527,37 @@ function App() {
     setNewPatientForm(createEmptyPatientForm());
     setFormFeedback('');
     setShowPatientHint(true);
+  };
+
+  const registerMobileRecent = (shortcutId) => {
+    setMobileNavState((prev) => {
+      const recents = [shortcutId, ...prev.recents.filter((item) => item !== shortcutId)].slice(0, 5);
+      return { ...prev, recents };
+    });
+  };
+
+  const handleMobileShortcut = (shortcut) => {
+    if (!shortcut) return;
+    registerMobileRecent(shortcut.id);
+    setShowMobileNavDrawer(false);
+
+    if (shortcut.action === 'create-patient') {
+      setActiveTab('patients');
+      openCreatePatientN2();
+      return;
+    }
+
+    setActiveTab(shortcut.tab);
+  };
+
+  const toggleMobileFavorite = (shortcutId) => {
+    setMobileNavState((prev) => {
+      const exists = prev.favorites.includes(shortcutId);
+      const favorites = exists
+        ? prev.favorites.filter((item) => item !== shortcutId)
+        : [...prev.favorites, shortcutId].slice(-6);
+      return { ...prev, favorites };
+    });
   };
 
   const scrollQuickFilters = (direction) => {
@@ -582,6 +648,10 @@ function App() {
   }, [notesDraft]);
 
   useEffect(() => {
+    localStorage.setItem(MOBILE_NAV_STATE_KEY, JSON.stringify(mobileNavState));
+  }, [mobileNavState]);
+
+  useEffect(() => {
     setPatientsPage(1);
   }, [patientsQuery, quickPatientFilter]);
 
@@ -626,6 +696,12 @@ function App() {
     const timer = setTimeout(() => setFormFeedback(''), 4000);
     return () => clearTimeout(timer);
   }, [formFeedback]);
+
+  useEffect(() => {
+    const tabShortcutId = MOBILE_NAV_SHORTCUTS.find((item) => item.id === activeTab)?.id || activeTab;
+    if (!isMobileViewport) return;
+    registerMobileRecent(tabShortcutId);
+  }, [activeTab, isMobileViewport]);
 
   useEffect(() => {
     if (!isMobileViewport || activeTab !== 'patients') return;
@@ -998,7 +1074,80 @@ function App() {
             {tab.label}
           </button>
         ))}
+        <button
+          onClick={() => setShowMobileNavDrawer((prev) => !prev)}
+          className={`btn btn--mobile-tab ${showMobileNavDrawer ? 'is-active' : ''}`}
+          aria-expanded={showMobileNavDrawer}
+          aria-controls="mobile-navigation-drawer"
+        >
+          <AppIcon name="map" size={13} />
+          Mapa
+        </button>
       </nav>
+
+      {showMobileNavDrawer && (
+        <div className="mobile-drawer-wrap md:hidden">
+          <button className="mobile-drawer-backdrop" onClick={() => setShowMobileNavDrawer(false)} aria-label="Fechar mapa de navegação"></button>
+          <aside id="mobile-navigation-drawer" className="mobile-drawer-panel">
+            <div className="mobile-drawer-header">
+              <div>
+                <p className="mobile-drawer-kicker">Navegação inteligente</p>
+                <h3>Mapa rápido</h3>
+              </div>
+              <button className="btn btn--ghost" onClick={() => setShowMobileNavDrawer(false)}>Fechar</button>
+            </div>
+
+            <section className="mobile-drawer-section">
+              <p className="mobile-drawer-section__title"><AppIcon name="star" size={12} /> Favoritos</p>
+              <div className="mobile-drawer-grid">
+                {MOBILE_NAV_SHORTCUTS
+                  .filter((item) => mobileNavState.favorites.includes(item.id))
+                  .map((shortcut) => (
+                    <button key={shortcut.id} className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
+                      <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
+                    </button>
+                  ))}
+              </div>
+            </section>
+
+            <section className="mobile-drawer-section">
+              <p className="mobile-drawer-section__title"><AppIcon name="clock" size={12} /> Últimos acessos</p>
+              <div className="mobile-drawer-grid">
+                {mobileNavState.recents
+                  .map((id) => MOBILE_NAV_SHORTCUTS.find((shortcut) => shortcut.id === id))
+                  .filter(Boolean)
+                  .map((shortcut) => (
+                    <button key={`recent-${shortcut.id}`} className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
+                      <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
+                    </button>
+                  ))}
+              </div>
+            </section>
+
+            {Object.entries(groupedMobileShortcuts).map(([group, shortcuts]) => (
+              <section className="mobile-drawer-section" key={group}>
+                <p className="mobile-drawer-section__title"><AppIcon name="menu" size={12} /> {group}</p>
+                <div className="mobile-drawer-grid">
+                  {shortcuts.map((shortcut) => (
+                    <div key={`group-${shortcut.id}`} className="mobile-shortcut-shell">
+                      <button className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
+                        <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
+                      </button>
+                      <button
+                        className={`mobile-shortcut-fav ${mobileNavState.favorites.includes(shortcut.id) ? 'is-active' : ''}`}
+                        onClick={() => toggleMobileFavorite(shortcut.id)}
+                        aria-label={`Favoritar ${shortcut.label}`}
+                      >
+                        <AppIcon name="star" size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </aside>
+        </div>
+      )}
 
       <PatientN2Modal
         isOpen={showPatientN2 && (patientModalMode === 'create' || Boolean(selectedPatient))}
