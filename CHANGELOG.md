@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.5 - 2026-04-19
+
+### Changed
+- Tela nível 0 no mobile passa a exibir sessão "Links rápidos" abaixo do subtítulo.
+- Atalhos do header migrados para linha única com carrossel horizontal contínuo (sem botões de navegação).
+
 ## v0.1.4 - 2026-04-19
 
 ### Changed

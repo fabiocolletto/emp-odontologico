@@ -568,6 +568,7 @@ function App() {
   const [dragShortcutId, setDragShortcutId] = useState(null);
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
+  const quickLinksCarouselRef = useRef(null);
 
   const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
     if (!acc[shortcut.group]) acc[shortcut.group] = [];
@@ -680,6 +681,23 @@ function App() {
       if (prev.favorites.includes(shortcutId)) return prev;
       return { ...prev, favorites: [...prev.favorites, shortcutId].slice(-6) };
     });
+  };
+
+  const handleQuickLinksInfiniteScroll = () => {
+    const track = quickLinksCarouselRef.current;
+    if (!track) return;
+
+    const segmentWidth = track.scrollWidth / 2;
+    if (!segmentWidth) return;
+
+    if (track.scrollLeft <= 0) {
+      track.scrollLeft = segmentWidth;
+      return;
+    }
+
+    if (track.scrollLeft >= segmentWidth * 2 - track.clientWidth - 2) {
+      track.scrollLeft = segmentWidth;
+    }
   };
 
   const handleStartPatientEdit = () => {
@@ -920,6 +938,13 @@ function App() {
     return () => observer.disconnect();
   }, [activeTab, isMobileViewport, appointmentsPagination.totalPages, filteredAppointments.length]);
 
+  useEffect(() => {
+    if (!isMobileViewport || activeTab !== 'overview') return;
+    const track = quickLinksCarouselRef.current;
+    if (!track) return;
+    track.scrollLeft = track.scrollWidth / 2;
+  }, [isMobileViewport, activeTab]);
+
   if (view === 'loader') {
     return (
       <div className="app-viewport flex flex-col items-center justify-center bg-white space-y-4">
@@ -962,47 +987,45 @@ function App() {
   }
 
   const renderContent = () => {
-    const appHeaderActions = activeTab === 'overview'
-      ? [
-        {
-          key: 'agenda-hoje',
-          tone: 'neutral',
-          icon: 'calendar',
-          label: 'Agenda',
-          ariaLabel: 'Ir para agenda de hoje',
-          onClick: () => {
-            setActiveTab('overview');
-            setAppointmentsQuery('');
-          }
-        },
-        {
-          key: 'patients',
-          tone: 'neutral',
-          icon: 'users',
-          label: 'Pacientes',
-          ariaLabel: 'Abrir base de pacientes',
-          onClick: () => setActiveTab('patients')
-        },
-        {
-          key: 'new-patient',
-          tone: 'neutral',
-          icon: 'edit',
-          label: 'Novo',
-          ariaLabel: 'Cadastrar novo paciente',
-          onClick: () => {
-            setActiveTab('patients');
-            openCreatePatientN2();
-          }
-        },
-        {
-          key: 'settings',
-          tone: 'neutral',
-          icon: 'settings',
-          label: 'Config',
-          ariaLabel: 'Abrir configurações',
-          onClick: () => setActiveTab('settings')
+    const overviewQuickLinks = [
+      {
+        key: 'agenda-hoje',
+        icon: 'calendar',
+        label: 'Agenda',
+        ariaLabel: 'Ir para agenda de hoje',
+        onClick: () => {
+          setActiveTab('overview');
+          setAppointmentsQuery('');
         }
-      ]
+      },
+      {
+        key: 'patients',
+        icon: 'users',
+        label: 'Pacientes',
+        ariaLabel: 'Abrir base de pacientes',
+        onClick: () => setActiveTab('patients')
+      },
+      {
+        key: 'new-patient',
+        icon: 'edit',
+        label: 'Novo',
+        ariaLabel: 'Cadastrar novo paciente',
+        onClick: () => {
+          setActiveTab('patients');
+          openCreatePatientN2();
+        }
+      },
+      {
+        key: 'settings',
+        icon: 'settings',
+        label: 'Config',
+        ariaLabel: 'Abrir configurações',
+        onClick: () => setActiveTab('settings')
+      }
+    ];
+
+    const appHeaderActions = activeTab === 'overview'
+      ? []
       : [
         {
           key: 'open-map',
@@ -1014,13 +1037,37 @@ function App() {
         }
       ];
 
-    const renderN1Header = ({ icon, title, subtitle, actions = appHeaderActions }) => (
+    const overviewQuickLinksNavigation = (
+      <div className="quick-links-shell">
+        <p className="quick-links-title">Links rápidos</p>
+        <div
+          ref={quickLinksCarouselRef}
+          className="quick-links-carousel"
+          onScroll={handleQuickLinksInfiniteScroll}
+        >
+          {[...overviewQuickLinks, ...overviewQuickLinks].map((link, index) => (
+            <button
+              key={`${link.key}-${index}`}
+              className="quick-links-btn"
+              onClick={link.onClick}
+              aria-label={link.ariaLabel}
+            >
+              <AppIcon name={link.icon} size={14} />
+              <span>{link.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    const renderN1Header = ({ icon, title, subtitle, actions = appHeaderActions, navigation = null }) => (
       isMobileViewport ? (
         <BioHeader
           icon={icon}
           title={title}
           subtitle={subtitle}
           actions={actions}
+          navigation={navigation}
         />
       ) : null
     );
@@ -1028,7 +1075,13 @@ function App() {
     if (activeTab === 'overview') {
       return (
         <div className="space-y-6">
-          {renderN1Header({ icon: 'home', title: 'Painel Diário', subtitle: 'Atendimento e indicadores da clínica' })}
+          {renderN1Header({
+            icon: 'home',
+            title: 'Painel Diário',
+            subtitle: 'Atendimento e indicadores da clínica',
+            actions: [],
+            navigation: overviewQuickLinksNavigation
+          })}
           {!isMobileViewport && <h2 className="page-title">Painel Diário</h2>}
           {usingFallbackData && (
             <p className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3 py-2">

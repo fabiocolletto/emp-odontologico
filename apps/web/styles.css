@@ -762,6 +762,57 @@ select {
   margin-top: 0.42rem;
 }
 
+.quick-links-shell {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.quick-links-title {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.quick-links-carousel {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 0.1rem;
+}
+
+.quick-links-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-links-btn {
+  border: 1px solid color-mix(in srgb, var(--brand-600) 18%, white);
+  background: color-mix(in srgb, #ffffff 92%, #eef4ff);
+  color: var(--brand-700);
+  border-radius: 999px;
+  min-height: 34px;
+  padding: 0.42rem 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.quick-links-btn:active {
+  transform: translateY(1px);
+}
+
 .bio-breadcrumb {
   margin: 0;
   font-size: 0.73rem;
