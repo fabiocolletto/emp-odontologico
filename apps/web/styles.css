@@ -30,8 +30,8 @@
   --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.06);
   --shadow-md: 0 10px 24px rgba(2, 6, 23, 0.08);
   --shadow-lg: 0 24px 50px rgba(2, 6, 23, 0.16);
-  --btn-glass-bg: rgba(15, 106, 167, 0.86);
-  --btn-glass-bg-hover: rgba(11, 90, 143, 0.9);
+  --btn-glass-bg: rgba(15, 106, 167, 0.56);
+  --btn-glass-bg-hover: rgba(11, 90, 143, 0.68);
   --btn-glass-border: rgba(255, 255, 255, 0.34);
   --btn-glass-text: #f8fbff;
 
@@ -137,7 +137,7 @@ select {
 }
 
 .btn--nav {
-  background: rgba(15, 106, 167, 0.62);
+  background: rgba(15, 106, 167, 0.52);
   color: var(--btn-glass-text);
   text-align: left;
   width: 100%;
@@ -146,21 +146,21 @@ select {
 }
 
 .btn--nav.is-active {
-  background: rgba(11, 90, 143, 0.72);
+  background: rgba(11, 90, 143, 0.62);
   color: var(--btn-glass-text);
   box-shadow: 0 10px 22px rgba(2, 6, 23, 0.22);
 }
 
 .btn--nav--overview {
-  background: rgba(14, 116, 144, 0.62);
+  background: rgba(14, 116, 144, 0.52);
 }
 
 .btn--nav--patients {
-  background: rgba(37, 99, 235, 0.62);
+  background: rgba(37, 99, 235, 0.52);
 }
 
 .btn--nav--settings {
-  background: rgba(124, 58, 237, 0.62);
+  background: rgba(124, 58, 237, 0.52);
 }
 
 .btn--mobile-tab {
@@ -841,27 +841,27 @@ select {
 .quick-links-btn--multi {
   color: var(--btn-glass-text);
   border-color: var(--btn-glass-border);
-  background: rgba(15, 106, 167, 0.82);
+  background: rgba(15, 106, 167, 0.52);
 }
 
-.quick-links-btn--overview { background: rgba(14, 116, 144, 0.82); }
-.quick-links-btn--agenda { background: rgba(8, 145, 178, 0.82); }
-.quick-links-btn--patients { background: rgba(37, 99, 235, 0.82); }
-.quick-links-btn--new { background: rgba(5, 150, 105, 0.82); }
-.quick-links-btn--search { background: rgba(59, 130, 246, 0.82); }
-.quick-links-btn--multi { background: rgba(22, 163, 74, 0.82); }
-.quick-links-btn--settings { background: rgba(124, 58, 237, 0.82); }
+.quick-links-btn--overview { background: rgba(14, 116, 144, 0.52); }
+.quick-links-btn--agenda { background: rgba(8, 145, 178, 0.52); }
+.quick-links-btn--patients { background: rgba(37, 99, 235, 0.52); }
+.quick-links-btn--new { background: rgba(5, 150, 105, 0.52); }
+.quick-links-btn--search { background: rgba(59, 130, 246, 0.52); }
+.quick-links-btn--multi { background: rgba(22, 163, 74, 0.52); }
+.quick-links-btn--settings { background: rgba(124, 58, 237, 0.52); }
 
 .n2-mobile-nav__btn--prev {
-  background: rgba(14, 116, 144, 0.82);
+  background: rgba(14, 116, 144, 0.52);
 }
 
 .n2-mobile-nav__btn--next {
-  background: rgba(37, 99, 235, 0.82);
+  background: rgba(37, 99, 235, 0.52);
 }
 
 .n2-mobile-nav__btn--map {
-  background: rgba(124, 58, 237, 0.82);
+  background: rgba(124, 58, 237, 0.52);
 }
 
 .quick-links-btn:active {
@@ -903,22 +903,22 @@ select {
   padding: 0.62rem 0.95rem;
   border-radius: var(--radius-md);
   box-shadow: 0 8px 20px rgba(2, 6, 23, 0.18);
-  background: rgba(15, 106, 167, 0.62);
+  background: rgba(15, 106, 167, 0.52);
   border-color: rgba(255, 255, 255, 0.32);
 }
 
 .btn--header-new {
-  background: rgba(14, 116, 144, 0.62);
+  background: rgba(14, 116, 144, 0.52);
   border-color: rgba(255, 255, 255, 0.32);
 }
 
 .btn--header-search {
-  background: rgba(37, 99, 235, 0.62);
+  background: rgba(37, 99, 235, 0.52);
   border-color: rgba(255, 255, 255, 0.32);
 }
 
 .btn--header-multi {
-  background: rgba(22, 163, 74, 0.62);
+  background: rgba(22, 163, 74, 0.52);
   border-color: rgba(255, 255, 255, 0.32);
 }
 
@@ -1633,6 +1633,15 @@ select {
 }
 
 @media (max-width: 640px) {
+  .btn,
+  .quick-links-btn,
+  .n2-mobile-nav__btn,
+  .mobile-shortcut {
+    background-color: rgba(15, 106, 167, 0.48);
+    backdrop-filter: blur(14px) saturate(125%);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+  }
+
   .transient-notice {
     bottom: max(1rem, env(safe-area-inset-bottom));
   }

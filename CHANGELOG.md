@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.25 - 2026-04-19
+
+### Fixed
+- Corrigido o motivo da falta de transparência percebida em botões mobile: opacidades locais estavam altas (0.62/0.82), reduzindo o efeito glassmorphism.
+- Botões mobile agora usam opacidade menor e reforço de blur/saturação para manter transparência visual consistente.
+
 ## v0.1.24 - 2026-04-19
 
 ### Changed

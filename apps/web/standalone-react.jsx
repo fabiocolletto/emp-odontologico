@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.24';
+const APP_VERSION_FALLBACK = '0.1.25';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
