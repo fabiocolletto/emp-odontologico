@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.12 - 2026-04-19
+
+### Changed
+- Base de pacientes (mobile): linha de botões do header volta a exibir somente atalhos esperados (`Painel` e `Novo`), sem ações duplicadas.
+- Tela nível 0: removido o botão `Novo` da lista de navegação rápida.
+- Header mobile e seção de pesquisa da base de pacientes ajustados para estilo flat (redução do efeito caixa sobre caixa).
+
 ## v0.1.11 - 2026-04-19
 
 ### Fixed
