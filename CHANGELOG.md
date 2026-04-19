@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.6 - 2026-04-19
+
+### Changed
+- Header do nível 0 reorganizado com subtítulo logo abaixo do título.
+- Título da seção de links rápidos ocultado para deixar o cabeçalho mais limpo no mobile.
+
 ## v0.1.5 - 2026-04-19
 
 ### Changed

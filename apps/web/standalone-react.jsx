@@ -78,7 +78,10 @@ const BioHeader = ({
         <span className="bio-header__icon">
           <AppIcon name={icon} size={15} />
         </span>
-        <h2 className="bio-header__title">{title}</h2>
+        <div className="bio-header__heading">
+          <h2 className="bio-header__title">{title}</h2>
+          {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
+        </div>
       </div>
       <div className={`bio-header__actions ${actions.length > 2 ? 'bio-header__actions--grid' : ''}`}>
         {actions.map((action) => (
@@ -94,9 +97,8 @@ const BioHeader = ({
         ))}
       </div>
     </div>
-    {(subtitle || navigation) ? (
+    {navigation ? (
       <div className="bio-header__bottom">
-        {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
         {navigation ? <div className="bio-header__nav">{navigation}</div> : null}
       </div>
     ) : null}
@@ -1039,7 +1041,6 @@ function App() {
 
     const overviewQuickLinksNavigation = (
       <div className="quick-links-shell">
-        <p className="quick-links-title">Links rápidos</p>
         <div
           ref={quickLinksCarouselRef}
           className="quick-links-carousel"
