@@ -22,7 +22,7 @@ import {
   X
 } from 'lucide-react';
 import { APPOINTMENTS, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
-import { loadClinicDataset } from './data-gateway.js';
+import { fetchAddressByCep, loadClinicDataset } from './data-gateway.js';
 import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, UiButton, ViewLayout } from './components.js';
 
 const Dashboard = () => {
@@ -38,6 +38,19 @@ const Dashboard = () => {
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [patientForm, setPatientForm] = useState({
+    name: '',
+    phone: '',
+    cep: '',
+    street: '',
+    number: '',
+    complement: '',
+    neighborhood: '',
+    city: '',
+    state: ''
+  });
+  const [cepLookupStatus, setCepLookupStatus] = useState('idle');
+  const [cepLookupMessage, setCepLookupMessage] = useState('');
   const [newProcName, setNewProcName] = useState('');
   const [patientsSort, setPatientsSort] = useState('name-asc');
 
@@ -75,6 +88,55 @@ const Dashboard = () => {
     setIsEditing(false);
   };
 
+  const formatCep = (rawValue) => {
+    const digits = String(rawValue || '').replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const fillPatientForm = (patient) => {
+    const address = patient?.address || {};
+
+    setPatientForm({
+      name: patient?.name || '',
+      phone: patient?.phone || '',
+      cep: address.cep ? formatCep(address.cep) : '',
+      street: address.street || '',
+      number: address.number || '',
+      complement: address.complement || '',
+      neighborhood: address.neighborhood || '',
+      city: address.city || '',
+      state: address.state || ''
+    });
+    setCepLookupStatus('idle');
+    setCepLookupMessage('');
+  };
+
+  const handleCepLookup = async () => {
+    if (!isEditing) return;
+    setCepLookupStatus('loading');
+    setCepLookupMessage('Buscando endereço pelo CEP...');
+
+    try {
+      const address = await fetchAddressByCep(patientForm.cep);
+
+      setPatientForm((current) => ({
+        ...current,
+        cep: formatCep(address.cep),
+        street: address.street || current.street,
+        neighborhood: address.neighborhood || current.neighborhood,
+        city: address.city || current.city,
+        state: address.state || current.state
+      }));
+
+      setCepLookupStatus('success');
+      setCepLookupMessage('Campos principais preenchidos. Complete número e complemento.');
+    } catch (error) {
+      setCepLookupStatus('error');
+      setCepLookupMessage(error?.message || 'Não foi possível consultar o CEP.');
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -99,6 +161,11 @@ const Dashboard = () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!modalPatient) return;
+    fillPatientForm(selectedPatient);
+  }, [modalPatient, selectedPatient]);
 
   return (
     <div className="min-h-screen bg-[#EAEEF2] flex flex-col md:flex-row font-sans selection:bg-sky-100">
@@ -320,7 +387,7 @@ const Dashboard = () => {
             <>
               {isEditing ? (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
-                  <UiButton onClick={() => setIsEditing(false)} icon={X} tone="danger" labelLayout="hidden" />
+                  <UiButton onClick={() => { setIsEditing(false); fillPatientForm(selectedPatient); }} icon={X} tone="danger" labelLayout="hidden" />
                   <UiButton onClick={() => { setIsEditing(false); setModalPatient(false); }} icon={Check} tone="success" labelLayout="hidden" className="shadow-lg" />
                 </div>
               ) : (
@@ -341,7 +408,8 @@ const Dashboard = () => {
               <input
                 type="text"
                 disabled={!isEditing}
-                defaultValue={selectedPatient?.name || ''}
+                value={patientForm.name}
+                onChange={(event) => setPatientForm((current) => ({ ...current, name: event.target.value }))}
                 className="w-full bg-transparent border-none text-lg font-bold text-slate-900 outline-none"
                 placeholder="João da Silva"
               />
@@ -350,11 +418,120 @@ const Dashboard = () => {
               <input
                 type="text"
                 disabled={!isEditing}
-                defaultValue={selectedPatient?.phone || ''}
+                value={patientForm.phone}
+                onChange={(event) => setPatientForm((current) => ({ ...current, phone: event.target.value }))}
                 className="w-full bg-transparent border-none text-lg font-bold text-slate-900 outline-none"
                 placeholder="(00) 00000-0000"
               />
             </FormField>
+          </div>
+
+          <div className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm p-6 md:p-8 space-y-5">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Etapa</p>
+                <h4 className="text-lg font-bold text-slate-900">Cadastro de Endereço</h4>
+              </div>
+              <UiButton
+                onClick={handleCepLookup}
+                label={cepLookupStatus === 'loading' ? 'Buscando...' : 'Buscar CEP'}
+                tone={cepLookupStatus === 'error' ? 'danger' : 'info'}
+                size="sm"
+                disabled={!isEditing || cepLookupStatus === 'loading'}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                CEP
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.cep}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, cep: formatCep(event.target.value) }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="00000-000"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Número
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.number}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, number: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preencher manualmente"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider md:col-span-2">
+                Rua / Logradouro
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.street}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, street: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preenchido automaticamente pelo CEP"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Bairro
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.neighborhood}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, neighborhood: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preenchido automaticamente pelo CEP"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Cidade
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.city}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, city: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preenchido automaticamente pelo CEP"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                UF
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.state}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, state: event.target.value.toUpperCase().slice(0, 2) }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="UF"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider md:col-span-2">
+                Complemento
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.complement}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, complement: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Apartamento, bloco, referência..."
+                />
+              </label>
+            </div>
+
+            {cepLookupMessage && (
+              <p className={`text-xs font-semibold ${cepLookupStatus === 'error' ? 'text-rose-600' : 'text-sky-700'}`}>
+                {cepLookupMessage}
+              </p>
+            )}
           </div>
         </div>
       </AdaptiveModal>
