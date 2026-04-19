@@ -237,6 +237,29 @@ select {
   gap: 0.5rem;
 }
 
+.mobile-drawer-grid--dropzone {
+  min-height: 68px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 0.45rem;
+  background: #f8fafc;
+}
+
+.mobile-drawer-grid--dropzone.is-dragging {
+  border-color: #0b6aa7;
+  background: #edf5ff;
+}
+
+.mobile-drawer-empty {
+  margin: 0;
+  grid-column: 1 / -1;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.35rem;
+}
+
 .mobile-shortcut-shell {
   display: flex;
   gap: 0.35rem;

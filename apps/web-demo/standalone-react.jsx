@@ -465,10 +465,11 @@ function App() {
   const [mobileNavState, setMobileNavState] = useState(() => {
     const stored = readStoredMobileNavState();
     return {
-      favorites: Array.isArray(stored.favorites) ? stored.favorites : ['patients', 'overview'],
+      favorites: Array.isArray(stored.favorites) ? stored.favorites : [],
       recents: Array.isArray(stored.recents) ? stored.recents : []
     };
   });
+  const [dragShortcutId, setDragShortcutId] = useState(null);
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
 
@@ -574,6 +575,14 @@ function App() {
         ? prev.favorites.filter((item) => item !== shortcutId)
         : [...prev.favorites, shortcutId].slice(-6);
       return { ...prev, favorites };
+    });
+  };
+
+  const addMobileFavorite = (shortcutId) => {
+    if (!shortcutId) return;
+    setMobileNavState((prev) => {
+      if (prev.favorites.includes(shortcutId)) return prev;
+      return { ...prev, favorites: [...prev.favorites, shortcutId].slice(-6) };
     });
   };
 
@@ -1175,7 +1184,15 @@ function App() {
 
             <section className="mobile-drawer-section">
               <p className="mobile-drawer-section__title"><AppIcon name="star" size={12} /> Favoritos</p>
-              <div className="mobile-drawer-grid">
+              <div
+                className={`mobile-drawer-grid mobile-drawer-grid--dropzone ${dragShortcutId ? 'is-dragging' : ''}`}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  addMobileFavorite(dragShortcutId);
+                  setDragShortcutId(null);
+                }}
+              >
                 {MOBILE_NAV_SHORTCUTS
                   .filter((item) => mobileNavState.favorites.includes(item.id))
                   .map((shortcut) => (
@@ -1183,6 +1200,11 @@ function App() {
                       <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
                     </button>
                   ))}
+                {mobileNavState.favorites.length === 0 && (
+                  <p className="mobile-drawer-empty">
+                    Arraste um atalho para cá para criar seus favoritos.
+                  </p>
+                )}
               </div>
             </section>
 
@@ -1206,7 +1228,13 @@ function App() {
                 <div className="mobile-drawer-grid">
                   {shortcuts.map((shortcut) => (
                     <div key={`group-${shortcut.id}`} className="mobile-shortcut-shell">
-                      <button className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
+                      <button
+                        className="mobile-shortcut"
+                        onClick={() => handleMobileShortcut(shortcut)}
+                        draggable
+                        onDragStart={() => setDragShortcutId(shortcut.id)}
+                        onDragEnd={() => setDragShortcutId(null)}
+                      >
                         <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
                       </button>
                       <button
