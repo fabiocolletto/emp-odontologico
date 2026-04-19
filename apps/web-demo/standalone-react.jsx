@@ -4,6 +4,7 @@ const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
 const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
 const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
+const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 
 const tabs = [
@@ -655,9 +656,10 @@ function App() {
 
   const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
   const filteredPatients = filterBySearchTerm(quickFilteredPatients, patientsQuery);
-  const patientsPagination = paginateRecords(filteredPatients, patientsPage, PAGE_SIZE_PATIENTS);
+  const patientsPageSize = isMobileViewport ? MOBILE_PAGE_SIZE_PATIENTS : PAGE_SIZE_PATIENTS;
+  const patientsPagination = paginateRecords(filteredPatients, patientsPage, patientsPageSize);
   const visiblePatients = isMobileViewport
-    ? filteredPatients.slice(0, patientsPagination.page * PAGE_SIZE_PATIENTS)
+    ? filteredPatients.slice(0, patientsPagination.page * patientsPageSize)
     : patientsPagination.items;
 
   const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
