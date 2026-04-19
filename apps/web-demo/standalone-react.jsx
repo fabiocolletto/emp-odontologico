@@ -4,11 +4,21 @@ const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
 const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
 const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
+const MOBILE_PAGE_SIZE_PATIENTS = 5;
+const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
   { id: 'patients', label: 'Pacientes', icon: 'users' },
   { id: 'settings', label: 'Configurações', icon: 'settings' }
+];
+
+const MOBILE_NAV_SHORTCUTS = [
+  { id: 'overview', label: 'Painel diário', tab: 'overview', icon: 'home', group: 'Atendimento' },
+  { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
+  { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
+  { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
+  { id: 'settings', label: 'Configurações', tab: 'settings', icon: 'settings', group: 'Gestão' }
 ];
 
 const AppIcon = ({ name, size = 14, className = '' }) => {
@@ -22,7 +32,16 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
     email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
     filter: <path d="M4 6h16M7 12h10M10 18h4" />,
-    info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>
+    info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>,
+    star: <path d="m12 3.4 2.7 5.5 6 0.9-4.4 4.3 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.8l6-0.9L12 3.4Z" />,
+    clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
+    map: <><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13L15 19.5 9 17 3.5 19.5v-13Z" /><path d="M9 4v13M15 6.5v13" /></>,
+    menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
+    edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
+    check: <path d="m5 12 4.2 4.2L19 6.8" />,
+    close: <path d="M6 6l12 12M18 6 6 18" />,
+    'chevron-left': <path d="m14.5 6-6 6 6 6" />,
+    'chevron-right': <path d="m9.5 6 6 6-6 6" />
   };
 
   return (
@@ -203,6 +222,206 @@ const paginateRecords = (records, page, pageSize) => {
   };
 };
 
+const PATIENT_FORM_TABS = [
+  { id: 'identity', label: '1. Identificação' },
+  { id: 'contact', label: '2. Contato' },
+  { id: 'clinical', label: '3. Dados clínicos' }
+];
+
+const createEmptyPatientForm = () => ({
+  name: '',
+  birth: '',
+  phone: '',
+  email: '',
+  plan: 'Particular',
+  notes: ''
+});
+
+const toPatientFromForm = (form) => ({
+  id: `new-${Date.now()}`,
+  name: form.name.trim(),
+  phone: form.phone.trim(),
+  email: form.email.trim() || '-',
+  birth: form.birth ? toDate(form.birth) : '-',
+  plan: form.plan.trim() || 'Particular',
+  notes: form.notes.trim() || 'Sem observações clínicas.',
+  lastVisit: '-'
+});
+
+const PatientN2Modal = ({
+  isOpen,
+  mode,
+  patient,
+  form,
+  viewForm,
+  activeTab,
+  notesValue,
+  isEditingView,
+  onClose,
+  onFormChange,
+  onPreviousTab,
+  onNextTab,
+  onOpenNavigationMap,
+  onSubmit,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit
+}) => {
+  if (!isOpen) return null;
+  const isCreateMode = mode === 'create';
+  const currentTab = PATIENT_FORM_TABS.find((tab) => tab.id === activeTab);
+  const canEditView = !isCreateMode && isEditingView;
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">
+              {isCreateMode ? 'Novo paciente' : patient?.name}
+            </h3>
+            <p className="modal-step-label">Etapa atual: {currentTab?.label}</p>
+          </div>
+          <div className="modal-header__actions">
+            {!isCreateMode && !isEditingView && (
+              <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info" onClick={onStartEdit}>
+                <AppIcon name="edit" size={13} className="btn-icon" />
+                <span className="btn-label">Habilitar edição</span>
+              </button>
+            )}
+            {!isCreateMode && isEditingView && (
+              <>
+                <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral" onClick={onCancelEdit}>
+                  <AppIcon name="close" size={13} className="btn-icon" />
+                  <span className="btn-label">Cancelar</span>
+                </button>
+                <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSaveEdit}>
+                  <AppIcon name="check" size={13} className="btn-icon" />
+                  <span className="btn-label">Salvar</span>
+                </button>
+              </>
+            )}
+            {isCreateMode && (
+              <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSubmit}>
+                <AppIcon name="check" size={13} className="btn-icon" />
+                <span className="btn-label">Salvar paciente</span>
+              </button>
+            )}
+            {!isEditingView && (
+              <button onClick={onClose} className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger" aria-label="Fechar janela">
+                <AppIcon name="close" size={14} className="btn-icon" />
+                <span className="btn-label">Fechar</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="modal-body">
+          {activeTab === 'identity' && (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Nome completo</span>
+                <input
+                  className="form-input"
+                  value={isCreateMode ? form.name : (viewForm?.name || patient?.name || '')}
+                  onChange={(e) => onFormChange('name', e.target.value)}
+                  disabled={!isCreateMode && !canEditView}
+                  placeholder="Ex: Mariana Albuquerque"
+                />
+              </label>
+              <label className="form-field">
+                <span>Data de nascimento</span>
+                <input
+                  className="form-input"
+                  type={isCreateMode ? 'date' : 'text'}
+                  value={isCreateMode ? form.birth : (viewForm?.birth || patient?.birth || '-')}
+                  onChange={(e) => onFormChange('birth', e.target.value)}
+                  disabled={!isCreateMode && !canEditView}
+                />
+              </label>
+            </div>
+          )}
+
+          {activeTab === 'contact' && (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Telefone</span>
+                <input
+                  className="form-input"
+                  value={isCreateMode ? form.phone : (viewForm?.phone || patient?.phone || '')}
+                  onChange={(e) => onFormChange('phone', e.target.value)}
+                  disabled={!isCreateMode && !canEditView}
+                  placeholder="(11) 90000-0000"
+                />
+              </label>
+              <label className="form-field">
+                <span>E-mail</span>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={isCreateMode ? form.email : (viewForm?.email || patient?.email || '')}
+                  onChange={(e) => onFormChange('email', e.target.value)}
+                  disabled={!isCreateMode && !canEditView}
+                  placeholder="nome@email.com"
+                />
+              </label>
+            </div>
+          )}
+
+          {activeTab === 'clinical' && (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Plano</span>
+                <input
+                  className="form-input"
+                  value={isCreateMode ? form.plan : (viewForm?.plan || patient?.plan || '')}
+                  onChange={(e) => onFormChange('plan', e.target.value)}
+                  disabled={!isCreateMode && !canEditView}
+                  placeholder="Particular ou convênio"
+                />
+              </label>
+              {!isCreateMode && (
+                <div className="form-field">
+                  <span>Última visita</span>
+                  <div className="form-static">{patient?.lastVisit || '-'}</div>
+                </div>
+              )}
+              <label className={`form-field ${!isCreateMode ? 'form-field--full' : ''}`}>
+                <span>Observações clínicas</span>
+                <textarea
+                  className="modal-notes-input"
+                  value={isCreateMode ? form.notes : (viewForm?.notes ?? notesValue)}
+                  onChange={(e) => onFormChange('notes', e.target.value)}
+                  disabled={!isCreateMode && !canEditView}
+                  placeholder="Alergias, histórico, cuidados e recomendações..."
+                />
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer modal-footer--stack">
+          <div className="n2-mobile-nav">
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onPreviousTab}>
+              <AppIcon name="chevron-left" size={16} className="btn-icon" />
+              <span className="btn-label">Etapa anterior</span>
+            </button>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onNextTab}>
+              <AppIcon name="chevron-right" size={16} className="btn-icon" />
+              <span className="btn-label">Próxima etapa</span>
+            </button>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onOpenNavigationMap}>
+              <AppIcon name="map" size={14} className="btn-icon" />
+              <span className="btn-label">Mapa</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const applyPatientQuickFilter = (records, filter) => {
   if (filter === 'with-visit') return records.filter((p) => p.lastVisit && p.lastVisit !== '-');
   if (filter === 'without-visit') return records.filter((p) => !p.lastVisit || p.lastVisit === '-');
@@ -228,6 +447,14 @@ const readStoredNotesDraft = () => {
   }
 };
 
+const readStoredMobileNavState = () => {
+  try {
+    return JSON.parse(localStorage.getItem(MOBILE_NAV_STATE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
 function App() {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
@@ -248,11 +475,186 @@ function App() {
   const quickFiltersScrollTimeoutRef = useRef(null);
   const [showPatientHint, setShowPatientHint] = useState(false);
   const [showQuickFilterNav, setShowQuickFilterNav] = useState(true);
+  const [patientModalMode, setPatientModalMode] = useState('view');
+  const [patientFormTab, setPatientFormTab] = useState(PATIENT_FORM_TABS[0].id);
+  const [newPatientForm, setNewPatientForm] = useState(() => createEmptyPatientForm());
+  const [patientViewForm, setPatientViewForm] = useState(() => createEmptyPatientForm());
+  const [isPatientViewEditing, setIsPatientViewEditing] = useState(false);
+  const [formFeedback, setFormFeedback] = useState('');
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
+  );
+  const [showMobileNavDrawer, setShowMobileNavDrawer] = useState(false);
+  const [mobileNavState, setMobileNavState] = useState(() => {
+    const stored = readStoredMobileNavState();
+    return {
+      favorites: Array.isArray(stored.favorites) ? stored.favorites : [],
+      recents: Array.isArray(stored.recents) ? stored.recents : []
+    };
+  });
+  const [dragShortcutId, setDragShortcutId] = useState(null);
+  const patientsInfiniteTriggerRef = useRef(null);
+  const appointmentsInfiniteTriggerRef = useRef(null);
+
+  const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
+    if (!acc[shortcut.group]) acc[shortcut.group] = [];
+    acc[shortcut.group].push(shortcut);
+    return acc;
+  }, {});
 
   const openPatientN2 = (patient) => {
+    setPatientModalMode('view');
+    setPatientFormTab(PATIENT_FORM_TABS[0].id);
     setSelectedPatient(patient);
     setSelectedPatientId(patient?.id || null);
+    setPatientViewForm({
+      name: patient?.name || '',
+      birth: patient?.birth || '-',
+      phone: patient?.phone || '',
+      email: patient?.email || '',
+      plan: patient?.plan || '',
+      notes: notesDraft[patient?.id] ?? patient?.notes ?? ''
+    });
+    setIsPatientViewEditing(false);
     setShowPatientN2(true);
+  };
+
+  const openCreatePatientN2 = () => {
+    setPatientModalMode('create');
+    setPatientFormTab(PATIENT_FORM_TABS[0].id);
+    setSelectedPatient(null);
+    setSelectedPatientId(null);
+    setNewPatientForm(createEmptyPatientForm());
+    setFormFeedback('');
+    setShowPatientN2(true);
+  };
+
+  const handlePatientFormChange = (field, value) => {
+    if (patientModalMode === 'create') {
+      setNewPatientForm((prev) => ({ ...prev, [field]: value }));
+      return;
+    }
+
+    if (patientModalMode === 'view' && isPatientViewEditing) {
+      setPatientViewForm((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const moveFormTab = (direction) => {
+    const currentIndex = PATIENT_FORM_TABS.findIndex((tab) => tab.id === patientFormTab);
+    const nextIndex = Math.min(
+      PATIENT_FORM_TABS.length - 1,
+      Math.max(0, currentIndex + direction)
+    );
+    setPatientFormTab(PATIENT_FORM_TABS[nextIndex].id);
+  };
+
+  const handleCreatePatientSubmit = () => {
+    if (!newPatientForm.name.trim() || !newPatientForm.phone.trim()) {
+      setFormFeedback('Preencha ao menos nome e telefone para salvar o paciente.');
+      return;
+    }
+
+    const newPatient = toPatientFromForm(newPatientForm);
+    setPatients((prev) => [newPatient, ...prev]);
+    setQuickPatientFilter('all');
+    setPatientsQuery('');
+    setPatientsPage(1);
+    setSelectedPatient(null);
+    setSelectedPatientId(null);
+    setPatientModalMode('create');
+    setPatientFormTab(PATIENT_FORM_TABS[0].id);
+    setShowPatientN2(false);
+    setNewPatientForm(createEmptyPatientForm());
+    setFormFeedback('');
+    setShowPatientHint(true);
+  };
+
+  const registerMobileRecent = (shortcutId) => {
+    setMobileNavState((prev) => {
+      const recents = [shortcutId, ...prev.recents.filter((item) => item !== shortcutId)].slice(0, 5);
+      return { ...prev, recents };
+    });
+  };
+
+  const handleMobileShortcut = (shortcut) => {
+    if (!shortcut) return;
+    registerMobileRecent(shortcut.id);
+    setShowMobileNavDrawer(false);
+
+    if (shortcut.action === 'create-patient') {
+      setActiveTab('patients');
+      openCreatePatientN2();
+      return;
+    }
+
+    setActiveTab(shortcut.tab);
+  };
+
+  const toggleMobileFavorite = (shortcutId) => {
+    setMobileNavState((prev) => {
+      const exists = prev.favorites.includes(shortcutId);
+      const favorites = exists
+        ? prev.favorites.filter((item) => item !== shortcutId)
+        : [...prev.favorites, shortcutId].slice(-6);
+      return { ...prev, favorites };
+    });
+  };
+
+  const addMobileFavorite = (shortcutId) => {
+    if (!shortcutId) return;
+    setMobileNavState((prev) => {
+      if (prev.favorites.includes(shortcutId)) return prev;
+      return { ...prev, favorites: [...prev.favorites, shortcutId].slice(-6) };
+    });
+  };
+
+  const handleStartPatientEdit = () => {
+    if (!selectedPatient) return;
+    setPatientViewForm({
+      name: selectedPatient.name || '',
+      birth: selectedPatient.birth || '-',
+      phone: selectedPatient.phone || '',
+      email: selectedPatient.email || '',
+      plan: selectedPatient.plan || '',
+      notes: notesDraft[selectedPatient.id] ?? selectedPatient.notes ?? ''
+    });
+    setIsPatientViewEditing(true);
+  };
+
+  const handleCancelPatientEdit = () => {
+    if (!selectedPatient) return;
+    setPatientViewForm({
+      name: selectedPatient.name || '',
+      birth: selectedPatient.birth || '-',
+      phone: selectedPatient.phone || '',
+      email: selectedPatient.email || '',
+      plan: selectedPatient.plan || '',
+      notes: notesDraft[selectedPatient.id] ?? selectedPatient.notes ?? ''
+    });
+    setIsPatientViewEditing(false);
+  };
+
+  const handleSavePatientEdit = () => {
+    if (!selectedPatient) return;
+    const updatedPatient = {
+      ...selectedPatient,
+      name: patientViewForm.name.trim() || selectedPatient.name,
+      phone: patientViewForm.phone.trim() || selectedPatient.phone,
+      email: patientViewForm.email.trim() || '-',
+      birth: patientViewForm.birth.trim() || selectedPatient.birth,
+      plan: patientViewForm.plan.trim() || selectedPatient.plan,
+      notes: patientViewForm.notes.trim() || selectedPatient.notes
+    };
+
+    setPatients((prev) => prev.map((item) => (item.id === selectedPatient.id ? updatedPatient : item)));
+    setSelectedPatient(updatedPatient);
+    setNotesDraft((prev) => ({
+      ...prev,
+      [selectedPatient.id]: updatedPatient.notes
+    }));
+    setIsPatientViewEditing(false);
+    setFormFeedback('Prontuário atualizado com sucesso.');
   };
 
   const scrollQuickFilters = (direction) => {
@@ -287,10 +689,17 @@ function App() {
 
   const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
   const filteredPatients = filterBySearchTerm(quickFilteredPatients, patientsQuery);
-  const patientsPagination = paginateRecords(filteredPatients, patientsPage, PAGE_SIZE_PATIENTS);
+  const patientsPageSize = isMobileViewport ? MOBILE_PAGE_SIZE_PATIENTS : PAGE_SIZE_PATIENTS;
+  const patientsPagination = paginateRecords(filteredPatients, patientsPage, patientsPageSize);
+  const visiblePatients = isMobileViewport
+    ? filteredPatients.slice(0, patientsPagination.page * patientsPageSize)
+    : patientsPagination.items;
 
   const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
   const appointmentsPagination = paginateRecords(filteredAppointments, appointmentsPage, PAGE_SIZE_APPOINTMENTS);
+  const visibleAppointments = isMobileViewport
+    ? filteredAppointments.slice(0, appointmentsPagination.page * PAGE_SIZE_APPOINTMENTS)
+    : appointmentsPagination.items;
 
   useEffect(() => {
     const t = setTimeout(() => setView('landing'), 700);
@@ -319,8 +728,18 @@ function App() {
     const source = patients.find((p) => p.id === selectedPatientId);
     if (source) {
       setSelectedPatient(source);
+      if (!isPatientViewEditing) {
+        setPatientViewForm({
+          name: source.name || '',
+          birth: source.birth || '-',
+          phone: source.phone || '',
+          email: source.email || '',
+          plan: source.plan || '',
+          notes: notesDraft[source.id] ?? source.notes ?? ''
+        });
+      }
     }
-  }, [patients, selectedPatientId]);
+  }, [patients, selectedPatientId, isPatientViewEditing, notesDraft]);
 
   useEffect(() => {
     const state = {
@@ -337,6 +756,10 @@ function App() {
   }, [notesDraft]);
 
   useEffect(() => {
+    localStorage.setItem(MOBILE_NAV_STATE_KEY, JSON.stringify(mobileNavState));
+  }, [mobileNavState]);
+
+  useEffect(() => {
     setPatientsPage(1);
   }, [patientsQuery, quickPatientFilter]);
 
@@ -348,6 +771,18 @@ function App() {
     if (quickFiltersScrollTimeoutRef.current) {
       clearTimeout(quickFiltersScrollTimeoutRef.current);
     }
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 640px)');
+    const handler = (event) => setIsMobileViewport(event.matches);
+    setIsMobileViewport(media.matches);
+    if (media.addEventListener) {
+      media.addEventListener('change', handler);
+      return () => media.removeEventListener('change', handler);
+    }
+    media.addListener(handler);
+    return () => media.removeListener(handler);
   }, []);
 
   useEffect(() => {
@@ -363,6 +798,54 @@ function App() {
     const timer = setTimeout(() => setShowPatientHint(false), 7000);
     return () => clearTimeout(timer);
   }, [showPatientHint]);
+
+  useEffect(() => {
+    if (!formFeedback) return;
+    const timer = setTimeout(() => setFormFeedback(''), 4000);
+    return () => clearTimeout(timer);
+  }, [formFeedback]);
+
+  useEffect(() => {
+    const tabShortcutId = MOBILE_NAV_SHORTCUTS.find((item) => item.id === activeTab)?.id || activeTab;
+    if (!isMobileViewport) return;
+    registerMobileRecent(tabShortcutId);
+  }, [activeTab, isMobileViewport]);
+
+  useEffect(() => {
+    if (!isMobileViewport || activeTab !== 'patients') return;
+    const target = patientsInfiniteTriggerRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (!entry?.isIntersecting) return;
+      setPatientsPage((prev) => {
+        if (prev >= patientsPagination.totalPages) return prev;
+        return prev + 1;
+      });
+    }, { rootMargin: '160px 0px' });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeTab, isMobileViewport, patientsPagination.totalPages, filteredPatients.length]);
+
+  useEffect(() => {
+    if (!isMobileViewport || activeTab !== 'overview') return;
+    const target = appointmentsInfiniteTriggerRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (!entry?.isIntersecting) return;
+      setAppointmentsPage((prev) => {
+        if (prev >= appointmentsPagination.totalPages) return prev;
+        return prev + 1;
+      });
+    }, { rootMargin: '160px 0px' });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeTab, isMobileViewport, appointmentsPagination.totalPages, filteredAppointments.length]);
 
   if (view === 'loader') {
     return (
@@ -426,10 +909,10 @@ function App() {
             </div>
 
             <div className="agenda-list">
-              {appointmentsPagination.items.length === 0 ? (
+              {visibleAppointments.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
               ) : (
-                appointmentsPagination.items.map((item) => {
+                visibleAppointments.map((item) => {
                   const patient = patients.find((p) => p.name === item.name);
                   return (
                     <button
@@ -444,26 +927,33 @@ function App() {
                 })
               )}
             </div>
-
-            <div className="pagination-row">
-              <button
-                className="btn btn--pager"
-                onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
-                disabled={appointmentsPagination.page === 1}
-              >
-                ← Anterior
-              </button>
-              <span className="pagination-label">
-                Página {appointmentsPagination.page} de {appointmentsPagination.totalPages}
-              </span>
-              <button
-                className="btn btn--pager"
-                onClick={() => setAppointmentsPage((prev) => Math.min(appointmentsPagination.totalPages, prev + 1))}
-                disabled={appointmentsPagination.page === appointmentsPagination.totalPages}
-              >
-                Próxima →
-              </button>
-            </div>
+            {isMobileViewport ? (
+              <div ref={appointmentsInfiniteTriggerRef} className="infinite-trigger">
+                {appointmentsPagination.page < appointmentsPagination.totalPages
+                  ? 'Role para carregar mais agendamentos'
+                  : 'Todos os agendamentos carregados'}
+              </div>
+            ) : (
+              <div className="pagination-row">
+                <button
+                  className="btn btn--pager"
+                  onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
+                  disabled={appointmentsPagination.page === 1}
+                >
+                  ← Anterior
+                </button>
+                <span className="pagination-label">
+                  Página {appointmentsPagination.page} de {appointmentsPagination.totalPages}
+                </span>
+                <button
+                  className="btn btn--pager"
+                  onClick={() => setAppointmentsPage((prev) => Math.min(appointmentsPagination.totalPages, prev + 1))}
+                  disabled={appointmentsPagination.page === appointmentsPagination.totalPages}
+                >
+                  Próxima →
+                </button>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -477,11 +967,22 @@ function App() {
       const patientsWithEmail = patients.filter((p) => p.email && p.email !== '-').length;
       return (
         <div className="space-y-6">
-          <h2 className="page-title">Base de Pacientes</h2>
+          <div className="page-header">
+            <h2 className="page-title">Base de Pacientes</h2>
+            <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
+              + Novo paciente
+            </button>
+          </div>
           <TransientNotice
-            visible={showPatientHint}
+            visible={showPatientHint && !formFeedback}
             message="Clique em um paciente para abrir a tela N2 com os dados completos."
             onClose={() => setShowPatientHint(false)}
+          />
+          <TransientNotice
+            visible={Boolean(formFeedback)}
+            message={formFeedback}
+            tone="info"
+            onClose={() => setFormFeedback('')}
           />
           <div className="quick-filters-shell">
             <button
@@ -557,10 +1058,10 @@ function App() {
             <span className="search-count">{filteredPatients.length} registro(s)</span>
           </div>
           <div className="data-grid patients-grid">
-            {patientsPagination.items.length === 0 ? (
+            {visiblePatients.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
             ) : (
-              patientsPagination.items.map((p) => (
+              visiblePatients.map((p) => (
                 <article key={p.id} className="data-card data-card--m patient-card">
                   <button
                     onClick={() => openPatientN2(p)}
@@ -599,25 +1100,33 @@ function App() {
               ))
             )}
           </div>
-          <div className="pagination-row">
-            <button
-              className="btn btn--pager"
-              onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
-              disabled={patientsPagination.page === 1}
-            >
-              ← Anterior
-            </button>
-            <span className="pagination-label">
-              Página {patientsPagination.page} de {patientsPagination.totalPages}
-            </span>
-            <button
-              className="btn btn--pager"
-              onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
-              disabled={patientsPagination.page === patientsPagination.totalPages}
-            >
-              Próxima →
-            </button>
-          </div>
+          {isMobileViewport ? (
+            <div ref={patientsInfiniteTriggerRef} className="infinite-trigger">
+              {patientsPagination.page < patientsPagination.totalPages
+                ? 'Role para carregar mais pacientes'
+                : 'Todos os pacientes carregados'}
+            </div>
+          ) : (
+            <div className="pagination-row">
+              <button
+                className="btn btn--pager"
+                onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
+                disabled={patientsPagination.page === 1}
+              >
+                ← Anterior
+              </button>
+              <span className="pagination-label">
+                Página {patientsPagination.page} de {patientsPagination.totalPages}
+              </span>
+              <button
+                className="btn btn--pager"
+                onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
+                disabled={patientsPagination.page === patientsPagination.totalPages}
+              >
+                Próxima →
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -673,45 +1182,122 @@ function App() {
             {tab.label}
           </button>
         ))}
+        <button
+          onClick={() => setShowMobileNavDrawer((prev) => !prev)}
+          className={`btn btn--mobile-tab ${showMobileNavDrawer ? 'is-active' : ''}`}
+          aria-expanded={showMobileNavDrawer}
+          aria-controls="mobile-navigation-drawer"
+        >
+          <AppIcon name="map" size={13} />
+          Mapa
+        </button>
       </nav>
 
-      {showPatientN2 && selectedPatient && (
-        <div className="modal-wrap">
-          <div className="modal-backdrop" onClick={() => setShowPatientN2(false)}></div>
-          <div className="modal-card">
-            <div className="modal-header">
+      {showMobileNavDrawer && (
+        <div className="mobile-drawer-wrap md:hidden">
+          <button className="mobile-drawer-backdrop" onClick={() => setShowMobileNavDrawer(false)} aria-label="Fechar mapa de navegação"></button>
+          <aside id="mobile-navigation-drawer" className="mobile-drawer-panel">
+            <div className="mobile-drawer-header">
               <div>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Tela N2 · Prontuário</p>
-                <h3 className="text-xl font-bold text-slate-900">{selectedPatient.name}</h3>
+                <p className="mobile-drawer-kicker">Navegação inteligente</p>
+                <h3>Mapa rápido</h3>
               </div>
-              <button onClick={() => setShowPatientN2(false)} className="btn btn--ghost">Fechar</button>
+              <button className="btn btn--ghost" onClick={() => setShowMobileNavDrawer(false)}>Fechar</button>
             </div>
 
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Telefone</p><p className="font-bold text-slate-900">{selectedPatient.phone}</p></div>
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">E-mail</p><p className="font-bold text-slate-900">{selectedPatient.email}</p></div>
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Nascimento</p><p className="font-bold text-slate-900">{selectedPatient.birth}</p></div>
-              <div className="bg-slate-50 rounded-xl p-4"><p className="text-slate-400">Plano</p><p className="font-bold text-slate-900">{selectedPatient.plan}</p></div>
-              <div className="md:col-span-2 bg-slate-50 rounded-xl p-4">
-                <p className="text-slate-400">Última visita</p>
-                <p className="font-bold text-slate-900 mb-3">{selectedPatient.lastVisit}</p>
-                <p className="text-slate-400">Observações clínicas</p>
-                <textarea
-                  className="modal-notes-input"
-                  value={notesDraft[selectedPatient.id] ?? selectedPatient.notes}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setNotesDraft((prev) => ({
-                      ...prev,
-                      [selectedPatient.id]: value
-                    }));
-                  }}
-                />
+            <section className="mobile-drawer-section">
+              <p className="mobile-drawer-section__title"><AppIcon name="star" size={12} /> Favoritos</p>
+              <div
+                className={`mobile-drawer-grid mobile-drawer-grid--dropzone ${dragShortcutId ? 'is-dragging' : ''}`}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  addMobileFavorite(dragShortcutId);
+                  setDragShortcutId(null);
+                }}
+              >
+                {MOBILE_NAV_SHORTCUTS
+                  .filter((item) => mobileNavState.favorites.includes(item.id))
+                  .map((shortcut) => (
+                    <button key={shortcut.id} className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
+                      <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
+                    </button>
+                  ))}
+                {mobileNavState.favorites.length === 0 && (
+                  <p className="mobile-drawer-empty">
+                    Arraste um atalho para cá para criar seus favoritos.
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
+            </section>
+
+            <section className="mobile-drawer-section">
+              <p className="mobile-drawer-section__title"><AppIcon name="clock" size={12} /> Últimos acessos</p>
+              <div className="mobile-drawer-grid">
+                {mobileNavState.recents
+                  .map((id) => MOBILE_NAV_SHORTCUTS.find((shortcut) => shortcut.id === id))
+                  .filter(Boolean)
+                  .map((shortcut) => (
+                    <button key={`recent-${shortcut.id}`} className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
+                      <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
+                    </button>
+                  ))}
+              </div>
+            </section>
+
+            {Object.entries(groupedMobileShortcuts).map(([group, shortcuts]) => (
+              <section className="mobile-drawer-section" key={group}>
+                <p className="mobile-drawer-section__title"><AppIcon name="menu" size={12} /> {group}</p>
+                <div className="mobile-drawer-grid">
+                  {shortcuts.map((shortcut) => (
+                    <div key={`group-${shortcut.id}`} className="mobile-shortcut-shell">
+                      <button
+                        className="mobile-shortcut"
+                        onClick={() => handleMobileShortcut(shortcut)}
+                        draggable
+                        onDragStart={() => setDragShortcutId(shortcut.id)}
+                        onDragEnd={() => setDragShortcutId(null)}
+                      >
+                        <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
+                      </button>
+                      <button
+                        className={`mobile-shortcut-fav ${mobileNavState.favorites.includes(shortcut.id) ? 'is-active' : ''}`}
+                        onClick={() => toggleMobileFavorite(shortcut.id)}
+                        aria-label={`Favoritar ${shortcut.label}`}
+                      >
+                        <AppIcon name="star" size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </aside>
         </div>
       )}
+
+      <PatientN2Modal
+        isOpen={showPatientN2 && (patientModalMode === 'create' || Boolean(selectedPatient))}
+        mode={patientModalMode}
+        patient={selectedPatient}
+        form={newPatientForm}
+        viewForm={patientViewForm}
+        activeTab={patientFormTab}
+        notesValue={selectedPatient ? (notesDraft[selectedPatient.id] ?? selectedPatient.notes) : ''}
+        isEditingView={isPatientViewEditing}
+        onClose={() => {
+          setShowPatientN2(false);
+          setIsPatientViewEditing(false);
+        }}
+        onFormChange={handlePatientFormChange}
+        onPreviousTab={() => moveFormTab(-1)}
+        onNextTab={() => moveFormTab(1)}
+        onOpenNavigationMap={() => setShowMobileNavDrawer(true)}
+        onSubmit={handleCreatePatientSubmit}
+        onStartEdit={handleStartPatientEdit}
+        onCancelEdit={handleCancelPatientEdit}
+        onSaveEdit={handleSavePatientEdit}
+      />
     </div>
   );
 }
