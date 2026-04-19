@@ -1225,17 +1225,7 @@ function App() {
             icon: 'users',
             title: 'Base de Pacientes',
             subtitle: 'Cadastro, busca e acesso ao Nível 2',
-            actions: [
-              {
-                key: 'create-patient',
-                tone: 'success',
-                icon: 'check',
-                label: 'Novo',
-                ariaLabel: 'Cadastrar novo paciente',
-                onClick: openCreatePatientN2
-              },
-              ...contextHeaderActions
-            ]
+            actions: []
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>

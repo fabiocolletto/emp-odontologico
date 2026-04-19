@@ -686,9 +686,9 @@ select {
   justify-content: space-between;
   gap: 0.65rem;
   padding: 0.5rem 0.6rem;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--brand-600) 14%, #d8e2ee);
-  background: color-mix(in srgb, #ffffff 88%, #eef4fb);
+  border-radius: 0;
+  border: 0;
+  background: transparent;
 }
 
 .bio-header__title-wrap {
@@ -770,9 +770,9 @@ select {
 .bio-header__bottom {
   margin-top: 0;
   padding: 0.48rem 0.45rem 0.25rem;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--brand-600) 14%, #d8e2ee);
-  background: color-mix(in srgb, #ffffff 88%, #eef4fb);
+  border-radius: 0;
+  border: 0;
+  background: transparent;
   display: grid;
   gap: 0.45rem;
 }
@@ -832,7 +832,8 @@ select {
 
 .quick-links-btn--overview {
   color: #0d3a6e;
-  background: linear-gradient(135deg, rgba(191, 219, 254, 0.74) 0%, rgba(219, 234, 254, 0.62) 100%);
+  border-color: color-mix(in srgb, #2563eb 26%, white);
+  background: color-mix(in srgb, #bfdbfe 78%, white);
 }
 
 .quick-links-btn--patients {
@@ -841,8 +842,9 @@ select {
 }
 
 .quick-links-btn--new {
-  color: #13569a;
-  background: linear-gradient(135deg, rgba(221, 214, 254, 0.66) 0%, rgba(191, 219, 254, 0.62) 100%);
+  color: #0f5132;
+  border-color: color-mix(in srgb, #16a34a 26%, white);
+  background: color-mix(in srgb, #bbf7d0 78%, white);
 }
 
 .quick-links-btn--settings {
@@ -1013,9 +1015,9 @@ select {
 
 .patients-search-section {
   padding: 0.62rem 0.7rem;
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--brand-600) 10%, #dbe3ef);
-  background: color-mix(in srgb, #ffffff 90%, #ecf3fb);
+  border-radius: 0;
+  border: 0;
+  background: transparent;
 }
 
 .patients-data-section {
@@ -1459,7 +1461,7 @@ select {
 
   .patients-search-section {
     padding: 0.5rem 0.45rem;
-    border-radius: 14px;
+    border-radius: 0;
   }
 
   .bio-header__action {
