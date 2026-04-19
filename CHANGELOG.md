@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.14 - 2026-04-19
+
+### Changed
+- Botões `Pesquisar` e `Modo multi` da base de pacientes passam a usar o mesmo peso visual do botão `+ Novo paciente` no header (mesmo componente visual `.btn.btn--primary.btn--header`).
+- Definidos ícones e cores temáticas para atalhos rápidos mobile:
+  - `Pesquisar` com ícone de lupa e paleta azul de busca.
+  - `Modo multi` com ícone de seleção em lote e paleta verde de ação em conjunto.
+
 ## v0.1.13 - 2026-04-19
 
 ### Fixed

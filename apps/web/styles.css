@@ -852,6 +852,18 @@ select {
   background: linear-gradient(135deg, rgba(219, 234, 254, 0.72) 0%, rgba(199, 210, 254, 0.62) 100%);
 }
 
+.quick-links-btn--search {
+  color: #0f3f74;
+  border-color: color-mix(in srgb, #0284c7 26%, white);
+  background: color-mix(in srgb, #bae6fd 78%, white);
+}
+
+.quick-links-btn--multi {
+  color: #0f5132;
+  border-color: color-mix(in srgb, #16a34a 26%, white);
+  background: color-mix(in srgb, #bbf7d0 78%, white);
+}
+
 .quick-links-btn:active {
   transform: translateY(1px);
 }

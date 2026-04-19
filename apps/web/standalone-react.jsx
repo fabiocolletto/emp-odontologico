@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.13';
+const APP_VERSION_FALLBACK = '0.1.14';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -34,7 +34,9 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     birth: <><path d="M12 4v16M4 10h16M7 4v4M17 4v4M7 16v4M17 16v4" /></>,
     plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
     email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
+    search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.2 4.2" /></>,
     filter: <path d="M4 6h16M7 12h10M10 18h4" />,
+    multi: <><rect x="3.5" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="13" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="3.5" y="13.5" width="7.5" height="7.5" rx="1.5" /><path d="m14.5 17 2 2 4-4" /></>,
     info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>,
     star: <path d="m12 3.4 2.7 5.5 6 0.9-4.4 4.3 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.8l6-0.9L12 3.4Z" />,
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
@@ -1069,16 +1071,16 @@ function App() {
       },
       'patients-search': {
         key: 'patients-search',
-        icon: 'filter',
-        tone: isPatientsSearchVisible ? 'settings' : 'neutral',
+        icon: 'search',
+        tone: 'search',
         label: 'Pesquisar',
         ariaLabel: 'Mostrar ou ocultar seção de pesquisa de pacientes',
         onClick: () => setIsPatientsSearchVisible((prev) => !prev)
       },
       'patients-multi': {
         key: 'patients-multi',
-        icon: isPatientsMultiMode ? 'check' : 'users',
-        tone: isPatientsMultiMode ? 'new' : 'neutral',
+        icon: 'multi',
+        tone: 'multi',
         label: 'Modo multi',
         ariaLabel: 'Ativar ou desativar seleção múltipla de pacientes',
         onClick: () => {
@@ -1268,14 +1270,16 @@ function App() {
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
             <div className="flex gap-2 flex-wrap justify-end">
-              <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
+              <button className="btn btn--primary btn--header inline-flex items-center gap-2" onClick={openCreatePatientN2}>
+                <AppIcon name="edit" size={14} className="btn-icon" />
                 + Novo paciente
               </button>
-              <button className="btn btn--ghost btn--header" onClick={() => setIsPatientsSearchVisible((prev) => !prev)}>
+              <button className="btn btn--primary btn--header inline-flex items-center gap-2" onClick={() => setIsPatientsSearchVisible((prev) => !prev)}>
+                <AppIcon name="search" size={14} className="btn-icon" />
                 {isPatientsSearchVisible ? 'Ocultar busca' : 'Pesquisar'}
               </button>
               <button
-                className="btn btn--ghost btn--header"
+                className="btn btn--primary btn--header inline-flex items-center gap-2"
                 onClick={() => {
                   setIsPatientsMultiMode((prev) => {
                     if (prev) setSelectedPatientIds([]);
@@ -1283,6 +1287,7 @@ function App() {
                   });
                 }}
               >
+                <AppIcon name="multi" size={14} className="btn-icon" />
                 {isPatientsMultiMode ? 'Sair multi' : 'Modo multi'}
               </button>
             </div>
