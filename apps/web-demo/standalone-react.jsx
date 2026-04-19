@@ -36,7 +36,12 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     star: <path d="m12 3.4 2.7 5.5 6 0.9-4.4 4.3 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.8l6-0.9L12 3.4Z" />,
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
     map: <><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13L15 19.5 9 17 3.5 19.5v-13Z" /><path d="M9 4v13M15 6.5v13" /></>,
-    menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>
+    menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
+    edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
+    check: <path d="m5 12 4.2 4.2L19 6.8" />,
+    close: <path d="M6 6l12 12M18 6 6 18" />,
+    'chevron-left': <path d="m14.5 6-6 6 6 6" />,
+    'chevron-right': <path d="m9.5 6 6 6-6 6" />
   };
 
   return (
@@ -280,26 +285,30 @@ const PatientN2Modal = ({
           <div className="modal-header__actions">
             {!isCreateMode && !isEditingView && (
               <button className="btn btn--ghost modal-header__btn" onClick={onStartEdit}>
-                Habilitar edição
+                <AppIcon name="edit" size={13} className="btn-icon" />
+                <span className="btn-label">Habilitar edição</span>
               </button>
             )}
             {!isCreateMode && isEditingView && (
               <>
                 <button className="btn btn--ghost modal-header__btn" onClick={onCancelEdit}>
-                  Cancelar
+                  <AppIcon name="close" size={13} className="btn-icon" />
+                  <span className="btn-label">Cancelar</span>
                 </button>
                 <button className="btn btn--primary modal-header__btn" onClick={onSaveEdit}>
-                  Salvar
+                  <AppIcon name="check" size={13} className="btn-icon" />
+                  <span className="btn-label">Salvar</span>
                 </button>
               </>
             )}
             {isCreateMode && (
               <button className="btn btn--primary modal-header__btn" onClick={onSubmit}>
-                Salvar paciente
+                <AppIcon name="check" size={13} className="btn-icon" />
+                <span className="btn-label">Salvar paciente</span>
               </button>
             )}
             <button onClick={onClose} className="btn btn--ghost btn--close-icon" aria-label="Fechar janela">
-              ✕
+              <AppIcon name="close" size={14} className="btn-icon" />
             </button>
           </div>
         </div>
@@ -390,8 +399,14 @@ const PatientN2Modal = ({
 
         <div className="modal-footer modal-footer--stack">
           <div className="modal-footer__nav">
-            <button className="btn btn--ghost modal-footer__btn" onClick={onPreviousTab}>Etapa anterior</button>
-            <button className="btn btn--ghost modal-footer__btn" onClick={onNextTab}>Próxima etapa</button>
+            <button className="btn btn--ghost modal-footer__btn" onClick={onPreviousTab}>
+              <AppIcon name="chevron-left" size={16} className="btn-icon" />
+              <span className="btn-label">Etapa anterior</span>
+            </button>
+            <button className="btn btn--ghost modal-footer__btn" onClick={onNextTab}>
+              <AppIcon name="chevron-right" size={16} className="btn-icon" />
+              <span className="btn-label">Próxima etapa</span>
+            </button>
           </div>
         </div>
       </div>

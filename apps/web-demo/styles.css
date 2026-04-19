@@ -832,6 +832,10 @@ select {
   border-radius: 10px;
   font-size: 0.78rem;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .btn--close-icon {
@@ -916,6 +920,10 @@ select {
 
 .modal-footer__btn {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .modal-save {
@@ -1007,6 +1015,11 @@ select {
 
   .modal-header__btn {
     flex: 1 1 auto;
+    min-width: 36px;
+    max-width: 44px;
+    width: 44px;
+    height: 40px;
+    padding: 0;
   }
 
   .modal-body {
@@ -1018,10 +1031,35 @@ select {
 
   .modal-footer {
     padding: 0.85rem 1rem calc(5.35rem + env(safe-area-inset-bottom));
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle) 78%, white);
+    background: color-mix(in srgb, #ffffff 92%, #e7eef8);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 -6px 18px rgba(15, 35, 72, 0.14);
   }
 
   .modal-footer__nav {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.35rem;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .modal-footer__btn {
+    min-height: 42px;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .modal-header__btn .btn-label,
+  .modal-footer__btn .btn-label {
+    display: none;
+  }
+
+  .modal-header__btn .btn-icon,
+  .modal-footer__btn .btn-icon {
+    width: 18px;
+    height: 18px;
   }
 
   .quick-filters-shell {
