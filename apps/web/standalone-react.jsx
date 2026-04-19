@@ -6,7 +6,7 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
-const APP_VERSION_FALLBACK = '0.1.8';
+const APP_VERSION_FALLBACK = '0.1.9';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -77,7 +77,7 @@ const BioHeader = ({
     <div className="bio-header__top">
       <div className="bio-header__title-wrap">
         <span className="bio-header__icon">
-          <AppIcon name={icon} size={15} />
+          <AppIcon name={icon} size={18} />
         </span>
         <div className="bio-header__heading">
           <h2 className="bio-header__title">{title}</h2>
@@ -1064,6 +1064,7 @@ function App() {
       {
         key: 'agenda-hoje',
         icon: 'calendar',
+        tone: 'agenda',
         label: 'Agenda',
         ariaLabel: 'Ir para agenda de hoje',
         onClick: () => {
@@ -1074,6 +1075,7 @@ function App() {
       {
         key: 'patients',
         icon: 'users',
+        tone: 'patients',
         label: 'Pacientes',
         ariaLabel: 'Abrir base de pacientes',
         onClick: () => setActiveTab('patients')
@@ -1081,6 +1083,7 @@ function App() {
       {
         key: 'new-patient',
         icon: 'edit',
+        tone: 'new',
         label: 'Novo',
         ariaLabel: 'Cadastrar novo paciente',
         onClick: () => {
@@ -1091,6 +1094,7 @@ function App() {
       {
         key: 'settings',
         icon: 'settings',
+        tone: 'settings',
         label: 'Config',
         ariaLabel: 'Abrir configurações',
         onClick: () => setActiveTab('settings')
@@ -1120,7 +1124,7 @@ function App() {
           {overviewQuickLinks.map((link) => (
             <button
               key={link.key}
-              className="quick-links-btn"
+              className={`quick-links-btn quick-links-btn--${link.tone}`}
               onClick={link.onClick}
               aria-label={link.ariaLabel}
             >

@@ -1,7 +1,14 @@
 // Fallback local: usado somente quando os CSVs do backend/supabase não estiverem disponíveis.
-export const APP_VERSION = '0.1.8';
+export const APP_VERSION = '0.1.9';
 
 export const VERSION_LOG = [
+  {
+    version: '0.1.9',
+    date: '2026-04-19',
+    notes: [
+      'Header N0 com ícone 1:1 e botões de links rápidos com glassmorphism temático.'
+    ]
+  },
   {
     version: '0.1.8',
     date: '2026-04-19',

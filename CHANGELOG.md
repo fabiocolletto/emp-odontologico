@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.9 - 2026-04-19
+
+### Changed
+- Ícone do header N0 ajustado para contêiner 1:1 e proporção interna maior.
+- Botões de links rápidos no mobile agora usam cores temáticas com efeito glassmorphism.
+
 ## v0.1.8 - 2026-04-19
 
 ### Changed
