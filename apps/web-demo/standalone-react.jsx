@@ -426,6 +426,11 @@ function App() {
   const [patientFormTab, setPatientFormTab] = useState(PATIENT_FORM_TABS[0].id);
   const [newPatientForm, setNewPatientForm] = useState(() => createEmptyPatientForm());
   const [formFeedback, setFormFeedback] = useState('');
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
+  );
+  const patientsInfiniteTriggerRef = useRef(null);
+  const appointmentsInfiniteTriggerRef = useRef(null);
 
   const openPatientN2 = (patient) => {
     setPatientModalMode('view');
@@ -522,9 +527,15 @@ function App() {
   const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
   const filteredPatients = filterBySearchTerm(quickFilteredPatients, patientsQuery);
   const patientsPagination = paginateRecords(filteredPatients, patientsPage, PAGE_SIZE_PATIENTS);
+  const visiblePatients = isMobileViewport
+    ? filteredPatients.slice(0, patientsPagination.page * PAGE_SIZE_PATIENTS)
+    : patientsPagination.items;
 
   const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
   const appointmentsPagination = paginateRecords(filteredAppointments, appointmentsPage, PAGE_SIZE_APPOINTMENTS);
+  const visibleAppointments = isMobileViewport
+    ? filteredAppointments.slice(0, appointmentsPagination.page * PAGE_SIZE_APPOINTMENTS)
+    : appointmentsPagination.items;
 
   useEffect(() => {
     const t = setTimeout(() => setView('landing'), 700);
@@ -585,6 +596,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const media = window.matchMedia('(max-width: 640px)');
+    const handler = (event) => setIsMobileViewport(event.matches);
+    setIsMobileViewport(media.matches);
+    if (media.addEventListener) {
+      media.addEventListener('change', handler);
+      return () => media.removeEventListener('change', handler);
+    }
+    media.addListener(handler);
+    return () => media.removeListener(handler);
+  }, []);
+
+  useEffect(() => {
     const alreadySeen = localStorage.getItem(FIRST_PATIENT_HINT_KEY) === '1';
     if (!alreadySeen) {
       setShowPatientHint(true);
@@ -603,6 +626,42 @@ function App() {
     const timer = setTimeout(() => setFormFeedback(''), 4000);
     return () => clearTimeout(timer);
   }, [formFeedback]);
+
+  useEffect(() => {
+    if (!isMobileViewport || activeTab !== 'patients') return;
+    const target = patientsInfiniteTriggerRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (!entry?.isIntersecting) return;
+      setPatientsPage((prev) => {
+        if (prev >= patientsPagination.totalPages) return prev;
+        return prev + 1;
+      });
+    }, { rootMargin: '160px 0px' });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeTab, isMobileViewport, patientsPagination.totalPages, filteredPatients.length]);
+
+  useEffect(() => {
+    if (!isMobileViewport || activeTab !== 'overview') return;
+    const target = appointmentsInfiniteTriggerRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (!entry?.isIntersecting) return;
+      setAppointmentsPage((prev) => {
+        if (prev >= appointmentsPagination.totalPages) return prev;
+        return prev + 1;
+      });
+    }, { rootMargin: '160px 0px' });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeTab, isMobileViewport, appointmentsPagination.totalPages, filteredAppointments.length]);
 
   if (view === 'loader') {
     return (
@@ -666,10 +725,10 @@ function App() {
             </div>
 
             <div className="agenda-list">
-              {appointmentsPagination.items.length === 0 ? (
+              {visibleAppointments.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
               ) : (
-                appointmentsPagination.items.map((item) => {
+                visibleAppointments.map((item) => {
                   const patient = patients.find((p) => p.name === item.name);
                   return (
                     <button
@@ -684,26 +743,33 @@ function App() {
                 })
               )}
             </div>
-
-            <div className="pagination-row">
-              <button
-                className="btn btn--pager"
-                onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
-                disabled={appointmentsPagination.page === 1}
-              >
-                ← Anterior
-              </button>
-              <span className="pagination-label">
-                Página {appointmentsPagination.page} de {appointmentsPagination.totalPages}
-              </span>
-              <button
-                className="btn btn--pager"
-                onClick={() => setAppointmentsPage((prev) => Math.min(appointmentsPagination.totalPages, prev + 1))}
-                disabled={appointmentsPagination.page === appointmentsPagination.totalPages}
-              >
-                Próxima →
-              </button>
-            </div>
+            {isMobileViewport ? (
+              <div ref={appointmentsInfiniteTriggerRef} className="infinite-trigger">
+                {appointmentsPagination.page < appointmentsPagination.totalPages
+                  ? 'Role para carregar mais agendamentos'
+                  : 'Todos os agendamentos carregados'}
+              </div>
+            ) : (
+              <div className="pagination-row">
+                <button
+                  className="btn btn--pager"
+                  onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
+                  disabled={appointmentsPagination.page === 1}
+                >
+                  ← Anterior
+                </button>
+                <span className="pagination-label">
+                  Página {appointmentsPagination.page} de {appointmentsPagination.totalPages}
+                </span>
+                <button
+                  className="btn btn--pager"
+                  onClick={() => setAppointmentsPage((prev) => Math.min(appointmentsPagination.totalPages, prev + 1))}
+                  disabled={appointmentsPagination.page === appointmentsPagination.totalPages}
+                >
+                  Próxima →
+                </button>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -808,10 +874,10 @@ function App() {
             <span className="search-count">{filteredPatients.length} registro(s)</span>
           </div>
           <div className="data-grid patients-grid">
-            {patientsPagination.items.length === 0 ? (
+            {visiblePatients.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
             ) : (
-              patientsPagination.items.map((p) => (
+              visiblePatients.map((p) => (
                 <article key={p.id} className="data-card data-card--m patient-card">
                   <button
                     onClick={() => openPatientN2(p)}
@@ -850,25 +916,33 @@ function App() {
               ))
             )}
           </div>
-          <div className="pagination-row">
-            <button
-              className="btn btn--pager"
-              onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
-              disabled={patientsPagination.page === 1}
-            >
-              ← Anterior
-            </button>
-            <span className="pagination-label">
-              Página {patientsPagination.page} de {patientsPagination.totalPages}
-            </span>
-            <button
-              className="btn btn--pager"
-              onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
-              disabled={patientsPagination.page === patientsPagination.totalPages}
-            >
-              Próxima →
-            </button>
-          </div>
+          {isMobileViewport ? (
+            <div ref={patientsInfiniteTriggerRef} className="infinite-trigger">
+              {patientsPagination.page < patientsPagination.totalPages
+                ? 'Role para carregar mais pacientes'
+                : 'Todos os pacientes carregados'}
+            </div>
+          ) : (
+            <div className="pagination-row">
+              <button
+                className="btn btn--pager"
+                onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
+                disabled={patientsPagination.page === 1}
+              >
+                ← Anterior
+              </button>
+              <span className="pagination-label">
+                Página {patientsPagination.page} de {patientsPagination.totalPages}
+              </span>
+              <button
+                className="btn btn--pager"
+                onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
+                disabled={patientsPagination.page === patientsPagination.totalPages}
+              >
+                Próxima →
+              </button>
+            </div>
+          )}
         </div>
       );
     }

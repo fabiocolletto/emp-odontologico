@@ -556,6 +556,14 @@ select {
   font-weight: 700;
 }
 
+.infinite-trigger {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.45rem 0.6rem;
+}
+
 .agenda-list {
   display: grid;
   gap: var(--space-3);
@@ -832,6 +840,7 @@ select {
   }
 
   .btn--quick-nav {
+    display: none;
     width: 28px;
     height: 28px;
   }
