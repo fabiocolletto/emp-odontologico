@@ -6,7 +6,8 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
-const APP_VERSION = '0.1.3';
+const APP_VERSION_FALLBACK = '0.1.7';
+const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
@@ -107,6 +108,26 @@ const BioHeader = ({
 
 
 const CSV_PATH = './backend/supabase/sample-data';
+
+const parseLatestReleaseFromChangelog = (markdownText) => {
+  const normalizedText = String(markdownText || '');
+  const releaseMatch = normalizedText.match(/^##\s+v(\d+\.\d+\.\d+)\s*-\s*(\d{4}-\d{2}-\d{2})/m);
+
+  if (!releaseMatch) {
+    return {
+      version: APP_VERSION_FALLBACK,
+      date: '',
+      notes: []
+    };
+  }
+
+  const [, version, date] = releaseMatch;
+  const releaseStart = releaseMatch.index ?? 0;
+  const releaseBody = normalizedText.slice(releaseStart).split('\n## ')[0];
+  const notes = Array.from(releaseBody.matchAll(/^- (.+)$/gm)).map((item) => item[1]).slice(0, 3);
+
+  return { version, date, notes };
+};
 
 const parseCsv = (csvText) => {
   const [headersLine, ...lines] = csvText.trim().split('\n');
@@ -568,6 +589,11 @@ function App() {
     };
   });
   const [dragShortcutId, setDragShortcutId] = useState(null);
+  const [releaseInfo, setReleaseInfo] = useState({
+    version: APP_VERSION_FALLBACK,
+    date: '',
+    notes: []
+  });
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
@@ -947,6 +973,33 @@ function App() {
     track.scrollLeft = track.scrollWidth / 2;
   }, [isMobileViewport, activeTab]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadReleaseInfo = async () => {
+      try {
+        const response = await fetch(CHANGELOG_PATH, { cache: 'no-store' });
+        if (!response.ok) throw new Error('changelog-unavailable');
+        const markdown = await response.text();
+        if (!active) return;
+        setReleaseInfo(parseLatestReleaseFromChangelog(markdown));
+      } catch {
+        if (!active) return;
+        setReleaseInfo({
+          version: APP_VERSION_FALLBACK,
+          date: '',
+          notes: []
+        });
+      }
+    };
+
+    loadReleaseInfo();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   if (view === 'loader') {
     return (
       <div className="app-viewport flex flex-col items-center justify-center bg-white space-y-4">
@@ -979,10 +1032,15 @@ function App() {
           </button>
           <span
             className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600"
-            aria-label={`Versão V${APP_VERSION}`}
+            aria-label={`Versão V${releaseInfo.version}`}
           >
-            V{APP_VERSION}
+            V{releaseInfo.version}
           </span>
+          {releaseInfo.date ? (
+            <p className="text-[10px] font-semibold text-slate-400">
+              Atualizado em {releaseInfo.date}
+            </p>
+          ) : null}
         </div>
       </div>
     );

@@ -2,6 +2,11 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.7 - 2026-04-19
+
+### Added
+- Função para extrair automaticamente a versão atual do `CHANGELOG.md` no frontend (landing).
+
 ## v0.1.6 - 2026-04-19
 
 ### Changed
