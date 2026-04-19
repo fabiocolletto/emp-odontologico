@@ -247,17 +247,23 @@ const PatientN2Modal = ({
   mode,
   patient,
   form,
+  viewForm,
   activeTab,
   notesValue,
+  isEditingView,
   onClose,
-  onTabChange,
   onFormChange,
   onPreviousTab,
   onNextTab,
-  onSubmit
+  onSubmit,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit
 }) => {
   if (!isOpen) return null;
   const isCreateMode = mode === 'create';
+  const currentTab = PATIENT_FORM_TABS.find((tab) => tab.id === activeTab);
+  const canEditView = !isCreateMode && isEditingView;
 
   return (
     <div className="modal-wrap">
@@ -273,22 +279,11 @@ const PatientN2Modal = ({
             <h3 className="text-xl font-bold text-slate-900">
               {isCreateMode ? 'Novo paciente' : patient?.name}
             </h3>
+            <p className="modal-step-label">Etapa atual: {currentTab?.label}</p>
           </div>
-          <button onClick={onClose} className="btn btn--ghost">Fechar</button>
-        </div>
-
-        <div className="modal-tabs" role="tablist" aria-label="Etapas do formulário">
-          {PATIENT_FORM_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              className={`btn modal-tab ${activeTab === tab.id ? 'is-active' : ''}`}
-              onClick={() => onTabChange(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <button onClick={onClose} className="btn btn--ghost btn--close-icon" aria-label="Fechar janela">
+            ✕
+          </button>
         </div>
 
         <div className="modal-body">
@@ -298,9 +293,9 @@ const PatientN2Modal = ({
                 <span>Nome completo</span>
                 <input
                   className="form-input"
-                  value={isCreateMode ? form.name : patient?.name || ''}
+                  value={isCreateMode ? form.name : (viewForm?.name || patient?.name || '')}
                   onChange={(e) => onFormChange('name', e.target.value)}
-                  disabled={!isCreateMode}
+                  disabled={!isCreateMode && !canEditView}
                   placeholder="Ex: Mariana Albuquerque"
                 />
               </label>
@@ -309,9 +304,9 @@ const PatientN2Modal = ({
                 <input
                   className="form-input"
                   type={isCreateMode ? 'date' : 'text'}
-                  value={isCreateMode ? form.birth : patient?.birth || '-'}
+                  value={isCreateMode ? form.birth : (viewForm?.birth || patient?.birth || '-')}
                   onChange={(e) => onFormChange('birth', e.target.value)}
-                  disabled={!isCreateMode}
+                  disabled={!isCreateMode && !canEditView}
                 />
               </label>
             </div>
@@ -323,9 +318,9 @@ const PatientN2Modal = ({
                 <span>Telefone</span>
                 <input
                   className="form-input"
-                  value={isCreateMode ? form.phone : patient?.phone || ''}
+                  value={isCreateMode ? form.phone : (viewForm?.phone || patient?.phone || '')}
                   onChange={(e) => onFormChange('phone', e.target.value)}
-                  disabled={!isCreateMode}
+                  disabled={!isCreateMode && !canEditView}
                   placeholder="(11) 90000-0000"
                 />
               </label>
@@ -334,9 +329,9 @@ const PatientN2Modal = ({
                 <input
                   className="form-input"
                   type="email"
-                  value={isCreateMode ? form.email : patient?.email || ''}
+                  value={isCreateMode ? form.email : (viewForm?.email || patient?.email || '')}
                   onChange={(e) => onFormChange('email', e.target.value)}
-                  disabled={!isCreateMode}
+                  disabled={!isCreateMode && !canEditView}
                   placeholder="nome@email.com"
                 />
               </label>
@@ -349,9 +344,9 @@ const PatientN2Modal = ({
                 <span>Plano</span>
                 <input
                   className="form-input"
-                  value={isCreateMode ? form.plan : patient?.plan || ''}
+                  value={isCreateMode ? form.plan : (viewForm?.plan || patient?.plan || '')}
                   onChange={(e) => onFormChange('plan', e.target.value)}
-                  disabled={!isCreateMode}
+                  disabled={!isCreateMode && !canEditView}
                   placeholder="Particular ou convênio"
                 />
               </label>
@@ -365,8 +360,9 @@ const PatientN2Modal = ({
                 <span>Observações clínicas</span>
                 <textarea
                   className="modal-notes-input"
-                  value={isCreateMode ? form.notes : notesValue}
+                  value={isCreateMode ? form.notes : (viewForm?.notes ?? notesValue)}
                   onChange={(e) => onFormChange('notes', e.target.value)}
+                  disabled={!isCreateMode && !canEditView}
                   placeholder="Alergias, histórico, cuidados e recomendações..."
                 />
               </label>
@@ -374,12 +370,23 @@ const PatientN2Modal = ({
           )}
         </div>
 
-        <div className="modal-footer">
-          <button className="btn btn--ghost" onClick={onPreviousTab}>Etapa anterior</button>
-          <div className="modal-footer__right">
-            <button className="btn btn--ghost" onClick={onNextTab}>Próxima etapa</button>
+        <div className="modal-footer modal-footer--stack">
+          <div className="modal-footer__nav">
+            <button className="btn btn--ghost modal-footer__btn" onClick={onPreviousTab}>Etapa anterior</button>
+            <button className="btn btn--ghost modal-footer__btn" onClick={onNextTab}>Próxima etapa</button>
+          </div>
+          <div className={`modal-footer__actions ${isCreateMode || !isEditingView ? 'modal-footer__actions--single' : ''}`}>
+            {!isCreateMode && !isEditingView && (
+              <button className="btn btn--primary modal-save modal-footer__btn" onClick={onStartEdit}>Habilitar edição</button>
+            )}
+            {!isCreateMode && isEditingView && (
+              <>
+                <button className="btn btn--ghost modal-footer__btn" onClick={onCancelEdit}>Cancelar edição</button>
+                <button className="btn btn--primary modal-save modal-footer__btn" onClick={onSaveEdit}>Salvar alterações</button>
+              </>
+            )}
             {isCreateMode && (
-              <button className="btn btn--primary modal-save" onClick={onSubmit}>
+              <button className="btn btn--primary modal-save modal-footer__btn" onClick={onSubmit}>
                 Salvar paciente
               </button>
             )}
@@ -446,6 +453,8 @@ function App() {
   const [patientModalMode, setPatientModalMode] = useState('view');
   const [patientFormTab, setPatientFormTab] = useState(PATIENT_FORM_TABS[0].id);
   const [newPatientForm, setNewPatientForm] = useState(() => createEmptyPatientForm());
+  const [patientViewForm, setPatientViewForm] = useState(() => createEmptyPatientForm());
+  const [isPatientViewEditing, setIsPatientViewEditing] = useState(false);
   const [formFeedback, setFormFeedback] = useState('');
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
@@ -472,6 +481,15 @@ function App() {
     setPatientFormTab(PATIENT_FORM_TABS[0].id);
     setSelectedPatient(patient);
     setSelectedPatientId(patient?.id || null);
+    setPatientViewForm({
+      name: patient?.name || '',
+      birth: patient?.birth || '-',
+      phone: patient?.phone || '',
+      email: patient?.email || '',
+      plan: patient?.plan || '',
+      notes: notesDraft[patient?.id] ?? patient?.notes ?? ''
+    });
+    setIsPatientViewEditing(false);
     setShowPatientN2(true);
   };
 
@@ -491,11 +509,8 @@ function App() {
       return;
     }
 
-    if (field === 'notes' && selectedPatient) {
-      setNotesDraft((prev) => ({
-        ...prev,
-        [selectedPatient.id]: value
-      }));
+    if (patientModalMode === 'view' && isPatientViewEditing) {
+      setPatientViewForm((prev) => ({ ...prev, [field]: value }));
     }
   };
 
@@ -558,6 +573,54 @@ function App() {
         : [...prev.favorites, shortcutId].slice(-6);
       return { ...prev, favorites };
     });
+  };
+
+  const handleStartPatientEdit = () => {
+    if (!selectedPatient) return;
+    setPatientViewForm({
+      name: selectedPatient.name || '',
+      birth: selectedPatient.birth || '-',
+      phone: selectedPatient.phone || '',
+      email: selectedPatient.email || '',
+      plan: selectedPatient.plan || '',
+      notes: notesDraft[selectedPatient.id] ?? selectedPatient.notes ?? ''
+    });
+    setIsPatientViewEditing(true);
+  };
+
+  const handleCancelPatientEdit = () => {
+    if (!selectedPatient) return;
+    setPatientViewForm({
+      name: selectedPatient.name || '',
+      birth: selectedPatient.birth || '-',
+      phone: selectedPatient.phone || '',
+      email: selectedPatient.email || '',
+      plan: selectedPatient.plan || '',
+      notes: notesDraft[selectedPatient.id] ?? selectedPatient.notes ?? ''
+    });
+    setIsPatientViewEditing(false);
+  };
+
+  const handleSavePatientEdit = () => {
+    if (!selectedPatient) return;
+    const updatedPatient = {
+      ...selectedPatient,
+      name: patientViewForm.name.trim() || selectedPatient.name,
+      phone: patientViewForm.phone.trim() || selectedPatient.phone,
+      email: patientViewForm.email.trim() || '-',
+      birth: patientViewForm.birth.trim() || selectedPatient.birth,
+      plan: patientViewForm.plan.trim() || selectedPatient.plan,
+      notes: patientViewForm.notes.trim() || selectedPatient.notes
+    };
+
+    setPatients((prev) => prev.map((item) => (item.id === selectedPatient.id ? updatedPatient : item)));
+    setSelectedPatient(updatedPatient);
+    setNotesDraft((prev) => ({
+      ...prev,
+      [selectedPatient.id]: updatedPatient.notes
+    }));
+    setIsPatientViewEditing(false);
+    setFormFeedback('Prontuário atualizado com sucesso.');
   };
 
   const scrollQuickFilters = (direction) => {
@@ -630,8 +693,18 @@ function App() {
     const source = patients.find((p) => p.id === selectedPatientId);
     if (source) {
       setSelectedPatient(source);
+      if (!isPatientViewEditing) {
+        setPatientViewForm({
+          name: source.name || '',
+          birth: source.birth || '-',
+          phone: source.phone || '',
+          email: source.email || '',
+          plan: source.plan || '',
+          notes: notesDraft[source.id] ?? source.notes ?? ''
+        });
+      }
     }
-  }, [patients, selectedPatientId]);
+  }, [patients, selectedPatientId, isPatientViewEditing, notesDraft]);
 
   useEffect(() => {
     const state = {
@@ -1154,14 +1227,21 @@ function App() {
         mode={patientModalMode}
         patient={selectedPatient}
         form={newPatientForm}
+        viewForm={patientViewForm}
         activeTab={patientFormTab}
         notesValue={selectedPatient ? (notesDraft[selectedPatient.id] ?? selectedPatient.notes) : ''}
-        onClose={() => setShowPatientN2(false)}
-        onTabChange={setPatientFormTab}
+        isEditingView={isPatientViewEditing}
+        onClose={() => {
+          setShowPatientN2(false);
+          setIsPatientViewEditing(false);
+        }}
         onFormChange={handlePatientFormChange}
         onPreviousTab={() => moveFormTab(-1)}
         onNextTab={() => moveFormTab(1)}
         onSubmit={handleCreatePatientSubmit}
+        onStartEdit={handleStartPatientEdit}
+        onCancelEdit={handleCancelPatientEdit}
+        onSaveEdit={handleSavePatientEdit}
       />
     </div>
   );
