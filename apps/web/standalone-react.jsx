@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.15';
+const APP_VERSION_FALLBACK = '0.1.16';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -91,6 +91,53 @@ const SingleSelectionField = ({
       <AppIcon name="chevron-down" size={14} className="single-select__icon" />
     </div>
   </div>
+);
+
+const HeaderActionButton = ({
+  label,
+  icon,
+  onClick,
+  tone = 'new',
+  ariaLabel
+}) => (
+  <button
+    className={`btn btn--primary btn--header btn--header-${tone} inline-flex items-center gap-2`}
+    onClick={onClick}
+    aria-label={ariaLabel || label}
+  >
+    <AppIcon name={icon} size={14} className="btn-icon" />
+    {label}
+  </button>
+);
+
+const NewPatientButton = ({ onClick }) => (
+  <HeaderActionButton
+    label="Novo paciente"
+    icon="edit"
+    tone="new"
+    ariaLabel="Cadastrar novo paciente"
+    onClick={onClick}
+  />
+);
+
+const SearchToggleButton = ({ isOpen, onClick }) => (
+  <HeaderActionButton
+    label={isOpen ? 'Ocultar busca' : 'Pesquisar'}
+    icon="search"
+    tone="search"
+    ariaLabel="Mostrar ou ocultar busca"
+    onClick={onClick}
+  />
+);
+
+const MultiToggleButton = ({ isActive, onClick }) => (
+  <HeaderActionButton
+    label={isActive ? 'Sair multi' : 'Modo multi'}
+    icon="multi"
+    tone="multi"
+    ariaLabel="Ativar ou desativar modo multi"
+    onClick={onClick}
+  />
 );
 
 const BioHeader = ({
@@ -1335,26 +1382,20 @@ function App() {
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
             <div className="flex gap-2 flex-wrap justify-end">
-              <button className="btn btn--primary btn--header btn--header-new inline-flex items-center gap-2" onClick={openCreatePatientN2}>
-                <AppIcon name="edit" size={14} className="btn-icon" />
-                + Novo paciente
-              </button>
-              <button className="btn btn--primary btn--header btn--header-search inline-flex items-center gap-2" onClick={() => setIsPatientsSearchVisible((prev) => !prev)}>
-                <AppIcon name="search" size={14} className="btn-icon" />
-                {isPatientsSearchVisible ? 'Ocultar busca' : 'Pesquisar'}
-              </button>
-              <button
-                className="btn btn--primary btn--header btn--header-multi inline-flex items-center gap-2"
+              <NewPatientButton onClick={openCreatePatientN2} />
+              <SearchToggleButton
+                isOpen={isPatientsSearchVisible}
+                onClick={() => setIsPatientsSearchVisible((prev) => !prev)}
+              />
+              <MultiToggleButton
+                isActive={isPatientsMultiMode}
                 onClick={() => {
                   setIsPatientsMultiMode((prev) => {
                     if (prev) setSelectedPatientIds([]);
                     return !prev;
                   });
                 }}
-              >
-                <AppIcon name="multi" size={14} className="btn-icon" />
-                {isPatientsMultiMode ? 'Sair multi' : 'Modo multi'}
-              </button>
+              />
             </div>
           </div>
           <TransientNotice

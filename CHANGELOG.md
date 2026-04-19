@@ -2,6 +2,17 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.16 - 2026-04-19
+
+### Changed
+- Removido o caractere `+` do botão `Novo paciente` no header para evitar redundância com o ícone.
+- Criados elementos atômicos reutilizáveis para ações de header:
+  - `HeaderActionButton` (base)
+  - `NewPatientButton`
+  - `SearchToggleButton`
+  - `MultiToggleButton`
+- A tela Base de Pacientes passa a consumir esses elementos, facilitando reuso em outras telas.
+
 ## v0.1.15 - 2026-04-19
 
 ### Changed
