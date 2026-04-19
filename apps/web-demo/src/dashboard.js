@@ -22,8 +22,8 @@ import {
   X
 } from 'lucide-react';
 import { APPOINTMENTS, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
-import { loadClinicDataset } from './data-gateway.js';
-import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, ViewLayout } from './components.js';
+import { fetchAddressByCep, loadClinicDataset } from './data-gateway.js';
+import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, MobileNavBar, UiButton, ViewLayout } from './components.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -38,6 +38,19 @@ const Dashboard = () => {
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [patientForm, setPatientForm] = useState({
+    name: '',
+    phone: '',
+    cep: '',
+    street: '',
+    number: '',
+    complement: '',
+    neighborhood: '',
+    city: '',
+    state: ''
+  });
+  const [cepLookupStatus, setCepLookupStatus] = useState('idle');
+  const [cepLookupMessage, setCepLookupMessage] = useState('');
   const [newProcName, setNewProcName] = useState('');
   const [patientsSort, setPatientsSort] = useState('name-asc');
 
@@ -75,6 +88,55 @@ const Dashboard = () => {
     setIsEditing(false);
   };
 
+  const formatCep = (rawValue) => {
+    const digits = String(rawValue || '').replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const fillPatientForm = (patient) => {
+    const address = patient?.address || {};
+
+    setPatientForm({
+      name: patient?.name || '',
+      phone: patient?.phone || '',
+      cep: address.cep ? formatCep(address.cep) : '',
+      street: address.street || '',
+      number: address.number || '',
+      complement: address.complement || '',
+      neighborhood: address.neighborhood || '',
+      city: address.city || '',
+      state: address.state || ''
+    });
+    setCepLookupStatus('idle');
+    setCepLookupMessage('');
+  };
+
+  const handleCepLookup = async () => {
+    if (!isEditing) return;
+    setCepLookupStatus('loading');
+    setCepLookupMessage('Buscando endereço pelo CEP...');
+
+    try {
+      const address = await fetchAddressByCep(patientForm.cep);
+
+      setPatientForm((current) => ({
+        ...current,
+        cep: formatCep(address.cep),
+        street: address.street || current.street,
+        neighborhood: address.neighborhood || current.neighborhood,
+        city: address.city || current.city,
+        state: address.state || current.state
+      }));
+
+      setCepLookupStatus('success');
+      setCepLookupMessage('Campos principais preenchidos. Complete número e complemento.');
+    } catch (error) {
+      setCepLookupStatus('error');
+      setCepLookupMessage(error?.message || 'Não foi possível consultar o CEP.');
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -100,6 +162,11 @@ const Dashboard = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!modalPatient) return;
+    fillPatientForm(selectedPatient);
+  }, [modalPatient, selectedPatient]);
+
   return (
     <div className="min-h-screen bg-[#EAEEF2] flex flex-col md:flex-row font-sans selection:bg-sky-100">
       <aside className="hidden md:flex flex-col bg-white border-r border-slate-200 h-screen sticky top-0 w-72 z-40 shrink-0">
@@ -113,14 +180,15 @@ const Dashboard = () => {
             { id: 'patients', icon: Users, label: 'Base de Pacientes' },
             { id: 'settings', icon: Settings, label: 'Configurações' }
           ].map((item) => (
-            <button
+            <UiButton
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-5 p-4 rounded-2xl transition-all ${activeTab === item.id ? 'bg-slate-900 text-white shadow-2xl' : 'text-slate-500 hover:bg-sky-50'}`}
-            >
-              <item.icon size={20} />
-              <span className="font-bold text-sm tracking-wide">{item.label}</span>
-            </button>
+              icon={item.icon}
+              label={item.label}
+              size="lg"
+              labelLayout="side"
+              className={`sidebar-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
+            />
           ))}
         </nav>
       </aside>
@@ -144,13 +212,17 @@ const Dashboard = () => {
                 <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest">Agenda de Hoje</h3>
               </div>
               {appointments.map((item, idx) => (
-                <button key={idx} onClick={() => handleOpenPatientRecord(allPatients.find((p) => p.name === item.name))} className="w-full flex items-center justify-between px-10 py-8 hover:bg-slate-50 transition-all text-left group">
+                <UiButton
+                  key={idx}
+                  onClick={() => handleOpenPatientRecord(allPatients.find((p) => p.name === item.name))}
+                  className="w-full h-auto justify-between rounded-none border-none bg-transparent px-10 py-8 text-left group hover:bg-slate-50 shadow-none"
+                >
                   <div className="flex items-center gap-10">
                     <span className="text-sm font-black text-sky-700 w-12">{item.time}</span>
                     <div><p className="text-xl font-bold text-slate-900 mb-1">{item.name}</p><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{item.procedure}</p></div>
                   </div>
                   <ArrowRight size={24} className="text-slate-200 group-hover:text-sky-700 transition-all group-hover:translate-x-2" />
-                </button>
+                </UiButton>
               ))}
             </div>
           </div>
@@ -162,13 +234,14 @@ const Dashboard = () => {
           title="Base de Pacientes"
           badge="Índice de Prontuários"
           actions={(
-            <button
+            <UiButton
               onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
-              className="flex items-center gap-3 px-6 py-3 bg-sky-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-sky-100 hover:bg-sky-800 transition-all"
-            >
-              <UserPlus size={18} />
-              <span className="hidden md:inline">Novo Cadastro</span>
-            </button>
+              icon={UserPlus}
+              label="Novo Cadastro"
+              tone="primary"
+              size="md"
+              className="uppercase tracking-widest shadow-xl shadow-sky-100"
+            />
           )}
         >
           <div className="space-y-10">
@@ -242,29 +315,30 @@ const Dashboard = () => {
         </ViewLayout>
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200 h-24 px-8 pt-2 pb-8 flex justify-around items-center z-[50] md:hidden">
+      <MobileNavBar>
         {[
           { id: 'overview', icon: LayoutDashboard, label: 'Hoje' },
           { id: 'patients', icon: Users, label: 'Base' },
           { id: 'settings', icon: Settings, label: 'Ajustes' }
         ].map((item) => (
-          <button
+          <UiButton
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === item.id ? 'text-sky-700' : 'text-slate-400'}`}
-          >
-            <item.icon size={22} className={activeTab === item.id ? 'fill-sky-700/10' : ''} />
-            <span className="text-[10px] font-bold leading-none tracking-tight">{item.label}</span>
-          </button>
+            icon={item.icon}
+            label={item.label}
+            size="md"
+            labelLayout="below"
+            className={`mobile-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
+          />
         ))}
-      </nav>
+      </MobileNavBar>
 
       <AdaptiveModal isOpen={modalSettingsProc} onClose={() => setModalSettingsProc(false)}>
         <AdaptiveHeader
           title="Catálogo de Serviços"
           subtitle="Configuração do Portfólio"
           icon={Layers}
-          actions={<button onClick={() => setModalSettingsProc(false)} className="p-3 bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"><X size={20} /></button>}
+          actions={<UiButton onClick={() => setModalSettingsProc(false)} icon={X} labelLayout="hidden" tone="neutral" />}
         />
         <div className="p-10 space-y-10 pb-32 overflow-y-auto scrollbar-hide">
           <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
@@ -279,12 +353,12 @@ const Dashboard = () => {
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-base font-bold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 transition-all"
                 />
               </div>
-              <button
+              <UiButton
                 onClick={() => { if (newProcName.trim()) { setAllProcedures([...allProcedures, newProcName.trim()]); setNewProcName(''); } }}
-                className="px-8 bg-sky-700 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-sky-100 hover:bg-sky-800 transition-all"
-              >
-                Adicionar
-              </button>
+                label="Adicionar"
+                tone="primary"
+                className="px-8 uppercase tracking-widest shadow-lg shadow-sky-100"
+              />
             </div>
 
             <div className="space-y-3">
@@ -292,12 +366,14 @@ const Dashboard = () => {
               {allProcedures.map((proc, idx) => (
                 <div key={idx} className="flex items-center justify-between p-6 bg-slate-50/50 border border-slate-100 rounded-2xl group animate-in fade-in slide-in-from-left-2 duration-300">
                   <span className="text-lg font-bold text-slate-900">{proc}</span>
-                  <button
+                  <UiButton
                     onClick={() => setAllProcedures(allProcedures.filter((p) => p !== proc))}
-                    className="p-3 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                    icon={Trash2}
+                    tone="danger"
+                    labelLayout="hidden"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100"
+                  />
                 </div>
               ))}
             </div>
@@ -315,18 +391,18 @@ const Dashboard = () => {
             <>
               {isEditing ? (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
-                  <button onClick={() => setIsEditing(false)} className="p-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all"><X size={20} /></button>
-                  <button onClick={() => { setIsEditing(false); setModalPatient(false); }} className="p-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-lg"><Check size={20} /></button>
+                  <UiButton onClick={() => { setIsEditing(false); fillPatientForm(selectedPatient); }} icon={X} tone="danger" labelLayout="hidden" />
+                  <UiButton onClick={() => { setIsEditing(false); setModalPatient(false); }} icon={Check} tone="success" labelLayout="hidden" className="shadow-lg" />
                 </div>
               ) : (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
-                  <button className="p-3 rounded-xl bg-slate-100 text-slate-400 hover:text-sky-700" title="Compartilhar"><Globe size={18} /></button>
-                  <button className="p-3 rounded-xl bg-slate-100 text-slate-400 hover:text-red-600" title="Excluir"><Trash2 size={18} /></button>
+                  <UiButton icon={Globe} tone="info" labelLayout="hidden" title="Compartilhar" />
+                  <UiButton icon={Trash2} tone="danger" labelLayout="hidden" title="Excluir" />
                   <div className="w-px h-8 bg-slate-200 mx-1"></div>
-                  <button onClick={() => setIsEditing(true)} className="p-3 rounded-xl bg-slate-100 text-slate-400 hover:text-sky-700" title="Editar"><Pencil size={18} /></button>
+                  <UiButton onClick={() => setIsEditing(true)} icon={Pencil} tone="neutral" labelLayout="hidden" title="Editar" />
                 </div>
               )}
-              <button onClick={() => setModalPatient(false)} className="p-3 bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"><X size={20} /></button>
+              <UiButton onClick={() => setModalPatient(false)} icon={X} tone="neutral" labelLayout="hidden" />
             </>
           )}
         />
@@ -336,7 +412,8 @@ const Dashboard = () => {
               <input
                 type="text"
                 disabled={!isEditing}
-                defaultValue={selectedPatient?.name || ''}
+                value={patientForm.name}
+                onChange={(event) => setPatientForm((current) => ({ ...current, name: event.target.value }))}
                 className="w-full bg-transparent border-none text-lg font-bold text-slate-900 outline-none"
                 placeholder="João da Silva"
               />
@@ -345,11 +422,120 @@ const Dashboard = () => {
               <input
                 type="text"
                 disabled={!isEditing}
-                defaultValue={selectedPatient?.phone || ''}
+                value={patientForm.phone}
+                onChange={(event) => setPatientForm((current) => ({ ...current, phone: event.target.value }))}
                 className="w-full bg-transparent border-none text-lg font-bold text-slate-900 outline-none"
                 placeholder="(00) 00000-0000"
               />
             </FormField>
+          </div>
+
+          <div className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm p-6 md:p-8 space-y-5">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Etapa</p>
+                <h4 className="text-lg font-bold text-slate-900">Cadastro de Endereço</h4>
+              </div>
+              <UiButton
+                onClick={handleCepLookup}
+                label={cepLookupStatus === 'loading' ? 'Buscando...' : 'Buscar CEP'}
+                tone={cepLookupStatus === 'error' ? 'danger' : 'info'}
+                size="sm"
+                disabled={!isEditing || cepLookupStatus === 'loading'}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                CEP
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.cep}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, cep: formatCep(event.target.value) }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="00000-000"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Número
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.number}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, number: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preencher manualmente"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider md:col-span-2">
+                Rua / Logradouro
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.street}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, street: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preenchido automaticamente pelo CEP"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Bairro
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.neighborhood}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, neighborhood: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preenchido automaticamente pelo CEP"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Cidade
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.city}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, city: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Preenchido automaticamente pelo CEP"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                UF
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.state}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, state: event.target.value.toUpperCase().slice(0, 2) }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="UF"
+                />
+              </label>
+
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider md:col-span-2">
+                Complemento
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  value={patientForm.complement}
+                  onChange={(event) => setPatientForm((current) => ({ ...current, complement: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                  placeholder="Apartamento, bloco, referência..."
+                />
+              </label>
+            </div>
+
+            {cepLookupMessage && (
+              <p className={`text-xs font-semibold ${cepLookupStatus === 'error' ? 'text-rose-600' : 'text-sky-700'}`}>
+                {cepLookupMessage}
+              </p>
+            )}
           </div>
         </div>
       </AdaptiveModal>
