@@ -641,11 +641,11 @@ select {
 }
 
 .bio-header {
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 74%, white);
-  border-radius: 18px;
-  background: color-mix(in srgb, #ffffff 92%, #e7eef8);
-  box-shadow: 0 10px 26px rgba(15, 35, 72, 0.09);
-  padding: 0.7rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 .bio-header__top {
@@ -704,9 +704,8 @@ select {
 }
 
 .bio-header__bottom {
-  margin-top: 0.55rem;
-  border-top: 1px solid color-mix(in srgb, var(--border-subtle) 74%, white);
-  padding-top: 0.5rem;
+  margin-top: 0.45rem;
+  padding-top: 0;
 }
 
 .bio-breadcrumb {
@@ -1361,15 +1360,18 @@ select {
 
   .bio-header-shell {
     display: block;
-    padding: 0.8rem 0.9rem 0.25rem;
-    border-bottom: 1px solid var(--border-soft);
-    background: color-mix(in srgb, #ffffff 95%, #e7eef8);
+    padding: 0 1rem 0.4rem;
+    border-bottom: 0;
+    background: transparent;
   }
 
   .bio-header__action {
     width: 42px;
     max-width: 42px;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .bio-header__action .btn-label {
@@ -1377,8 +1379,10 @@ select {
   }
 
   .bio-header__action .btn-icon {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
+    display: block;
+    margin: 0 auto;
   }
 
   .btn--header {

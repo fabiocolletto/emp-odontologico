@@ -90,7 +90,7 @@ const BioHeader = ({
             onClick={action.onClick}
             aria-label={action.ariaLabel || action.label}
           >
-            <AppIcon name={action.icon} size={14} className="btn-icon" />
+            <AppIcon name={action.icon} size={18} className="btn-icon" />
             <span className="btn-label">{action.label}</span>
           </button>
         ))}
