@@ -54,10 +54,12 @@ const BUTTON_LABEL_LAYOUT_CLASS = {
 export const UiButton = ({
   icon: Icon,
   label,
+  children,
   size = 'md',
   tone = 'neutral',
   labelLayout = 'side',
   className = '',
+  type = 'button',
   ...props
 }) => {
   const resolvedSize = BUTTON_SIZE_CLASS[size] || BUTTON_SIZE_CLASS.md;
@@ -66,11 +68,16 @@ export const UiButton = ({
 
   return (
     <button
+      type={type}
       className={`ui-btn ${resolvedSize} ${resolvedTone} ${resolvedLabelLayout} ${className}`.trim()}
       {...props}
     >
-      {Icon && <Icon size={18} className="ui-btn__icon" />}
-      {label && <span className="ui-btn__label">{label}</span>}
+      {children || (
+        <>
+          {Icon && <Icon size={18} className="ui-btn__icon" />}
+          {label && <span className="ui-btn__label">{label}</span>}
+        </>
+      )}
     </button>
   );
 };

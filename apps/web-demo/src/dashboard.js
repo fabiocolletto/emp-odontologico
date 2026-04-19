@@ -212,13 +212,17 @@ const Dashboard = () => {
                 <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest">Agenda de Hoje</h3>
               </div>
               {appointments.map((item, idx) => (
-                <button key={idx} onClick={() => handleOpenPatientRecord(allPatients.find((p) => p.name === item.name))} className="w-full flex items-center justify-between px-10 py-8 hover:bg-slate-50 transition-all text-left group">
+                <UiButton
+                  key={idx}
+                  onClick={() => handleOpenPatientRecord(allPatients.find((p) => p.name === item.name))}
+                  className="w-full h-auto justify-between rounded-none border-none bg-transparent px-10 py-8 text-left group hover:bg-slate-50 shadow-none"
+                >
                   <div className="flex items-center gap-10">
                     <span className="text-sm font-black text-sky-700 w-12">{item.time}</span>
                     <div><p className="text-xl font-bold text-slate-900 mb-1">{item.name}</p><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{item.procedure}</p></div>
                   </div>
                   <ArrowRight size={24} className="text-slate-200 group-hover:text-sky-700 transition-all group-hover:translate-x-2" />
-                </button>
+                </UiButton>
               ))}
             </div>
           </div>

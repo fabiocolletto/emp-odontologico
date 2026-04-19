@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Stethoscope } from 'lucide-react';
+import { UiButton } from './components.js';
 import Dashboard from './dashboard.js';
 
 const App = () => {
@@ -37,7 +38,13 @@ const App = () => {
             <p className="text-slate-400 text-lg md:text-2xl font-medium leading-snug tracking-tight italic">Design Consistente. <span className="text-slate-900 font-semibold not-italic">Gestão Ágil.</span></p>
           </div>
         </div>
-        <button onClick={() => setView('dashboard')} className="w-full max-w-sm py-5 bg-sky-700 text-white rounded-2xl font-bold text-xl shadow-xl shadow-blue-200 active:scale-95 transition-all hover:bg-sky-800">Acessar Unidade</button>
+        <UiButton
+          onClick={() => setView('dashboard')}
+          label="Acessar Unidade"
+          tone="primary"
+          size="lg"
+          className="w-full max-w-sm text-xl shadow-xl shadow-blue-200 active:scale-95"
+        />
       </div>
     );
   }
