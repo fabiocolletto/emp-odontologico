@@ -1064,7 +1064,7 @@ function App() {
       overview: {
         level: 0,
         previous: null,
-        next: ['agenda-hoje', 'patients', 'new-patient', 'settings']
+        next: ['agenda-hoje', 'patients', 'settings']
       },
       patients: {
         level: 1,
