@@ -6,6 +6,7 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
+const APP_VERSION = '0.1.3';
 
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
@@ -942,12 +943,20 @@ function App() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setView('dashboard')}
-          className="btn btn--primary btn--lg landing-cta"
-        >
-          Acessar Unidade
-        </button>
+        <div className="flex flex-col items-center gap-4">
+          <button
+            onClick={() => setView('dashboard')}
+            className="btn btn--primary btn--lg landing-cta"
+          >
+            Acessar Unidade
+          </button>
+          <span
+            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600"
+            aria-label={`Versão V${APP_VERSION}`}
+          >
+            V{APP_VERSION}
+          </span>
+        </div>
       </div>
     );
   }

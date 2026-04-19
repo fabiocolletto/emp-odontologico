@@ -2,6 +2,17 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.3 - 2026-04-19
+
+### Added
+- Badge de versão no rodapé da tela inicial (landing) com formato `Vx.y.z`.
+
+## v0.1.2 - 2026-04-19
+
+### Changed
+- Estrutura do app web consolidada em `apps/web` (remoção da nomenclatura `web-demo`).
+- Ajustados caminhos do shell principal (`index.html`) para carregar assets em `apps/web/`.
+
 ## v0.1.1 - 2026-04-19
 
 ### Changed

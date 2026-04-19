@@ -7,7 +7,7 @@ Sistema de gestão empresarial para clínicas odontológicas.
 ```text
 .
 ├── apps/
-│   └── web-demo/
+│   └── web/
 │       ├── index.html
 │       ├── styles.css
 │       └── src/
@@ -44,7 +44,7 @@ Sistema de gestão empresarial para clínicas odontológicas.
 ## Regras organizacionais
 - **`apps/`**: aplicações executáveis (frontend, backend, workers).
 - **`docs/`**: documentação de produto, arquitetura, governança e APIs.
-- **`apps/web-demo/`**: demo temporária da UI OdontoFlow (sem backend acoplado).
+- **`apps/web/`**: aplicação web principal da UI OdontoFlow.
 
 Para detalhes da organização e evolução, consulte `docs/estrutura-repositorio.md`.
 
@@ -52,4 +52,4 @@ Para detalhes da organização e evolução, consulte `docs/estrutura-repositori
 ## Migração futura para Supabase
 - Base SQL inicial e massa de dados estão em `backend/supabase/`.
 - Aplicar migration + importar CSVs quando iniciar a troca de `localStorage` para banco.
-- O frontend demo já está preparado para ler `backend/supabase/sample-data/*.csv` como fonte principal (com fallback local).
+- O frontend web já está preparado para ler `backend/supabase/sample-data/*.csv` como fonte principal (com fallback local).

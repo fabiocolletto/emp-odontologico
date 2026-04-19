@@ -42,7 +42,7 @@
 
 ## 2026-04-18
 - Corrigido erro de ícone em modal de ficha clínica ao incluir `User` em `lucide-react`.
-- Migrada demo de `docs/temporario` para `apps/web-demo` com separação de shell (`index.html`), estilos (`styles.css`) e módulos JS em `src/`.
+- Migrada aplicação de `docs/temporario` para `apps/web` com separação de shell (`index.html`), estilos (`styles.css`) e módulos JS em `src/`.
 - Documento de governança movido para `docs/governanca/agent.md`.
 - Roadmap consolidado em `docs/produto/read.md`.
 - Adicionada definição formal da estrutura em `docs/estrutura-repositorio.md`.
