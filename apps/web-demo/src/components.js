@@ -82,12 +82,6 @@ export const UiButton = ({
   );
 };
 
-export const MobileNavBar = ({ children, className = '' }) => (
-  <nav className={`mobile-nav-shell ${className}`.trim()}>
-    {children}
-  </nav>
-);
-
 // --- COMPONENTES DE ESTRUTURA (NÍVEL 1, 2 E 3) ---
 
 export const ViewLayout = ({ title, badge, actions, children }) => (
@@ -112,7 +106,7 @@ export const ViewLayout = ({ title, badge, actions, children }) => (
         </div>
       </div>
     </header>
-    <section className="max-w-6xl mx-auto w-full p-8 pb-40">
+    <section className="max-w-6xl mx-auto w-full p-8 pb-16 md:pb-20">
       {children}
     </section>
   </div>

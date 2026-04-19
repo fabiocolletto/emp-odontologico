@@ -306,75 +306,6 @@ select {
   height: 20px;
 }
 
-.mobile-nav-shell {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 50;
-  height: 96px;
-  padding: 0.5rem 2rem calc(0.7rem + env(safe-area-inset-bottom));
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 0.45rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.35);
-  background: color-mix(in srgb, #ffffff 90%, #e7eef8);
-  backdrop-filter: blur(12px);
-}
-
-.mobile-nav-btn {
-  --btn-size: 48px;
-  width: 48px;
-  min-width: 48px;
-  max-width: 48px;
-  height: 48px;
-  min-height: 48px;
-  border-radius: 14px;
-  padding: 0;
-  position: relative;
-  border-color: transparent;
-  background: transparent;
-  color: #94a3b8;
-  box-shadow: none;
-}
-
-.mobile-nav-btn:hover {
-  box-shadow: none;
-  transform: none;
-}
-
-.mobile-nav-btn .ui-btn__icon {
-  width: 20px;
-  height: 20px;
-  transform: translateY(-8px);
-}
-
-.mobile-nav-btn .ui-btn__label {
-  position: absolute;
-  left: 50%;
-  bottom: 4px;
-  transform: translateX(-50%);
-  font-size: 0.46rem;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: inherit;
-  max-width: 46px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-}
-
-.mobile-nav-btn.is-active {
-  background: color-mix(in srgb, var(--brand-600) 16%, white);
-  color: var(--brand-700);
-}
-
-.mobile-nav-btn.is-active .ui-btn__label {
-  color: #0b6aa7;
-}
-
 .mobile-drawer-wrap {
   position: fixed;
   inset: 0;
@@ -1326,7 +1257,6 @@ select {
 
   .app-sidebar { display: flex; }
   .app-content { padding-bottom: clamp(1.2rem, 2vw, 2.2rem); }
-  .mobile-nav { display: none !important; }
 }
 
 @media (max-width: 1180px) {
@@ -1546,22 +1476,6 @@ select {
   .pagination-row {
     bottom: 4.6rem;
     margin-inline: auto;
-  }
-}
-
-@media (min-width: 768px) {
-  .mobile-nav-shell {
-    display: none;
-  }
-}
-
-@media (max-width: 390px) {
-  .mobile-nav-btn .ui-btn__icon {
-    transform: none;
-  }
-
-  .mobile-nav-btn .ui-btn__label {
-    display: none;
   }
 }
 
