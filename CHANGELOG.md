@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.18 - 2026-04-19
+
+### Changed
+- Padronização global de botões para todos os níveis/sessões/telas:
+  - base `.btn`, `.ui-btn`, `.quick-links-btn` e `.modal-action-btn` agora compartilham o mesmo estilo sólido com glassmorphism.
+  - variações passam a alterar principalmente exibição de título/posição, mantendo a mesma configuração visual.
+- Aplicado também aos botões internos de cards (ex.: botão de abrir/editar registro em `patient-card__open` via `.btn--icon`).
+
 ## v0.1.17 - 2026-04-19
 
 ### Changed
