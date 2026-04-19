@@ -1,4 +1,25 @@
 // Fallback local: usado somente quando os CSVs do backend/supabase não estiverem disponíveis.
+export const APP_VERSION = '0.1.1';
+
+export const VERSION_LOG = [
+  {
+    version: '0.1.1',
+    date: '2026-04-19',
+    notes: [
+      'Removida a navegação redundante do header mobile do nível 0.',
+      'Navegação mobile passa a usar exclusivamente o drawer lateral.'
+    ]
+  },
+  {
+    version: '0.1.0',
+    date: '2026-04-19',
+    notes: [
+      'Janela lateral de navegação inteligente no mobile.',
+      'Header mobile do nível 0 com ações em grid 2x2.',
+      'Exibição de versão na tela inicial para validar deploy no GitHub Pages.'
+    ]
+  }
+];
 
 export const INITIAL_PATIENTS = [
   { id: 'local-1', name: 'Ana Paula Souza', phone: '(11) 98877-6655', lastVisit: '12/04/2024', gender: 'Feminino', birth: '15/05/1992', email: 'ana@email.com' },

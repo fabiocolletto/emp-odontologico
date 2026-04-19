@@ -96,7 +96,7 @@ export const ViewLayout = ({ title, badge, actions, children }) => (
             </div>
           )}
         </div>
-        <div className="flex items-center gap-4 mb-2">
+        <div className="w-full md:w-auto flex items-center justify-end gap-4 mb-2">
           {actions ? actions : (
             <>
               <UiButton icon={Bell} size="md" tone="neutral" labelLayout="hidden" />
