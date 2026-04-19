@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.19';
+const APP_VERSION_FALLBACK = '0.1.20';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -47,6 +47,7 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
     'chevron-down': <path d="m6 9 6 6 6-6" />,
+    'chevron-up': <path d="m18 15-6-6-6 6" />,
     'chevron-left': <path d="m14.5 6-6 6 6 6" />,
     'chevron-right': <path d="m9.5 6 6 6-6 6" />
   };
@@ -78,21 +79,66 @@ const SingleSelectionField = ({
   onChange,
   options = [],
   className = ''
-}) => (
-  <div className={`single-select ${className}`.trim()}>
-    {label ? <label htmlFor={id} className="single-select__label">{label}</label> : null}
-    <div className="single-select__control-wrap">
-      <select id={id} className="single-select__control" value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <AppIcon name="chevron-down" size={14} className="single-select__icon" />
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+  const selectedOption = options.find((option) => option.value === value) || options[0];
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleOutsidePointer = (event) => {
+      if (!containerRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsidePointer);
+    document.addEventListener('touchstart', handleOutsidePointer, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsidePointer);
+      document.removeEventListener('touchstart', handleOutsidePointer);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className={`single-select ${className}`.trim()} ref={containerRef}>
+      {label ? <label htmlFor={id} className="single-select__label">{label}</label> : null}
+      <div className="single-select__control-wrap">
+        <button
+          id={id}
+          type="button"
+          className="single-select__control single-select__trigger"
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          <span>{selectedOption?.label || 'Selecionar'}</span>
+          <AppIcon name={isOpen ? 'chevron-up' : 'chevron-down'} size={14} className="single-select__icon" />
+        </button>
+
+        {isOpen ? (
+          <div className="selector-window" role="listbox" aria-label={label || 'Selecionar opção'}>
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`selector-window__option ${option.value === value ? 'is-active' : ''}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const HeaderActionButton = ({
   label,

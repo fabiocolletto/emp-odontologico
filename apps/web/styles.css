@@ -939,14 +939,17 @@ select {
 }
 
 .single-select__control {
-  appearance: none;
   width: 100%;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  background: #fff;
-  color: var(--text-base);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-strong);
   padding: 0.56rem 2rem 0.56rem 0.74rem;
   font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 
 .single-select__control:focus {
@@ -954,13 +957,73 @@ select {
   outline-offset: 1px;
 }
 
+.single-select__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
 .single-select__icon {
-  position: absolute;
-  right: 0.65rem;
-  top: 50%;
-  transform: translateY(-50%);
+  flex: 0 0 auto;
   color: var(--text-muted);
-  pointer-events: none;
+}
+
+.selector-window {
+  position: absolute;
+  z-index: 120;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--brand-600) 24%, white);
+  background: rgba(247, 251, 255, 0.96);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: 0 18px 34px rgba(2, 6, 23, 0.22);
+  padding: 0.3rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.selector-window__option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text-base);
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.selector-window__option:hover {
+  background: rgba(186, 230, 253, 0.38);
+}
+
+.selector-window__option.is-active {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--brand-700);
+}
+
+/* Base para outros campos seletivos (data, hora e similares). */
+.selector-input {
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-strong);
+  padding: 0.56rem 0.74rem;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+}
+
+.selector-input[type='date'],
+.selector-input[type='time'],
+.selector-input[type='datetime-local'] {
+  appearance: none;
 }
 
 .page-subtitle {

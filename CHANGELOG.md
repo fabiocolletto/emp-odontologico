@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.20 - 2026-04-19
+
+### Changed
+- Janela de seleção única (`SingleSelectionField`) passou a usar dropdown customizado em HTML/CSS/JS, removendo o popup nativo do sistema.
+- Novo padrão visual para janelas seletoras (`.selector-window`, `.selector-window__option`) alinhado à estética do app.
+- Adicionada base reutilizável para outros campos seletivos (ex.: data/hora) com `.selector-input` para evitar aparência padrão do sistema em futuras telas.
+
 ## v0.1.19 - 2026-04-19
 
 ### Changed
