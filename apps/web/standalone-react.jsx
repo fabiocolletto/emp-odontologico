@@ -6,7 +6,7 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
-const APP_VERSION_FALLBACK = '0.1.9';
+const APP_VERSION_FALLBACK = '0.1.10';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -1060,8 +1060,16 @@ function App() {
   }
 
   const renderContent = () => {
-    const overviewQuickLinks = [
-      {
+    const quickLinksCatalog = {
+      overview: {
+        key: 'overview',
+        icon: 'home',
+        tone: 'overview',
+        label: 'Painel',
+        ariaLabel: 'Ir para painel inicial',
+        onClick: () => setActiveTab('overview')
+      },
+      'agenda-hoje': {
         key: 'agenda-hoje',
         icon: 'calendar',
         tone: 'agenda',
@@ -1072,7 +1080,7 @@ function App() {
           setAppointmentsQuery('');
         }
       },
-      {
+      patients: {
         key: 'patients',
         icon: 'users',
         tone: 'patients',
@@ -1080,7 +1088,7 @@ function App() {
         ariaLabel: 'Abrir base de pacientes',
         onClick: () => setActiveTab('patients')
       },
-      {
+      'new-patient': {
         key: 'new-patient',
         icon: 'edit',
         tone: 'new',
@@ -1091,7 +1099,7 @@ function App() {
           openCreatePatientN2();
         }
       },
-      {
+      settings: {
         key: 'settings',
         icon: 'settings',
         tone: 'settings',
@@ -1099,29 +1107,43 @@ function App() {
         ariaLabel: 'Abrir configurações',
         onClick: () => setActiveTab('settings')
       }
+    };
+
+    const levelQuickLinksMap = {
+      overview: {
+        level: 0,
+        previous: null,
+        next: ['agenda-hoje', 'patients', 'new-patient', 'settings']
+      },
+      patients: {
+        level: 1,
+        previous: 'overview',
+        next: ['new-patient']
+      },
+      settings: {
+        level: 1,
+        previous: 'overview',
+        next: []
+      }
+    };
+
+    const quickLinksConfig = levelQuickLinksMap[activeTab] || levelQuickLinksMap.overview;
+    const quickLinksOrder = [
+      ...(quickLinksConfig.level > 0 && quickLinksConfig.previous ? [quickLinksConfig.previous] : []),
+      ...quickLinksConfig.next
     ];
+    const currentQuickLinks = quickLinksOrder
+      .map((key) => quickLinksCatalog[key])
+      .filter(Boolean);
 
-    const appHeaderActions = activeTab === 'overview'
-      ? []
-      : [
-        {
-          key: 'open-map',
-          tone: 'neutral',
-          icon: 'map',
-          label: 'Mapa',
-          ariaLabel: 'Abrir mapa de navegação',
-          onClick: () => setShowMobileNavDrawer(true)
-        }
-      ];
-
-    const overviewQuickLinksNavigation = (
+    const quickLinksNavigation = (
       <div className="quick-links-shell">
         <div
           ref={quickLinksCarouselRef}
           className="quick-links-carousel"
           onScroll={handleQuickLinksSnapScroll}
         >
-          {overviewQuickLinks.map((link) => (
+          {currentQuickLinks.map((link) => (
             <button
               key={link.key}
               className={`quick-links-btn quick-links-btn--${link.tone}`}
@@ -1136,7 +1158,7 @@ function App() {
       </div>
     );
 
-    const renderN1Header = ({ icon, title, subtitle, actions = appHeaderActions, navigation = null }) => (
+    const renderN1Header = ({ icon, title, subtitle, actions = [], navigation = quickLinksNavigation }) => (
       isMobileViewport ? (
         <BioHeader
           icon={icon}
@@ -1155,8 +1177,7 @@ function App() {
             icon: 'home',
             title: 'Painel Diário',
             subtitle: 'Atendimento e indicadores da clínica',
-            actions: [],
-            navigation: overviewQuickLinksNavigation
+            actions: []
           })}
           {!isMobileViewport && <h2 className="page-title">Painel Diário</h2>}
           {usingFallbackData && (

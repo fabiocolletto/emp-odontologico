@@ -819,6 +819,11 @@ select {
   background: linear-gradient(135deg, rgba(219, 234, 254, 0.74) 0%, rgba(186, 230, 253, 0.62) 100%);
 }
 
+.quick-links-btn--overview {
+  color: #0d3a6e;
+  background: linear-gradient(135deg, rgba(191, 219, 254, 0.74) 0%, rgba(219, 234, 254, 0.62) 100%);
+}
+
 .quick-links-btn--patients {
   color: #0f3f74;
   background: linear-gradient(135deg, rgba(224, 242, 254, 0.74) 0%, rgba(191, 219, 254, 0.62) 100%);

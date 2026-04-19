@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.10 - 2026-04-19
+
+### Changed
+- Navegação rápida mobile padronizada por nível: nível > 0 começa com retorno ao nível anterior.
+- Header mobile das telas passa a usar carrossel de links rápidos em todos os níveis.
+
 ## v0.1.9 - 2026-04-19
 
 ### Changed
