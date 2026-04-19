@@ -168,7 +168,7 @@ select {
 .mobile-drawer-wrap {
   position: fixed;
   inset: 0;
-  z-index: 95;
+  z-index: 140;
 }
 
 .mobile-drawer-backdrop {
@@ -949,6 +949,20 @@ select {
   gap: 0.35rem;
 }
 
+.n2-mobile-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 0.35rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, #ffffff 92%, #e7eef8);
+  border: 1px solid var(--border-subtle);
+}
+
+.n2-mobile-nav__btn {
+  min-height: 42px;
+}
+
 .modal-save {
   padding: 0.6rem 0.9rem;
 }
@@ -1069,19 +1083,22 @@ select {
     border: 1px solid var(--border-subtle);
   }
 
-  .modal-footer__btn {
+  .modal-footer__btn,
+  .n2-mobile-nav__btn {
     min-height: 44px;
     border-radius: 14px;
     background: transparent;
   }
 
   .modal-header__btn .btn-label,
-  .modal-footer__btn .btn-label {
+  .modal-footer__btn .btn-label,
+  .n2-mobile-nav__btn .btn-label {
     display: none;
   }
 
   .modal-header__btn .btn-icon,
-  .modal-footer__btn .btn-icon {
+  .modal-footer__btn .btn-icon,
+  .n2-mobile-nav__btn .btn-icon {
     width: 18px;
     height: 18px;
   }

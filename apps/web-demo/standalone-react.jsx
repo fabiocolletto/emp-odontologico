@@ -261,6 +261,7 @@ const PatientN2Modal = ({
   onFormChange,
   onPreviousTab,
   onNextTab,
+  onOpenNavigationMap,
   onSubmit,
   onStartEdit,
   onCancelEdit,
@@ -399,14 +400,18 @@ const PatientN2Modal = ({
         </div>
 
         <div className="modal-footer modal-footer--stack">
-          <div className="modal-footer__nav">
-            <button className="btn btn--ghost modal-footer__btn modal-action-btn modal-action-btn--neutral" onClick={onPreviousTab}>
+          <div className="n2-mobile-nav">
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onPreviousTab}>
               <AppIcon name="chevron-left" size={16} className="btn-icon" />
               <span className="btn-label">Etapa anterior</span>
             </button>
-            <button className="btn btn--ghost modal-footer__btn modal-action-btn modal-action-btn--info" onClick={onNextTab}>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onNextTab}>
               <AppIcon name="chevron-right" size={16} className="btn-icon" />
               <span className="btn-label">Próxima etapa</span>
+            </button>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onOpenNavigationMap}>
+              <AppIcon name="map" size={14} className="btn-icon" />
+              <span className="btn-label">Mapa</span>
             </button>
           </div>
         </div>
@@ -1285,6 +1290,7 @@ function App() {
         onFormChange={handlePatientFormChange}
         onPreviousTab={() => moveFormTab(-1)}
         onNextTab={() => moveFormTab(1)}
+        onOpenNavigationMap={() => setShowMobileNavDrawer(true)}
         onSubmit={handleCreatePatientSubmit}
         onStartEdit={handleStartPatientEdit}
         onCancelEdit={handleCancelPatientEdit}
