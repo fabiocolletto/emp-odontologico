@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.17 - 2026-04-19
+
+### Changed
+- O botão de criação foi generalizado para cenários de telas de dados:
+  - `AddRecordButton` substitui o antigo botão específico de paciente.
+  - aceita `label` e `ariaLabel`, mantendo o mesmo padrão visual (`HeaderActionButton` + `tone="new"`).
+- Na Base de Pacientes, o uso permanece como `Novo paciente`, agora via componente genérico reutilizável.
+
 ## v0.1.16 - 2026-04-19
 
 ### Changed

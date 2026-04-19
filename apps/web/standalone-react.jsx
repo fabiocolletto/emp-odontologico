@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.16';
+const APP_VERSION_FALLBACK = '0.1.17';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -110,12 +110,16 @@ const HeaderActionButton = ({
   </button>
 );
 
-const NewPatientButton = ({ onClick }) => (
+const AddRecordButton = ({
+  onClick,
+  label = 'Novo registro',
+  ariaLabel = 'Cadastrar novo registro'
+}) => (
   <HeaderActionButton
-    label="Novo paciente"
+    label={label}
     icon="edit"
     tone="new"
-    ariaLabel="Cadastrar novo paciente"
+    ariaLabel={ariaLabel}
     onClick={onClick}
   />
 );
@@ -1382,7 +1386,11 @@ function App() {
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
             <div className="flex gap-2 flex-wrap justify-end">
-              <NewPatientButton onClick={openCreatePatientN2} />
+              <AddRecordButton
+                label="Novo paciente"
+                ariaLabel="Cadastrar novo paciente"
+                onClick={openCreatePatientN2}
+              />
               <SearchToggleButton
                 isOpen={isPatientsSearchVisible}
                 onClick={() => setIsPatientsSearchVisible((prev) => !prev)}
