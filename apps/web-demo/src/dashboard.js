@@ -12,6 +12,7 @@ import {
   Settings,
   Stethoscope,
   Trash2,
+  Menu,
   User,
   UserPlus,
   Users,
@@ -30,6 +31,7 @@ const Dashboard = () => {
   const [appointments, setAppointments] = useState(APPOINTMENTS);
   const [usingFallbackData, setUsingFallbackData] = useState(true);
   const [datasetHydrated, setDatasetHydrated] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const [modalPatient, setModalPatient] = useState(false);
   const [modalSettingsProc, setModalSettingsProc] = useState(false);
@@ -169,19 +171,75 @@ const Dashboard = () => {
     fillPatientForm(selectedPatient);
   }, [modalPatient, selectedPatient]);
 
+  useEffect(() => {
+    const shouldLockScroll = mobileNavOpen;
+    document.body.style.overflow = shouldLockScroll ? 'hidden' : '';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
+
+  const navItems = [
+    { id: 'overview', icon: LayoutDashboard, label: 'Painel Diário (Nível 0)' },
+    { id: 'patients', icon: Users, label: 'Base de Pacientes' },
+    { id: 'settings', icon: Settings, label: 'Configurações' }
+  ];
+
+  const handleMobileNavSelect = (tabId) => {
+    setActiveTab(tabId);
+    setMobileNavOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#EAEEF2] flex flex-col md:flex-row font-sans selection:bg-sky-100">
+      <div className="mobile-nav-trigger md:hidden">
+        <UiButton
+          icon={Menu}
+          label="Navegação"
+          tone="neutral"
+          size="md"
+          className="mobile-nav-trigger__button"
+          onClick={() => setMobileNavOpen(true)}
+        />
+      </div>
+
+      {mobileNavOpen && (
+        <div className="mobile-smart-window md:hidden" role="dialog" aria-modal="true" aria-label="Navegação inteligente">
+          <button className="mobile-smart-window__overlay" type="button" aria-label="Fechar navegação" onClick={() => setMobileNavOpen(false)} />
+          <aside className="mobile-smart-window__panel">
+            <div className="mobile-smart-window__header">
+              <div>
+                <p className="mobile-smart-window__kicker">Navegação Inteligente</p>
+                <h2>OdontoFlow</h2>
+              </div>
+              <UiButton icon={X} labelLayout="hidden" tone="neutral" onClick={() => setMobileNavOpen(false)} aria-label="Fechar" />
+            </div>
+
+            <nav className="mobile-smart-window__nav" aria-label="Menu principal">
+              {navItems.map((item) => (
+                <UiButton
+                  key={item.id}
+                  onClick={() => handleMobileNavSelect(item.id)}
+                  icon={item.icon}
+                  label={item.label}
+                  size="lg"
+                  labelLayout="side"
+                  className={`sidebar-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
+                />
+              ))}
+            </nav>
+          </aside>
+        </div>
+      )}
+
       <aside className="hidden md:flex flex-col bg-white border-r border-slate-200 h-screen sticky top-0 w-72 z-40 shrink-0">
         <div className="p-8 pb-10 flex items-center gap-4 overflow-hidden">
           <div className="bg-sky-700 p-3 rounded-2xl text-white shadow-xl shadow-sky-100 shrink-0"><Stethoscope size={24} /></div>
           <span className="text-2xl font-light text-slate-900 italic tracking-tighter leading-none shrink-0">Odonto<span className="text-sky-700 font-bold not-italic">Flow</span></span>
         </div>
         <nav className="flex-1 px-6 space-y-4">
-          {[
-            { id: 'overview', icon: LayoutDashboard, label: 'Painel Diário (Nível 0)' },
-            { id: 'patients', icon: Users, label: 'Base de Pacientes' },
-            { id: 'settings', icon: Settings, label: 'Configurações' }
-          ].map((item) => (
+          {navItems.map((item) => (
             <UiButton
               key={item.id}
               onClick={() => setActiveTab(item.id)}
