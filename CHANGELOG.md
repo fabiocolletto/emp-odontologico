@@ -2,6 +2,11 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.11 - 2026-04-19
+
+### Fixed
+- Corrigida falha na abertura de tela nível 1 (pacientes) causada por referência de variável inexistente no header.
+
 ## v0.1.10 - 2026-04-19
 
 ### Changed

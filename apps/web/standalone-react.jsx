@@ -6,7 +6,7 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
-const APP_VERSION_FALLBACK = '0.1.10';
+const APP_VERSION_FALLBACK = '0.1.11';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -1136,6 +1136,19 @@ function App() {
       .map((key) => quickLinksCatalog[key])
       .filter(Boolean);
 
+    const contextHeaderActions = activeTab === 'overview'
+      ? []
+      : [
+        {
+          key: 'open-map',
+          tone: 'neutral',
+          icon: 'map',
+          label: 'Mapa',
+          ariaLabel: 'Abrir mapa de navegação',
+          onClick: () => setShowMobileNavDrawer(true)
+        }
+      ];
+
     const quickLinksNavigation = (
       <div className="quick-links-shell">
         <div
@@ -1158,7 +1171,7 @@ function App() {
       </div>
     );
 
-    const renderN1Header = ({ icon, title, subtitle, actions = [], navigation = quickLinksNavigation }) => (
+    const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
       isMobileViewport ? (
         <BioHeader
           icon={icon}
@@ -1275,7 +1288,7 @@ function App() {
                 ariaLabel: 'Cadastrar novo paciente',
                 onClick: openCreatePatientN2
               },
-              ...appHeaderActions
+              ...contextHeaderActions
             ]
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
