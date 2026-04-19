@@ -82,6 +82,12 @@ export const UiButton = ({
   );
 };
 
+export const MobileNavBar = ({ children, className = '' }) => (
+  <nav className={`mobile-nav-shell ${className}`.trim()}>
+    {children}
+  </nav>
+);
+
 // --- COMPONENTES DE ESTRUTURA (NÍVEL 1, 2 E 3) ---
 
 export const ViewLayout = ({ title, badge, actions, children }) => (
