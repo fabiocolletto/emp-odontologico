@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.21';
+const APP_VERSION_FALLBACK = '0.1.22';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -189,6 +189,16 @@ const MultiToggleButton = ({ isActive, onClick }) => (
     icon="multi"
     tone="multi"
     ariaLabel="Ativar ou desativar modo multi"
+    onClick={onClick}
+  />
+);
+
+const FilterToggleButton = ({ onClick }) => (
+  <HeaderActionButton
+    label="Filtrar"
+    icon="filter"
+    tone="settings"
+    ariaLabel="Abrir nível de filtro e ordenação"
     onClick={onClick}
   />
 );
@@ -695,6 +705,7 @@ function App() {
   const [isPatientsMultiMode, setIsPatientsMultiMode] = useState(false);
   const [selectedPatientIds, setSelectedPatientIds] = useState([]);
   const [patientsSort, setPatientsSort] = useState('name-asc');
+  const [isPatientsSortLevelOpen, setIsPatientsSortLevelOpen] = useState(false);
   const [patientsPage, setPatientsPage] = useState(1);
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
@@ -1255,6 +1266,14 @@ function App() {
           });
         }
       },
+      'patients-filter': {
+        key: 'patients-filter',
+        icon: 'filter',
+        tone: 'settings',
+        label: 'Filtro',
+        ariaLabel: 'Abrir nível de filtro e ordenação',
+        onClick: () => setIsPatientsSortLevelOpen(true)
+      },
       settings: {
         key: 'settings',
         icon: 'settings',
@@ -1274,7 +1293,7 @@ function App() {
       patients: {
         level: 1,
         previous: 'overview',
-        next: ['new-patient', 'patients-search', 'patients-multi']
+        next: ['new-patient', 'patients-search', 'patients-filter', 'patients-multi']
       },
       settings: {
         level: 1,
@@ -1444,6 +1463,7 @@ function App() {
                 isOpen={isPatientsSearchVisible}
                 onClick={() => setIsPatientsSearchVisible((prev) => !prev)}
               />
+              <FilterToggleButton onClick={() => setIsPatientsSortLevelOpen(true)} />
               <MultiToggleButton
                 isActive={isPatientsMultiMode}
                 onClick={() => {
@@ -1475,12 +1495,20 @@ function App() {
                   value={patientsQuery}
                   onChange={(e) => setPatientsQuery(e.target.value)}
                 />
-                <SingleSelectionField
-                  id="patients-sort"
-                  ariaLabel="Ordenar pacientes"
-                  value={patientsSort}
-                  onChange={setPatientsSort}
-                  options={[
+                <span className="search-count">{sortedPatients.length} registro(s)</span>
+              </div>
+            </div>
+          ) : null}
+          {isPatientsSortLevelOpen ? (
+            <div className="selector-level">
+              <button className="selector-level__backdrop" type="button" aria-label="Fechar nível de filtro" onClick={() => setIsPatientsSortLevelOpen(false)} />
+              <div className="selector-level__card">
+                <div className="selector-level__header">
+                  <p>Nível de filtro / ordenação</p>
+                  <button className="btn btn--ghost" type="button" onClick={() => setIsPatientsSortLevelOpen(false)}>Fechar</button>
+                </div>
+                <div className="selector-level__body">
+                  {[
                     { value: 'name-asc', label: 'Nome (A → Z)' },
                     { value: 'name-desc', label: 'Nome (Z → A)' },
                     { value: 'phone-asc', label: 'Telefone' },
@@ -1489,9 +1517,20 @@ function App() {
                     { value: 'birth-desc', label: 'Nascimento (mais recente)' },
                     { value: 'birth-asc', label: 'Nascimento (mais antigo)' },
                     { value: 'plan-asc', label: 'Plano (A → Z)' }
-                  ]}
-                />
-                <span className="search-count">{sortedPatients.length} registro(s)</span>
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`selector-window__option ${option.value === patientsSort ? 'is-active' : ''}`}
+                      onClick={() => {
+                        setPatientsSort(option.value);
+                        setIsPatientsSortLevelOpen(false);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}

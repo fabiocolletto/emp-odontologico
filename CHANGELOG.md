@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.22 - 2026-04-19
+
+### Changed
+- Botão de filtro/ordenação removido da linha de busca e movido para a linha 2 do header (quick-links e ações padrão).
+- Filtro/ordenação agora abre uma janela independente em novo nível (`selector-level`), desacoplada da seção de pesquisa atual.
+
 ## v0.1.21 - 2026-04-19
 
 ### Changed
