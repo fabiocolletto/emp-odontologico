@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Activity as ActivityIcon, ArrowRight, Bell, Calendar, Settings, TrendingUp, User, Users } from 'lucide-react';
+import { Activity as ActivityIcon, ArrowRight, Calendar, TrendingUp, Users } from 'lucide-react';
 import { KpiCard, UiButton, ViewLayout } from './components.js';
 
 const isToday = (dateString) => {
@@ -16,7 +16,7 @@ const isToday = (dateString) => {
   );
 };
 
-const DailyPanel = ({ appointments, allPatients, usingFallbackData, onOpenPatientRecord, onNavigateTab }) => {
+const DailyPanel = ({ appointments, allPatients, usingFallbackData, onOpenPatientRecord }) => {
   const patientIndicators = useMemo(() => {
     const total = allPatients.length;
     const dailyTrend = Math.max(appointments.filter((item) => isToday(item.date)).length, 1);
@@ -28,24 +28,7 @@ const DailyPanel = ({ appointments, allPatients, usingFallbackData, onOpenPatien
   }, [allPatients, appointments]);
 
   return (
-    <ViewLayout
-      title="Painel Diário"
-      badge="Clínica Matriz SP"
-      actions={(
-        <>
-          <div className="grid grid-cols-2 gap-2 w-full md:hidden">
-            <UiButton icon={Users} label="Pacientes" tone="info" onClick={() => onNavigateTab('patients')} className="w-full justify-start" />
-            <UiButton icon={Settings} label="Configurações" tone="neutral" onClick={() => onNavigateTab('settings')} className="w-full justify-start" />
-            <UiButton icon={Bell} label="Alertas" tone="neutral" className="w-full justify-start" />
-            <UiButton icon={User} label="Perfil" tone="neutral" className="w-full justify-start" />
-          </div>
-          <div className="hidden md:flex items-center gap-4">
-            <UiButton icon={Bell} size="md" tone="neutral" labelLayout="hidden" />
-            <div className="w-10 h-10 bg-sky-700 rounded-xl text-white flex items-center justify-center font-bold shadow-lg shadow-sky-100 ring-4 ring-white">L</div>
-          </div>
-        </>
-      )}
-    >
+    <ViewLayout title="Painel Diário" badge="Clínica Matriz SP">
       <div className="space-y-12">
         {usingFallbackData && (
           <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl px-5 py-4 text-xs font-semibold">

@@ -259,7 +259,6 @@ const Dashboard = () => {
           allPatients={allPatients}
           usingFallbackData={usingFallbackData}
           onOpenPatientRecord={handleOpenPatientRecord}
-          onNavigateTab={setActiveTab}
         />
       )}
 
