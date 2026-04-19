@@ -6,7 +6,7 @@ Padronizar a organização do monorepo para facilitar evolução do MVP para Bet
 ## Estrutura adotada
 
 - `apps/`: código executável por contexto de produto.
-  - `web-demo/`: demo de frontend (shell + módulos JS).
+  - `web/`: aplicação frontend principal (shell + módulos JS).
     - `index.html`: shell de renderização.
     - `styles.css`: estilos base.
     - `src/`: código modular da aplicação.
@@ -17,7 +17,7 @@ Padronizar a organização do monorepo para facilitar evolução do MVP para Bet
   - `produto/`: roadmap, backlog de fases e changelog.
 
 ## Decisões aplicadas nesta mudança
-1. Movido `docs/temporario/*` para `apps/web-demo/*`.
+1. Movido `docs/temporario/*` para `apps/web/*`.
 2. Movido `agent.md` para `docs/governanca/agent.md`.
 3. Movido `read.md` para `docs/produto/read.md`.
 4. Mantido `docs/api/v1.md` e `docs/arquitetura/saas-foundation.md`.

@@ -16,6 +16,7 @@ Este documento define o fluxo operacional padrão para mudanças no projeto.
 - Executar checks estáticos/sintáticos.
 - Verificar integridade de imports e referências.
 - Confirmar consistência entre documentação e código.
+- Quando houver necessidade de validação visual (ex.: telas, responsividade mobile, regressões de layout), instalar e configurar browser tools (ex.: Playwright/Chromium) antes da evidência final, caso o ambiente ainda não disponha dessas ferramentas.
 
 ## 4) Registrar
 - Atualizar changelog técnico.
@@ -43,3 +44,16 @@ Este documento define o fluxo operacional padrão para mudanças no projeto.
 - Backlog por fase atualizado.
 - Changelog com data e resumo técnico.
 - Documentos em caminhos padronizados (`docs/arquitetura`, `docs/api`, `docs/governanca`, `docs/produto`).
+
+## Padrão de Navegação Mobile por Níveis (Obrigatório)
+
+- A primeira linha do header mobile deve sempre representar a tela atual:
+  - ícone,
+  - título,
+  - subtítulo.
+- Logo abaixo deve existir a sessão de links rápidos em carrossel horizontal.
+- Regra de composição dos links rápidos por nível:
+  - **Nível 0**: não possui botão de retorno; listar destinos de níveis seguintes.
+  - **Nível >= 1**: o **primeiro botão** deve ser sempre o retorno ao nível imediatamente anterior.
+  - Após o retorno, listar os destinos dos níveis seguintes relacionados ao contexto atual.
+- Essa lógica deve ser replicada para todas as telas/níveis novos conforme evolução do sistema, evitando decisões ad hoc por tela.

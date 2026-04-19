@@ -1,7 +1,49 @@
 // Fallback local: usado somente quando os CSVs do backend/supabase não estiverem disponíveis.
-export const APP_VERSION = '0.1.1';
+export const APP_VERSION = '0.1.11';
 
 export const VERSION_LOG = [
+  {
+    version: '0.1.11',
+    date: '2026-04-19',
+    notes: [
+      'Correção de abertura da tela nível 1 de pacientes (header mobile).'
+    ]
+  },
+  {
+    version: '0.1.10',
+    date: '2026-04-19',
+    notes: [
+      'Padrão mobile por níveis: retorno ao nível anterior como primeiro link rápido em níveis acima de 0.'
+    ]
+  },
+  {
+    version: '0.1.9',
+    date: '2026-04-19',
+    notes: [
+      'Header N0 com ícone 1:1 e botões de links rápidos com glassmorphism temático.'
+    ]
+  },
+  {
+    version: '0.1.8',
+    date: '2026-04-19',
+    notes: [
+      'Carrossel de links rápidos ajusta posição apenas após o fim da rolagem.'
+    ]
+  },
+  {
+    version: '0.1.7',
+    date: '2026-04-19',
+    notes: [
+      'Versão da landing passa a ser extraída automaticamente do CHANGELOG.md.'
+    ]
+  },
+  {
+    version: '0.1.3',
+    date: '2026-04-19',
+    notes: [
+      'Badge de versão Vx.y.z adicionado no rodapé da tela inicial com CTA de acesso.'
+    ]
+  },
   {
     version: '0.1.1',
     date: '2026-04-19',

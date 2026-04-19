@@ -6,6 +6,8 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
+const APP_VERSION_FALLBACK = '0.1.11';
+const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
@@ -75,15 +77,18 @@ const BioHeader = ({
     <div className="bio-header__top">
       <div className="bio-header__title-wrap">
         <span className="bio-header__icon">
-          <AppIcon name={icon} size={15} />
+          <AppIcon name={icon} size={18} />
         </span>
-        <h2 className="bio-header__title">{title}</h2>
+        <div className="bio-header__heading">
+          <h2 className="bio-header__title">{title}</h2>
+          {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
+        </div>
       </div>
-      <div className="bio-header__actions">
+      <div className={`bio-header__actions ${actions.length > 2 ? 'bio-header__actions--grid' : ''}`}>
         {actions.map((action) => (
           <button
             key={action.key}
-            className={`btn btn--ghost bio-header__action modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
+            className={`btn btn--ghost bio-header__action ${actions.length > 2 ? 'bio-header__action--grid' : ''} modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
             onClick={action.onClick}
             aria-label={action.ariaLabel || action.label}
           >
@@ -93,9 +98,8 @@ const BioHeader = ({
         ))}
       </div>
     </div>
-    {(subtitle || navigation) ? (
+    {navigation ? (
       <div className="bio-header__bottom">
-        {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
         {navigation ? <div className="bio-header__nav">{navigation}</div> : null}
       </div>
     ) : null}
@@ -104,6 +108,26 @@ const BioHeader = ({
 
 
 const CSV_PATH = './backend/supabase/sample-data';
+
+const parseLatestReleaseFromChangelog = (markdownText) => {
+  const normalizedText = String(markdownText || '');
+  const releaseMatch = normalizedText.match(/^##\s+v(\d+\.\d+\.\d+)\s*-\s*(\d{4}-\d{2}-\d{2})/m);
+
+  if (!releaseMatch) {
+    return {
+      version: APP_VERSION_FALLBACK,
+      date: '',
+      notes: []
+    };
+  }
+
+  const [, version, date] = releaseMatch;
+  const releaseStart = releaseMatch.index ?? 0;
+  const releaseBody = normalizedText.slice(releaseStart).split('\n## ')[0];
+  const notes = Array.from(releaseBody.matchAll(/^- (.+)$/gm)).map((item) => item[1]).slice(0, 3);
+
+  return { version, date, notes };
+};
 
 const parseCsv = (csvText) => {
   const [headersLine, ...lines] = csvText.trim().split('\n');
@@ -565,8 +589,15 @@ function App() {
     };
   });
   const [dragShortcutId, setDragShortcutId] = useState(null);
+  const [releaseInfo, setReleaseInfo] = useState({
+    version: APP_VERSION_FALLBACK,
+    date: '',
+    notes: []
+  });
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
+  const quickLinksCarouselRef = useRef(null);
+  const quickLinksSnapTimeoutRef = useRef(null);
 
   const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
     if (!acc[shortcut.group]) acc[shortcut.group] = [];
@@ -679,6 +710,36 @@ function App() {
       if (prev.favorites.includes(shortcutId)) return prev;
       return { ...prev, favorites: [...prev.favorites, shortcutId].slice(-6) };
     });
+  };
+
+  const handleQuickLinksSnapScroll = () => {
+    const track = quickLinksCarouselRef.current;
+    if (!track) return;
+
+    if (quickLinksSnapTimeoutRef.current) {
+      clearTimeout(quickLinksSnapTimeoutRef.current);
+    }
+
+    quickLinksSnapTimeoutRef.current = setTimeout(() => {
+      const buttons = Array.from(track.querySelectorAll('.quick-links-btn'));
+      if (!buttons.length) return;
+
+      const viewportLeft = track.scrollLeft;
+      const viewportRight = viewportLeft + track.clientWidth;
+
+      let target = buttons.find((button) => {
+        const left = button.offsetLeft;
+        const right = left + button.offsetWidth;
+        return left >= viewportLeft && right <= viewportRight;
+      });
+
+      if (!target) {
+        target = buttons.find((button) => (button.offsetLeft + button.offsetWidth) > viewportLeft) || buttons[buttons.length - 1];
+      }
+
+      if (!target) return;
+      track.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+    }, 120);
   };
 
   const handleStartPatientEdit = () => {
@@ -919,6 +980,39 @@ function App() {
     return () => observer.disconnect();
   }, [activeTab, isMobileViewport, appointmentsPagination.totalPages, filteredAppointments.length]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadReleaseInfo = async () => {
+      try {
+        const response = await fetch(CHANGELOG_PATH, { cache: 'no-store' });
+        if (!response.ok) throw new Error('changelog-unavailable');
+        const markdown = await response.text();
+        if (!active) return;
+        setReleaseInfo(parseLatestReleaseFromChangelog(markdown));
+      } catch {
+        if (!active) return;
+        setReleaseInfo({
+          version: APP_VERSION_FALLBACK,
+          date: '',
+          notes: []
+        });
+      }
+    };
+
+    loadReleaseInfo();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => () => {
+    if (quickLinksSnapTimeoutRef.current) {
+      clearTimeout(quickLinksSnapTimeoutRef.current);
+    }
+  }, []);
+
   if (view === 'loader') {
     return (
       <div className="app-viewport flex flex-col items-center justify-center bg-white space-y-4">
@@ -942,35 +1036,149 @@ function App() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setView('dashboard')}
-          className="btn btn--primary btn--lg landing-cta"
-        >
-          Acessar Unidade
-        </button>
+        <div className="flex flex-col items-center gap-4">
+          <button
+            onClick={() => setView('dashboard')}
+            className="btn btn--primary btn--lg landing-cta"
+          >
+            Acessar Unidade
+          </button>
+          <span
+            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600"
+            aria-label={`Versão V${releaseInfo.version}`}
+          >
+            V{releaseInfo.version}
+          </span>
+          {releaseInfo.date ? (
+            <p className="text-[10px] font-semibold text-slate-400">
+              Atualizado em {releaseInfo.date}
+            </p>
+          ) : null}
+        </div>
       </div>
     );
   }
 
   const renderContent = () => {
-    const appHeaderActions = [
-      {
-        key: 'open-map',
-        tone: 'neutral',
-        icon: 'map',
-        label: 'Mapa',
-        ariaLabel: 'Abrir mapa de navegação',
-        onClick: () => setShowMobileNavDrawer(true)
+    const quickLinksCatalog = {
+      overview: {
+        key: 'overview',
+        icon: 'home',
+        tone: 'overview',
+        label: 'Painel',
+        ariaLabel: 'Ir para painel inicial',
+        onClick: () => setActiveTab('overview')
+      },
+      'agenda-hoje': {
+        key: 'agenda-hoje',
+        icon: 'calendar',
+        tone: 'agenda',
+        label: 'Agenda',
+        ariaLabel: 'Ir para agenda de hoje',
+        onClick: () => {
+          setActiveTab('overview');
+          setAppointmentsQuery('');
+        }
+      },
+      patients: {
+        key: 'patients',
+        icon: 'users',
+        tone: 'patients',
+        label: 'Pacientes',
+        ariaLabel: 'Abrir base de pacientes',
+        onClick: () => setActiveTab('patients')
+      },
+      'new-patient': {
+        key: 'new-patient',
+        icon: 'edit',
+        tone: 'new',
+        label: 'Novo',
+        ariaLabel: 'Cadastrar novo paciente',
+        onClick: () => {
+          setActiveTab('patients');
+          openCreatePatientN2();
+        }
+      },
+      settings: {
+        key: 'settings',
+        icon: 'settings',
+        tone: 'settings',
+        label: 'Config',
+        ariaLabel: 'Abrir configurações',
+        onClick: () => setActiveTab('settings')
       }
-    ];
+    };
 
-    const renderN1Header = ({ icon, title, subtitle, actions = appHeaderActions }) => (
+    const levelQuickLinksMap = {
+      overview: {
+        level: 0,
+        previous: null,
+        next: ['agenda-hoje', 'patients', 'new-patient', 'settings']
+      },
+      patients: {
+        level: 1,
+        previous: 'overview',
+        next: ['new-patient']
+      },
+      settings: {
+        level: 1,
+        previous: 'overview',
+        next: []
+      }
+    };
+
+    const quickLinksConfig = levelQuickLinksMap[activeTab] || levelQuickLinksMap.overview;
+    const quickLinksOrder = [
+      ...(quickLinksConfig.level > 0 && quickLinksConfig.previous ? [quickLinksConfig.previous] : []),
+      ...quickLinksConfig.next
+    ];
+    const currentQuickLinks = quickLinksOrder
+      .map((key) => quickLinksCatalog[key])
+      .filter(Boolean);
+
+    const contextHeaderActions = activeTab === 'overview'
+      ? []
+      : [
+        {
+          key: 'open-map',
+          tone: 'neutral',
+          icon: 'map',
+          label: 'Mapa',
+          ariaLabel: 'Abrir mapa de navegação',
+          onClick: () => setShowMobileNavDrawer(true)
+        }
+      ];
+
+    const quickLinksNavigation = (
+      <div className="quick-links-shell">
+        <div
+          ref={quickLinksCarouselRef}
+          className="quick-links-carousel"
+          onScroll={handleQuickLinksSnapScroll}
+        >
+          {currentQuickLinks.map((link) => (
+            <button
+              key={link.key}
+              className={`quick-links-btn quick-links-btn--${link.tone}`}
+              onClick={link.onClick}
+              aria-label={link.ariaLabel}
+            >
+              <AppIcon name={link.icon} size={14} />
+              <span>{link.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
       isMobileViewport ? (
         <BioHeader
           icon={icon}
           title={title}
           subtitle={subtitle}
           actions={actions}
+          navigation={navigation}
         />
       ) : null
     );
@@ -978,7 +1186,12 @@ function App() {
     if (activeTab === 'overview') {
       return (
         <div className="space-y-6">
-          {renderN1Header({ icon: 'home', title: 'Painel Diário', subtitle: 'Atendimento e indicadores da clínica' })}
+          {renderN1Header({
+            icon: 'home',
+            title: 'Painel Diário',
+            subtitle: 'Atendimento e indicadores da clínica',
+            actions: []
+          })}
           {!isMobileViewport && <h2 className="page-title">Painel Diário</h2>}
           {usingFallbackData && (
             <p className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3 py-2">
@@ -1075,7 +1288,7 @@ function App() {
                 ariaLabel: 'Cadastrar novo paciente',
                 onClick: openCreatePatientN2
               },
-              ...appHeaderActions
+              ...contextHeaderActions
             ]
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
@@ -1282,28 +1495,6 @@ function App() {
           {renderContent()}
         </main>
       </div>
-
-      <nav className="mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 flex justify-between gap-2 z-50">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`btn btn--mobile-tab ${activeTab === tab.id ? 'is-active' : ''}`}
-          >
-            <AppIcon name={tab.icon} size={13} />
-            {tab.label}
-          </button>
-        ))}
-        <button
-          onClick={() => setShowMobileNavDrawer((prev) => !prev)}
-          className={`btn btn--mobile-tab ${showMobileNavDrawer ? 'is-active' : ''}`}
-          aria-expanded={showMobileNavDrawer}
-          aria-controls="mobile-navigation-drawer"
-        >
-          <AppIcon name="map" size={13} />
-          Mapa
-        </button>
-      </nav>
 
       {showMobileNavDrawer && (
         <div className="mobile-drawer-wrap md:hidden">
