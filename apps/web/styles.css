@@ -784,6 +784,8 @@ select {
 .quick-links-shell {
   display: grid;
   gap: 0.42rem;
+  background: transparent;
+  box-shadow: none;
 }
 
 .quick-links-carousel {
@@ -795,6 +797,8 @@ select {
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding-bottom: 0.1rem;
+  background: transparent;
+  box-shadow: none;
 }
 
 .quick-links-carousel::-webkit-scrollbar {
@@ -903,6 +907,64 @@ select {
   padding: 0.62rem 0.95rem;
   border-radius: var(--radius-md);
   box-shadow: 0 8px 20px rgba(15, 35, 72, 0.15);
+}
+
+.btn--header-new {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+  border-color: color-mix(in srgb, #0369a1 28%, white);
+}
+
+.btn--header-search {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-color: color-mix(in srgb, #1d4ed8 28%, white);
+}
+
+.btn--header-multi {
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  border-color: color-mix(in srgb, #15803d 28%, white);
+}
+
+.single-select {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 220px;
+}
+
+.single-select__label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.single-select__control-wrap {
+  position: relative;
+}
+
+.single-select__control {
+  appearance: none;
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--text-base);
+  padding: 0.56rem 2rem 0.56rem 0.74rem;
+  font-size: 0.88rem;
+}
+
+.single-select__control:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand-600) 28%, white);
+  outline-offset: 1px;
+}
+
+.single-select__icon {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
 .page-subtitle {
@@ -1474,6 +1536,10 @@ select {
   .patients-search-section {
     padding: 0.5rem 0.45rem;
     border-radius: 0;
+  }
+
+  .single-select {
+    min-width: 100%;
   }
 
   .bio-header__action {

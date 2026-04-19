@@ -2,6 +2,16 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.15 - 2026-04-19
+
+### Changed
+- Header N1 (ex.: Base de Pacientes): container do carrossel de atalhos ajustado para fundo totalmente transparente.
+- Botões do header de pacientes (desktop) agora usam cores únicas por ação, mantendo mesmo peso visual:
+  - `+ Novo paciente` (azul-ciano)
+  - `Pesquisar` (azul)
+  - `Modo multi` (verde)
+- Adicionado seletor reutilizável de escolha única (`SingleSelectionField`) e aplicado na base de pacientes para ordenação por campos primários do card (nome, telefone, última visita, nascimento e plano).
+
 ## v0.1.14 - 2026-04-19
 
 ### Changed
