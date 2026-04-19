@@ -272,19 +272,36 @@ const PatientN2Modal = ({
       <div className="modal-card modal-card--wide">
         <div className="modal-header">
           <div>
-            {!isCreateMode && (
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500">
-                Tela N2 · Prontuário
-              </p>
-            )}
             <h3 className="text-xl font-bold text-slate-900">
               {isCreateMode ? 'Novo paciente' : patient?.name}
             </h3>
             <p className="modal-step-label">Etapa atual: {currentTab?.label}</p>
           </div>
-          <button onClick={onClose} className="btn btn--ghost btn--close-icon" aria-label="Fechar janela">
-            ✕
-          </button>
+          <div className="modal-header__actions">
+            {!isCreateMode && !isEditingView && (
+              <button className="btn btn--ghost modal-header__btn" onClick={onStartEdit}>
+                Habilitar edição
+              </button>
+            )}
+            {!isCreateMode && isEditingView && (
+              <>
+                <button className="btn btn--ghost modal-header__btn" onClick={onCancelEdit}>
+                  Cancelar
+                </button>
+                <button className="btn btn--primary modal-header__btn" onClick={onSaveEdit}>
+                  Salvar
+                </button>
+              </>
+            )}
+            {isCreateMode && (
+              <button className="btn btn--primary modal-header__btn" onClick={onSubmit}>
+                Salvar paciente
+              </button>
+            )}
+            <button onClick={onClose} className="btn btn--ghost btn--close-icon" aria-label="Fechar janela">
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="modal-body">
@@ -375,22 +392,6 @@ const PatientN2Modal = ({
           <div className="modal-footer__nav">
             <button className="btn btn--ghost modal-footer__btn" onClick={onPreviousTab}>Etapa anterior</button>
             <button className="btn btn--ghost modal-footer__btn" onClick={onNextTab}>Próxima etapa</button>
-          </div>
-          <div className={`modal-footer__actions ${isCreateMode || !isEditingView ? 'modal-footer__actions--single' : ''}`}>
-            {!isCreateMode && !isEditingView && (
-              <button className="btn btn--primary modal-save modal-footer__btn" onClick={onStartEdit}>Habilitar edição</button>
-            )}
-            {!isCreateMode && isEditingView && (
-              <>
-                <button className="btn btn--ghost modal-footer__btn" onClick={onCancelEdit}>Cancelar edição</button>
-                <button className="btn btn--primary modal-save modal-footer__btn" onClick={onSaveEdit}>Salvar alterações</button>
-              </>
-            )}
-            {isCreateMode && (
-              <button className="btn btn--primary modal-save modal-footer__btn" onClick={onSubmit}>
-                Salvar paciente
-              </button>
-            )}
           </div>
         </div>
       </div>
