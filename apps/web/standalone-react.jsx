@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.18';
+const APP_VERSION_FALLBACK = '0.1.19';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -37,6 +37,7 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.2 4.2" /></>,
     filter: <path d="M4 6h16M7 12h10M10 18h4" />,
     multi: <><rect x="3.5" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="13" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="3.5" y="13.5" width="7.5" height="7.5" rx="1.5" /><path d="m14.5 17 2 2 4-4" /></>,
+    expand: <><path d="M9 3.5H3.5V9M15 3.5h5.5V9M9 20.5H3.5V15M15 20.5h5.5V15" /><path d="M8.5 8.5 3.5 3.5M15.5 8.5l5-5M8.5 15.5l-5 5M15.5 15.5l5 5" /></>,
     info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>,
     star: <path d="m12 3.4 2.7 5.5 6 0.9-4.4 4.3 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.8l6-0.9L12 3.4Z" />,
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
@@ -579,15 +580,15 @@ const PatientN2Modal = ({
 
         <div className="modal-footer modal-footer--stack">
           <div className="n2-mobile-nav">
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onPreviousTab}>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--prev" onClick={onPreviousTab}>
               <AppIcon name="chevron-left" size={16} className="btn-icon" />
               <span className="btn-label">Etapa anterior</span>
             </button>
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onNextTab}>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--next" onClick={onNextTab}>
               <AppIcon name="chevron-right" size={16} className="btn-icon" />
               <span className="btn-label">Próxima etapa</span>
             </button>
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onOpenNavigationMap}>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--map" onClick={onOpenNavigationMap}>
               <AppIcon name="map" size={14} className="btn-icon" />
               <span className="btn-label">Mapa</span>
             </button>
@@ -1504,7 +1505,9 @@ function App() {
                     aria-label={isPatientsMultiMode ? `Selecionar ${p.name}` : `Abrir prontuário de ${p.name}`}
                     title={isPatientsMultiMode ? 'Selecionar paciente' : 'Abrir prontuário N2'}
                   >
-                    {isPatientsMultiMode ? (selectedPatientIds.includes(p.id) ? '✓' : '○') : '↗'}
+                    {isPatientsMultiMode
+                      ? (selectedPatientIds.includes(p.id) ? '✓' : '○')
+                      : <AppIcon name="expand" size={14} />}
                   </button>
                   <div className="patient-card__header">
                     <div className="patient-avatar">{getInitials(p.name)}</div>
@@ -1594,7 +1597,7 @@ function App() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`btn btn--nav ${activeTab === tab.id ? 'is-active' : ''}`}
+                className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
               >
                 <AppIcon name={tab.icon} size={14} />
                 {tab.label}

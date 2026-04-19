@@ -2,6 +2,15 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.19 - 2026-04-19
+
+### Changed
+- Ícone de abertura do detalhe N2 dentro do card de paciente alterado para ícone de expansão (`expand`).
+- Botões de navegação recebem variação de cor por destino, mantendo transparência/glassmorphism:
+  - barra lateral (`overview`, `patients`, `settings`);
+  - quick-links de navegação (`overview`, `agenda`, `patients`, `new`, `search`, `multi`, `settings`);
+  - navegação mobile N2 (`prev`, `next`, `map`).
+
 ## v0.1.18 - 2026-04-19
 
 ### Changed

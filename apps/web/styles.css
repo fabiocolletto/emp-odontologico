@@ -151,6 +151,18 @@ select {
   box-shadow: 0 10px 22px rgba(2, 6, 23, 0.22);
 }
 
+.btn--nav--overview {
+  background: rgba(14, 116, 144, 0.78);
+}
+
+.btn--nav--patients {
+  background: rgba(37, 99, 235, 0.78);
+}
+
+.btn--nav--settings {
+  background: rgba(124, 58, 237, 0.78);
+}
+
 .btn--mobile-tab {
   flex: 1;
   padding: 0.55rem 0.6rem;
@@ -829,7 +841,27 @@ select {
 .quick-links-btn--multi {
   color: var(--btn-glass-text);
   border-color: var(--btn-glass-border);
-  background: var(--btn-glass-bg);
+  background: rgba(15, 106, 167, 0.82);
+}
+
+.quick-links-btn--overview { background: rgba(14, 116, 144, 0.82); }
+.quick-links-btn--agenda { background: rgba(8, 145, 178, 0.82); }
+.quick-links-btn--patients { background: rgba(37, 99, 235, 0.82); }
+.quick-links-btn--new { background: rgba(5, 150, 105, 0.82); }
+.quick-links-btn--search { background: rgba(59, 130, 246, 0.82); }
+.quick-links-btn--multi { background: rgba(22, 163, 74, 0.82); }
+.quick-links-btn--settings { background: rgba(124, 58, 237, 0.82); }
+
+.n2-mobile-nav__btn--prev {
+  background: rgba(14, 116, 144, 0.82);
+}
+
+.n2-mobile-nav__btn--next {
+  background: rgba(37, 99, 235, 0.82);
+}
+
+.n2-mobile-nav__btn--map {
+  background: rgba(124, 58, 237, 0.82);
 }
 
 .quick-links-btn:active {
