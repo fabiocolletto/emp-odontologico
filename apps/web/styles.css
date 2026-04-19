@@ -987,94 +987,6 @@ select {
 .data-card--m { --card-min: var(--card-m-min); --card-h: var(--card-m-h); }
 .data-card--g { --card-min: var(--card-g-min); --card-h: var(--card-g-h); }
 
-.quick-filters-shell {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.quick-filters-grid {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: var(--space-3);
-  flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.quick-filters-grid::-webkit-scrollbar {
-  display: none;
-}
-
-.btn--quick-nav {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  font-size: 0.82rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, #fff 82%, #dbeafe);
-  border: 1px solid color-mix(in srgb, var(--brand-600) 20%, #dbe3ef);
-  color: var(--brand-700);
-  box-shadow: 0 8px 18px rgba(15, 35, 72, 0.08);
-  transition: opacity 0.24s ease, transform 0.24s ease, box-shadow 0.24s ease, background-color 0.24s ease;
-}
-
-.btn--quick-nav:hover {
-  background: color-mix(in srgb, #fff 68%, #dbeafe);
-  box-shadow: 0 10px 22px rgba(15, 35, 72, 0.12);
-}
-
-.btn--quick-nav.is-hidden {
-  opacity: 0;
-  transform: scale(0.9);
-  pointer-events: none;
-}
-
-.btn--quick-filter {
-  flex: 0 0 210px;
-  border-radius: var(--radius-md);
-  border-color: var(--border-subtle);
-  background: var(--bg-surface-elevated);
-  padding: 0.75rem 0.95rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-  text-align: left;
-}
-
-.btn--quick-filter:hover {
-  background: #f8fbff;
-  border-color: #cad7e7;
-}
-
-.btn--quick-filter.is-active {
-  border-color: color-mix(in srgb, var(--brand-600) 42%, white);
-  background: #ecf5ff;
-  box-shadow: inset 0 0 0 1px rgba(10, 27, 68, 0.03);
-}
-
-.quick-filter__label {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.045em;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.quick-filter__value {
-  color: var(--text-strong);
-  font-size: 1.22rem;
-  font-weight: 600;
-}
-
 .search-row {
   display: flex;
   flex-wrap: wrap;
@@ -1611,16 +1523,6 @@ select {
   .n2-mobile-nav__btn .btn-icon {
     width: 18px;
     height: 18px;
-  }
-
-  .quick-filters-shell {
-    gap: 0.35rem;
-  }
-
-  .btn--quick-nav {
-    display: none;
-    width: 28px;
-    height: 28px;
   }
 
   .patients-grid {

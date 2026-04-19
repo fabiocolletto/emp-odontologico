@@ -518,15 +518,6 @@ const PatientN2Modal = ({
   );
 };
 
-const applyPatientQuickFilter = (records, filter) => {
-  if (filter === 'with-visit') return records.filter((p) => p.lastVisit && p.lastVisit !== '-');
-  if (filter === 'without-visit') return records.filter((p) => !p.lastVisit || p.lastVisit === '-');
-  if (filter === 'private-plan') return records.filter((p) => String(p.plan || '').toLowerCase().includes('particular'));
-  if (filter === 'insurance-plan') return records.filter((p) => String(p.plan || '').toLowerCase().includes('convênio'));
-  if (filter === 'with-email') return records.filter((p) => p.email && p.email !== '-');
-  return records;
-};
-
 const readStoredUiState = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -564,13 +555,9 @@ function App() {
   const [notesDraft, setNotesDraft] = useState(() => readStoredNotesDraft());
   const [patientsQuery, setPatientsQuery] = useState('');
   const [patientsPage, setPatientsPage] = useState(1);
-  const [quickPatientFilter, setQuickPatientFilter] = useState('all');
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
-  const quickFiltersRef = useRef(null);
-  const quickFiltersScrollTimeoutRef = useRef(null);
   const [showPatientHint, setShowPatientHint] = useState(false);
-  const [showQuickFilterNav, setShowQuickFilterNav] = useState(true);
   const [patientModalMode, setPatientModalMode] = useState('view');
   const [patientFormTab, setPatientFormTab] = useState(PATIENT_FORM_TABS[0].id);
   const [newPatientForm, setNewPatientForm] = useState(() => createEmptyPatientForm());
@@ -660,7 +647,6 @@ function App() {
 
     const newPatient = toPatientFromForm(newPatientForm);
     setPatients((prev) => [newPatient, ...prev]);
-    setQuickPatientFilter('all');
     setPatientsQuery('');
     setPatientsPage(1);
     setSelectedPatient(null);
@@ -790,38 +776,7 @@ function App() {
     setFormFeedback('Prontuário atualizado com sucesso.');
   };
 
-  const scrollQuickFilters = (direction) => {
-    if (!quickFiltersRef.current) return;
-    const container = quickFiltersRef.current;
-    const delta = direction === 'right' ? 260 : -260;
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
-    const nextScrollLeft = container.scrollLeft + delta;
-
-    if (direction === 'right' && nextScrollLeft >= maxScrollLeft - 2) {
-      container.scrollTo({ left: 0, behavior: 'smooth' });
-      return;
-    }
-
-    if (direction === 'left' && nextScrollLeft <= 0) {
-      container.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
-      return;
-    }
-
-    container.scrollBy({ left: delta, behavior: 'smooth' });
-  };
-
-  const handleQuickFiltersScroll = () => {
-    setShowQuickFilterNav(false);
-    if (quickFiltersScrollTimeoutRef.current) {
-      clearTimeout(quickFiltersScrollTimeoutRef.current);
-    }
-    quickFiltersScrollTimeoutRef.current = setTimeout(() => {
-      setShowQuickFilterNav(true);
-    }, 280);
-  };
-
-  const quickFilteredPatients = applyPatientQuickFilter(patients, quickPatientFilter);
-  const filteredPatients = filterBySearchTerm(quickFilteredPatients, patientsQuery);
+  const filteredPatients = filterBySearchTerm(patients, patientsQuery);
   const patientsPageSize = isMobileViewport ? MOBILE_PAGE_SIZE_PATIENTS : PAGE_SIZE_PATIENTS;
   const patientsPagination = paginateRecords(filteredPatients, patientsPage, patientsPageSize);
   const visiblePatients = isMobileViewport
@@ -894,17 +849,11 @@ function App() {
 
   useEffect(() => {
     setPatientsPage(1);
-  }, [patientsQuery, quickPatientFilter]);
+  }, [patientsQuery]);
 
   useEffect(() => {
     setAppointmentsPage(1);
   }, [appointmentsQuery]);
-
-  useEffect(() => () => {
-    if (quickFiltersScrollTimeoutRef.current) {
-      clearTimeout(quickFiltersScrollTimeoutRef.current);
-    }
-  }, []);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 640px)');
@@ -1268,11 +1217,6 @@ function App() {
     }
 
     if (activeTab === 'patients') {
-      const patientsWithVisit = patients.filter((p) => p.lastVisit && p.lastVisit !== '-').length;
-      const patientsWithoutVisit = patients.filter((p) => !p.lastVisit || p.lastVisit === '-').length;
-      const patientsPrivatePlan = patients.filter((p) => String(p.plan || '').toLowerCase().includes('particular')).length;
-      const patientsInsurancePlan = patients.filter((p) => String(p.plan || '').toLowerCase().includes('convênio')).length;
-      const patientsWithEmail = patients.filter((p) => p.email && p.email !== '-').length;
       return (
         <div className="space-y-6">
           {renderN1Header({
@@ -1308,70 +1252,6 @@ function App() {
             tone="info"
             onClose={() => setFormFeedback('')}
           />
-          <div className="quick-filters-shell">
-            <button
-              className={`btn btn--icon btn--quick-nav ${showQuickFilterNav ? '' : 'is-hidden'}`}
-              onClick={() => scrollQuickFilters('left')}
-              aria-label="Rolar filtros para esquerda"
-              aria-hidden={!showQuickFilterNav}
-              tabIndex={showQuickFilterNav ? 0 : -1}
-            >
-              ←
-            </button>
-            <div className="quick-filters-grid" ref={quickFiltersRef} onScroll={handleQuickFiltersScroll}>
-              <button
-                className={`btn btn--quick-filter ${quickPatientFilter === 'all' ? 'is-active' : ''}`}
-                onClick={() => setQuickPatientFilter('all')}
-              >
-                <span className="quick-filter__label"><AppIcon name="filter" size={13} />Total cadastrado</span>
-                <strong className="quick-filter__value">{patients.length}</strong>
-              </button>
-              <button
-                className={`btn btn--quick-filter ${quickPatientFilter === 'with-visit' ? 'is-active' : ''}`}
-                onClick={() => setQuickPatientFilter('with-visit')}
-              >
-                <span className="quick-filter__label"><AppIcon name="calendar" size={13} />Com última visita</span>
-                <strong className="quick-filter__value">{patientsWithVisit}</strong>
-              </button>
-              <button
-                className={`btn btn--quick-filter ${quickPatientFilter === 'without-visit' ? 'is-active' : ''}`}
-                onClick={() => setQuickPatientFilter('without-visit')}
-              >
-                <span className="quick-filter__label"><AppIcon name="calendar" size={13} />Sem visita registrada</span>
-                <strong className="quick-filter__value">{patientsWithoutVisit}</strong>
-              </button>
-              <button
-                className={`btn btn--quick-filter ${quickPatientFilter === 'private-plan' ? 'is-active' : ''}`}
-                onClick={() => setQuickPatientFilter('private-plan')}
-              >
-                <span className="quick-filter__label"><AppIcon name="plan" size={13} />Plano particular</span>
-                <strong className="quick-filter__value">{patientsPrivatePlan}</strong>
-              </button>
-              <button
-                className={`btn btn--quick-filter ${quickPatientFilter === 'insurance-plan' ? 'is-active' : ''}`}
-                onClick={() => setQuickPatientFilter('insurance-plan')}
-              >
-                <span className="quick-filter__label"><AppIcon name="plan" size={13} />Com convênio</span>
-                <strong className="quick-filter__value">{patientsInsurancePlan}</strong>
-              </button>
-              <button
-                className={`btn btn--quick-filter ${quickPatientFilter === 'with-email' ? 'is-active' : ''}`}
-                onClick={() => setQuickPatientFilter('with-email')}
-              >
-                <span className="quick-filter__label"><AppIcon name="email" size={13} />Com e-mail</span>
-                <strong className="quick-filter__value">{patientsWithEmail}</strong>
-              </button>
-            </div>
-            <button
-              className={`btn btn--icon btn--quick-nav ${showQuickFilterNav ? '' : 'is-hidden'}`}
-              onClick={() => scrollQuickFilters('right')}
-              aria-label="Rolar filtros para direita"
-              aria-hidden={!showQuickFilterNav}
-              tabIndex={showQuickFilterNav ? 0 : -1}
-            >
-              →
-            </button>
-          </div>
           <div className="search-row">
             <input
               className="search-input search-input--compact"
