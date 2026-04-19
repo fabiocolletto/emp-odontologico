@@ -1218,7 +1218,7 @@ function App() {
 
     if (activeTab === 'patients') {
       return (
-        <div className="space-y-6">
+        <div className="space-y-6 patients-sections">
           {renderN1Header({
             icon: 'users',
             title: 'Base de Pacientes',
@@ -1252,16 +1252,19 @@ function App() {
             tone="info"
             onClose={() => setFormFeedback('')}
           />
-          <div className="search-row">
-            <input
-              className="search-input search-input--compact"
-              placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
-              value={patientsQuery}
-              onChange={(e) => setPatientsQuery(e.target.value)}
-            />
-            <span className="search-count">{filteredPatients.length} registro(s)</span>
+          <div className="patients-search-section">
+            <div className="search-row">
+              <input
+                className="search-input search-input--compact"
+                placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
+                value={patientsQuery}
+                onChange={(e) => setPatientsQuery(e.target.value)}
+              />
+              <span className="search-count">{filteredPatients.length} registro(s)</span>
+            </div>
           </div>
-          <div className="data-grid patients-grid">
+          <div className="patients-data-section">
+            <div className="data-grid patients-grid">
             {visiblePatients.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
             ) : (
@@ -1303,6 +1306,7 @@ function App() {
                 </article>
               ))
             )}
+            </div>
           </div>
           {isMobileViewport ? (
             <div ref={patientsInfiniteTriggerRef} className="infinite-trigger">

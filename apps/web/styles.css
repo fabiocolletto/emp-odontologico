@@ -676,6 +676,8 @@ select {
   background: transparent;
   box-shadow: none;
   padding: 0;
+  display: grid;
+  gap: 0.52rem;
 }
 
 .bio-header__top {
@@ -683,6 +685,10 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--brand-600) 14%, #d8e2ee);
+  background: color-mix(in srgb, #ffffff 88%, #eef4fb);
 }
 
 .bio-header__title-wrap {
@@ -762,12 +768,15 @@ select {
 }
 
 .bio-header__bottom {
-  margin-top: 0.38rem;
-  padding-top: 0;
+  margin-top: 0;
+  padding: 0.48rem 0.45rem 0.25rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--brand-600) 14%, #d8e2ee);
+  background: color-mix(in srgb, #ffffff 88%, #eef4fb);
 }
 
 .bio-header__nav {
-  margin-top: 0.42rem;
+  margin-top: 0;
 }
 
 .quick-links-shell {
@@ -994,6 +1003,21 @@ select {
   align-items: center;
   justify-content: center;
   padding-inline: var(--space-2);
+}
+
+.patients-sections {
+  --patients-section-gap: 1rem;
+}
+
+.patients-search-section {
+  padding: 0.62rem 0.7rem;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-600) 10%, #dbe3ef);
+  background: color-mix(in srgb, #ffffff 90%, #ecf3fb);
+}
+
+.patients-data-section {
+  margin-top: var(--patients-section-gap);
 }
 
 .search-input {
@@ -1410,9 +1434,30 @@ select {
 
   .bio-header-shell {
     display: block;
-    padding: 0.75rem 1rem 0.4rem;
+    padding: 0.85rem 1rem 0.55rem;
     border-bottom: 0;
     background: transparent;
+  }
+
+  .bio-header {
+    gap: 0.65rem;
+  }
+
+  .bio-header__top {
+    padding: 0.58rem 0.66rem;
+  }
+
+  .bio-header__bottom {
+    padding: 0.56rem 0.48rem 0.32rem;
+  }
+
+  .patients-sections {
+    --patients-section-gap: 1.2rem;
+  }
+
+  .patients-search-section {
+    padding: 0.5rem 0.45rem;
+    border-radius: 14px;
   }
 
   .bio-header__action {
