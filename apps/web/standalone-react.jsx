@@ -6,7 +6,7 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
-const APP_VERSION_FALLBACK = '0.1.7';
+const APP_VERSION_FALLBACK = '0.1.8';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -597,6 +597,7 @@ function App() {
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
+  const quickLinksSnapTimeoutRef = useRef(null);
 
   const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
     if (!acc[shortcut.group]) acc[shortcut.group] = [];
@@ -711,21 +712,34 @@ function App() {
     });
   };
 
-  const handleQuickLinksInfiniteScroll = () => {
+  const handleQuickLinksSnapScroll = () => {
     const track = quickLinksCarouselRef.current;
     if (!track) return;
 
-    const segmentWidth = track.scrollWidth / 2;
-    if (!segmentWidth) return;
-
-    if (track.scrollLeft <= 0) {
-      track.scrollLeft = segmentWidth;
-      return;
+    if (quickLinksSnapTimeoutRef.current) {
+      clearTimeout(quickLinksSnapTimeoutRef.current);
     }
 
-    if (track.scrollLeft >= segmentWidth * 2 - track.clientWidth - 2) {
-      track.scrollLeft = segmentWidth;
-    }
+    quickLinksSnapTimeoutRef.current = setTimeout(() => {
+      const buttons = Array.from(track.querySelectorAll('.quick-links-btn'));
+      if (!buttons.length) return;
+
+      const viewportLeft = track.scrollLeft;
+      const viewportRight = viewportLeft + track.clientWidth;
+
+      let target = buttons.find((button) => {
+        const left = button.offsetLeft;
+        const right = left + button.offsetWidth;
+        return left >= viewportLeft && right <= viewportRight;
+      });
+
+      if (!target) {
+        target = buttons.find((button) => (button.offsetLeft + button.offsetWidth) > viewportLeft) || buttons[buttons.length - 1];
+      }
+
+      if (!target) return;
+      track.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+    }, 120);
   };
 
   const handleStartPatientEdit = () => {
@@ -967,13 +981,6 @@ function App() {
   }, [activeTab, isMobileViewport, appointmentsPagination.totalPages, filteredAppointments.length]);
 
   useEffect(() => {
-    if (!isMobileViewport || activeTab !== 'overview') return;
-    const track = quickLinksCarouselRef.current;
-    if (!track) return;
-    track.scrollLeft = track.scrollWidth / 2;
-  }, [isMobileViewport, activeTab]);
-
-  useEffect(() => {
     let active = true;
 
     const loadReleaseInfo = async () => {
@@ -998,6 +1005,12 @@ function App() {
     return () => {
       active = false;
     };
+  }, []);
+
+  useEffect(() => () => {
+    if (quickLinksSnapTimeoutRef.current) {
+      clearTimeout(quickLinksSnapTimeoutRef.current);
+    }
   }, []);
 
   if (view === 'loader') {
@@ -1102,11 +1115,11 @@ function App() {
         <div
           ref={quickLinksCarouselRef}
           className="quick-links-carousel"
-          onScroll={handleQuickLinksInfiniteScroll}
+          onScroll={handleQuickLinksSnapScroll}
         >
-          {[...overviewQuickLinks, ...overviewQuickLinks].map((link, index) => (
+          {overviewQuickLinks.map((link) => (
             <button
-              key={`${link.key}-${index}`}
+              key={link.key}
               className="quick-links-btn"
               onClick={link.onClick}
               aria-label={link.ariaLabel}

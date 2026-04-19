@@ -1,7 +1,14 @@
 // Fallback local: usado somente quando os CSVs do backend/supabase não estiverem disponíveis.
-export const APP_VERSION = '0.1.7';
+export const APP_VERSION = '0.1.8';
 
 export const VERSION_LOG = [
+  {
+    version: '0.1.8',
+    date: '2026-04-19',
+    notes: [
+      'Carrossel de links rápidos ajusta posição apenas após o fim da rolagem.'
+    ]
+  },
   {
     version: '0.1.7',
     date: '2026-04-19',

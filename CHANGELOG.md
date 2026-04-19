@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.8 - 2026-04-19
+
+### Changed
+- Carrossel de links rápidos no mobile passa a ajustar posição apenas após o fim da rolagem do usuário.
+- Removido comportamento de reposicionamento contínuo para o primeiro item.
+
 ## v0.1.7 - 2026-04-19
 
 ### Added
