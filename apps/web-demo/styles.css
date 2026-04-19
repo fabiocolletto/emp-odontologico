@@ -838,17 +838,14 @@ select {
   gap: 0.35rem;
 }
 
-.btn--close-icon {
-  min-width: 36px;
-  min-height: 36px;
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  font-size: 0.95rem;
-  color: #64748b;
+.modal-action-btn {
+  border-color: var(--border-subtle);
+  background: #f8fafc;
+  color: #475569;
+}
+
+.modal-action-btn:hover {
+  background: #eef2f7;
 }
 
 .modal-body {
