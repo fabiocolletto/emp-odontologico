@@ -64,6 +64,44 @@ const TransientNotice = ({ message, tone = 'info', onClose, visible }) => {
   );
 };
 
+const BioHeader = ({
+  icon,
+  title,
+  subtitle,
+  actions = [],
+  navigation
+}) => (
+  <header className="bio-header" role="banner">
+    <div className="bio-header__top">
+      <div className="bio-header__title-wrap">
+        <span className="bio-header__icon">
+          <AppIcon name={icon} size={15} />
+        </span>
+        <h2 className="bio-header__title">{title}</h2>
+      </div>
+      <div className="bio-header__actions">
+        {actions.map((action) => (
+          <button
+            key={action.key}
+            className={`btn btn--ghost bio-header__action modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
+            onClick={action.onClick}
+            aria-label={action.ariaLabel || action.label}
+          >
+            <AppIcon name={action.icon} size={18} className="btn-icon" />
+            <span className="btn-label">{action.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+    {(subtitle || navigation) ? (
+      <div className="bio-header__bottom">
+        {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
+        {navigation ? <div className="bio-header__nav">{navigation}</div> : null}
+      </div>
+    ) : null}
+  </header>
+);
+
 
 const CSV_PATH = './backend/supabase/sample-data';
 
@@ -271,11 +309,45 @@ const PatientN2Modal = ({
   const isCreateMode = mode === 'create';
   const currentTab = PATIENT_FORM_TABS.find((tab) => tab.id === activeTab);
   const canEditView = !isCreateMode && isEditingView;
+  const modalHeaderActions = [
+    ...(!isCreateMode && !isEditingView
+      ? [{ key: 'enable-edit', tone: 'info', icon: 'edit', label: 'Habilitar edição', onClick: onStartEdit }]
+      : []),
+    ...(!isCreateMode && isEditingView
+      ? [
+        { key: 'cancel-edit', tone: 'neutral', icon: 'close', label: 'Cancelar', onClick: onCancelEdit },
+        { key: 'save-edit', tone: 'success', icon: 'check', label: 'Salvar', onClick: onSaveEdit }
+      ]
+      : []),
+    ...(isCreateMode
+      ? [{ key: 'save-patient', tone: 'success', icon: 'check', label: 'Salvar paciente', onClick: onSubmit }]
+      : []),
+    ...(!isEditingView
+      ? [{ key: 'close-modal', tone: 'danger', icon: 'close', label: 'Fechar', onClick: onClose, ariaLabel: 'Fechar janela' }]
+      : [])
+  ];
 
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
       <div className="modal-card modal-card--wide">
+        <div className="bio-header-shell">
+          <BioHeader
+            icon="users"
+            title={isCreateMode ? 'Novo paciente' : (patient?.name || 'Prontuário')}
+            subtitle="Cadastro de paciente"
+            actions={modalHeaderActions}
+            navigation={(
+              <div className="bio-steps" aria-label="Etapas do formulário de paciente">
+                {PATIENT_FORM_TABS.map((tab) => (
+                  <span key={tab.id} className={`bio-step ${tab.id === activeTab ? 'is-active' : ''}`}>
+                    {tab.label}
+                  </span>
+                ))}
+              </div>
+            )}
+          />
+        </div>
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">
@@ -881,10 +953,33 @@ function App() {
   }
 
   const renderContent = () => {
+    const appHeaderActions = [
+      {
+        key: 'open-map',
+        tone: 'neutral',
+        icon: 'map',
+        label: 'Mapa',
+        ariaLabel: 'Abrir mapa de navegação',
+        onClick: () => setShowMobileNavDrawer(true)
+      }
+    ];
+
+    const renderN1Header = ({ icon, title, subtitle, actions = appHeaderActions }) => (
+      isMobileViewport ? (
+        <BioHeader
+          icon={icon}
+          title={title}
+          subtitle={subtitle}
+          actions={actions}
+        />
+      ) : null
+    );
+
     if (activeTab === 'overview') {
       return (
         <div className="space-y-6">
-          <h2 className="page-title">Painel Diário</h2>
+          {renderN1Header({ icon: 'home', title: 'Painel Diário', subtitle: 'Atendimento e indicadores da clínica' })}
+          {!isMobileViewport && <h2 className="page-title">Painel Diário</h2>}
           {usingFallbackData && (
             <p className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3 py-2">
               Dados de fallback ativos. Quando os arquivos em backend/supabase/sample-data estiverem disponíveis no servidor, os dados reais serão usados automaticamente.
@@ -967,7 +1062,23 @@ function App() {
       const patientsWithEmail = patients.filter((p) => p.email && p.email !== '-').length;
       return (
         <div className="space-y-6">
-          <div className="page-header">
+          {renderN1Header({
+            icon: 'users',
+            title: 'Base de Pacientes',
+            subtitle: 'Cadastro, busca e acesso ao Nível 2',
+            actions: [
+              {
+                key: 'create-patient',
+                tone: 'success',
+                icon: 'check',
+                label: 'Novo',
+                ariaLabel: 'Cadastrar novo paciente',
+                onClick: openCreatePatientN2
+              },
+              ...appHeaderActions
+            ]
+          })}
+          <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
             <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
               + Novo paciente
@@ -1133,7 +1244,8 @@ function App() {
 
     return (
       <div className="space-y-6">
-        <h2 className="page-title">Configurações</h2>
+        {renderN1Header({ icon: 'settings', title: 'Configurações', subtitle: 'Parâmetros e catálogo de procedimentos' })}
+        {!isMobileViewport && <h2 className="page-title">Configurações</h2>}
         <div className="bg-white border data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
