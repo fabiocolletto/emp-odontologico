@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { APPOINTMENTS, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
 import { fetchAddressByCep, loadClinicDataset } from './data-gateway.js';
-import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, MobileNavBar, UiButton, ViewLayout } from './components.js';
+import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, UiButton, ViewLayout } from './components.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -314,24 +314,6 @@ const Dashboard = () => {
           </div>
         </ViewLayout>
       )}
-
-      <MobileNavBar>
-        {[
-          { id: 'overview', icon: LayoutDashboard, label: 'Hoje' },
-          { id: 'patients', icon: Users, label: 'Base' },
-          { id: 'settings', icon: Settings, label: 'Ajustes' }
-        ].map((item) => (
-          <UiButton
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            icon={item.icon}
-            label={item.label}
-            size="md"
-            labelLayout="below"
-            className={`mobile-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
-          />
-        ))}
-      </MobileNavBar>
 
       <AdaptiveModal isOpen={modalSettingsProc} onClose={() => setModalSettingsProc(false)}>
         <AdaptiveHeader
