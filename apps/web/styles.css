@@ -137,7 +137,7 @@ select {
 }
 
 .btn--nav {
-  background: var(--btn-glass-bg);
+  background: rgba(15, 106, 167, 0.62);
   color: var(--btn-glass-text);
   text-align: left;
   width: 100%;
@@ -146,21 +146,21 @@ select {
 }
 
 .btn--nav.is-active {
-  background: var(--btn-glass-bg-hover);
+  background: rgba(11, 90, 143, 0.72);
   color: var(--btn-glass-text);
   box-shadow: 0 10px 22px rgba(2, 6, 23, 0.22);
 }
 
 .btn--nav--overview {
-  background: rgba(14, 116, 144, 0.78);
+  background: rgba(14, 116, 144, 0.62);
 }
 
 .btn--nav--patients {
-  background: rgba(37, 99, 235, 0.78);
+  background: rgba(37, 99, 235, 0.62);
 }
 
 .btn--nav--settings {
-  background: rgba(124, 58, 237, 0.78);
+  background: rgba(124, 58, 237, 0.62);
 }
 
 .btn--mobile-tab {
@@ -903,21 +903,23 @@ select {
   padding: 0.62rem 0.95rem;
   border-radius: var(--radius-md);
   box-shadow: 0 8px 20px rgba(2, 6, 23, 0.18);
+  background: rgba(15, 106, 167, 0.62);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 .btn--header-new {
-  background: var(--btn-glass-bg);
-  border-color: var(--btn-glass-border);
+  background: rgba(14, 116, 144, 0.62);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 .btn--header-search {
-  background: var(--btn-glass-bg);
-  border-color: var(--btn-glass-border);
+  background: rgba(37, 99, 235, 0.62);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 .btn--header-multi {
-  background: var(--btn-glass-bg);
-  border-color: var(--btn-glass-border);
+  background: rgba(22, 163, 74, 0.62);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 .single-select {
@@ -1252,6 +1254,13 @@ select {
   min-width: 110px;
   text-align: center;
   white-space: nowrap;
+}
+
+.search-legend {
+  margin: 0.4rem 0 0 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 700;
 }
 
 .pagination-row {

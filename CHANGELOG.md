@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.23 - 2026-04-19
+
+### Changed
+- Botão de `Filtro` renomeado para `Ordenação` em todas as entradas de navegação e no header.
+- Total de registros exibidos movido para baixo do campo de pesquisa como legenda (`search-legend`).
+- Fundos dos botões do header e da barra lateral ajustados para semitransparência, alinhando com o padrão visual glassmorphism do header mobile.
+
 ## v0.1.22 - 2026-04-19
 
 ### Changed

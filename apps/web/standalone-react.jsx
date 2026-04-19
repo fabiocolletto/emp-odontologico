@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.22';
+const APP_VERSION_FALLBACK = '0.1.23';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -193,12 +193,12 @@ const MultiToggleButton = ({ isActive, onClick }) => (
   />
 );
 
-const FilterToggleButton = ({ onClick }) => (
+const SortToggleButton = ({ onClick }) => (
   <HeaderActionButton
-    label="Filtrar"
+    label="Ordenação"
     icon="filter"
     tone="settings"
-    ariaLabel="Abrir nível de filtro e ordenação"
+    ariaLabel="Abrir nível de ordenação"
     onClick={onClick}
   />
 );
@@ -1266,12 +1266,12 @@ function App() {
           });
         }
       },
-      'patients-filter': {
-        key: 'patients-filter',
+      'patients-sort': {
+        key: 'patients-sort',
         icon: 'filter',
         tone: 'settings',
-        label: 'Filtro',
-        ariaLabel: 'Abrir nível de filtro e ordenação',
+        label: 'Ordenação',
+        ariaLabel: 'Abrir nível de ordenação',
         onClick: () => setIsPatientsSortLevelOpen(true)
       },
       settings: {
@@ -1293,7 +1293,7 @@ function App() {
       patients: {
         level: 1,
         previous: 'overview',
-        next: ['new-patient', 'patients-search', 'patients-filter', 'patients-multi']
+        next: ['new-patient', 'patients-search', 'patients-sort', 'patients-multi']
       },
       settings: {
         level: 1,
@@ -1463,7 +1463,7 @@ function App() {
                 isOpen={isPatientsSearchVisible}
                 onClick={() => setIsPatientsSearchVisible((prev) => !prev)}
               />
-              <FilterToggleButton onClick={() => setIsPatientsSortLevelOpen(true)} />
+              <SortToggleButton onClick={() => setIsPatientsSortLevelOpen(true)} />
               <MultiToggleButton
                 isActive={isPatientsMultiMode}
                 onClick={() => {
@@ -1495,8 +1495,8 @@ function App() {
                   value={patientsQuery}
                   onChange={(e) => setPatientsQuery(e.target.value)}
                 />
-                <span className="search-count">{sortedPatients.length} registro(s)</span>
               </div>
+              <p className="search-legend">{sortedPatients.length} registro(s) exibido(s)</p>
             </div>
           ) : null}
           {isPatientsSortLevelOpen ? (
@@ -1504,7 +1504,7 @@ function App() {
               <button className="selector-level__backdrop" type="button" aria-label="Fechar nível de filtro" onClick={() => setIsPatientsSortLevelOpen(false)} />
               <div className="selector-level__card">
                 <div className="selector-level__header">
-                  <p>Nível de filtro / ordenação</p>
+                  <p>Nível de ordenação</p>
                   <button className="btn btn--ghost" type="button" onClick={() => setIsPatientsSortLevelOpen(false)}>Fechar</button>
                 </div>
                 <div className="selector-level__body">
