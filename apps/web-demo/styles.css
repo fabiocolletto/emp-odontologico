@@ -583,6 +583,24 @@ select {
   min-height: var(--viewport-h);
 }
 
+.app-version-chip {
+  position: fixed;
+  right: max(0.85rem, env(safe-area-inset-right));
+  bottom: max(0.85rem, env(safe-area-inset-bottom));
+  z-index: 220;
+  border: 1px solid color-mix(in srgb, var(--brand-600) 26%, white);
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 90%, #e7eef8);
+  box-shadow: 0 10px 24px rgba(15, 35, 72, 0.16);
+  padding: 0.38rem 0.68rem;
+  color: var(--brand-700);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
 /* ---------- Layout ---------- */
 .app-shell {
   min-height: var(--viewport-h);
