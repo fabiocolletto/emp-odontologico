@@ -2,6 +2,11 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.24 - 2026-04-19
+
+### Changed
+- Totalizador de registros da seção de pesquisa centralizado horizontalmente (`search-legend`).
+
 ## v0.1.23 - 2026-04-19
 
 ### Changed

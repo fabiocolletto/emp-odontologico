@@ -1257,10 +1257,12 @@ select {
 }
 
 .search-legend {
-  margin: 0.4rem 0 0 0.75rem;
+  margin: 0.4rem auto 0;
   font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 700;
+  text-align: center;
+  width: 100%;
 }
 
 .pagination-row {
