@@ -84,22 +84,24 @@ const BioHeader = ({
           {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
         </div>
       </div>
-      <div className={`bio-header__actions ${actions.length > 2 ? 'bio-header__actions--grid' : ''}`}>
-        {actions.map((action) => (
-          <button
-            key={action.key}
-            className={`btn btn--ghost bio-header__action ${actions.length > 2 ? 'bio-header__action--grid' : ''} modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
-            onClick={action.onClick}
-            aria-label={action.ariaLabel || action.label}
-          >
-            <AppIcon name={action.icon} size={18} className="btn-icon" />
-            <span className="btn-label">{action.label}</span>
-          </button>
-        ))}
-      </div>
     </div>
-    {navigation ? (
+    {(navigation || actions.length > 0) ? (
       <div className="bio-header__bottom">
+        {actions.length > 0 ? (
+          <div className={`bio-header__actions ${actions.length > 2 ? 'bio-header__actions--grid' : ''}`}>
+            {actions.map((action) => (
+              <button
+                key={action.key}
+                className={`btn btn--ghost bio-header__action ${actions.length > 2 ? 'bio-header__action--grid' : ''} modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
+                onClick={action.onClick}
+                aria-label={action.ariaLabel || action.label}
+              >
+                <AppIcon name={action.icon} size={18} className="btn-icon" />
+                <span className="btn-label">{action.label}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
         {navigation ? <div className="bio-header__nav">{navigation}</div> : null}
       </div>
     ) : null}

@@ -737,12 +737,12 @@ select {
 }
 
 .bio-header__actions {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.35rem;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
-  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 
 .bio-header__actions--grid {
@@ -750,7 +750,7 @@ select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.35rem;
   width: 100%;
-  max-width: 8.2rem;
+  max-width: 11rem;
 }
 
 .bio-header__action {
@@ -773,6 +773,8 @@ select {
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--brand-600) 14%, #d8e2ee);
   background: color-mix(in srgb, #ffffff 88%, #eef4fb);
+  display: grid;
+  gap: 0.45rem;
 }
 
 .bio-header__nav {
