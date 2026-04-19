@@ -7,7 +7,7 @@ const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '0.1.20';
+const APP_VERSION_FALLBACK = '0.1.21';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -75,6 +75,7 @@ const TransientNotice = ({ message, tone = 'info', onClose, visible }) => {
 const SingleSelectionField = ({
   id,
   label,
+  ariaLabel,
   value,
   onChange,
   options = [],
@@ -111,10 +112,11 @@ const SingleSelectionField = ({
           type="button"
           className="single-select__control single-select__trigger"
           aria-haspopup="listbox"
+          aria-label={ariaLabel || label || 'Selecionar'}
           aria-expanded={isOpen}
           onClick={() => setIsOpen((prev) => !prev)}
         >
-          <span>{selectedOption?.label || 'Selecionar'}</span>
+          <span className="single-select__value">{selectedOption?.label || 'Selecionar'}</span>
           <AppIcon name={isOpen ? 'chevron-up' : 'chevron-down'} size={14} className="single-select__icon" />
         </button>
 
@@ -1475,7 +1477,7 @@ function App() {
                 />
                 <SingleSelectionField
                   id="patients-sort"
-                  label="Ordenar"
+                  ariaLabel="Ordenar pacientes"
                   value={patientsSort}
                   onChange={setPatientsSort}
                   options={[
@@ -1494,7 +1496,7 @@ function App() {
             </div>
           ) : null}
           {isPatientsMultiMode ? (
-            <div className="bg-white rounded-2xl border p-4 flex flex-wrap gap-2 items-center justify-between">
+            <div className="bg-transparent rounded-2xl border border-slate-200/70 p-4 flex flex-wrap gap-2 items-center justify-between backdrop-blur-sm">
               <p className="text-xs font-black uppercase tracking-widest text-slate-500">
                 {selectedPatientIds.length} selecionado(s)
               </p>

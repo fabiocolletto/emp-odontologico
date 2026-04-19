@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.21 - 2026-04-19
+
+### Changed
+- Campo de ordenação na N1 de pacientes sem exibir o título `Ordenar` ao lado da busca.
+- Sessões de botões com fundo transparente e botões semitransparentes mantidos no padrão glassmorphism em todas as telas.
+- Busca e ordenação forçadas na mesma linha; em mobile, o texto do campo de ordenação é ocultado para preservar layout horizontal.
+
 ## v0.1.20 - 2026-04-19
 
 ### Changed
