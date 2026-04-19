@@ -16,6 +16,7 @@ Este documento define o fluxo operacional padrão para mudanças no projeto.
 - Executar checks estáticos/sintáticos.
 - Verificar integridade de imports e referências.
 - Confirmar consistência entre documentação e código.
+- Quando houver necessidade de validação visual (ex.: telas, responsividade mobile, regressões de layout), instalar e configurar browser tools (ex.: Playwright/Chromium) antes da evidência final, caso o ambiente ainda não disponha dessas ferramentas.
 
 ## 4) Registrar
 - Atualizar changelog técnico.
