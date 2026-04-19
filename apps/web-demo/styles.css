@@ -650,7 +650,7 @@ select {
 
 .bio-header__top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
 }
@@ -660,6 +660,7 @@ select {
   align-items: center;
   gap: 0.55rem;
   min-width: 0;
+  flex: 1;
 }
 
 .bio-header__icon {
@@ -677,12 +678,15 @@ select {
 .bio-header__title {
   margin: 0;
   color: var(--text-strong);
-  font-size: 1rem;
-  line-height: 1.2;
+  font-size: 0.98rem;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bio-header__subtitle {
-  margin: 0.12rem 0 0;
+  margin: 0;
   color: var(--text-muted);
   font-size: 0.72rem;
   font-weight: 700;
@@ -692,20 +696,27 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  flex: 0 0 auto;
 }
 
 .bio-header__action {
-  min-width: 42px;
-  min-height: 42px;
-  padding: 0 0.6rem;
-  border-radius: 13px;
+  min-width: 34px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 11px;
 }
 
 .bio-header__bottom {
-  margin-top: 0.45rem;
+  margin-top: 0.38rem;
   padding-top: 0;
+}
+
+.bio-header__nav {
+  margin-top: 0.42rem;
 }
 
 .bio-breadcrumb {
@@ -1366,8 +1377,11 @@ select {
   }
 
   .bio-header__action {
-    width: 42px;
-    max-width: 42px;
+    width: 34px;
+    max-width: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    height: 34px;
     padding: 0;
     display: inline-flex;
     align-items: center;
@@ -1379,8 +1393,8 @@ select {
   }
 
   .bio-header__action .btn-icon {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: block;
     margin: 0 auto;
   }

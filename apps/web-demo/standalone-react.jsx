@@ -77,10 +77,7 @@ const BioHeader = ({
         <span className="bio-header__icon">
           <AppIcon name={icon} size={15} />
         </span>
-        <div>
-          <h2 className="bio-header__title">{title}</h2>
-          {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
-        </div>
+        <h2 className="bio-header__title">{title}</h2>
       </div>
       <div className="bio-header__actions">
         {actions.map((action) => (
@@ -96,7 +93,12 @@ const BioHeader = ({
         ))}
       </div>
     </div>
-    {navigation ? <div className="bio-header__bottom">{navigation}</div> : null}
+    {(subtitle || navigation) ? (
+      <div className="bio-header__bottom">
+        {subtitle ? <p className="bio-header__subtitle">{subtitle}</p> : null}
+        {navigation ? <div className="bio-header__nav">{navigation}</div> : null}
+      </div>
+    ) : null}
   </header>
 );
 
