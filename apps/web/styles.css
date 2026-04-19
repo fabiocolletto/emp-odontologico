@@ -647,7 +647,7 @@ select {
   height: var(--viewport-h);
   overflow-y: auto;
   padding: clamp(1.2rem, 2vw, 2.2rem);
-  padding-bottom: 7.8rem;
+  padding-bottom: clamp(1.2rem, 2vw, 2.2rem);
 }
 
 .page-title {
@@ -731,6 +731,14 @@ select {
   flex: 0 0 auto;
 }
 
+.bio-header__actions--grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 8.2rem;
+}
+
 .bio-header__action {
   min-width: 34px;
   width: 34px;
@@ -738,6 +746,11 @@ select {
   height: 34px;
   padding: 0;
   border-radius: 11px;
+}
+
+.bio-header__action--grid {
+  width: 100%;
+  max-width: none;
 }
 
 .bio-header__bottom {
@@ -1387,7 +1400,7 @@ select {
 
 @media (max-width: 640px) {
   .transient-notice {
-    bottom: calc(5.6rem + env(safe-area-inset-bottom));
+    bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
   .page-header {
@@ -1430,6 +1443,10 @@ select {
     height: 18px;
     display: block;
     margin: 0 auto;
+  }
+
+  .bio-header__actions--grid .bio-header__action .btn-label {
+    display: none;
   }
 
   .btn--header {
@@ -1480,7 +1497,7 @@ select {
   }
 
   .modal-footer {
-    padding: 0.85rem 1rem calc(5.35rem + env(safe-area-inset-bottom));
+    padding: 0.85rem 1rem calc(1rem + env(safe-area-inset-bottom));
     border-top: 1px solid color-mix(in srgb, var(--border-subtle) 78%, white);
     background: color-mix(in srgb, #ffffff 92%, #e7eef8);
     backdrop-filter: blur(6px);

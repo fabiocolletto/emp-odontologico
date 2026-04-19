@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.4 - 2026-04-19
+
+### Changed
+- Removida a barra de navegação inferior no mobile para evitar redundância com o drawer.
+- Header do nível 0 (Painel Diário) atualizado para grid 2x2 com quatro atalhos rápidos.
+
 ## v0.1.3 - 2026-04-19
 
 ### Added

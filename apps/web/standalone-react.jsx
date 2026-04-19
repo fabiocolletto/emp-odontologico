@@ -80,11 +80,11 @@ const BioHeader = ({
         </span>
         <h2 className="bio-header__title">{title}</h2>
       </div>
-      <div className="bio-header__actions">
+      <div className={`bio-header__actions ${actions.length > 2 ? 'bio-header__actions--grid' : ''}`}>
         {actions.map((action) => (
           <button
             key={action.key}
-            className={`btn btn--ghost bio-header__action modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
+            className={`btn btn--ghost bio-header__action ${actions.length > 2 ? 'bio-header__action--grid' : ''} modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
             onClick={action.onClick}
             aria-label={action.ariaLabel || action.label}
           >
@@ -962,16 +962,57 @@ function App() {
   }
 
   const renderContent = () => {
-    const appHeaderActions = [
-      {
-        key: 'open-map',
-        tone: 'neutral',
-        icon: 'map',
-        label: 'Mapa',
-        ariaLabel: 'Abrir mapa de navegação',
-        onClick: () => setShowMobileNavDrawer(true)
-      }
-    ];
+    const appHeaderActions = activeTab === 'overview'
+      ? [
+        {
+          key: 'agenda-hoje',
+          tone: 'neutral',
+          icon: 'calendar',
+          label: 'Agenda',
+          ariaLabel: 'Ir para agenda de hoje',
+          onClick: () => {
+            setActiveTab('overview');
+            setAppointmentsQuery('');
+          }
+        },
+        {
+          key: 'patients',
+          tone: 'neutral',
+          icon: 'users',
+          label: 'Pacientes',
+          ariaLabel: 'Abrir base de pacientes',
+          onClick: () => setActiveTab('patients')
+        },
+        {
+          key: 'new-patient',
+          tone: 'neutral',
+          icon: 'edit',
+          label: 'Novo',
+          ariaLabel: 'Cadastrar novo paciente',
+          onClick: () => {
+            setActiveTab('patients');
+            openCreatePatientN2();
+          }
+        },
+        {
+          key: 'settings',
+          tone: 'neutral',
+          icon: 'settings',
+          label: 'Config',
+          ariaLabel: 'Abrir configurações',
+          onClick: () => setActiveTab('settings')
+        }
+      ]
+      : [
+        {
+          key: 'open-map',
+          tone: 'neutral',
+          icon: 'map',
+          label: 'Mapa',
+          ariaLabel: 'Abrir mapa de navegação',
+          onClick: () => setShowMobileNavDrawer(true)
+        }
+      ];
 
     const renderN1Header = ({ icon, title, subtitle, actions = appHeaderActions }) => (
       isMobileViewport ? (
@@ -1291,28 +1332,6 @@ function App() {
           {renderContent()}
         </main>
       </div>
-
-      <nav className="mobile-nav md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 flex justify-between gap-2 z-50">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`btn btn--mobile-tab ${activeTab === tab.id ? 'is-active' : ''}`}
-          >
-            <AppIcon name={tab.icon} size={13} />
-            {tab.label}
-          </button>
-        ))}
-        <button
-          onClick={() => setShowMobileNavDrawer((prev) => !prev)}
-          className={`btn btn--mobile-tab ${showMobileNavDrawer ? 'is-active' : ''}`}
-          aria-expanded={showMobileNavDrawer}
-          aria-controls="mobile-navigation-drawer"
-        >
-          <AppIcon name="map" size={13} />
-          Mapa
-        </button>
-      </nav>
 
       {showMobileNavDrawer && (
         <div className="mobile-drawer-wrap md:hidden">
