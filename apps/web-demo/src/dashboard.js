@@ -1,8 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Activity as ActivityIcon,
-  ArrowRight,
-  Calendar,
   Check,
   Globe,
   Layers,
@@ -15,7 +12,6 @@ import {
   Settings,
   Stethoscope,
   Trash2,
-  TrendingUp,
   User,
   UserPlus,
   Users,
@@ -23,7 +19,8 @@ import {
 } from 'lucide-react';
 import { APPOINTMENTS, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
 import { fetchAddressByCep, loadClinicDataset } from './data-gateway.js';
-import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, UiButton, ViewLayout } from './components.js';
+import { AdaptiveHeader, AdaptiveModal, FormField, UiButton, ViewLayout } from './components.js';
+import DailyPanel from './daily-panel.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -32,6 +29,7 @@ const Dashboard = () => {
   const [allProcedures, setAllProcedures] = useState(INITIAL_PROCEDURES);
   const [appointments, setAppointments] = useState(APPOINTMENTS);
   const [usingFallbackData, setUsingFallbackData] = useState(true);
+  const [datasetHydrated, setDatasetHydrated] = useState(false);
 
   const [modalPatient, setModalPatient] = useState(false);
   const [modalSettingsProc, setModalSettingsProc] = useState(false);
@@ -138,6 +136,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    if (datasetHydrated || activeTab === 'overview') return;
     let mounted = true;
 
     const hydrateFromSupabaseFiles = async () => {
@@ -152,6 +151,9 @@ const Dashboard = () => {
       } catch (error) {
         if (!mounted) return;
         setUsingFallbackData(true);
+      } finally {
+        if (!mounted) return;
+        setDatasetHydrated(true);
       }
     };
 
@@ -160,7 +162,7 @@ const Dashboard = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [activeTab, datasetHydrated]);
 
   useEffect(() => {
     if (!modalPatient) return;
@@ -176,7 +178,7 @@ const Dashboard = () => {
         </div>
         <nav className="flex-1 px-6 space-y-4">
           {[
-            { id: 'overview', icon: LayoutDashboard, label: 'Painel Clínico' },
+            { id: 'overview', icon: LayoutDashboard, label: 'Painel Diário (Nível 0)' },
             { id: 'patients', icon: Users, label: 'Base de Pacientes' },
             { id: 'settings', icon: Settings, label: 'Configurações' }
           ].map((item) => (
@@ -194,39 +196,12 @@ const Dashboard = () => {
       </aside>
 
       {activeTab === 'overview' && (
-        <ViewLayout title="Painel Diário" badge="Clínica Matriz SP">
-          <div className="space-y-12">
-            {usingFallbackData && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl px-5 py-4 text-xs font-semibold">
-                Dados locais de contingência ativos. Assim que os arquivos em <code>backend/supabase/sample-data</code> estiverem disponíveis no servidor, a UI passa a usar esses dados automaticamente.
-              </div>
-            )}
-            <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto scrollbar-hide pb-4 px-1">
-              <KpiCard title="Atendimentos" value="12" subtitle="Agendados hoje" trend="up" trendValue="24" icon={Calendar} color="bg-sky-600" />
-              <KpiCard title="Faturamento" value="R$ 8.4k" subtitle="Projeção diária" trend="up" trendValue="12" icon={TrendingUp} color="bg-emerald-600" />
-              <KpiCard title="Ocupação" value="92%" subtitle="Cadeiras ativas" trend="down" trendValue="2" icon={ActivityIcon} color="bg-indigo-600" />
-            </div>
-
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden divide-y divide-slate-50">
-              <div className="p-10 flex justify-between items-center bg-slate-50/30">
-                <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest">Agenda de Hoje</h3>
-              </div>
-              {appointments.map((item, idx) => (
-                <UiButton
-                  key={idx}
-                  onClick={() => handleOpenPatientRecord(allPatients.find((p) => p.name === item.name))}
-                  className="w-full h-auto justify-between rounded-none border-none bg-transparent px-10 py-8 text-left group hover:bg-slate-50 shadow-none"
-                >
-                  <div className="flex items-center gap-10">
-                    <span className="text-sm font-black text-sky-700 w-12">{item.time}</span>
-                    <div><p className="text-xl font-bold text-slate-900 mb-1">{item.name}</p><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{item.procedure}</p></div>
-                  </div>
-                  <ArrowRight size={24} className="text-slate-200 group-hover:text-sky-700 transition-all group-hover:translate-x-2" />
-                </UiButton>
-              ))}
-            </div>
-          </div>
-        </ViewLayout>
+        <DailyPanel
+          appointments={appointments}
+          allPatients={allPatients}
+          usingFallbackData={usingFallbackData}
+          onOpenPatientRecord={handleOpenPatientRecord}
+        />
       )}
 
       {activeTab === 'patients' && (
