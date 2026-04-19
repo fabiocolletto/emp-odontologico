@@ -308,10 +308,12 @@ const PatientN2Modal = ({
                 <span className="btn-label">Salvar paciente</span>
               </button>
             )}
-            <button onClick={onClose} className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger" aria-label="Fechar janela">
-              <AppIcon name="close" size={14} className="btn-icon" />
-              <span className="btn-label">Fechar</span>
-            </button>
+            {!isEditingView && (
+              <button onClick={onClose} className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger" aria-label="Fechar janela">
+                <AppIcon name="close" size={14} className="btn-icon" />
+                <span className="btn-label">Fechar</span>
+              </button>
+            )}
           </div>
         </div>
 
