@@ -335,7 +335,7 @@ const PatientN2Modal = ({
           <BioHeader
             icon="users"
             title={isCreateMode ? 'Novo paciente' : (patient?.name || 'Prontuário')}
-            subtitle="Nível 2 • Cadastro de paciente"
+            subtitle="Cadastro de paciente"
             actions={modalHeaderActions}
             navigation={(
               <div className="bio-steps" aria-label="Etapas do formulário de paciente">
@@ -971,11 +971,6 @@ function App() {
           title={title}
           subtitle={subtitle}
           actions={actions}
-          navigation={(
-            <p className="bio-breadcrumb">
-              Nível 1 • {tabs.find((tab) => tab.id === activeTab)?.label}
-            </p>
-          )}
         />
       ) : null
     );
