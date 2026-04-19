@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Archive,
   Check,
+  CheckSquare,
   Globe,
   Layers,
   LayoutDashboard,
@@ -11,6 +13,7 @@ import {
   Search,
   Settings,
   Stethoscope,
+  Square,
   Trash2,
   Menu,
   User,
@@ -25,6 +28,7 @@ import DailyPanel from './daily-panel.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
+  const PATIENTS_SEARCH_VISIBLE_KEY = 'odontoflow:patients-search-visible';
   const [activeTab, setActiveTab] = useState('overview');
   const [allPatients, setAllPatients] = useState(INITIAL_PATIENTS);
   const [allProcedures, setAllProcedures] = useState(INITIAL_PROCEDURES);
@@ -53,18 +57,30 @@ const Dashboard = () => {
   const [cepLookupMessage, setCepLookupMessage] = useState('');
   const [newProcName, setNewProcName] = useState('');
   const [patientsSort, setPatientsSort] = useState('name-asc');
+  const [patientSearch, setPatientSearch] = useState('');
+  const [isPatientSearchVisible, setIsPatientSearchVisible] = useState(false);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedPatientIds, setSelectedPatientIds] = useState([]);
 
   useEffect(() => {
     const savedSortPreference = window.localStorage.getItem(PATIENTS_SORT_KEY);
+    const savedSearchVisibility = window.localStorage.getItem(PATIENTS_SEARCH_VISIBLE_KEY);
 
     if (savedSortPreference) {
       setPatientsSort(savedSortPreference);
+    }
+    if (savedSearchVisibility !== null) {
+      setIsPatientSearchVisible(savedSearchVisibility === 'true');
     }
   }, []);
 
   useEffect(() => {
     window.localStorage.setItem(PATIENTS_SORT_KEY, patientsSort);
   }, [patientsSort]);
+
+  useEffect(() => {
+    window.localStorage.setItem(PATIENTS_SEARCH_VISIBLE_KEY, String(isPatientSearchVisible));
+  }, [isPatientSearchVisible]);
 
   const sortedPatients = useMemo(() => {
     const patients = [...allPatients];
@@ -81,6 +97,21 @@ const Dashboard = () => {
         return patients.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
     }
   }, [allPatients, patientsSort]);
+
+  const visiblePatients = useMemo(() => (
+    sortedPatients.filter((patient) => !patient.archivedAt)
+  ), [sortedPatients]);
+
+  const filteredPatients = useMemo(() => {
+    const normalizedTerm = patientSearch.trim().toLocaleLowerCase('pt-BR');
+    if (!normalizedTerm) return visiblePatients;
+
+    return visiblePatients.filter((patient) => (
+      patient.name.toLocaleLowerCase('pt-BR').includes(normalizedTerm)
+      || String(patient.id).toLocaleLowerCase('pt-BR').includes(normalizedTerm)
+      || String(patient.phone || '').toLocaleLowerCase('pt-BR').includes(normalizedTerm)
+    ));
+  }, [visiblePatients, patientSearch]);
 
   const handleOpenPatientRecord = (patient) => {
     setSelectedPatient(patient);
@@ -191,6 +222,44 @@ const Dashboard = () => {
     setMobileNavOpen(false);
   };
 
+  const handleTogglePatientSelection = (patientId) => {
+    setSelectedPatientIds((current) => (
+      current.includes(patientId)
+        ? current.filter((id) => id !== patientId)
+        : [...current, patientId]
+    ));
+  };
+
+  const handleToggleMultiSelectMode = () => {
+    setIsMultiSelectMode((current) => {
+      if (current) {
+        setSelectedPatientIds([]);
+      }
+      return !current;
+    });
+  };
+
+  const handleSelectAllPatients = () => {
+    const allVisibleIds = filteredPatients.map((patient) => patient.id);
+    const isAllSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedPatientIds.includes(id));
+    setSelectedPatientIds(isAllSelected ? [] : allVisibleIds);
+  };
+
+  const handleArchiveSelectedPatients = () => {
+    if (selectedPatientIds.length === 0) return;
+    const archiveDate = new Date().toISOString();
+
+    setAllPatients((current) => (
+      current.map((patient) => (
+        selectedPatientIds.includes(patient.id)
+          ? { ...patient, archivedAt: archiveDate }
+          : patient
+      ))
+    ));
+    setSelectedPatientIds([]);
+    setIsMultiSelectMode(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#EAEEF2] flex flex-col md:flex-row font-sans selection:bg-sky-100">
       <div className="mobile-nav-trigger md:hidden">
@@ -267,42 +336,101 @@ const Dashboard = () => {
           title="Base de Pacientes"
           badge="Índice de Prontuários"
           actions={(
-            <UiButton
-              onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
-              icon={UserPlus}
-              label="Novo Cadastro"
-              tone="primary"
-              size="md"
-              className="uppercase tracking-widest shadow-xl shadow-sky-100"
-            />
+            <div className="flex items-center gap-3">
+              <UiButton
+                onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
+                icon={UserPlus}
+                label="Novo Cadastro"
+                tone="primary"
+                size="md"
+                className="uppercase tracking-widest shadow-xl shadow-sky-100"
+              />
+              <UiButton
+                onClick={() => setIsPatientSearchVisible((current) => !current)}
+                icon={Search}
+                label="Pesquisa"
+                tone={isPatientSearchVisible ? 'info' : 'neutral'}
+                size="md"
+                className="uppercase tracking-widest"
+              />
+              <UiButton
+                onClick={handleToggleMultiSelectMode}
+                icon={isMultiSelectMode ? CheckSquare : Square}
+                label="Multi"
+                tone={isMultiSelectMode ? 'info' : 'neutral'}
+                size="md"
+                className="uppercase tracking-widest"
+              />
+            </div>
           )}
         >
           <div className="space-y-10">
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <Search className="text-slate-300" size={20} />
-              <input type="text" placeholder="Pesquisar..." className="flex-1 bg-transparent border-none outline-none text-base font-bold text-slate-900 placeholder:text-slate-300" />
-              <div className="flex items-center gap-3 pl-3 border-l border-slate-100">
-                <label htmlFor="patients-sort" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ordenar</label>
-                <select
-                  id="patients-sort"
-                  value={patientsSort}
-                  onChange={(event) => setPatientsSort(event.target.value)}
-                  className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-100"
-                >
-                  <option value="name-asc">Nome (A → Z)</option>
-                  <option value="name-desc">Nome (Z → A)</option>
-                  <option value="id-asc">ID (menor → maior)</option>
-                  <option value="id-desc">ID (maior → menor)</option>
-                </select>
+            {isPatientSearchVisible && (
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+                <Search className="text-slate-300" size={20} />
+                <input
+                  type="text"
+                  placeholder="Pesquisar..."
+                  value={patientSearch}
+                  onChange={(event) => setPatientSearch(event.target.value)}
+                  className="flex-1 bg-transparent border-none outline-none text-base font-bold text-slate-900 placeholder:text-slate-300"
+                />
+                <div className="flex items-center gap-3 pl-3 border-l border-slate-100">
+                  <label htmlFor="patients-sort" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ordenar</label>
+                  <select
+                    id="patients-sort"
+                    value={patientsSort}
+                    onChange={(event) => setPatientsSort(event.target.value)}
+                    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-100"
+                  >
+                    <option value="name-asc">Nome (A → Z)</option>
+                    <option value="name-desc">Nome (Z → A)</option>
+                    <option value="id-asc">ID (menor → maior)</option>
+                    <option value="id-desc">ID (maior → menor)</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            )}
+
+            {isMultiSelectMode && (
+              <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+                  Multi seleção ativa · {selectedPatientIds.length} selecionado(s)
+                </p>
+                <div className="flex items-center gap-3">
+                  <UiButton
+                    onClick={handleSelectAllPatients}
+                    icon={CheckSquare}
+                    label={selectedPatientIds.length === filteredPatients.length && filteredPatients.length > 0 ? 'Limpar todos' : 'Selecionar todos'}
+                    tone="neutral"
+                    size="sm"
+                  />
+                  <UiButton
+                    onClick={handleArchiveSelectedPatients}
+                    icon={Archive}
+                    label="Arquivar selecionados"
+                    tone="danger"
+                    size="sm"
+                    disabled={selectedPatientIds.length === 0}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedPatients.map((p) => (
-                <div key={p.id} onClick={() => handleOpenPatientRecord(p)} className="bg-white p-8 rounded-3xl border border-slate-50 shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all cursor-pointer group">
+              {filteredPatients.map((p) => (
+                <div key={p.id} onClick={() => (isMultiSelectMode ? handleTogglePatientSelection(p.id) : handleOpenPatientRecord(p))} className={`bg-white p-8 rounded-3xl border shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all cursor-pointer group ${selectedPatientIds.includes(p.id) ? 'border-sky-300 ring-2 ring-sky-100' : 'border-slate-50'}`}>
                   <div className="flex items-center gap-5 mb-8">
                     <div className="w-14 h-14 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-700 font-bold text-xl group-hover:bg-sky-700 group-hover:text-white transition-all">{p.name[0]}</div>
-                    <div><p className="text-lg font-bold text-slate-900 group-hover:text-sky-700 transition-colors">{p.name}</p><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">ID: {p.id.toString().padStart(4, '0')}</p></div>
+                    <div className="flex-1">
+                      <p className="text-lg font-bold text-slate-900 group-hover:text-sky-700 transition-colors">{p.name}</p>
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">ID: {p.id.toString().padStart(4, '0')}</p>
+                    </div>
+                    {isMultiSelectMode && (
+                      <div className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-all ${selectedPatientIds.includes(p.id) ? 'bg-sky-700 border-sky-700 text-white' : 'bg-white border-slate-300 text-slate-300'}`}>
+                        <Check size={14} />
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-4 border-t border-slate-50 pt-6 text-sm">
                     <div className="flex justify-between"><span className="text-slate-400 font-medium">WhatsApp:</span><span className="text-slate-900 font-bold">{p.phone}</span></div>
