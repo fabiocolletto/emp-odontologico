@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { APPOINTMENTS, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
 import { loadClinicDataset } from './data-gateway.js';
-import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, ViewLayout } from './components.js';
+import { AdaptiveHeader, AdaptiveModal, FormField, KpiCard, UiButton, ViewLayout } from './components.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -113,14 +113,15 @@ const Dashboard = () => {
             { id: 'patients', icon: Users, label: 'Base de Pacientes' },
             { id: 'settings', icon: Settings, label: 'Configurações' }
           ].map((item) => (
-            <button
+            <UiButton
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-5 p-4 rounded-2xl transition-all ${activeTab === item.id ? 'bg-slate-900 text-white shadow-2xl' : 'text-slate-500 hover:bg-sky-50'}`}
-            >
-              <item.icon size={20} />
-              <span className="font-bold text-sm tracking-wide">{item.label}</span>
-            </button>
+              icon={item.icon}
+              label={item.label}
+              size="lg"
+              labelLayout="side"
+              className={`sidebar-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
+            />
           ))}
         </nav>
       </aside>
@@ -162,13 +163,14 @@ const Dashboard = () => {
           title="Base de Pacientes"
           badge="Índice de Prontuários"
           actions={(
-            <button
+            <UiButton
               onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
-              className="flex items-center gap-3 px-6 py-3 bg-sky-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-sky-100 hover:bg-sky-800 transition-all"
-            >
-              <UserPlus size={18} />
-              <span className="hidden md:inline">Novo Cadastro</span>
-            </button>
+              icon={UserPlus}
+              label="Novo Cadastro"
+              tone="primary"
+              size="md"
+              className="uppercase tracking-widest shadow-xl shadow-sky-100"
+            />
           )}
         >
           <div className="space-y-10">
@@ -248,14 +250,15 @@ const Dashboard = () => {
           { id: 'patients', icon: Users, label: 'Base' },
           { id: 'settings', icon: Settings, label: 'Ajustes' }
         ].map((item) => (
-          <button
+          <UiButton
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === item.id ? 'text-sky-700' : 'text-slate-400'}`}
-          >
-            <item.icon size={22} className={activeTab === item.id ? 'fill-sky-700/10' : ''} />
-            <span className="text-[10px] font-bold leading-none tracking-tight">{item.label}</span>
-          </button>
+            icon={item.icon}
+            label={item.label}
+            size="md"
+            labelLayout="below"
+            className={`mobile-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
+          />
         ))}
       </nav>
 
@@ -264,7 +267,7 @@ const Dashboard = () => {
           title="Catálogo de Serviços"
           subtitle="Configuração do Portfólio"
           icon={Layers}
-          actions={<button onClick={() => setModalSettingsProc(false)} className="p-3 bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"><X size={20} /></button>}
+          actions={<UiButton onClick={() => setModalSettingsProc(false)} icon={X} labelLayout="hidden" tone="neutral" />}
         />
         <div className="p-10 space-y-10 pb-32 overflow-y-auto scrollbar-hide">
           <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
@@ -279,12 +282,12 @@ const Dashboard = () => {
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-base font-bold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 transition-all"
                 />
               </div>
-              <button
+              <UiButton
                 onClick={() => { if (newProcName.trim()) { setAllProcedures([...allProcedures, newProcName.trim()]); setNewProcName(''); } }}
-                className="px-8 bg-sky-700 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-sky-100 hover:bg-sky-800 transition-all"
-              >
-                Adicionar
-              </button>
+                label="Adicionar"
+                tone="primary"
+                className="px-8 uppercase tracking-widest shadow-lg shadow-sky-100"
+              />
             </div>
 
             <div className="space-y-3">
@@ -292,12 +295,14 @@ const Dashboard = () => {
               {allProcedures.map((proc, idx) => (
                 <div key={idx} className="flex items-center justify-between p-6 bg-slate-50/50 border border-slate-100 rounded-2xl group animate-in fade-in slide-in-from-left-2 duration-300">
                   <span className="text-lg font-bold text-slate-900">{proc}</span>
-                  <button
+                  <UiButton
                     onClick={() => setAllProcedures(allProcedures.filter((p) => p !== proc))}
-                    className="p-3 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                    icon={Trash2}
+                    tone="danger"
+                    labelLayout="hidden"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100"
+                  />
                 </div>
               ))}
             </div>
@@ -315,18 +320,18 @@ const Dashboard = () => {
             <>
               {isEditing ? (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
-                  <button onClick={() => setIsEditing(false)} className="p-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all"><X size={20} /></button>
-                  <button onClick={() => { setIsEditing(false); setModalPatient(false); }} className="p-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-lg"><Check size={20} /></button>
+                  <UiButton onClick={() => setIsEditing(false)} icon={X} tone="danger" labelLayout="hidden" />
+                  <UiButton onClick={() => { setIsEditing(false); setModalPatient(false); }} icon={Check} tone="success" labelLayout="hidden" className="shadow-lg" />
                 </div>
               ) : (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
-                  <button className="p-3 rounded-xl bg-slate-100 text-slate-400 hover:text-sky-700" title="Compartilhar"><Globe size={18} /></button>
-                  <button className="p-3 rounded-xl bg-slate-100 text-slate-400 hover:text-red-600" title="Excluir"><Trash2 size={18} /></button>
+                  <UiButton icon={Globe} tone="info" labelLayout="hidden" title="Compartilhar" />
+                  <UiButton icon={Trash2} tone="danger" labelLayout="hidden" title="Excluir" />
                   <div className="w-px h-8 bg-slate-200 mx-1"></div>
-                  <button onClick={() => setIsEditing(true)} className="p-3 rounded-xl bg-slate-100 text-slate-400 hover:text-sky-700" title="Editar"><Pencil size={18} /></button>
+                  <UiButton onClick={() => setIsEditing(true)} icon={Pencil} tone="neutral" labelLayout="hidden" title="Editar" />
                 </div>
               )}
-              <button onClick={() => setModalPatient(false)} className="p-3 bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"><X size={20} /></button>
+              <UiButton onClick={() => setModalPatient(false)} icon={X} tone="neutral" labelLayout="hidden" />
             </>
           )}
         />

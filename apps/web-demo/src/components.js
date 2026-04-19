@@ -31,6 +31,50 @@ export const KpiCard = ({ title, value, subtitle, trend, trendValue, icon: Icon,
   </div>
 );
 
+const BUTTON_SIZE_CLASS = {
+  sm: 'ui-btn--sm',
+  md: 'ui-btn--md',
+  lg: 'ui-btn--lg'
+};
+
+const BUTTON_TONE_CLASS = {
+  neutral: 'ui-btn--neutral',
+  primary: 'ui-btn--primary',
+  danger: 'ui-btn--danger',
+  success: 'ui-btn--success',
+  info: 'ui-btn--info'
+};
+
+const BUTTON_LABEL_LAYOUT_CLASS = {
+  side: 'ui-btn--label-side',
+  below: 'ui-btn--label-below',
+  hidden: 'ui-btn--label-hidden'
+};
+
+export const UiButton = ({
+  icon: Icon,
+  label,
+  size = 'md',
+  tone = 'neutral',
+  labelLayout = 'side',
+  className = '',
+  ...props
+}) => {
+  const resolvedSize = BUTTON_SIZE_CLASS[size] || BUTTON_SIZE_CLASS.md;
+  const resolvedTone = BUTTON_TONE_CLASS[tone] || BUTTON_TONE_CLASS.neutral;
+  const resolvedLabelLayout = BUTTON_LABEL_LAYOUT_CLASS[labelLayout] || BUTTON_LABEL_LAYOUT_CLASS.side;
+
+  return (
+    <button
+      className={`ui-btn ${resolvedSize} ${resolvedTone} ${resolvedLabelLayout} ${className}`.trim()}
+      {...props}
+    >
+      {Icon && <Icon size={18} className="ui-btn__icon" />}
+      {label && <span className="ui-btn__label">{label}</span>}
+    </button>
+  );
+};
+
 // --- COMPONENTES DE ESTRUTURA (NÍVEL 1, 2 E 3) ---
 
 export const ViewLayout = ({ title, badge, actions, children }) => (
@@ -48,7 +92,7 @@ export const ViewLayout = ({ title, badge, actions, children }) => (
         <div className="flex items-center gap-4 mb-2">
           {actions ? actions : (
             <>
-              <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-400 hover:text-sky-700 transition-all cursor-pointer"><Bell size={20} /></div>
+              <UiButton icon={Bell} size="md" tone="neutral" labelLayout="hidden" />
               <div className="w-10 h-10 bg-sky-700 rounded-xl text-white flex items-center justify-center font-bold shadow-lg shadow-sky-100 ring-4 ring-white">L</div>
             </>
           )}
