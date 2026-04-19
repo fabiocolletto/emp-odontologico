@@ -6,7 +6,8 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
-const APP_VERSION_FALLBACK = '0.1.11';
+const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
+const APP_VERSION_FALLBACK = '0.1.13';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -544,6 +545,14 @@ const readStoredMobileNavState = () => {
   }
 };
 
+const readStoredPatientsSearchVisibility = () => {
+  try {
+    return localStorage.getItem(PATIENTS_SEARCH_VISIBILITY_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 function App() {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
@@ -556,6 +565,9 @@ function App() {
   const [usingFallbackData, setUsingFallbackData] = useState(true);
   const [notesDraft, setNotesDraft] = useState(() => readStoredNotesDraft());
   const [patientsQuery, setPatientsQuery] = useState('');
+  const [isPatientsSearchVisible, setIsPatientsSearchVisible] = useState(() => readStoredPatientsSearchVisibility());
+  const [isPatientsMultiMode, setIsPatientsMultiMode] = useState(false);
+  const [selectedPatientIds, setSelectedPatientIds] = useState([]);
   const [patientsPage, setPatientsPage] = useState(1);
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
@@ -779,10 +791,11 @@ function App() {
   };
 
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
+  const activePatients = filteredPatients.filter((patient) => !patient.archivedAt);
   const patientsPageSize = isMobileViewport ? MOBILE_PAGE_SIZE_PATIENTS : PAGE_SIZE_PATIENTS;
-  const patientsPagination = paginateRecords(filteredPatients, patientsPage, patientsPageSize);
+  const patientsPagination = paginateRecords(activePatients, patientsPage, patientsPageSize);
   const visiblePatients = isMobileViewport
-    ? filteredPatients.slice(0, patientsPagination.page * patientsPageSize)
+    ? activePatients.slice(0, patientsPagination.page * patientsPageSize)
     : patientsPagination.items;
 
   const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
@@ -854,6 +867,10 @@ function App() {
   }, [patientsQuery]);
 
   useEffect(() => {
+    localStorage.setItem(PATIENTS_SEARCH_VISIBILITY_KEY, isPatientsSearchVisible ? '1' : '0');
+  }, [isPatientsSearchVisible]);
+
+  useEffect(() => {
     setAppointmentsPage(1);
   }, [appointmentsQuery]);
 
@@ -911,7 +928,7 @@ function App() {
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [activeTab, isMobileViewport, patientsPagination.totalPages, filteredPatients.length]);
+  }, [activeTab, isMobileViewport, patientsPagination.totalPages, activePatients.length]);
 
   useEffect(() => {
     if (!isMobileViewport || activeTab !== 'overview') return;
@@ -1050,6 +1067,27 @@ function App() {
           openCreatePatientN2();
         }
       },
+      'patients-search': {
+        key: 'patients-search',
+        icon: 'filter',
+        tone: isPatientsSearchVisible ? 'settings' : 'neutral',
+        label: 'Pesquisar',
+        ariaLabel: 'Mostrar ou ocultar seção de pesquisa de pacientes',
+        onClick: () => setIsPatientsSearchVisible((prev) => !prev)
+      },
+      'patients-multi': {
+        key: 'patients-multi',
+        icon: isPatientsMultiMode ? 'check' : 'users',
+        tone: isPatientsMultiMode ? 'new' : 'neutral',
+        label: 'Modo multi',
+        ariaLabel: 'Ativar ou desativar seleção múltipla de pacientes',
+        onClick: () => {
+          setIsPatientsMultiMode((prev) => {
+            if (prev) setSelectedPatientIds([]);
+            return !prev;
+          });
+        }
+      },
       settings: {
         key: 'settings',
         icon: 'settings',
@@ -1069,7 +1107,7 @@ function App() {
       patients: {
         level: 1,
         previous: 'overview',
-        next: ['new-patient']
+        next: ['new-patient', 'patients-search', 'patients-multi']
       },
       settings: {
         level: 1,
@@ -1229,9 +1267,25 @@ function App() {
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
-            <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
-              + Novo paciente
-            </button>
+            <div className="flex gap-2 flex-wrap justify-end">
+              <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
+                + Novo paciente
+              </button>
+              <button className="btn btn--ghost btn--header" onClick={() => setIsPatientsSearchVisible((prev) => !prev)}>
+                {isPatientsSearchVisible ? 'Ocultar busca' : 'Pesquisar'}
+              </button>
+              <button
+                className="btn btn--ghost btn--header"
+                onClick={() => {
+                  setIsPatientsMultiMode((prev) => {
+                    if (prev) setSelectedPatientIds([]);
+                    return !prev;
+                  });
+                }}
+              >
+                {isPatientsMultiMode ? 'Sair multi' : 'Modo multi'}
+              </button>
+            </div>
           </div>
           <TransientNotice
             visible={showPatientHint && !formFeedback}
@@ -1244,31 +1298,78 @@ function App() {
             tone="info"
             onClose={() => setFormFeedback('')}
           />
-          <div className="patients-search-section">
-            <div className="search-row">
-              <input
-                className="search-input search-input--compact"
-                placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
-                value={patientsQuery}
-                onChange={(e) => setPatientsQuery(e.target.value)}
-              />
-              <span className="search-count">{filteredPatients.length} registro(s)</span>
+          {isPatientsSearchVisible ? (
+            <div className="patients-search-section">
+              <div className="search-row">
+                <input
+                  className="search-input search-input--compact"
+                  placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
+                  value={patientsQuery}
+                  onChange={(e) => setPatientsQuery(e.target.value)}
+                />
+                <span className="search-count">{activePatients.length} registro(s)</span>
+              </div>
             </div>
-          </div>
+          ) : null}
+          {isPatientsMultiMode ? (
+            <div className="bg-white rounded-2xl border p-4 flex flex-wrap gap-2 items-center justify-between">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+                {selectedPatientIds.length} selecionado(s)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  className="btn btn--ghost"
+                  onClick={() => {
+                    const allVisibleIds = visiblePatients.map((item) => item.id);
+                    const shouldClear = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedPatientIds.includes(id));
+                    setSelectedPatientIds(shouldClear ? [] : allVisibleIds);
+                  }}
+                >
+                  Selecionar todos
+                </button>
+                <button
+                  className="btn btn--danger"
+                  disabled={selectedPatientIds.length === 0}
+                  onClick={() => {
+                    const archiveAt = new Date().toISOString();
+                    setPatients((prev) => prev.map((item) => (
+                      selectedPatientIds.includes(item.id)
+                        ? { ...item, archivedAt: archiveAt }
+                        : item
+                    )));
+                    setSelectedPatientIds([]);
+                    setIsPatientsMultiMode(false);
+                  }}
+                >
+                  Arquivar selecionados
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="patients-data-section">
             <div className="data-grid patients-grid">
             {visiblePatients.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
             ) : (
               visiblePatients.map((p) => (
-                <article key={p.id} className="data-card data-card--m patient-card">
+                <article key={p.id} className={`data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
                   <button
-                    onClick={() => openPatientN2(p)}
+                    onClick={() => {
+                      if (isPatientsMultiMode) {
+                        setSelectedPatientIds((prev) => (
+                          prev.includes(p.id)
+                            ? prev.filter((id) => id !== p.id)
+                            : [...prev, p.id]
+                        ));
+                        return;
+                      }
+                      openPatientN2(p);
+                    }}
                     className="btn btn--icon patient-card__open"
-                    aria-label={`Abrir prontuário de ${p.name}`}
-                    title="Abrir prontuário N2"
+                    aria-label={isPatientsMultiMode ? `Selecionar ${p.name}` : `Abrir prontuário de ${p.name}`}
+                    title={isPatientsMultiMode ? 'Selecionar paciente' : 'Abrir prontuário N2'}
                   >
-                    ↗
+                    {isPatientsMultiMode ? (selectedPatientIds.includes(p.id) ? '✓' : '○') : '↗'}
                   </button>
                   <div className="patient-card__header">
                     <div className="patient-avatar">{getInitials(p.name)}</div>
