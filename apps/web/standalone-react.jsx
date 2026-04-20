@@ -2368,6 +2368,22 @@ function DashboardApp({
 
   return (
     <div className="app-shell">
+      {isMobileViewport ? (
+        <div className="mobile-profile-trigger">
+          <button
+            className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+            onClick={() => {
+              setActiveTab('account');
+              setShowMobileNavDrawer(false);
+              setShowPatientN2(false);
+            }}
+            aria-label="Abrir tela de perfil"
+          >
+            <AppIcon name="settings" size={13} className="btn-icon" />
+            <span className="btn-label">Perfil</span>
+          </button>
+        </div>
+      ) : null}
       <div className="app-frame">
         <aside className="app-sidebar">
           <div className="app-brand">Odonto<span>Flow</span></div>

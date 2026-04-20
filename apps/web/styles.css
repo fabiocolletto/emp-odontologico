@@ -343,6 +343,13 @@ select {
   z-index: 180;
 }
 
+.mobile-profile-trigger {
+  position: fixed;
+  top: max(0.85rem, env(safe-area-inset-top));
+  right: max(0.85rem, env(safe-area-inset-right));
+  z-index: 180;
+}
+
 .mobile-nav-trigger__button {
   box-shadow: 0 10px 22px rgba(15, 35, 72, 0.16);
 }
