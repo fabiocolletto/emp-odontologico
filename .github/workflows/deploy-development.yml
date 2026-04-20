@@ -8,6 +8,8 @@ on:
 
 jobs:
   deploy:
+    permissions:
+      contents: write
     uses: ./.github/workflows/deploy-shared.yml
     with:
       target_env: development
