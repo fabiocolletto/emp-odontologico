@@ -57,9 +57,21 @@ Para detalhes da organização e evolução, consulte `docs/estrutura-repositori
 ## Supabase Auth no frontend (Google + e-mail/senha)
 - O app web usa as variáveis **`SUPABASE_URL`** e **`SUPABASE_ANON`** para criar o client Supabase no navegador.
 - Para ambiente local/estático, configure `apps/web/env.js` (veja `apps/web/env.example.js`).
-- Para deploy, injete os mesmos nomes de variáveis no pipeline e gere `env.js` antes de publicar.
+- Para deploy, o workflow `.github/workflows/deploy-gh-pages.yml` injeta os mesmos nomes de variáveis e gera `env.js` antes de publicar.
 - O fluxo de autenticação implementado:
   - criação de conta com e-mail/senha;
   - login com e-mail/senha;
   - login social com Google (`signInWithOAuth`);
   - sessão persistida com renovação automática de token.
+
+## Estratégia de deploy contínuo (produção + beta)
+- **`main`** publica em **produção** na raiz do GitHub Pages (`/`), pensado para domínio final e usuários ativos.
+- **`beta`** (ou `develop`) publica em **beta** no caminho `/beta`, para validação contínua sem afetar produção.
+- No disparo manual (`workflow_dispatch`), você pode escolher o canal de deploy e, para **beta**, informar qual branch será publicada em `/beta` (padrão: `develop`).
+- O workflow usa Environments distintos:
+  - `production` para deploy da `main`;
+  - `beta` para deploy das branches `beta`/`develop`.
+- Configure as variáveis `SUPABASE_URL` e `SUPABASE_ANON` em cada Environment conforme o banco desejado (produção e homologação).
+- Em **Settings → Environments**, garanta que as regras de branch permitam:
+  - `main` no Environment `production`;
+  - `beta` e/ou `develop` no Environment `beta`.

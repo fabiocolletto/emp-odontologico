@@ -1,0 +1,116 @@
+name: Deploy web (prod + beta)
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+      - develop
+  workflow_dispatch:
+    inputs:
+      deploy_channel:
+        description: "Canal de deploy"
+        required: true
+        type: choice
+        default: beta
+        options:
+          - beta
+          - production
+      beta_source_branch:
+        description: "Branch para publicar em /beta (usado quando canal=beta)"
+        required: false
+        default: develop
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  PROD_ENVIRONMENT: production
+  BETA_ENVIRONMENT: beta
+
+jobs:
+  deploy-production:
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_channel == 'production')
+    runs-on: ubuntu-latest
+    environment: ${{ env.PROD_ENVIRONMENT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Generate runtime env.js
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ vars.SUPABASE_ANON }}
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_ANON"
+
+          cat > apps/web/env.js <<EOF
+          window.__APP_ENV__ = {
+            SUPABASE_URL: '${SUPABASE_URL}',
+            SUPABASE_ANON: '${SUPABASE_ANON}'
+          };
+          EOF
+
+      - name: Build static package
+        run: |
+          mkdir -p dist
+          cp -R index.html CHANGELOG.md apps backend dist/
+
+      - name: Deploy production to root (/)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          keep_files: true
+
+  deploy-beta:
+    if: >
+      (github.event_name == 'push' && (github.ref == 'refs/heads/beta' || github.ref == 'refs/heads/develop')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_channel == 'beta')
+    runs-on: ubuntu-latest
+    environment: ${{ env.BETA_ENVIRONMENT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.beta_source_branch || github.ref_name }}
+
+      - name: Generate runtime env.js
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ vars.SUPABASE_ANON }}
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_ANON"
+
+          cat > apps/web/env.js <<EOF
+          window.__APP_ENV__ = {
+            SUPABASE_URL: '${SUPABASE_URL}',
+            SUPABASE_ANON: '${SUPABASE_ANON}'
+          };
+          EOF
+
+      - name: Build static package
+        run: |
+          mkdir -p dist
+          cp -R index.html CHANGELOG.md apps backend dist/
+
+      - name: Deploy beta to /beta
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          destination_dir: beta
+          keep_files: true

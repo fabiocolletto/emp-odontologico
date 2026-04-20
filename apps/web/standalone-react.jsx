@@ -10,6 +10,8 @@ const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1
 const APP_VERSION_FALLBACK = '0.1.25';
 const CHANGELOG_PATH = './CHANGELOG.md';
 const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
+const AUTH_NOTICE_TIMEOUT_MS = 5000;
+const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
 
 const getSupabaseConfig = () => {
   const injected = globalThis.__APP_ENV__ || {};
@@ -1853,6 +1855,7 @@ function AuthGateApp() {
   const [password, setPassword] = useState('');
   const [authMessage, setAuthMessage] = useState('');
   const [authError, setAuthError] = useState('');
+  const [showSupabaseConfigNotice, setShowSupabaseConfigNotice] = useState(true);
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -1875,6 +1878,26 @@ function AuthGateApp() {
       mounted = false;
       listener?.subscription?.unsubscribe();
     };
+  }, [supabaseClient]);
+
+  useEffect(() => {
+    if (!authMessage && !authError) return undefined;
+    const timer = setTimeout(() => {
+      setAuthMessage('');
+      setAuthError('');
+    }, AUTH_NOTICE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [authMessage, authError]);
+
+  useEffect(() => {
+    if (supabaseClient) {
+      setShowSupabaseConfigNotice(false);
+      return undefined;
+    }
+
+    setShowSupabaseConfigNotice(true);
+    const timer = setTimeout(() => setShowSupabaseConfigNotice(false), SUPABASE_CONFIG_NOTICE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
   }, [supabaseClient]);
 
   const submitCredentials = async (event) => {
@@ -1936,12 +1959,18 @@ function AuthGateApp() {
   if (!supabaseClient) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-xl space-y-3">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-xl space-y-4">
           <h1 className="text-xl font-bold text-slate-900">Configuração do Supabase pendente</h1>
           <p className="text-sm text-slate-600">
-            Defina as variáveis <strong>SUPABASE_URL</strong> e <strong>SUPABASE_ANON</strong> em <code>apps/web/env.js</code>.
+            Configure as variáveis <strong>SUPABASE_URL</strong> e <strong>SUPABASE_ANON</strong> no Environment do GitHub Actions usado no deploy.
           </p>
-          <p className="text-xs text-slate-400">Assim o app habilita cadastro e login social com Google via Supabase Auth.</p>
+          <TransientNotice
+            visible={showSupabaseConfigNotice}
+            tone="info"
+            message="No deploy, o pipeline gera automaticamente o apps/web/env.js com essas variáveis antes da publicação."
+            onClose={() => setShowSupabaseConfigNotice(false)}
+          />
+          <p className="text-xs text-slate-400">Assim o app habilita cadastro e login social com Google via Supabase Auth em produção.</p>
         </div>
       </div>
     );
@@ -1985,8 +2014,18 @@ function AuthGateApp() {
             {mode === 'signup' ? 'Já tenho conta, quero entrar' : 'Não tenho conta, quero me cadastrar'}
           </button>
 
-          {authMessage ? <p className="text-xs text-emerald-600 font-semibold">{authMessage}</p> : null}
-          {authError ? <p className="text-xs text-rose-600 font-semibold">{authError}</p> : null}
+          <TransientNotice
+            visible={Boolean(authMessage)}
+            tone="success"
+            message={authMessage}
+            onClose={() => setAuthMessage('')}
+          />
+          <TransientNotice
+            visible={Boolean(authError)}
+            tone="error"
+            message={authError}
+            onClose={() => setAuthError('')}
+          />
         </div>
       </div>
     );
