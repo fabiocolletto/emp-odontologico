@@ -53,3 +53,17 @@ Para detalhes da organização e evolução, consulte `docs/estrutura-repositori
 - Base SQL inicial e massa de dados estão em `backend/supabase/`.
 - Aplicar migration + importar CSVs quando iniciar a troca de `localStorage` para banco.
 - O frontend web já está preparado para ler `backend/supabase/sample-data/*.csv` como fonte principal (com fallback local).
+
+## Deploy com 3 versões fixas (branches)
+
+O deploy foi configurado para publicar automaticamente no GitHub Pages quando houver push em um destes branches fixos:
+
+- `main` → versão de produção
+- `development` → versão de homologação
+- `beta` → versão de testes
+
+A pipeline está em `.github/workflows/deploy-branches.yml` e publica cada branch em uma rota própria dentro do Pages:
+
+- `/main/`
+- `/development/`
+- `/beta/`
