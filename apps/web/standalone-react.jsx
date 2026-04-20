@@ -2059,16 +2059,28 @@ function DashboardApp({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button className="btn btn--primary" onClick={openAccountEditN2} disabled={authActionStatus === 'loading'}>
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                onClick={openAccountEditN2}
+                disabled={authActionStatus === 'loading'}
+              >
                 Editar (N2)
               </button>
               {accountService?.signOut ? (
-                <button className="btn btn--ghost" onClick={accountService.signOut} disabled={authActionStatus === 'loading'}>
+                <button
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral"
+                  onClick={accountService.signOut}
+                  disabled={authActionStatus === 'loading'}
+                >
                   Desconectar
                 </button>
               ) : null}
               {accountService?.deleteAuthUser ? (
-                <button className="btn btn--danger" onClick={handleDeleteAccount} disabled={authActionStatus === 'loading'}>
+                <button
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger"
+                  onClick={handleDeleteAccount}
+                  disabled={authActionStatus === 'loading'}
+                >
                   Excluir conta
                 </button>
               ) : null}
@@ -2092,11 +2104,15 @@ function DashboardApp({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button className="btn btn--primary" onClick={openPublicProfileEditN2} disabled={profileActionStatus === 'loading'}>
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                onClick={openPublicProfileEditN2}
+                disabled={profileActionStatus === 'loading'}
+              >
                 Editar (N2)
               </button>
               <button
-                className="btn btn--ghost"
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral"
                 onClick={() => refreshPublicProfile(authUserWidget?.id)}
                 disabled={profileActionStatus === 'loading'}
               >
