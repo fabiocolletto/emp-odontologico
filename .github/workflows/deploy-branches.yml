@@ -1,0 +1,71 @@
+name: Deploy versões por branch
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - beta
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do branch atualizado
+        uses: actions/checkout@v4
+
+      - name: Preparar artefato estático
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          TARGET_DIR="dist/${BRANCH_NAME}"
+          mkdir -p "${TARGET_DIR}/apps/web" "${TARGET_DIR}/backend/supabase/sample-data"
+
+          cp index.html "${TARGET_DIR}/index.html"
+          cp apps/web/styles.css "${TARGET_DIR}/apps/web/styles.css"
+          cp apps/web/standalone-react.jsx "${TARGET_DIR}/apps/web/standalone-react.jsx"
+          cp -r apps/web/src "${TARGET_DIR}/apps/web/src"
+          cp -r backend/supabase/sample-data/. "${TARGET_DIR}/backend/supabase/sample-data"
+
+          cat > dist/index.html <<HTML
+          <!doctype html>
+          <html lang="pt-BR">
+            <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>OdontoFlow | Versões</title>
+              <style>
+                :root { color-scheme: light dark; }
+                body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; line-height: 1.5; padding: 0 16px; }
+                h1 { margin-bottom: 8px; }
+                ul { padding-left: 18px; }
+                a { font-weight: 600; }
+              </style>
+            </head>
+            <body>
+              <h1>OdontoFlow - Ambientes fixos</h1>
+              <p>Este repositório publica automaticamente 3 versões da aplicação:</p>
+              <ul>
+                <li><a href="./main/">main (produção)</a></li>
+                <li><a href="./development/">development (homologação)</a></li>
+                <li><a href="./beta/">beta (testes)</a></li>
+              </ul>
+              <p>Último deploy executado a partir do branch: <strong>${BRANCH_NAME}</strong>.</p>
+            </body>
+          </html>
+          HTML
+
+      - name: Publicar no GitHub Pages (gh-pages)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          keep_files: true
+          force_orphan: false
