@@ -38,10 +38,43 @@ const createSupabaseBrowserClient = () => {
   });
 };
 
+const createAccountService = (supabaseClient) => {
+  const externalFactory = globalThis?.OdontoAuthAccountService?.create;
+  if (typeof externalFactory === 'function') {
+    return externalFactory({ supabaseClient });
+  }
+
+  return {
+    getAuthUser: async () => {
+      const { data, error } = await supabaseClient.auth.getUser();
+      if (error) throw new Error(error.message || 'Falha ao consultar dados do usuário.');
+      return data?.user || null;
+    },
+    updateAuthUser: async (attributes) => {
+      const { data, error } = await supabaseClient.auth.updateUser(attributes);
+      if (error) throw new Error(error.message || 'Falha ao atualizar conta.');
+      return data?.user || null;
+    },
+    signOut: async () => {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) throw new Error(error.message || 'Falha ao desconectar.');
+      return true;
+    },
+    deleteAuthUser: async (userId) => {
+      const { error } = await supabaseClient.auth.admin.deleteUser(userId);
+      if (error) throw new Error(error.message || 'Falha ao excluir conta.');
+      return true;
+    },
+    loadPublicProfile: async () => null,
+    savePublicProfile: async ({ userId, profile }) => ({ id: userId, ...profile })
+  };
+};
+
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
   { id: 'patients', label: 'Pacientes', icon: 'users' },
-  { id: 'settings', label: 'Configurações', icon: 'settings' }
+  { id: 'settings', label: 'Configurações', icon: 'settings' },
+  { id: 'account', label: 'Conta', icon: 'settings' }
 ];
 
 const MOBILE_NAV_SHORTCUTS = [
@@ -49,7 +82,8 @@ const MOBILE_NAV_SHORTCUTS = [
   { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
   { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
-  { id: 'settings', label: 'Configurações', tab: 'settings', icon: 'settings', group: 'Gestão' }
+  { id: 'settings', label: 'Configurações', tab: 'settings', icon: 'settings', group: 'Gestão' },
+  { id: 'account', label: 'Conta', tab: 'account', icon: 'settings', group: 'Gestão' }
 ];
 
 const AppIcon = ({ name, size = 14, className = '' }) => {
@@ -717,7 +751,11 @@ const readStoredPatientsSearchVisibility = () => {
   }
 };
 
-function DashboardApp({ authEmail = '', onSignOut }) {
+function DashboardApp({
+  authEmail = '',
+  authUser = null,
+  accountService
+}) {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
   const [activeTab, setActiveTab] = useState(initialUiState.activeTab || 'overview');
@@ -744,6 +782,19 @@ function DashboardApp({ authEmail = '', onSignOut }) {
   const [patientViewForm, setPatientViewForm] = useState(() => createEmptyPatientForm());
   const [isPatientViewEditing, setIsPatientViewEditing] = useState(false);
   const [formFeedback, setFormFeedback] = useState('');
+  const [authUserWidget, setAuthUserWidget] = useState(authUser);
+  const [authActionStatus, setAuthActionStatus] = useState('idle');
+  const [authActionMessage, setAuthActionMessage] = useState('');
+  const [accountEmailDraft, setAccountEmailDraft] = useState(authUser?.email || '');
+  const [accountPasswordDraft, setAccountPasswordDraft] = useState('');
+  const [publicProfileDraft, setPublicProfileDraft] = useState({
+    full_name: '',
+    phone: '',
+    address: '',
+    birth_date: ''
+  });
+  const [profileActionStatus, setProfileActionStatus] = useState('idle');
+  const [profileActionMessage, setProfileActionMessage] = useState('');
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
   );
@@ -765,6 +816,13 @@ function DashboardApp({ authEmail = '', onSignOut }) {
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
   const quickLinksSnapTimeoutRef = useRef(null);
+
+  const formatDateTime = (value) => {
+    if (!value) return '-';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '-';
+    return parsed.toLocaleString('pt-BR');
+  };
 
   const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
     if (!acc[shortcut.group]) acc[shortcut.group] = [];
@@ -963,6 +1021,101 @@ function DashboardApp({ authEmail = '', onSignOut }) {
     return new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
   };
 
+  const refreshAuthWidget = async () => {
+    if (!accountService?.getAuthUser) return;
+    const user = await accountService.getAuthUser();
+    setAuthUserWidget(user || null);
+    if (user?.email) {
+      setAccountEmailDraft(user.email);
+    }
+  };
+
+  const handleAccountUpdate = async () => {
+    if (!accountService?.updateAuthUser) return;
+
+    const payload = {};
+    if (accountEmailDraft.trim() && accountEmailDraft.trim() !== (authUserWidget?.email || '')) {
+      payload.email = accountEmailDraft.trim();
+    }
+    if (accountPasswordDraft.trim()) {
+      payload.password = accountPasswordDraft.trim();
+    }
+
+    if (!payload.email && !payload.password) {
+      setAuthActionStatus('error');
+      setAuthActionMessage('Informe um novo e-mail ou senha para atualizar.');
+      return;
+    }
+
+    setAuthActionStatus('loading');
+    setAuthActionMessage('Atualizando credenciais da conta...');
+    try {
+      await accountService.updateAuthUser(payload);
+      await refreshAuthWidget();
+      setAccountPasswordDraft('');
+      setAuthActionStatus('success');
+      setAuthActionMessage('Conta atualizada com sucesso via Supabase Auth.');
+    } catch (error) {
+      setAuthActionStatus('error');
+      setAuthActionMessage(error?.message || 'Não foi possível atualizar a conta.');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!accountService?.deleteAuthUser || !authUserWidget?.id) return;
+    const confirmed = window.confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.');
+    if (!confirmed) return;
+
+    setAuthActionStatus('loading');
+    setAuthActionMessage('Solicitando exclusão da conta no Supabase Auth...');
+    try {
+      await accountService.deleteAuthUser(authUserWidget.id);
+      if (accountService?.signOut) {
+        await accountService.signOut();
+      }
+      setAuthActionStatus('success');
+      setAuthActionMessage('Conta excluída com sucesso.');
+    } catch (error) {
+      setAuthActionStatus('error');
+      setAuthActionMessage(error?.message || 'Não foi possível excluir a conta.');
+    }
+  };
+
+  const refreshPublicProfile = async (userId) => {
+    if (!accountService?.loadPublicProfile || !userId) return;
+    const profile = await accountService.loadPublicProfile(userId);
+    setPublicProfileDraft({
+      full_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+      address: profile?.address || '',
+      birth_date: profile?.birth_date || ''
+    });
+  };
+
+  const handleSavePublicProfile = async () => {
+    if (!accountService?.savePublicProfile || !authUserWidget?.id) return;
+
+    setProfileActionStatus('loading');
+    setProfileActionMessage('Salvando perfil público...');
+    try {
+      const saved = await accountService.savePublicProfile({
+        userId: authUserWidget.id,
+        profile: publicProfileDraft
+      });
+      setPublicProfileDraft({
+        full_name: saved?.full_name || '',
+        phone: saved?.phone || '',
+        address: saved?.address || '',
+        birth_date: saved?.birth_date || ''
+      });
+      setProfileActionStatus('success');
+      setProfileActionMessage('Perfil público salvo com sucesso.');
+    } catch (error) {
+      setProfileActionStatus('error');
+      setProfileActionMessage(error?.message || 'Não foi possível salvar o perfil público.');
+    }
+  };
+
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
   const activePatients = filteredPatients.filter((patient) => !patient.archivedAt);
   const sortedPatients = [...activePatients].sort((a, b) => {
@@ -1111,6 +1264,37 @@ function DashboardApp({ authEmail = '', onSignOut }) {
     const timer = setTimeout(() => setFormFeedback(''), 4000);
     return () => clearTimeout(timer);
   }, [formFeedback]);
+
+  useEffect(() => {
+    setAuthUserWidget(authUser || null);
+    setAccountEmailDraft(authUser?.email || '');
+  }, [authUser]);
+
+  useEffect(() => {
+    let active = true;
+
+    const hydrateAuthUser = async () => {
+      if (!accountService?.getAuthUser) return;
+      try {
+        const user = await accountService.getAuthUser();
+        if (!active) return;
+        setAuthUserWidget(user || null);
+        if (user?.email) {
+          setAccountEmailDraft(user.email);
+        }
+        await refreshPublicProfile(user?.id);
+      } catch (error) {
+        if (!active) return;
+        setAuthActionStatus('error');
+        setAuthActionMessage(error?.message || 'Não foi possível carregar dados da conta.');
+      }
+    };
+
+    hydrateAuthUser();
+    return () => {
+      active = false;
+    };
+  }, [accountService]);
 
   useEffect(() => {
     const tabShortcutId = MOBILE_NAV_SHORTCUTS.find((item) => item.id === activeTab)?.id || activeTab;
@@ -1685,6 +1869,165 @@ function DashboardApp({ authEmail = '', onSignOut }) {
       );
     }
 
+    if (activeTab === 'account') {
+      const provider = authUserWidget?.app_metadata?.provider || authUserWidget?.aud || '-';
+      const providers = authUserWidget?.app_metadata?.providers?.join(', ') || provider;
+
+      return (
+        <div className="space-y-6">
+          {renderN1Header({ icon: 'settings', title: 'Conta', subtitle: 'Auth Supabase e preferências pessoais' })}
+          {!isMobileViewport && <h2 className="page-title">Conta</h2>}
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <div className="flex flex-wrap gap-3 items-center justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
+                <p className="text-sm text-slate-500">Dados carregados via <code>supabase.auth.getUser()</code>.</p>
+              </div>
+              <button
+                className="btn btn--ghost"
+                onClick={async () => {
+                  setAuthActionStatus('loading');
+                  setAuthActionMessage('Atualizando dados da conta...');
+                  try {
+                    await refreshAuthWidget();
+                    setAuthActionStatus('success');
+                    setAuthActionMessage('Dados da conta atualizados.');
+                  } catch (error) {
+                    setAuthActionStatus('error');
+                    setAuthActionMessage(error?.message || 'Não foi possível atualizar os dados da conta.');
+                  }
+                }}
+              >
+                Atualizar widget
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
+              <div><strong>ID:</strong> <span className="break-all">{authUserWidget?.id || '-'}</span></div>
+              <div><strong>E-mail:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
+              <div><strong>Provedor:</strong> {providers}</div>
+              <div><strong>Email confirmado:</strong> {formatDateTime(authUserWidget?.email_confirmed_at)}</div>
+              <div><strong>Criado em:</strong> {formatDateTime(authUserWidget?.created_at)}</div>
+              <div><strong>Último login:</strong> {formatDateTime(authUserWidget?.last_sign_in_at)}</div>
+            </div>
+          </div>
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
+            <div className="grid md:grid-cols-2 gap-3">
+              <label className="text-sm text-slate-600">
+                Novo e-mail
+                <input
+                  type="email"
+                  className="search-input mt-1"
+                  value={accountEmailDraft}
+                  onChange={(event) => setAccountEmailDraft(event.target.value)}
+                  placeholder="novoemail@clinica.com"
+                />
+              </label>
+              <label className="text-sm text-slate-600">
+                Nova senha
+                <input
+                  type="password"
+                  className="search-input mt-1"
+                  value={accountPasswordDraft}
+                  onChange={(event) => setAccountPasswordDraft(event.target.value)}
+                  placeholder="********"
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button className="btn btn--primary" onClick={handleAccountUpdate} disabled={authActionStatus === 'loading'}>
+                Salvar alterações
+              </button>
+              {accountService?.signOut ? (
+                <button className="btn btn--ghost" onClick={accountService.signOut} disabled={authActionStatus === 'loading'}>
+                  Desconectar
+                </button>
+              ) : null}
+              {accountService?.deleteAuthUser ? (
+                <button className="btn btn--danger" onClick={handleDeleteAccount} disabled={authActionStatus === 'loading'}>
+                  Excluir conta
+                </button>
+              ) : null}
+            </div>
+
+            {authActionMessage ? (
+              <p className={`text-xs ${authActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+                {authActionMessage}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.users</code>)</p>
+            <div className="grid md:grid-cols-2 gap-3">
+              <label className="text-sm text-slate-600">
+                Nome
+                <input
+                  type="text"
+                  className="search-input mt-1"
+                  value={publicProfileDraft.full_name}
+                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, full_name: event.target.value }))}
+                  placeholder="Nome completo"
+                />
+              </label>
+              <label className="text-sm text-slate-600">
+                Telefone
+                <input
+                  type="text"
+                  className="search-input mt-1"
+                  value={publicProfileDraft.phone}
+                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, phone: event.target.value }))}
+                  placeholder="(00) 00000-0000"
+                />
+              </label>
+              <label className="text-sm text-slate-600 md:col-span-2">
+                Endereço
+                <input
+                  type="text"
+                  className="search-input mt-1"
+                  value={publicProfileDraft.address}
+                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, address: event.target.value }))}
+                  placeholder="Rua, número, bairro, cidade/UF"
+                />
+              </label>
+              <label className="text-sm text-slate-600">
+                Data de nascimento
+                <input
+                  type="date"
+                  className="search-input mt-1"
+                  value={publicProfileDraft.birth_date || ''}
+                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, birth_date: event.target.value }))}
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button className="btn btn--primary" onClick={handleSavePublicProfile} disabled={profileActionStatus === 'loading'}>
+                Salvar perfil público
+              </button>
+              <button
+                className="btn btn--ghost"
+                onClick={() => refreshPublicProfile(authUserWidget?.id)}
+                disabled={profileActionStatus === 'loading'}
+              >
+                Recarregar perfil
+              </button>
+            </div>
+
+            {profileActionMessage ? (
+              <p className={`text-xs ${profileActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+                {profileActionMessage}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Configurações', subtitle: 'Parâmetros e catálogo de procedimentos' })}
@@ -1712,11 +2055,6 @@ function DashboardApp({ authEmail = '', onSignOut }) {
               <p className="font-semibold text-slate-200">Conectado</p>
               <p className="truncate">{authEmail}</p>
             </div>
-          ) : null}
-          {onSignOut ? (
-            <button className="btn btn--ghost mb-3" onClick={onSignOut}>
-              Sair
-            </button>
           ) : null}
           <nav className="app-nav">
             {tabs.map((tab) => (
@@ -1848,6 +2186,7 @@ function DashboardApp({ authEmail = '', onSignOut }) {
 
 function AuthGateApp() {
   const [supabaseClient] = useState(() => createSupabaseBrowserClient());
+  const [accountService] = useState(() => (supabaseClient ? createAccountService(supabaseClient) : null));
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState('signin');
@@ -1947,11 +2286,6 @@ function AuthGateApp() {
     }
   };
 
-  const signOut = async () => {
-    if (!supabaseClient) return;
-    await supabaseClient.auth.signOut();
-  };
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Carregando autenticação...</div>;
   }
@@ -2031,7 +2365,13 @@ function AuthGateApp() {
     );
   }
 
-  return <DashboardApp authEmail={session.user.email || ''} onSignOut={signOut} />;
+  return (
+    <DashboardApp
+      authEmail={session.user.email || ''}
+      authUser={session.user}
+      accountService={accountService}
+    />
+  );
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<AuthGateApp />);
