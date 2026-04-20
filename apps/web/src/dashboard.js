@@ -29,9 +29,11 @@ import {
   fetchCompanyByCnpj,
   formatCnpj,
   isValidCnpj,
-  loadClinicDataset,
+  loadClinicContext,
   loadClinicRegistration,
   saveClinicRegistration,
+  savePatientRecord,
+  saveProcedureRecord,
   setActiveClinicRpc
 } from './data-gateway.js';
 import { AdaptiveHeader, AdaptiveModal, FormField, UiButton, ViewLayout } from './components.js';
@@ -42,7 +44,7 @@ const Dashboard = () => {
   const PATIENTS_SEARCH_VISIBLE_KEY = 'odontoflow:patients-search-visible';
   const ACTIVE_CLINIC_KEY = 'odontoflow:active-clinic-id';
   const [activeTab, setActiveTab] = useState('overview');
-  const [availableClinics] = useState(AVAILABLE_CLINICS_FALLBACK);
+  const [availableClinics, setAvailableClinics] = useState(AVAILABLE_CLINICS_FALLBACK);
   const [currentClinic, setCurrentClinic] = useState(null);
   const [allPatients, setAllPatients] = useState(INITIAL_PATIENTS);
   const [allProcedures, setAllProcedures] = useState(INITIAL_PROCEDURES);
@@ -206,24 +208,23 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    const persistedClinicId = window.localStorage.getItem(ACTIVE_CLINIC_KEY);
-    const fallbackClinic = AVAILABLE_CLINICS_FALLBACK[0] || null;
-    const resolvedClinic = availableClinics.find((clinic) => clinic.id === persistedClinicId) || fallbackClinic;
-
-    if (!persistedClinicId && resolvedClinic?.id) {
-      window.localStorage.setItem(ACTIVE_CLINIC_KEY, resolvedClinic.id);
-    }
-    setCurrentClinic(resolvedClinic);
-  }, [availableClinics]);
-
-  const reloadTenantScopedData = async () => {
+  const reloadTenantScopedData = async (clinicId) => {
     try {
-      const dataset = await loadClinicDataset();
+      const dataset = await loadClinicContext(clinicId);
       setAllPatients(dataset.patients);
       setAllProcedures(dataset.procedures);
       setAppointments(dataset.appointments);
-      setUsingFallbackData(false);
+      if (dataset.clinics?.length) {
+        setAvailableClinics(dataset.clinics);
+      }
+      if (dataset.activeClinicId) {
+        const resolvedClinic = (dataset.clinics || []).find((clinic) => clinic.id === dataset.activeClinicId)
+          || availableClinics.find((clinic) => clinic.id === dataset.activeClinicId)
+          || null;
+        setCurrentClinic(resolvedClinic);
+        window.localStorage.setItem(ACTIVE_CLINIC_KEY, dataset.activeClinicId);
+      }
+      setUsingFallbackData(dataset.source === 'offline');
     } catch (error) {
       setUsingFallbackData(true);
     } finally {
@@ -233,7 +234,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (datasetHydrated) return;
-    reloadTenantScopedData();
+    const persistedClinicId = window.localStorage.getItem(ACTIVE_CLINIC_KEY);
+    reloadTenantScopedData(persistedClinicId);
   }, [datasetHydrated]);
 
   useEffect(() => {
@@ -313,7 +315,7 @@ const Dashboard = () => {
       await setActiveClinicRpc(clinicId);
       window.localStorage.setItem(ACTIVE_CLINIC_KEY, clinicId);
       setCurrentClinic(nextClinic);
-      await reloadTenantScopedData();
+      await reloadTenantScopedData(clinicId);
       setClinicSwitchStatus('success');
     } catch (error) {
       setClinicSwitchStatus('error');
@@ -394,6 +396,39 @@ const Dashboard = () => {
       setCnpjLookupStatus('error');
       setCnpjLookupMessage(error?.message || 'Não foi possível consultar o CNPJ.');
     }
+  };
+
+  const handleSavePatient = async () => {
+    if (!currentClinic?.id || !patientForm.name.trim()) return;
+
+    const saved = await savePatientRecord({
+      clinicId: currentClinic.id,
+      patient: {
+        id: selectedPatient?.id,
+        clinic_id: currentClinic.id,
+        name: patientForm.name.trim(),
+        phone: patientForm.phone.trim(),
+        address: {
+          cep: patientForm.cep,
+          street: patientForm.street,
+          number: patientForm.number,
+          complement: patientForm.complement,
+          neighborhood: patientForm.neighborhood,
+          city: patientForm.city,
+          state: patientForm.state
+        }
+      }
+    });
+
+    setAllPatients((current) => (
+      current.some((item) => item.id === saved.id)
+        ? current.map((item) => (item.id === saved.id ? { ...item, ...saved } : item))
+        : [...current, saved]
+    ));
+
+    setSelectedPatient(saved);
+    setIsEditing(false);
+    setModalPatient(false);
   };
 
   const handleSaveClinicRegistration = async () => {
@@ -846,7 +881,15 @@ const Dashboard = () => {
                 />
               </div>
               <UiButton
-                onClick={() => { if (newProcName.trim()) { setAllProcedures([...allProcedures, newProcName.trim()]); setNewProcName(''); } }}
+                onClick={async () => {
+                  if (!newProcName.trim() || !currentClinic?.id) return;
+                  const saved = await saveProcedureRecord({
+                    clinicId: currentClinic.id,
+                    procedure: { name: newProcName.trim(), clinic_id: currentClinic.id }
+                  });
+                  setAllProcedures((current) => [...current, saved.name]);
+                  setNewProcName('');
+                }}
                 label="Adicionar"
                 tone="primary"
                 className="px-8 uppercase tracking-widest shadow-lg shadow-sky-100"
@@ -884,7 +927,7 @@ const Dashboard = () => {
               {isEditing ? (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
                   <UiButton onClick={() => { setIsEditing(false); fillPatientForm(selectedPatient); }} icon={X} tone="danger" labelLayout="hidden" />
-                  <UiButton onClick={() => { setIsEditing(false); setModalPatient(false); }} icon={Check} tone="success" labelLayout="hidden" className="shadow-lg" />
+                  <UiButton onClick={handleSavePatient} icon={Check} tone="success" labelLayout="hidden" className="shadow-lg" />
                 </div>
               ) : (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">

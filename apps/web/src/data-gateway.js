@@ -1,5 +1,9 @@
+import { OFFLINE_CLINIC_DATA } from './constants.js';
+
 const CSV_PATH = './backend/supabase/sample-data';
 const CLINIC_PROFILE_STORAGE_KEY = 'odontoflow:clinic-registration';
+const OFFLINE_DATASET_STORAGE_KEY = 'odontoflow:offline-dataset-v1';
+const ACTIVE_CLINIC_KEY = 'odontoflow:active-clinic-id';
 
 const parseCsv = (csvText) => {
   const [headerLine, ...rows] = csvText.trim().split('\n');
@@ -73,23 +77,43 @@ export const isValidCnpj = (value) => {
   return firstDigit === numbers[12] && secondDigit === numbers[13];
 };
 
-export const loadClinicDataset = async () => {
-  const [patientsCsv, proceduresCsv, appointmentsCsv] = await Promise.all([
+export const loadClinicDataset = async (clinicId) => {
+  const [patientsCsv, proceduresCsv, appointmentsCsv, clinicsCsv, staffProfilesCsv] = await Promise.all([
     fetchCsv('patients.csv'),
     fetchCsv('procedures.csv'),
-    fetchCsv('appointments.csv')
+    fetchCsv('appointments.csv'),
+    fetchCsv('clinics.csv'),
+    fetchCsv('staff_profiles.csv')
   ]);
 
   const patientsRaw = parseCsv(patientsCsv);
   const proceduresRaw = parseCsv(proceduresCsv);
   const appointmentsRaw = parseCsv(appointmentsCsv);
+  const clinicsRaw = parseCsv(clinicsCsv);
+  const staffProfilesRaw = parseCsv(staffProfilesCsv);
+
+  const persistedClinicId = clinicId || window.localStorage.getItem(ACTIVE_CLINIC_KEY);
+  const clinicIdsFromStaff = [...new Set(staffProfilesRaw.filter((item) => item.active !== 'false').map((item) => item.clinic_id))];
+  const clinicIds = clinicIdsFromStaff.length > 0 ? clinicIdsFromStaff : clinicsRaw.map((item) => item.id);
+  const availableClinics = clinicsRaw
+    .filter((item) => clinicIds.includes(item.id))
+    .map((clinic) => ({ id: clinic.id, name: clinic.name }));
+  const activeClinicId = persistedClinicId && clinicIds.includes(persistedClinicId)
+    ? persistedClinicId
+    : (clinicIds[0] || clinicsRaw[0]?.id || null);
+
+  const scopedPatientsRaw = patientsRaw.filter((item) => item.clinic_id === activeClinicId);
+  const scopedProceduresRaw = proceduresRaw.filter((item) => item.clinic_id === activeClinicId);
+  const scopedAppointmentsRaw = appointmentsRaw.filter((item) => item.clinic_id === activeClinicId);
+  const scopedStaffProfiles = staffProfilesRaw.filter((item) => item.clinic_id === activeClinicId);
 
   const proceduresById = new Map(
-    proceduresRaw.map((item) => [item.id, item])
+    scopedProceduresRaw.map((item) => [item.id, item])
   );
 
-  const patients = patientsRaw.map((item) => ({
+  const patients = scopedPatientsRaw.map((item) => ({
     id: item.id,
+    clinic_id: item.clinic_id,
     name: item.full_name,
     phone: item.phone || '-',
     email: item.email || '-',
@@ -99,12 +123,15 @@ export const loadClinicDataset = async () => {
     notes: item.notes || ''
   }));
 
-  const appointments = appointmentsRaw.map((item) => {
+  const appointments = scopedAppointmentsRaw.map((item) => {
     const patient = patients.find((p) => p.id === item.patient_id);
     const procedure = proceduresById.get(item.procedure_id);
 
     return {
       id: item.id,
+      clinic_id: item.clinic_id,
+      patient_id: item.patient_id,
+      procedure_id: item.procedure_id,
       name: patient?.name || 'Paciente não encontrado',
       time: toTime(item.starts_at),
       procedure: procedure?.name || 'Procedimento não encontrado',
@@ -113,7 +140,7 @@ export const loadClinicDataset = async () => {
   });
 
   const patientLastVisitMap = new Map();
-  appointmentsRaw.forEach((item) => {
+  scopedAppointmentsRaw.forEach((item) => {
     if (item.status !== 'done') return;
     const prev = patientLastVisitMap.get(item.patient_id);
     if (!prev || new Date(item.starts_at) > new Date(prev)) {
@@ -128,9 +155,138 @@ export const loadClinicDataset = async () => {
 
   return {
     patients: enrichedPatients,
-    procedures: proceduresRaw.map((item) => item.name),
-    appointments
+    procedures: scopedProceduresRaw.map((item) => item.name),
+    proceduresRaw: scopedProceduresRaw,
+    appointments,
+    clinics: availableClinics,
+    staffProfiles: scopedStaffProfiles,
+    activeClinicId,
+    source: 'csv'
   };
+};
+
+const parseOfflineStorage = () => {
+  try {
+    const value = window.localStorage.getItem(OFFLINE_DATASET_STORAGE_KEY);
+    return value ? JSON.parse(value) : {};
+  } catch (error) {
+    return {};
+  }
+};
+
+const saveOfflineStorage = (payload) => {
+  window.localStorage.setItem(OFFLINE_DATASET_STORAGE_KEY, JSON.stringify(payload));
+};
+
+const buildOfflineDataset = (clinicId) => {
+  const localOverrides = parseOfflineStorage();
+  const availableClinics = Object.values(OFFLINE_CLINIC_DATA).map((item) => item.clinic);
+  const fallbackClinicId = clinicId || window.localStorage.getItem(ACTIVE_CLINIC_KEY) || availableClinics[0]?.id || null;
+  const source = OFFLINE_CLINIC_DATA[fallbackClinicId] || OFFLINE_CLINIC_DATA[availableClinics[0]?.id] || null;
+  if (!source) {
+    return { patients: [], procedures: [], proceduresRaw: [], appointments: [], clinics: [], staffProfiles: [], activeClinicId: null, source: 'offline' };
+  }
+
+  const merged = {
+    patients: localOverrides?.[fallbackClinicId]?.patients || source.patients,
+    proceduresRaw: localOverrides?.[fallbackClinicId]?.proceduresRaw || source.procedures,
+    appointments: localOverrides?.[fallbackClinicId]?.appointments || source.appointments
+  };
+
+  return {
+    patients: merged.patients,
+    procedures: merged.proceduresRaw.map((item) => item.name || item),
+    proceduresRaw: merged.proceduresRaw,
+    appointments: merged.appointments,
+    clinics: availableClinics,
+    staffProfiles: source.staffProfiles,
+    activeClinicId: fallbackClinicId,
+    source: 'offline'
+  };
+};
+
+const saveOfflineEntity = (clinicId, key, value) => {
+  const current = parseOfflineStorage();
+  const clinicScope = current[clinicId] || {};
+  saveOfflineStorage({
+    ...current,
+    [clinicId]: {
+      ...clinicScope,
+      [key]: value
+    }
+  });
+};
+
+export const loadClinicContext = async (clinicId) => {
+  try {
+    return await loadClinicDataset(clinicId);
+  } catch (error) {
+    return buildOfflineDataset(clinicId);
+  }
+};
+
+export const savePatientRecord = async ({ clinicId, patient }) => {
+  const normalizedClinicId = clinicId || patient?.clinic_id || window.localStorage.getItem(ACTIVE_CLINIC_KEY);
+  if (!normalizedClinicId) throw new Error('Clínica ativa não encontrada para salvar paciente.');
+
+  const payload = {
+    id: patient?.id || `local-patient-${Date.now()}`,
+    clinic_id: normalizedClinicId,
+    name: patient?.name || '',
+    phone: patient?.phone || '',
+    email: patient?.email || '-',
+    birth: patient?.birth || '-',
+    gender: patient?.gender || 'Não informar',
+    lastVisit: patient?.lastVisit || '-',
+    notes: patient?.notes || '',
+    address: patient?.address || {}
+  };
+
+  const dataset = buildOfflineDataset(normalizedClinicId);
+  const nextPatients = dataset.patients.some((item) => item.id === payload.id)
+    ? dataset.patients.map((item) => (item.id === payload.id ? { ...item, ...payload, clinic_id: normalizedClinicId } : item))
+    : [...dataset.patients, payload];
+
+  saveOfflineEntity(normalizedClinicId, 'patients', nextPatients);
+  return payload;
+};
+
+export const saveProcedureRecord = async ({ clinicId, procedure }) => {
+  const normalizedClinicId = clinicId || procedure?.clinic_id || window.localStorage.getItem(ACTIVE_CLINIC_KEY);
+  if (!normalizedClinicId) throw new Error('Clínica ativa não encontrada para salvar procedimento.');
+
+  const payload = {
+    id: procedure?.id || `local-proc-${Date.now()}`,
+    clinic_id: normalizedClinicId,
+    name: procedure?.name || ''
+  };
+
+  const dataset = buildOfflineDataset(normalizedClinicId);
+  const nextProcedures = dataset.proceduresRaw.some((item) => item.id === payload.id)
+    ? dataset.proceduresRaw.map((item) => (item.id === payload.id ? { ...item, ...payload, clinic_id: normalizedClinicId } : item))
+    : [...dataset.proceduresRaw, payload];
+
+  saveOfflineEntity(normalizedClinicId, 'proceduresRaw', nextProcedures);
+  return payload;
+};
+
+export const saveAppointmentRecord = async ({ clinicId, appointment }) => {
+  const normalizedClinicId = clinicId || appointment?.clinic_id || window.localStorage.getItem(ACTIVE_CLINIC_KEY);
+  if (!normalizedClinicId) throw new Error('Clínica ativa não encontrada para salvar consulta.');
+
+  const payload = {
+    ...appointment,
+    id: appointment?.id || `local-appt-${Date.now()}`,
+    clinic_id: normalizedClinicId
+  };
+
+  const dataset = buildOfflineDataset(normalizedClinicId);
+  const nextAppointments = dataset.appointments.some((item) => item.id === payload.id)
+    ? dataset.appointments.map((item) => (item.id === payload.id ? { ...item, ...payload, clinic_id: normalizedClinicId } : item))
+    : [...dataset.appointments, payload];
+
+  saveOfflineEntity(normalizedClinicId, 'appointments', nextAppointments);
+  return payload;
 };
 
 export const fetchAddressByCep = async (cep) => {

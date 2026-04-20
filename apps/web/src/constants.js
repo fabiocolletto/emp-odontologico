@@ -63,31 +63,57 @@ export const VERSION_LOG = [
   }
 ];
 
-export const INITIAL_PATIENTS = [
-  { id: 'local-1', name: 'Ana Paula Souza', phone: '(11) 98877-6655', lastVisit: '12/04/2024', gender: 'Feminino', birth: '15/05/1992', email: 'ana@email.com' },
-  { id: 'local-2', name: 'Ricardo Albuquerque', phone: '(11) 97766-5544', lastVisit: '08/04/2024', gender: 'Masculino', birth: '22/10/1985', email: 'ricardo@email.com' },
-  { id: 'local-3', name: 'Juliana Ferreira', phone: '(11) 96655-4433', lastVisit: '15/04/2024', gender: 'Feminino', birth: '03/01/1998', email: 'juliana@email.com' }
-];
+export const OFFLINE_CLINIC_DATA = {
+  'clinic-matriz-sp': {
+    clinic: { id: 'clinic-matriz-sp', name: 'Clínica Matriz SP', phone: '(11) 4002-1111', email: 'matriz@odontoflow.local' },
+    staffProfiles: [
+      { id: 'staff-local-1', clinic_id: 'clinic-matriz-sp', full_name: 'Dra. Ana Prado', role: 'admin', active: true }
+    ],
+    patients: [
+      { id: 'local-1', clinic_id: 'clinic-matriz-sp', name: 'Ana Paula Souza', phone: '(11) 98877-6655', lastVisit: '12/04/2024', gender: 'Feminino', birth: '15/05/1992', email: 'ana@email.com' },
+      { id: 'local-2', clinic_id: 'clinic-matriz-sp', name: 'Ricardo Albuquerque', phone: '(11) 97766-5544', lastVisit: '08/04/2024', gender: 'Masculino', birth: '22/10/1985', email: 'ricardo@email.com' },
+      { id: 'local-3', clinic_id: 'clinic-matriz-sp', name: 'Juliana Ferreira', phone: '(11) 96655-4433', lastVisit: '15/04/2024', gender: 'Feminino', birth: '03/01/1998', email: 'juliana@email.com' }
+    ],
+    procedures: [
+      { id: 'proc-local-1', clinic_id: 'clinic-matriz-sp', name: 'Limpeza Profilática' },
+      { id: 'proc-local-2', clinic_id: 'clinic-matriz-sp', name: 'Restauração em Resina' },
+      { id: 'proc-local-3', clinic_id: 'clinic-matriz-sp', name: 'Tratamento de Canal' }
+    ],
+    appointments: [
+      { id: 'local-a1', clinic_id: 'clinic-matriz-sp', patient_id: 'local-1', procedure_id: 'proc-local-1', name: 'Ana Paula Souza', time: '09:00', procedure: 'Limpeza Profilática', date: '2024-04-18T09:00:00Z' },
+      { id: 'local-a2', clinic_id: 'clinic-matriz-sp', patient_id: 'local-2', procedure_id: 'proc-local-2', name: 'Ricardo Albuquerque', time: '10:30', procedure: 'Restauração em Resina', date: '2024-04-18T10:30:00Z' }
+    ]
+  },
+  'clinic-zona-sul': {
+    clinic: { id: 'clinic-zona-sul', name: 'Unidade Zona Sul', phone: '(11) 4002-2222', email: 'zonasul@odontoflow.local' },
+    staffProfiles: [
+      { id: 'staff-local-2', clinic_id: 'clinic-zona-sul', full_name: 'Dr. Bruno Mota', role: 'dentist', active: true }
+    ],
+    patients: [
+      { id: 'local-zs-1', clinic_id: 'clinic-zona-sul', name: 'Patrícia Nunes', phone: '(11) 95544-3322', lastVisit: '10/04/2024', gender: 'Feminino', birth: '10/12/1990', email: 'patricia@email.com' }
+    ],
+    procedures: [
+      { id: 'proc-zs-1', clinic_id: 'clinic-zona-sul', name: 'Avaliação Ortodôntica' },
+      { id: 'proc-zs-2', clinic_id: 'clinic-zona-sul', name: 'Extração Siso' }
+    ],
+    appointments: [
+      { id: 'local-zs-a1', clinic_id: 'clinic-zona-sul', patient_id: 'local-zs-1', procedure_id: 'proc-zs-1', name: 'Patrícia Nunes', time: '14:15', procedure: 'Avaliação Ortodôntica', date: '2024-04-18T14:15:00Z' }
+    ]
+  },
+  'clinic-zona-leste': {
+    clinic: { id: 'clinic-zona-leste', name: 'Unidade Zona Leste', phone: '(11) 4002-3333', email: 'zonaleste@odontoflow.local' },
+    staffProfiles: [
+      { id: 'staff-local-3', clinic_id: 'clinic-zona-leste', full_name: 'Dra. Luiza Campos', role: 'assistant', active: true }
+    ],
+    patients: [],
+    procedures: [
+      { id: 'proc-zl-1', clinic_id: 'clinic-zona-leste', name: 'Clareamento Dental' }
+    ],
+    appointments: []
+  }
+};
 
-export const INITIAL_PROCEDURES = [
-  'Limpeza Profilática',
-  'Restauração em Resina',
-  'Tratamento de Canal',
-  'Avaliação Ortodôntica',
-  'Extração Siso',
-  'Clareamento Dental',
-  'Prótese Protocolo'
-];
-
-export const APPOINTMENTS = [
-  { id: 'local-a1', name: 'Ana Paula Souza', time: '09:00', procedure: 'Limpeza Profilática', date: '2024-04-18T09:00:00Z' },
-  { id: 'local-a2', name: 'Ricardo Albuquerque', time: '10:30', procedure: 'Extração Siso', date: '2024-04-18T10:30:00Z' },
-  { id: 'local-a3', name: 'Juliana Ferreira', time: '14:15', procedure: 'Avaliação Ortodôntica', date: '2024-04-18T14:15:00Z' }
-];
-
-
-export const AVAILABLE_CLINICS_FALLBACK = [
-  { id: 'clinic-matriz-sp', name: 'Clínica Matriz SP' },
-  { id: 'clinic-zona-sul', name: 'Unidade Zona Sul' },
-  { id: 'clinic-zona-leste', name: 'Unidade Zona Leste' }
-];
+export const AVAILABLE_CLINICS_FALLBACK = Object.values(OFFLINE_CLINIC_DATA).map((item) => item.clinic);
+export const INITIAL_PATIENTS = OFFLINE_CLINIC_DATA['clinic-matriz-sp'].patients;
+export const INITIAL_PROCEDURES = OFFLINE_CLINIC_DATA['clinic-matriz-sp'].procedures.map((item) => item.name);
+export const APPOINTMENTS = OFFLINE_CLINIC_DATA['clinic-matriz-sp'].appointments;
