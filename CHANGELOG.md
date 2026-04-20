@@ -2,6 +2,20 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.26 - 2026-04-20
+
+### Added
+- Nova base de conta/perfil com integração Supabase em `apps/web/auth-account-service.js`, incluindo operações de Auth, perfil público (`public.odf_users`) e clínicas (`public.odf_clinics`).
+- Novo widget de clínicas na aba Conta com leitura resumida e edição em janela N2 (`ClinicN2Modal`), com suporte a múltiplas clínicas por proprietário.
+- Criação automática de clínica padrão (`Minha Clínica`) quando o usuário proprietário ainda não possui registros em `odf_clinics`.
+
+### Changed
+- Tela Conta passou a usar padrão de leitura + edição via janela N2 para dados editáveis (conta, perfil público e clínicas).
+- Edição de perfil público passou a usar abas na N2, priorizando “Dados primários” na primeira aba.
+- Navegação mobile centralizada no elemento de Navegação Inteligente: botão fixo superior abre o drawer, e a barra de quick-links do header mobile foi removida.
+- Botões internos dos widgets de Conta/Perfil padronizados com o mesmo estilo do header N2 (`modal-action-btn`).
+- Padronização global de raios de borda em px para classes `rounded-*` usadas no app.
+
 ## v0.1.25 - 2026-04-19
 
 ### Fixed
