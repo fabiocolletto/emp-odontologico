@@ -3,6 +3,7 @@ import {
   Archive,
   Check,
   CheckSquare,
+  ChevronsUpDown,
   Globe,
   Layers,
   LayoutDashboard,
@@ -21,15 +22,18 @@ import {
   Users,
   X
 } from 'lucide-react';
-import { APPOINTMENTS, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
-import { fetchAddressByCep, loadClinicDataset } from './data-gateway.js';
+import { APPOINTMENTS, AVAILABLE_CLINICS_FALLBACK, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
+import { fetchAddressByCep, loadClinicDataset, setActiveClinicRpc } from './data-gateway.js';
 import { AdaptiveHeader, AdaptiveModal, FormField, UiButton, ViewLayout } from './components.js';
 import DailyPanel from './daily-panel.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
   const PATIENTS_SEARCH_VISIBLE_KEY = 'odontoflow:patients-search-visible';
+  const ACTIVE_CLINIC_KEY = 'odontoflow:active-clinic-id';
   const [activeTab, setActiveTab] = useState('overview');
+  const [availableClinics] = useState(AVAILABLE_CLINICS_FALLBACK);
+  const [currentClinic, setCurrentClinic] = useState(null);
   const [allPatients, setAllPatients] = useState(INITIAL_PATIENTS);
   const [allProcedures, setAllProcedures] = useState(INITIAL_PROCEDURES);
   const [appointments, setAppointments] = useState(APPOINTMENTS);
@@ -61,6 +65,7 @@ const Dashboard = () => {
   const [isPatientSearchVisible, setIsPatientSearchVisible] = useState(false);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedPatientIds, setSelectedPatientIds] = useState([]);
+  const [clinicSwitchStatus, setClinicSwitchStatus] = useState('idle');
 
   useEffect(() => {
     const savedSortPreference = window.localStorage.getItem(PATIENTS_SORT_KEY);
@@ -169,33 +174,34 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (datasetHydrated || activeTab === 'overview') return;
-    let mounted = true;
+    const persistedClinicId = window.localStorage.getItem(ACTIVE_CLINIC_KEY);
+    const fallbackClinic = AVAILABLE_CLINICS_FALLBACK[0] || null;
+    const resolvedClinic = availableClinics.find((clinic) => clinic.id === persistedClinicId) || fallbackClinic;
 
-    const hydrateFromSupabaseFiles = async () => {
-      try {
-        const dataset = await loadClinicDataset();
-        if (!mounted) return;
+    if (!persistedClinicId && resolvedClinic?.id) {
+      window.localStorage.setItem(ACTIVE_CLINIC_KEY, resolvedClinic.id);
+    }
+    setCurrentClinic(resolvedClinic);
+  }, [availableClinics]);
 
-        setAllPatients(dataset.patients);
-        setAllProcedures(dataset.procedures);
-        setAppointments(dataset.appointments);
-        setUsingFallbackData(false);
-      } catch (error) {
-        if (!mounted) return;
-        setUsingFallbackData(true);
-      } finally {
-        if (!mounted) return;
-        setDatasetHydrated(true);
-      }
-    };
+  const reloadTenantScopedData = async () => {
+    try {
+      const dataset = await loadClinicDataset();
+      setAllPatients(dataset.patients);
+      setAllProcedures(dataset.procedures);
+      setAppointments(dataset.appointments);
+      setUsingFallbackData(false);
+    } catch (error) {
+      setUsingFallbackData(true);
+    } finally {
+      setDatasetHydrated(true);
+    }
+  };
 
-    hydrateFromSupabaseFiles();
-
-    return () => {
-      mounted = false;
-    };
-  }, [activeTab, datasetHydrated]);
+  useEffect(() => {
+    if (datasetHydrated) return;
+    reloadTenantScopedData();
+  }, [datasetHydrated]);
 
   useEffect(() => {
     if (!modalPatient) return;
@@ -220,6 +226,24 @@ const Dashboard = () => {
   const handleMobileNavSelect = (tabId) => {
     setActiveTab(tabId);
     setMobileNavOpen(false);
+  };
+
+  const handleSwitchClinic = async (clinicId) => {
+    if (!clinicId || clinicId === currentClinic?.id) return;
+    const nextClinic = availableClinics.find((clinic) => clinic.id === clinicId);
+    if (!nextClinic) return;
+
+    setClinicSwitchStatus('loading');
+
+    try {
+      await setActiveClinicRpc(clinicId);
+      window.localStorage.setItem(ACTIVE_CLINIC_KEY, clinicId);
+      setCurrentClinic(nextClinic);
+      await reloadTenantScopedData();
+      setClinicSwitchStatus('success');
+    } catch (error) {
+      setClinicSwitchStatus('error');
+    }
   };
 
   const handleTogglePatientSelection = (patientId) => {
@@ -281,6 +305,7 @@ const Dashboard = () => {
               <div>
                 <p className="mobile-smart-window__kicker">Navegação Inteligente</p>
                 <h2>OdontoFlow</h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">{currentClinic?.name || 'Clínica não definida'}</p>
               </div>
               <UiButton icon={X} labelLayout="hidden" tone="neutral" onClick={() => setMobileNavOpen(false)} aria-label="Fechar" />
             </div>
@@ -298,6 +323,22 @@ const Dashboard = () => {
                 />
               ))}
             </nav>
+            <div className="px-4 mt-4 space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Trocar clínica</p>
+              <div className="relative">
+                <ChevronsUpDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <select
+                  value={currentClinic?.id || ''}
+                  onChange={(event) => handleSwitchClinic(event.target.value)}
+                  disabled={clinicSwitchStatus === 'loading'}
+                  className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-100 disabled:opacity-50"
+                >
+                  {availableClinics.map((clinic) => (
+                    <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </aside>
         </div>
       )}
@@ -305,7 +346,10 @@ const Dashboard = () => {
       <aside className="hidden md:flex flex-col bg-white border-r border-slate-200 h-screen sticky top-0 w-72 z-40 shrink-0">
         <div className="p-8 pb-10 flex items-center gap-4 overflow-hidden">
           <div className="bg-sky-700 p-3 rounded-2xl text-white shadow-xl shadow-sky-100 shrink-0"><Stethoscope size={24} /></div>
-          <span className="text-2xl font-light text-slate-900 italic tracking-tighter leading-none shrink-0">Odonto<span className="text-sky-700 font-bold not-italic">Flow</span></span>
+          <div>
+            <span className="text-2xl font-light text-slate-900 italic tracking-tighter leading-none shrink-0">Odonto<span className="text-sky-700 font-bold not-italic">Flow</span></span>
+            <p className="text-xs text-slate-500 mt-1 font-semibold">{currentClinic?.name || 'Clínica não definida'}</p>
+          </div>
         </div>
         <nav className="flex-1 px-6 space-y-4">
           {navItems.map((item) => (
@@ -320,6 +364,22 @@ const Dashboard = () => {
             />
           ))}
         </nav>
+        <div className="px-6 pb-8 space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Trocar clínica</p>
+          <div className="relative">
+            <ChevronsUpDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <select
+              value={currentClinic?.id || ''}
+              onChange={(event) => handleSwitchClinic(event.target.value)}
+              disabled={clinicSwitchStatus === 'loading'}
+              className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-100 disabled:opacity-50"
+            >
+              {availableClinics.map((clinic) => (
+                <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </aside>
 
       {activeTab === 'overview' && (
@@ -328,6 +388,7 @@ const Dashboard = () => {
           allPatients={allPatients}
           usingFallbackData={usingFallbackData}
           onOpenPatientRecord={handleOpenPatientRecord}
+          currentClinic={currentClinic}
         />
       )}
 

@@ -126,3 +126,26 @@ export const fetchAddressByCep = async (cep) => {
     ibgeCode: data.ibge || ''
   };
 };
+
+
+export const setActiveClinicRpc = async (clinicId) => {
+  if (!clinicId) {
+    throw new Error('Informe uma clínica válida para ativação.');
+  }
+
+  const supabaseClient = globalThis?.window?.supabase;
+
+  if (supabaseClient?.rpc) {
+    const { error } = await supabaseClient.rpc('set_active_clinic', {
+      clinic_id_input: clinicId
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Falha ao trocar de clínica.');
+    }
+
+    return { ok: true };
+  }
+
+  return { ok: true, simulated: true };
+};
