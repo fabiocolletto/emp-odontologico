@@ -4,79 +4,10 @@ on:
   push:
     branches:
       - development
-  pull_request:
-    branches:
-      - development
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
   workflow_dispatch:
-
-permissions:
-  contents: write
-
-concurrency:
-  group: pages-development
-  cancel-in-progress: true
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      - name: Montar artefato para o ambiente development
-        env:
-          TARGET_ENV: development
-          SOURCE_REF: ${{ github.ref_name }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          set -euo pipefail
-
-          TARGET_DIR="dist/${TARGET_ENV}"
-          mkdir -p "${TARGET_DIR}/apps/web" "${TARGET_DIR}/backend/supabase/sample-data"
-
-          cp index.html "${TARGET_DIR}/index.html"
-          cp apps/web/styles.css "${TARGET_DIR}/apps/web/styles.css"
-          cp apps/web/standalone-react.jsx "${TARGET_DIR}/apps/web/standalone-react.jsx"
-          cp -r apps/web/src "${TARGET_DIR}/apps/web/src"
-          cp -r backend/supabase/sample-data/. "${TARGET_DIR}/backend/supabase/sample-data"
-
-          cat > dist/index.html <<HTML
-          <!doctype html>
-          <html lang="pt-BR">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-              <title>OdontoFlow | Ambientes</title>
-              <style>
-                body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; line-height: 1.5; padding: 0 16px; }
-                h1 { margin-bottom: 8px; }
-                ul { padding-left: 18px; }
-                a { font-weight: 600; }
-              </style>
-            </head>
-            <body>
-              <h1>OdontoFlow - Ambientes publicados</h1>
-              <ul>
-                <li><a href="./main/">main (produção)</a></li>
-                <li><a href="./beta/">beta (testes)</a></li>
-                <li><a href="./development/">development (desenvolvimento)</a></li>
-              </ul>
-              <p>Último deploy do ambiente <strong>${TARGET_ENV}</strong> via evento <strong>${EVENT_NAME}</strong> (ref: <strong>${SOURCE_REF}</strong>).</p>
-            </body>
-          </html>
-          HTML
-
-      - name: Publicar no branch gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./dist
-          keep_files: true
-          force_orphan: false
+    uses: ./.github/workflows/deploy-shared.yml
+    with:
+      target_env: development
