@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ArrowRight,
   Archive,
   Check,
   CheckSquare,
@@ -23,7 +24,16 @@ import {
   X
 } from 'lucide-react';
 import { APPOINTMENTS, AVAILABLE_CLINICS_FALLBACK, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
-import { fetchAddressByCep, loadClinicDataset, setActiveClinicRpc } from './data-gateway.js';
+import {
+  fetchAddressByCep,
+  fetchCompanyByCnpj,
+  formatCnpj,
+  isValidCnpj,
+  loadClinicDataset,
+  loadClinicRegistration,
+  saveClinicRegistration,
+  setActiveClinicRpc
+} from './data-gateway.js';
 import { AdaptiveHeader, AdaptiveModal, FormField, UiButton, ViewLayout } from './components.js';
 import DailyPanel from './daily-panel.js';
 
@@ -66,6 +76,21 @@ const Dashboard = () => {
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedPatientIds, setSelectedPatientIds] = useState([]);
   const [clinicSwitchStatus, setClinicSwitchStatus] = useState('idle');
+  const [clinicRegistrationForm, setClinicRegistrationForm] = useState({
+    phone: '',
+    email: '',
+    address: '',
+    cnpj: '',
+    legalName: '',
+    tradeName: '',
+    legalNature: '',
+    primaryCnae: '',
+    registrationStatus: ''
+  });
+  const [cnpjLookupStatus, setCnpjLookupStatus] = useState('idle');
+  const [cnpjLookupMessage, setCnpjLookupMessage] = useState('');
+  const [clinicRegistrationStatus, setClinicRegistrationStatus] = useState('idle');
+  const [clinicRegistrationMessage, setClinicRegistrationMessage] = useState('');
 
   useEffect(() => {
     const savedSortPreference = window.localStorage.getItem(PATIENTS_SORT_KEY);
@@ -209,6 +234,32 @@ const Dashboard = () => {
   }, [modalPatient, selectedPatient]);
 
   useEffect(() => {
+    const hydrateClinicRegistration = async () => {
+      try {
+        const data = await loadClinicRegistration();
+        if (!data) return;
+
+        setClinicRegistrationForm({
+          phone: data.contact?.phone || '',
+          email: data.contact?.email || '',
+          address: data.contact?.address || '',
+          cnpj: formatCnpj(data.fiscal?.cnpj || ''),
+          legalName: data.fiscal?.legalName || '',
+          tradeName: data.fiscal?.tradeName || '',
+          legalNature: data.fiscal?.legalNature || '',
+          primaryCnae: data.fiscal?.primaryCnae || '',
+          registrationStatus: data.fiscal?.registrationStatus || ''
+        });
+      } catch (error) {
+        setClinicRegistrationStatus('error');
+        setClinicRegistrationMessage(error?.message || 'Não foi possível carregar o cadastro da clínica.');
+      }
+    };
+
+    hydrateClinicRegistration();
+  }, []);
+
+  useEffect(() => {
     const shouldLockScroll = mobileNavOpen;
     document.body.style.overflow = shouldLockScroll ? 'hidden' : '';
 
@@ -282,6 +333,72 @@ const Dashboard = () => {
     ));
     setSelectedPatientIds([]);
     setIsMultiSelectMode(false);
+  };
+
+  const handleLookupCnpj = async () => {
+    const cnpj = clinicRegistrationForm.cnpj;
+    if (!isValidCnpj(cnpj)) {
+      setCnpjLookupStatus('error');
+      setCnpjLookupMessage('CNPJ inválido. Confira os dígitos verificadores antes de consultar.');
+      return;
+    }
+
+    setCnpjLookupStatus('loading');
+    setCnpjLookupMessage('Consultando dados fiscais...');
+
+    try {
+      const company = await fetchCompanyByCnpj(cnpj);
+      setClinicRegistrationForm((current) => ({
+        ...current,
+        cnpj: formatCnpj(company.cnpj || cnpj),
+        legalName: company.legalName || current.legalName,
+        tradeName: company.tradeName || current.tradeName,
+        legalNature: company.legalNature || current.legalNature,
+        primaryCnae: company.primaryCnae || current.primaryCnae,
+        registrationStatus: company.registrationStatus || current.registrationStatus
+      }));
+      setCnpjLookupStatus('success');
+      setCnpjLookupMessage('Dados fiscais preenchidos. Complete manualmente os campos que faltarem.');
+    } catch (error) {
+      setCnpjLookupStatus('error');
+      setCnpjLookupMessage(error?.message || 'Não foi possível consultar o CNPJ.');
+    }
+  };
+
+  const handleSaveClinicRegistration = async () => {
+    if (!isValidCnpj(clinicRegistrationForm.cnpj)) {
+      setClinicRegistrationStatus('error');
+      setClinicRegistrationMessage('CNPJ inválido. Ajuste o CNPJ antes de salvar.');
+      return;
+    }
+
+    setClinicRegistrationStatus('loading');
+    setClinicRegistrationMessage('Salvando cadastro da clínica...');
+
+    try {
+      await saveClinicRegistration({
+        clinicId: currentClinic?.id || null,
+        contact: {
+          phone: clinicRegistrationForm.phone,
+          email: clinicRegistrationForm.email,
+          address: clinicRegistrationForm.address
+        },
+        fiscal: {
+          cnpj: clinicRegistrationForm.cnpj,
+          legalName: clinicRegistrationForm.legalName,
+          tradeName: clinicRegistrationForm.tradeName,
+          legalNature: clinicRegistrationForm.legalNature,
+          primaryCnae: clinicRegistrationForm.primaryCnae,
+          registrationStatus: clinicRegistrationForm.registrationStatus
+        }
+      });
+
+      setClinicRegistrationStatus('success');
+      setClinicRegistrationMessage('Cadastro da clínica salvo com sucesso.');
+    } catch (error) {
+      setClinicRegistrationStatus('error');
+      setClinicRegistrationMessage(error?.message || 'Não foi possível salvar o cadastro da clínica.');
+    }
   };
 
   return (
@@ -505,7 +622,146 @@ const Dashboard = () => {
 
       {activeTab === 'settings' && (
         <ViewLayout title="Configurações" badge="Gestão Administrativa">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="space-y-8">
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8 space-y-6">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Cadastro da Clínica</p>
+                  <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Dados de Contato e Fiscal</h3>
+                </div>
+                <UiButton
+                  onClick={handleSaveClinicRegistration}
+                  label={clinicRegistrationStatus === 'loading' ? 'Salvando...' : 'Salvar Cadastro'}
+                  tone={clinicRegistrationStatus === 'error' ? 'danger' : 'primary'}
+                  disabled={clinicRegistrationStatus === 'loading'}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Contato</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Telefone
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.phone}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, phone: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="(00) 00000-0000"
+                    />
+                  </label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Email
+                    <input
+                      type="email"
+                      value={clinicRegistrationForm.email}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, email: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="contato@clinica.com.br"
+                    />
+                  </label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider md:col-span-2">
+                    Endereço
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.address}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, address: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="Rua, número, bairro, cidade/UF"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Fiscal</p>
+                  <UiButton
+                    onClick={handleLookupCnpj}
+                    label={cnpjLookupStatus === 'loading' ? 'Consultando CNPJ...' : 'Consultar CNPJ'}
+                    tone={cnpjLookupStatus === 'error' ? 'danger' : 'info'}
+                    size="sm"
+                    disabled={cnpjLookupStatus === 'loading'}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    CNPJ
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.cnpj}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, cnpj: formatCnpj(event.target.value) }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="00.000.000/0000-00"
+                    />
+                  </label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Situação Cadastral
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.registrationStatus}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, registrationStatus: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="Ativa, Inapta..."
+                    />
+                  </label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Razão Social
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.legalName}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalName: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="Razão social da clínica"
+                    />
+                  </label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Nome Fantasia
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.tradeName}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, tradeName: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="Nome fantasia"
+                    />
+                  </label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Natureza Jurídica
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.legalNature}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalNature: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="Sociedade empresária..."
+                    />
+                  </label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    CNAE Principal
+                    <input
+                      type="text"
+                      value={clinicRegistrationForm.primaryCnae}
+                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, primaryCnae: event.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      placeholder="8630-5/04 - Atividade odontológica"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {cnpjLookupMessage && (
+                <p className={`text-xs font-semibold ${cnpjLookupStatus === 'error' ? 'text-rose-600' : 'text-sky-700'}`}>
+                  {cnpjLookupMessage}
+                </p>
+              )}
+
+              {clinicRegistrationMessage && (
+                <p className={`text-xs font-semibold ${clinicRegistrationStatus === 'error' ? 'text-rose-600' : 'text-emerald-700'}`}>
+                  {clinicRegistrationMessage}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div
               onClick={() => setModalSettingsProc(true)}
               className="bg-white p-10 rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:translate-y-[-6px] transition-all cursor-pointer group flex flex-col h-full animate-in zoom-in-95 duration-500"
@@ -533,6 +789,7 @@ const Dashboard = () => {
               <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-slate-300 mb-6"><Settings size={28} /></div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Novos Ajustes em Breve</p>
             </div>
+          </div>
           </div>
         </ViewLayout>
       )}
