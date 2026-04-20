@@ -6,7 +6,8 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
-const APP_VERSION_FALLBACK = '0.1.11';
+const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
+const APP_VERSION_FALLBACK = '0.1.25';
 const CHANGELOG_PATH = './CHANGELOG.md';
 
 const tabs = [
@@ -33,7 +34,10 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     birth: <><path d="M12 4v16M4 10h16M7 4v4M17 4v4M7 16v4M17 16v4" /></>,
     plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
     email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
+    search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.2 4.2" /></>,
     filter: <path d="M4 6h16M7 12h10M10 18h4" />,
+    multi: <><rect x="3.5" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="13" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="3.5" y="13.5" width="7.5" height="7.5" rx="1.5" /><path d="m14.5 17 2 2 4-4" /></>,
+    expand: <><path d="M9 3.5H3.5V9M15 3.5h5.5V9M9 20.5H3.5V15M15 20.5h5.5V15" /><path d="M8.5 8.5 3.5 3.5M15.5 8.5l5-5M8.5 15.5l-5 5M15.5 15.5l5 5" /></>,
     info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>,
     star: <path d="m12 3.4 2.7 5.5 6 0.9-4.4 4.3 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.8l6-0.9L12 3.4Z" />,
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
@@ -42,6 +46,8 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
+    'chevron-down': <path d="m6 9 6 6 6-6" />,
+    'chevron-up': <path d="m18 15-6-6-6 6" />,
     'chevron-left': <path d="m14.5 6-6 6 6 6" />,
     'chevron-right': <path d="m9.5 6 6 6-6 6" />
   };
@@ -65,6 +71,137 @@ const TransientNotice = ({ message, tone = 'info', onClose, visible }) => {
     </div>
   );
 };
+
+const SingleSelectionField = ({
+  id,
+  label,
+  ariaLabel,
+  value,
+  onChange,
+  options = [],
+  className = ''
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+  const selectedOption = options.find((option) => option.value === value) || options[0];
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleOutsidePointer = (event) => {
+      if (!containerRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsidePointer);
+    document.addEventListener('touchstart', handleOutsidePointer, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsidePointer);
+      document.removeEventListener('touchstart', handleOutsidePointer);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className={`single-select ${className}`.trim()} ref={containerRef}>
+      {label ? <label htmlFor={id} className="single-select__label">{label}</label> : null}
+      <div className="single-select__control-wrap">
+        <button
+          id={id}
+          type="button"
+          className="single-select__control single-select__trigger"
+          aria-haspopup="listbox"
+          aria-label={ariaLabel || label || 'Selecionar'}
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          <span className="single-select__value">{selectedOption?.label || 'Selecionar'}</span>
+          <AppIcon name={isOpen ? 'chevron-up' : 'chevron-down'} size={14} className="single-select__icon" />
+        </button>
+
+        {isOpen ? (
+          <div className="selector-window" role="listbox" aria-label={label || 'Selecionar opção'}>
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`selector-window__option ${option.value === value ? 'is-active' : ''}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+const HeaderActionButton = ({
+  label,
+  icon,
+  onClick,
+  tone = 'new',
+  ariaLabel
+}) => (
+  <button
+    className={`btn btn--primary btn--header btn--header-${tone} inline-flex items-center gap-2`}
+    onClick={onClick}
+    aria-label={ariaLabel || label}
+  >
+    <AppIcon name={icon} size={14} className="btn-icon" />
+    {label}
+  </button>
+);
+
+const AddRecordButton = ({
+  onClick,
+  label = 'Novo registro',
+  ariaLabel = 'Cadastrar novo registro'
+}) => (
+  <HeaderActionButton
+    label={label}
+    icon="edit"
+    tone="new"
+    ariaLabel={ariaLabel}
+    onClick={onClick}
+  />
+);
+
+const SearchToggleButton = ({ isOpen, onClick }) => (
+  <HeaderActionButton
+    label={isOpen ? 'Ocultar busca' : 'Pesquisar'}
+    icon="search"
+    tone="search"
+    ariaLabel="Mostrar ou ocultar busca"
+    onClick={onClick}
+  />
+);
+
+const MultiToggleButton = ({ isActive, onClick }) => (
+  <HeaderActionButton
+    label={isActive ? 'Sair multi' : 'Modo multi'}
+    icon="multi"
+    tone="multi"
+    ariaLabel="Ativar ou desativar modo multi"
+    onClick={onClick}
+  />
+);
+
+const SortToggleButton = ({ onClick }) => (
+  <HeaderActionButton
+    label="Ordenação"
+    icon="filter"
+    tone="settings"
+    ariaLabel="Abrir nível de ordenação"
+    onClick={onClick}
+  />
+);
 
 const BioHeader = ({
   icon,
@@ -501,15 +638,15 @@ const PatientN2Modal = ({
 
         <div className="modal-footer modal-footer--stack">
           <div className="n2-mobile-nav">
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onPreviousTab}>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--prev" onClick={onPreviousTab}>
               <AppIcon name="chevron-left" size={16} className="btn-icon" />
               <span className="btn-label">Etapa anterior</span>
             </button>
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onNextTab}>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--next" onClick={onNextTab}>
               <AppIcon name="chevron-right" size={16} className="btn-icon" />
               <span className="btn-label">Próxima etapa</span>
             </button>
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn" onClick={onOpenNavigationMap}>
+            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--map" onClick={onOpenNavigationMap}>
               <AppIcon name="map" size={14} className="btn-icon" />
               <span className="btn-label">Mapa</span>
             </button>
@@ -544,6 +681,14 @@ const readStoredMobileNavState = () => {
   }
 };
 
+const readStoredPatientsSearchVisibility = () => {
+  try {
+    return localStorage.getItem(PATIENTS_SEARCH_VISIBILITY_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 function App() {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
@@ -556,6 +701,11 @@ function App() {
   const [usingFallbackData, setUsingFallbackData] = useState(true);
   const [notesDraft, setNotesDraft] = useState(() => readStoredNotesDraft());
   const [patientsQuery, setPatientsQuery] = useState('');
+  const [isPatientsSearchVisible, setIsPatientsSearchVisible] = useState(() => readStoredPatientsSearchVisibility());
+  const [isPatientsMultiMode, setIsPatientsMultiMode] = useState(false);
+  const [selectedPatientIds, setSelectedPatientIds] = useState([]);
+  const [patientsSort, setPatientsSort] = useState('name-asc');
+  const [isPatientsSortLevelOpen, setIsPatientsSortLevelOpen] = useState(false);
   const [patientsPage, setPatientsPage] = useState(1);
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
@@ -778,11 +928,52 @@ function App() {
     setFormFeedback('Prontuário atualizado com sucesso.');
   };
 
+  const parseDatePtBr = (value) => {
+    const match = String(value || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) return null;
+    const [, dd, mm, yyyy] = match;
+    return new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+  };
+
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
+  const activePatients = filteredPatients.filter((patient) => !patient.archivedAt);
+  const sortedPatients = [...activePatients].sort((a, b) => {
+    switch (patientsSort) {
+      case 'name-desc':
+        return b.name.localeCompare(a.name, 'pt-BR');
+      case 'phone-asc':
+        return String(a.phone || '').localeCompare(String(b.phone || ''), 'pt-BR');
+      case 'lastVisit-desc': {
+        const aTime = parseDatePtBr(a.lastVisit)?.getTime() || 0;
+        const bTime = parseDatePtBr(b.lastVisit)?.getTime() || 0;
+        return bTime - aTime;
+      }
+      case 'lastVisit-asc': {
+        const aTime = parseDatePtBr(a.lastVisit)?.getTime() || 0;
+        const bTime = parseDatePtBr(b.lastVisit)?.getTime() || 0;
+        return aTime - bTime;
+      }
+      case 'birth-desc': {
+        const aTime = parseDatePtBr(a.birth)?.getTime() || 0;
+        const bTime = parseDatePtBr(b.birth)?.getTime() || 0;
+        return bTime - aTime;
+      }
+      case 'birth-asc': {
+        const aTime = parseDatePtBr(a.birth)?.getTime() || 0;
+        const bTime = parseDatePtBr(b.birth)?.getTime() || 0;
+        return aTime - bTime;
+      }
+      case 'plan-asc':
+        return String(a.plan || '').localeCompare(String(b.plan || ''), 'pt-BR');
+      case 'name-asc':
+      default:
+        return a.name.localeCompare(b.name, 'pt-BR');
+    }
+  });
   const patientsPageSize = isMobileViewport ? MOBILE_PAGE_SIZE_PATIENTS : PAGE_SIZE_PATIENTS;
-  const patientsPagination = paginateRecords(filteredPatients, patientsPage, patientsPageSize);
+  const patientsPagination = paginateRecords(sortedPatients, patientsPage, patientsPageSize);
   const visiblePatients = isMobileViewport
-    ? filteredPatients.slice(0, patientsPagination.page * patientsPageSize)
+    ? sortedPatients.slice(0, patientsPagination.page * patientsPageSize)
     : patientsPagination.items;
 
   const filteredAppointments = filterBySearchTerm(appointments, appointmentsQuery);
@@ -851,7 +1042,11 @@ function App() {
 
   useEffect(() => {
     setPatientsPage(1);
-  }, [patientsQuery]);
+  }, [patientsQuery, patientsSort]);
+
+  useEffect(() => {
+    localStorage.setItem(PATIENTS_SEARCH_VISIBILITY_KEY, isPatientsSearchVisible ? '1' : '0');
+  }, [isPatientsSearchVisible]);
 
   useEffect(() => {
     setAppointmentsPage(1);
@@ -911,7 +1106,7 @@ function App() {
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [activeTab, isMobileViewport, patientsPagination.totalPages, filteredPatients.length]);
+  }, [activeTab, isMobileViewport, patientsPagination.totalPages, activePatients.length]);
 
   useEffect(() => {
     if (!isMobileViewport || activeTab !== 'overview') return;
@@ -1050,6 +1245,35 @@ function App() {
           openCreatePatientN2();
         }
       },
+      'patients-search': {
+        key: 'patients-search',
+        icon: 'search',
+        tone: 'search',
+        label: 'Pesquisar',
+        ariaLabel: 'Mostrar ou ocultar seção de pesquisa de pacientes',
+        onClick: () => setIsPatientsSearchVisible((prev) => !prev)
+      },
+      'patients-multi': {
+        key: 'patients-multi',
+        icon: 'multi',
+        tone: 'multi',
+        label: 'Modo multi',
+        ariaLabel: 'Ativar ou desativar seleção múltipla de pacientes',
+        onClick: () => {
+          setIsPatientsMultiMode((prev) => {
+            if (prev) setSelectedPatientIds([]);
+            return !prev;
+          });
+        }
+      },
+      'patients-sort': {
+        key: 'patients-sort',
+        icon: 'filter',
+        tone: 'settings',
+        label: 'Ordenação',
+        ariaLabel: 'Abrir nível de ordenação',
+        onClick: () => setIsPatientsSortLevelOpen(true)
+      },
       settings: {
         key: 'settings',
         icon: 'settings',
@@ -1069,7 +1293,7 @@ function App() {
       patients: {
         level: 1,
         previous: 'overview',
-        next: ['new-patient']
+        next: ['new-patient', 'patients-search', 'patients-sort', 'patients-multi']
       },
       settings: {
         level: 1,
@@ -1229,9 +1453,27 @@ function App() {
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
-            <button className="btn btn--primary btn--header" onClick={openCreatePatientN2}>
-              + Novo paciente
-            </button>
+            <div className="flex gap-2 flex-wrap justify-end">
+              <AddRecordButton
+                label="Novo paciente"
+                ariaLabel="Cadastrar novo paciente"
+                onClick={openCreatePatientN2}
+              />
+              <SearchToggleButton
+                isOpen={isPatientsSearchVisible}
+                onClick={() => setIsPatientsSearchVisible((prev) => !prev)}
+              />
+              <SortToggleButton onClick={() => setIsPatientsSortLevelOpen(true)} />
+              <MultiToggleButton
+                isActive={isPatientsMultiMode}
+                onClick={() => {
+                  setIsPatientsMultiMode((prev) => {
+                    if (prev) setSelectedPatientIds([]);
+                    return !prev;
+                  });
+                }}
+              />
+            </div>
           </div>
           <TransientNotice
             visible={showPatientHint && !formFeedback}
@@ -1244,31 +1486,115 @@ function App() {
             tone="info"
             onClose={() => setFormFeedback('')}
           />
-          <div className="patients-search-section">
-            <div className="search-row">
-              <input
-                className="search-input search-input--compact"
-                placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
-                value={patientsQuery}
-                onChange={(e) => setPatientsQuery(e.target.value)}
-              />
-              <span className="search-count">{filteredPatients.length} registro(s)</span>
+          {isPatientsSearchVisible ? (
+            <div className="patients-search-section">
+              <div className="search-row">
+                <input
+                  className="search-input search-input--compact"
+                  placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
+                  value={patientsQuery}
+                  onChange={(e) => setPatientsQuery(e.target.value)}
+                />
+              </div>
+              <p className="search-legend">{sortedPatients.length} registro(s) exibido(s)</p>
             </div>
-          </div>
+          ) : null}
+          {isPatientsSortLevelOpen ? (
+            <div className="selector-level">
+              <button className="selector-level__backdrop" type="button" aria-label="Fechar nível de filtro" onClick={() => setIsPatientsSortLevelOpen(false)} />
+              <div className="selector-level__card">
+                <div className="selector-level__header">
+                  <p>Nível de ordenação</p>
+                  <button className="btn btn--ghost" type="button" onClick={() => setIsPatientsSortLevelOpen(false)}>Fechar</button>
+                </div>
+                <div className="selector-level__body">
+                  {[
+                    { value: 'name-asc', label: 'Nome (A → Z)' },
+                    { value: 'name-desc', label: 'Nome (Z → A)' },
+                    { value: 'phone-asc', label: 'Telefone' },
+                    { value: 'lastVisit-desc', label: 'Última visita (mais recente)' },
+                    { value: 'lastVisit-asc', label: 'Última visita (mais antiga)' },
+                    { value: 'birth-desc', label: 'Nascimento (mais recente)' },
+                    { value: 'birth-asc', label: 'Nascimento (mais antigo)' },
+                    { value: 'plan-asc', label: 'Plano (A → Z)' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`selector-window__option ${option.value === patientsSort ? 'is-active' : ''}`}
+                      onClick={() => {
+                        setPatientsSort(option.value);
+                        setIsPatientsSortLevelOpen(false);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {isPatientsMultiMode ? (
+            <div className="bg-transparent rounded-2xl border border-slate-200/70 p-4 flex flex-wrap gap-2 items-center justify-between backdrop-blur-sm">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+                {selectedPatientIds.length} selecionado(s)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  className="btn btn--ghost"
+                  onClick={() => {
+                    const allVisibleIds = visiblePatients.map((item) => item.id);
+                    const shouldClear = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedPatientIds.includes(id));
+                    setSelectedPatientIds(shouldClear ? [] : allVisibleIds);
+                  }}
+                >
+                  Selecionar todos
+                </button>
+                <button
+                  className="btn btn--danger"
+                  disabled={selectedPatientIds.length === 0}
+                  onClick={() => {
+                    const archiveAt = new Date().toISOString();
+                    setPatients((prev) => prev.map((item) => (
+                      selectedPatientIds.includes(item.id)
+                        ? { ...item, archivedAt: archiveAt }
+                        : item
+                    )));
+                    setSelectedPatientIds([]);
+                    setIsPatientsMultiMode(false);
+                  }}
+                >
+                  Arquivar selecionados
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="patients-data-section">
             <div className="data-grid patients-grid">
             {visiblePatients.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
             ) : (
               visiblePatients.map((p) => (
-                <article key={p.id} className="data-card data-card--m patient-card">
+                <article key={p.id} className={`data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
                   <button
-                    onClick={() => openPatientN2(p)}
+                    onClick={() => {
+                      if (isPatientsMultiMode) {
+                        setSelectedPatientIds((prev) => (
+                          prev.includes(p.id)
+                            ? prev.filter((id) => id !== p.id)
+                            : [...prev, p.id]
+                        ));
+                        return;
+                      }
+                      openPatientN2(p);
+                    }}
                     className="btn btn--icon patient-card__open"
-                    aria-label={`Abrir prontuário de ${p.name}`}
-                    title="Abrir prontuário N2"
+                    aria-label={isPatientsMultiMode ? `Selecionar ${p.name}` : `Abrir prontuário de ${p.name}`}
+                    title={isPatientsMultiMode ? 'Selecionar paciente' : 'Abrir prontuário N2'}
                   >
-                    ↗
+                    {isPatientsMultiMode
+                      ? (selectedPatientIds.includes(p.id) ? '✓' : '○')
+                      : <AppIcon name="expand" size={14} />}
                   </button>
                   <div className="patient-card__header">
                     <div className="patient-avatar">{getInitials(p.name)}</div>
@@ -1358,7 +1684,7 @@ function App() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`btn btn--nav ${activeTab === tab.id ? 'is-active' : ''}`}
+                className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
               >
                 <AppIcon name={tab.icon} size={14} />
                 {tab.label}
