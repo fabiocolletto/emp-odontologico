@@ -44,11 +44,16 @@ jobs:
 
       - name: Generate runtime env.js
         env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          SUPABASE_ANON: ${{ vars.SUPABASE_ANON }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || secrets.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ vars.SUPABASE_ANON || secrets.SUPABASE_ANON }}
         run: |
-          test -n "$SUPABASE_URL"
-          test -n "$SUPABASE_ANON"
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON" ]; then
+            echo "::error::Variáveis SUPABASE_URL e SUPABASE_ANON não encontradas."
+            echo "::error::Configure em Settings > Secrets and variables > Actions:"
+            echo "::error:: - Repository variables/secrets (fallback global), ou"
+            echo "::error:: - Environment variables/secrets do ambiente usado pelo workflow (production para main; beta para beta/develop)."
+            exit 1
+          fi
 
           cat > apps/web/env.js <<EOF
           window.__APP_ENV__ = {
@@ -84,11 +89,16 @@ jobs:
 
       - name: Generate runtime env.js
         env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          SUPABASE_ANON: ${{ vars.SUPABASE_ANON }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || secrets.SUPABASE_URL }}
+          SUPABASE_ANON: ${{ vars.SUPABASE_ANON || secrets.SUPABASE_ANON }}
         run: |
-          test -n "$SUPABASE_URL"
-          test -n "$SUPABASE_ANON"
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON" ]; then
+            echo "::error::Variáveis SUPABASE_URL e SUPABASE_ANON não encontradas."
+            echo "::error::Configure em Settings > Secrets and variables > Actions:"
+            echo "::error:: - Repository variables/secrets (fallback global), ou"
+            echo "::error:: - Environment variables/secrets do ambiente usado pelo workflow (production para main; beta para beta/develop)."
+            exit 1
+          fi
 
           cat > apps/web/env.js <<EOF
           window.__APP_ENV__ = {
