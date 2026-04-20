@@ -55,9 +55,9 @@ Para detalhes da organização e evolução, consulte `docs/estrutura-repositori
 - O frontend web já está preparado para ler `backend/supabase/sample-data/*.csv` como fonte principal (com fallback local).
 
 ## Supabase Auth no frontend (Google + e-mail/senha)
-- O app web usa as variáveis **`SUPABASE_URL`** e **`SUPABASE_ANON`** para criar o client Supabase no navegador.
-- Para ambiente local/estático, configure `apps/web/env.js` (veja `apps/web/env.example.js`).
-- Para deploy, o workflow `.github/workflows/deploy-gh-pages.yml` injeta os mesmos nomes de variáveis e gera `env.js` antes de publicar.
+- O app web usa os valores públicos **`SUPABASE_URL`** e **`SUPABASE_ANON`** em `apps/web/env.js` para criar o client Supabase no navegador.
+- Em GitHub Pages (site estático), essa é a forma mais simples e consistente: publicar o `env.js` junto do app, sem depender de injeção por variável de sistema no workflow.
+- Use somente a chave **anon/public** no frontend; nunca `service_role`.
 - O fluxo de autenticação implementado:
   - criação de conta com e-mail/senha;
   - login com e-mail/senha;
@@ -71,10 +71,7 @@ Para detalhes da organização e evolução, consulte `docs/estrutura-repositori
 - O workflow usa Environments distintos:
   - `production` para deploy da `main`;
   - `beta` para deploy das branches `beta`/`develop`.
-- Configure `SUPABASE_URL` e `SUPABASE_ANON` em **Settings → Secrets and variables → Actions** usando uma destas estratégias:
-  - **Environment variables/secrets** nos ambientes exatos usados pelo workflow (`production` e `beta`);
-  - **Repository variables/secrets** como fallback global.
-- ⚠️ Não use apenas um Environment com nome automático do GitHub Pages (ex.: IDs numéricos), pois esse nome não é consumido por este workflow.
+- Não é necessário configurar `SUPABASE_URL`/`SUPABASE_ANON` como variáveis do GitHub Actions para este fluxo atual, pois `apps/web/env.js` é versionado e publicado junto com o build estático.
 - Em **Settings → Environments**, garanta que as regras de branch permitam:
   - `main` no Environment `production`;
   - `beta` e/ou `develop` no Environment `beta`.
