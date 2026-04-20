@@ -38,10 +38,45 @@ const createSupabaseBrowserClient = () => {
   });
 };
 
+const createAccountService = (supabaseClient) => {
+  const externalFactory = globalThis?.OdontoAuthAccountService?.create;
+  if (typeof externalFactory === 'function') {
+    return externalFactory({ supabaseClient });
+  }
+
+  return {
+    getAuthUser: async () => {
+      const { data, error } = await supabaseClient.auth.getUser();
+      if (error) throw new Error(error.message || 'Falha ao consultar dados do usuário.');
+      return data?.user || null;
+    },
+    updateAuthUser: async (attributes) => {
+      const { data, error } = await supabaseClient.auth.updateUser(attributes);
+      if (error) throw new Error(error.message || 'Falha ao atualizar conta.');
+      return data?.user || null;
+    },
+    signOut: async () => {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) throw new Error(error.message || 'Falha ao desconectar.');
+      return true;
+    },
+    deleteAuthUser: async (userId) => {
+      const { error } = await supabaseClient.auth.admin.deleteUser(userId);
+      if (error) throw new Error(error.message || 'Falha ao excluir conta.');
+      return true;
+    },
+    loadPublicProfile: async () => null,
+    savePublicProfile: async ({ userId, profile }) => ({ id: userId, ...profile }),
+    loadClinics: async () => [],
+    saveClinic: async ({ clinic }) => clinic
+  };
+};
+
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
   { id: 'patients', label: 'Pacientes', icon: 'users' },
-  { id: 'settings', label: 'Configurações', icon: 'settings' }
+  { id: 'settings', label: 'Configurações', icon: 'settings' },
+  { id: 'account', label: 'Conta', icon: 'settings' }
 ];
 
 const MOBILE_NAV_SHORTCUTS = [
@@ -49,7 +84,8 @@ const MOBILE_NAV_SHORTCUTS = [
   { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
   { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
-  { id: 'settings', label: 'Configurações', tab: 'settings', icon: 'settings', group: 'Gestão' }
+  { id: 'settings', label: 'Configurações', tab: 'settings', icon: 'settings', group: 'Gestão' },
+  { id: 'account', label: 'Conta', tab: 'account', icon: 'settings', group: 'Gestão' }
 ];
 
 const AppIcon = ({ name, size = 14, className = '' }) => {
@@ -490,7 +526,6 @@ const PatientN2Modal = ({
   onFormChange,
   onPreviousTab,
   onNextTab,
-  onOpenNavigationMap,
   onSubmit,
   onStartEdit,
   onCancelEdit,
@@ -674,14 +709,267 @@ const PatientN2Modal = ({
               <AppIcon name="chevron-right" size={16} className="btn-icon" />
               <span className="btn-label">Próxima etapa</span>
             </button>
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--map" onClick={onOpenNavigationMap}>
-              <AppIcon name="map" size={14} className="btn-icon" />
-              <span className="btn-label">Mapa</span>
-            </button>
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+const AccountN2Modal = ({
+  isOpen,
+  title,
+  subtitle,
+  onClose,
+  onSave,
+  isSaving,
+  children
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+            {subtitle ? <p className="modal-step-label">{subtitle}</p> : null}
+          </div>
+          <div className="modal-header__actions">
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral" onClick={onClose}>
+              <AppIcon name="close" size={13} className="btn-icon" />
+              <span className="btn-label">Cancelar</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSave} disabled={isSaving}>
+              <AppIcon name="check" size={13} className="btn-icon" />
+              <span className="btn-label">{isSaving ? 'Salvando...' : 'Salvar'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="modal-body">
+          <div className="modal-grid">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PublicProfileN2Modal = ({
+  isOpen,
+  onClose,
+  onSave,
+  isSaving,
+  draft,
+  onChange
+}) => {
+  const [activeTab, setActiveTab] = useState('primary');
+
+  useEffect(() => {
+    if (isOpen) setActiveTab('primary');
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Editar perfil público</h3>
+            <p className="modal-step-label">Dados salvos em public.odf_users</p>
+          </div>
+          <div className="modal-header__actions">
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral" onClick={onClose}>
+              <AppIcon name="close" size={13} className="btn-icon" />
+              <span className="btn-label">Cancelar</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSave} disabled={isSaving}>
+              <AppIcon name="check" size={13} className="btn-icon" />
+              <span className="btn-label">{isSaving ? 'Salvando...' : 'Salvar'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="modal-body space-y-4">
+          <div className="bio-steps" aria-label="Abas do perfil público">
+            <button type="button" className={`bio-step ${activeTab === 'primary' ? 'is-active' : ''}`} onClick={() => setActiveTab('primary')}>
+              1. Dados primários
+            </button>
+            <button type="button" className={`bio-step ${activeTab === 'complementary' ? 'is-active' : ''}`} onClick={() => setActiveTab('complementary')}>
+              2. Complementar
+            </button>
+          </div>
+
+          {activeTab === 'primary' ? (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Nome</span>
+                <input type="text" className="form-input" value={draft.full_name} onChange={(event) => onChange('full_name', event.target.value)} placeholder="Nome completo" />
+              </label>
+              <label className="form-field">
+                <span>E-mail</span>
+                <input type="email" className="form-input" value={draft.email} onChange={(event) => onChange('email', event.target.value)} placeholder="nome@email.com" />
+              </label>
+              <label className="form-field">
+                <span>Telefone</span>
+                <input type="text" className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} placeholder="(00) 00000-0000" />
+              </label>
+            </div>
+          ) : (
+            <div className="modal-grid">
+              <label className="form-field form-field--full">
+                <span>Endereço</span>
+                <input type="text" className="form-input" value={draft.address} onChange={(event) => onChange('address', event.target.value)} placeholder="Rua, número, bairro, cidade/UF" />
+              </label>
+              <label className="form-field">
+                <span>Data de nascimento</span>
+                <input type="date" className="form-input" value={draft.birth_date || ''} onChange={(event) => onChange('birth_date', event.target.value)} />
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ClinicN2Modal = ({
+  isOpen,
+  clinics,
+  selectedClinicId,
+  draft,
+  onSelectClinic,
+  onChange,
+  onCreateNew,
+  onSave,
+  onClose,
+  isSaving
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Clínicas do usuário</h3>
+            <p className="modal-step-label">Selecione uma clínica para editar ou crie uma nova.</p>
+          </div>
+          <div className="modal-header__actions">
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info" onClick={onCreateNew}>
+              <AppIcon name="edit" size={13} className="btn-icon" />
+              <span className="btn-label">Nova clínica</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral" onClick={onClose}>
+              <AppIcon name="close" size={13} className="btn-icon" />
+              <span className="btn-label">Cancelar</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSave} disabled={isSaving}>
+              <AppIcon name="check" size={13} className="btn-icon" />
+              <span className="btn-label">{isSaving ? 'Salvando...' : 'Salvar clínica'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="modal-body space-y-4">
+          <label className="form-field">
+            <span>Clínica selecionada</span>
+            <select className="form-input" value={selectedClinicId || ''} onChange={(event) => onSelectClinic(event.target.value)}>
+              {clinics.map((clinic) => (
+                <option key={clinic.id} value={clinic.id}>{clinic.trade_name}</option>
+              ))}
+              {!selectedClinicId && <option value="">Nova clínica</option>}
+            </select>
+          </label>
+
+          <div className="modal-grid">
+            <label className="form-field">
+              <span>Nome fantasia</span>
+              <input className="form-input" value={draft.trade_name} onChange={(event) => onChange('trade_name', event.target.value)} placeholder="Minha Clínica" />
+            </label>
+            <label className="form-field">
+              <span>Razão social</span>
+              <input className="form-input" value={draft.legal_name} onChange={(event) => onChange('legal_name', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>Documento</span>
+              <input className="form-input" value={draft.document_number} onChange={(event) => onChange('document_number', event.target.value)} placeholder="CNPJ" />
+            </label>
+            <label className="form-field">
+              <span>Email</span>
+              <input className="form-input" type="email" value={draft.email} onChange={(event) => onChange('email', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>Telefone</span>
+              <input className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>Cidade</span>
+              <input className="form-input" value={draft.city} onChange={(event) => onChange('city', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>UF</span>
+              <input className="form-input" value={draft.state} onChange={(event) => onChange('state', event.target.value.toUpperCase().slice(0, 2))} />
+            </label>
+            <label className="form-field">
+              <span>Status</span>
+              <select className="form-input" value={draft.status} onChange={(event) => onChange('status', event.target.value)}>
+                <option value="trial">trial</option>
+                <option value="active">active</option>
+                <option value="suspended">suspended</option>
+                <option value="archived">archived</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MobileMd3Nav = ({
+  visible,
+  leftActions = [],
+  rightActions = [],
+  onOpenSmartNavigation
+}) => {
+  if (!visible) return null;
+
+  const renderAction = (action) => (
+    <button
+      key={action.key}
+      type="button"
+      className={`mobile-md3-nav__action ${action.active ? 'is-active' : ''}`}
+      onClick={action.onClick}
+      aria-label={action.ariaLabel || action.label}
+    >
+      <AppIcon name={action.icon} size={14} />
+      <span>{action.label}</span>
+    </button>
+  );
+
+  return (
+    <nav className="mobile-md3-nav" aria-label="Barra de navegação móvel">
+      <div className="mobile-md3-nav__rail">
+        <div className="mobile-md3-nav__side mobile-md3-nav__side--left">
+          {leftActions.map(renderAction)}
+        </div>
+        <button
+          type="button"
+          className="mobile-md3-nav__fab"
+          onClick={onOpenSmartNavigation}
+          aria-label="Abrir navegação inteligente"
+        >
+          <AppIcon name="menu" size={18} />
+        </button>
+        <div className="mobile-md3-nav__side mobile-md3-nav__side--right">
+          {rightActions.map(renderAction)}
+        </div>
+      </div>
+    </nav>
   );
 };
 
@@ -717,7 +1005,11 @@ const readStoredPatientsSearchVisibility = () => {
   }
 };
 
-function DashboardApp({ authEmail = '', onSignOut }) {
+function DashboardApp({
+  authEmail = '',
+  authUser = null,
+  accountService
+}) {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
   const [activeTab, setActiveTab] = useState(initialUiState.activeTab || 'overview');
@@ -744,6 +1036,39 @@ function DashboardApp({ authEmail = '', onSignOut }) {
   const [patientViewForm, setPatientViewForm] = useState(() => createEmptyPatientForm());
   const [isPatientViewEditing, setIsPatientViewEditing] = useState(false);
   const [formFeedback, setFormFeedback] = useState('');
+  const [authUserWidget, setAuthUserWidget] = useState(authUser);
+  const [authActionStatus, setAuthActionStatus] = useState('idle');
+  const [authActionMessage, setAuthActionMessage] = useState('');
+  const [accountEmailDraft, setAccountEmailDraft] = useState(authUser?.email || '');
+  const [accountPasswordDraft, setAccountPasswordDraft] = useState('');
+  const [isAccountEditN2Open, setIsAccountEditN2Open] = useState(false);
+  const [publicProfileDraft, setPublicProfileDraft] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    birth_date: ''
+  });
+  const [isPublicProfileN2Open, setIsPublicProfileN2Open] = useState(false);
+  const [profileActionStatus, setProfileActionStatus] = useState('idle');
+  const [profileActionMessage, setProfileActionMessage] = useState('');
+  const [clinics, setClinics] = useState([]);
+  const [selectedClinicId, setSelectedClinicId] = useState('');
+  const [clinicDraft, setClinicDraft] = useState({
+    id: '',
+    trade_name: '',
+    legal_name: '',
+    document_number: '',
+    email: '',
+    phone: '',
+    city: '',
+    state: '',
+    timezone: 'America/Sao_Paulo',
+    status: 'trial'
+  });
+  const [isClinicN2Open, setIsClinicN2Open] = useState(false);
+  const [clinicActionStatus, setClinicActionStatus] = useState('idle');
+  const [clinicActionMessage, setClinicActionMessage] = useState('');
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
   );
@@ -765,6 +1090,13 @@ function DashboardApp({ authEmail = '', onSignOut }) {
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
   const quickLinksSnapTimeoutRef = useRef(null);
+
+  const formatDateTime = (value) => {
+    if (!value) return '-';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '-';
+    return parsed.toLocaleString('pt-BR');
+  };
 
   const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
     if (!acc[shortcut.group]) acc[shortcut.group] = [];
@@ -963,6 +1295,187 @@ function DashboardApp({ authEmail = '', onSignOut }) {
     return new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
   };
 
+  const refreshAuthWidget = async () => {
+    if (!accountService?.getAuthUser) return;
+    const user = await accountService.getAuthUser();
+    setAuthUserWidget(user || null);
+    if (user?.email) {
+      setAccountEmailDraft(user.email);
+    }
+  };
+
+  const openAccountEditN2 = () => {
+    setAccountEmailDraft(authUserWidget?.email || authEmail || '');
+    setAccountPasswordDraft('');
+    setIsAccountEditN2Open(true);
+  };
+
+  const openPublicProfileEditN2 = () => {
+    setIsPublicProfileN2Open(true);
+  };
+
+  const toClinicDraft = (clinic) => ({
+    id: clinic?.id || '',
+    trade_name: clinic?.trade_name || '',
+    legal_name: clinic?.legal_name || '',
+    document_number: clinic?.document_number || '',
+    email: clinic?.email || '',
+    phone: clinic?.phone || '',
+    city: clinic?.city || '',
+    state: clinic?.state || '',
+    timezone: clinic?.timezone || 'America/Sao_Paulo',
+    status: clinic?.status || 'trial'
+  });
+
+  const handleAccountUpdate = async () => {
+    if (!accountService?.updateAuthUser) return;
+
+    const payload = {};
+    if (accountEmailDraft.trim() && accountEmailDraft.trim() !== (authUserWidget?.email || '')) {
+      payload.email = accountEmailDraft.trim();
+    }
+    if (accountPasswordDraft.trim()) {
+      payload.password = accountPasswordDraft.trim();
+    }
+
+    if (!payload.email && !payload.password) {
+      setAuthActionStatus('error');
+      setAuthActionMessage('Informe um novo e-mail ou senha para atualizar.');
+      return;
+    }
+
+    setAuthActionStatus('loading');
+    setAuthActionMessage('Atualizando credenciais da conta...');
+    try {
+      await accountService.updateAuthUser(payload);
+      await refreshAuthWidget();
+      setAccountPasswordDraft('');
+      setIsAccountEditN2Open(false);
+      setAuthActionStatus('success');
+      setAuthActionMessage('Conta atualizada com sucesso via Supabase Auth.');
+    } catch (error) {
+      setAuthActionStatus('error');
+      setAuthActionMessage(error?.message || 'Não foi possível atualizar a conta.');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!accountService?.deleteAuthUser || !authUserWidget?.id) return;
+    const confirmed = window.confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.');
+    if (!confirmed) return;
+
+    setAuthActionStatus('loading');
+    setAuthActionMessage('Solicitando exclusão da conta no Supabase Auth...');
+    try {
+      await accountService.deleteAuthUser(authUserWidget.id);
+      if (accountService?.signOut) {
+        await accountService.signOut();
+      }
+      setAuthActionStatus('success');
+      setAuthActionMessage('Conta excluída com sucesso.');
+    } catch (error) {
+      setAuthActionStatus('error');
+      setAuthActionMessage(error?.message || 'Não foi possível excluir a conta.');
+    }
+  };
+
+  const refreshPublicProfile = async (userId) => {
+    if (!accountService?.loadPublicProfile || !userId) return;
+    const profile = await accountService.loadPublicProfile(userId);
+    setPublicProfileDraft({
+      full_name: profile?.full_name || '',
+      email: profile?.email || authUserWidget?.email || authEmail || '',
+      phone: profile?.phone || '',
+      address: profile?.address || '',
+      birth_date: profile?.birth_date || ''
+    });
+  };
+
+  const handleSavePublicProfile = async () => {
+    if (!accountService?.savePublicProfile || !authUserWidget?.id) return;
+
+    setProfileActionStatus('loading');
+    setProfileActionMessage('Salvando perfil público...');
+    try {
+      const saved = await accountService.savePublicProfile({
+        userId: authUserWidget.id,
+        profile: publicProfileDraft
+      });
+      setPublicProfileDraft({
+        full_name: saved?.full_name || '',
+        email: saved?.email || '',
+        phone: saved?.phone || '',
+        address: saved?.address || '',
+        birth_date: saved?.birth_date || ''
+      });
+      setProfileActionStatus('success');
+      setProfileActionMessage('Perfil público salvo com sucesso.');
+      setIsPublicProfileN2Open(false);
+    } catch (error) {
+      setProfileActionStatus('error');
+      setProfileActionMessage(error?.message || 'Não foi possível salvar o perfil público.');
+    }
+  };
+
+  const refreshClinics = async (userId) => {
+    if (!accountService?.loadClinics || !userId) return;
+    const data = await accountService.loadClinics(userId);
+    setClinics(data || []);
+    if (data?.length) {
+      const defaultClinic = data[0];
+      setSelectedClinicId(defaultClinic.id);
+      setClinicDraft(toClinicDraft(defaultClinic));
+    }
+  };
+
+  const handleOpenClinicN2 = async () => {
+    setIsClinicN2Open(true);
+    try {
+      await refreshClinics(authUserWidget?.id);
+    } catch (error) {
+      setClinicActionStatus('error');
+      setClinicActionMessage(error?.message || 'Não foi possível carregar clínicas.');
+    }
+  };
+
+  const handleSelectClinic = (clinicId) => {
+    setSelectedClinicId(clinicId);
+    const clinic = clinics.find((item) => item.id === clinicId);
+    if (clinic) {
+      setClinicDraft(toClinicDraft(clinic));
+    }
+  };
+
+  const handleCreateNewClinic = () => {
+    setSelectedClinicId('');
+    setClinicDraft(toClinicDraft(null));
+  };
+
+  const handleSaveClinic = async () => {
+    if (!accountService?.saveClinic || !authUserWidget?.id) return;
+    if (!clinicDraft.trade_name.trim()) {
+      setClinicActionStatus('error');
+      setClinicActionMessage('Informe ao menos o nome fantasia da clínica.');
+      return;
+    }
+
+    setClinicActionStatus('loading');
+    setClinicActionMessage('Salvando clínica...');
+    try {
+      await accountService.saveClinic({
+        userId: authUserWidget.id,
+        clinic: clinicDraft
+      });
+      await refreshClinics(authUserWidget.id);
+      setClinicActionStatus('success');
+      setClinicActionMessage('Clínica salva com sucesso.');
+      setIsClinicN2Open(false);
+    } catch (error) {
+      setClinicActionStatus('error');
+      setClinicActionMessage(error?.message || 'Não foi possível salvar clínica.');
+    }
+  };
+
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
   const activePatients = filteredPatients.filter((patient) => !patient.archivedAt);
   const sortedPatients = [...activePatients].sort((a, b) => {
@@ -1111,6 +1624,39 @@ function DashboardApp({ authEmail = '', onSignOut }) {
     const timer = setTimeout(() => setFormFeedback(''), 4000);
     return () => clearTimeout(timer);
   }, [formFeedback]);
+
+  useEffect(() => {
+    setAuthUserWidget(authUser || null);
+    setAccountEmailDraft(authUser?.email || '');
+  }, [authUser]);
+
+  useEffect(() => {
+    let active = true;
+
+    const hydrateAuthUser = async () => {
+      if (!accountService?.getAuthUser) return;
+      try {
+        const user = await accountService.getAuthUser();
+        if (!active) return;
+        setAuthUserWidget(user || null);
+        if (user?.email) {
+          setAccountEmailDraft(user.email);
+          setPublicProfileDraft((prev) => ({ ...prev, email: prev.email || user.email }));
+        }
+        await refreshPublicProfile(user?.id);
+        await refreshClinics(user?.id);
+      } catch (error) {
+        if (!active) return;
+        setAuthActionStatus('error');
+        setAuthActionMessage(error?.message || 'Não foi possível carregar dados da conta.');
+      }
+    };
+
+    hydrateAuthUser();
+    return () => {
+      active = false;
+    };
+  }, [accountService]);
 
   useEffect(() => {
     const tabShortcutId = MOBILE_NAV_SHORTCUTS.find((item) => item.id === activeTab)?.id || activeTab;
@@ -1339,18 +1885,7 @@ function DashboardApp({ authEmail = '', onSignOut }) {
       .map((key) => quickLinksCatalog[key])
       .filter(Boolean);
 
-    const contextHeaderActions = activeTab === 'overview'
-      ? []
-      : [
-        {
-          key: 'open-map',
-          tone: 'neutral',
-          icon: 'map',
-          label: 'Mapa',
-          ariaLabel: 'Abrir mapa de navegação',
-          onClick: () => setShowMobileNavDrawer(true)
-        }
-      ];
+    const contextHeaderActions = [];
 
     const quickLinksNavigation = (
       <div className="quick-links-shell">
@@ -1381,7 +1916,7 @@ function DashboardApp({ authEmail = '', onSignOut }) {
           title={title}
           subtitle={subtitle}
           actions={actions}
-          navigation={navigation}
+          navigation={null}
         />
       ) : null
     );
@@ -1685,6 +2220,162 @@ function DashboardApp({ authEmail = '', onSignOut }) {
       );
     }
 
+    if (activeTab === 'account') {
+      const provider = authUserWidget?.app_metadata?.provider || authUserWidget?.aud || '-';
+      const providers = authUserWidget?.app_metadata?.providers?.join(', ') || provider;
+
+      return (
+        <div className="space-y-6">
+          {renderN1Header({ icon: 'settings', title: 'Conta', subtitle: 'Auth Supabase e preferências pessoais' })}
+          {!isMobileViewport && <h2 className="page-title">Conta</h2>}
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <div className="flex flex-wrap gap-3 items-center justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
+                <p className="text-sm text-slate-500">Dados carregados via <code>supabase.auth.getUser()</code>.</p>
+              </div>
+              <button
+                className="btn btn--ghost"
+                onClick={async () => {
+                  setAuthActionStatus('loading');
+                  setAuthActionMessage('Atualizando dados da conta...');
+                  try {
+                    await refreshAuthWidget();
+                    setAuthActionStatus('success');
+                    setAuthActionMessage('Dados da conta atualizados.');
+                  } catch (error) {
+                    setAuthActionStatus('error');
+                    setAuthActionMessage(error?.message || 'Não foi possível atualizar os dados da conta.');
+                  }
+                }}
+              >
+                Atualizar widget
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
+              <div><strong>ID:</strong> <span className="break-all">{authUserWidget?.id || '-'}</span></div>
+              <div><strong>E-mail:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
+              <div><strong>Provedor:</strong> {providers}</div>
+              <div><strong>Email confirmado:</strong> {formatDateTime(authUserWidget?.email_confirmed_at)}</div>
+              <div><strong>Criado em:</strong> {formatDateTime(authUserWidget?.created_at)}</div>
+              <div><strong>Último login:</strong> {formatDateTime(authUserWidget?.last_sign_in_at)}</div>
+            </div>
+          </div>
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
+              <div><strong>E-mail atual:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
+              <div><strong>Senha:</strong> ********</div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                onClick={openAccountEditN2}
+                disabled={authActionStatus === 'loading'}
+              >
+                Editar (N2)
+              </button>
+              {accountService?.signOut ? (
+                <button
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral"
+                  onClick={accountService.signOut}
+                  disabled={authActionStatus === 'loading'}
+                >
+                  Desconectar
+                </button>
+              ) : null}
+              {accountService?.deleteAuthUser ? (
+                <button
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger"
+                  onClick={handleDeleteAccount}
+                  disabled={authActionStatus === 'loading'}
+                >
+                  Excluir conta
+                </button>
+              ) : null}
+            </div>
+
+            {authActionMessage ? (
+              <p className={`text-xs ${authActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+                {authActionMessage}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.odf_users</code>)</p>
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
+              <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
+              <div><strong>E-mail:</strong> {publicProfileDraft.email || '-'}</div>
+              <div><strong>Telefone:</strong> {publicProfileDraft.phone || '-'}</div>
+              <div><strong>Endereço:</strong> {publicProfileDraft.address || '-'}</div>
+              <div><strong>Data de nascimento:</strong> {publicProfileDraft.birth_date || '-'}</div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                onClick={openPublicProfileEditN2}
+                disabled={profileActionStatus === 'loading'}
+              >
+                Editar (N2)
+              </button>
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral"
+                onClick={() => refreshPublicProfile(authUserWidget?.id)}
+                disabled={profileActionStatus === 'loading'}
+              >
+                Recarregar perfil
+              </button>
+            </div>
+
+            {profileActionMessage ? (
+              <p className={`text-xs ${profileActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+                {profileActionMessage}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínicas do proprietário (tabela <code>public.odf_clinics</code>)</p>
+            {clinics.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhuma clínica encontrada. Ao abrir o editor, uma clínica padrão será criada automaticamente.</p>
+            ) : (
+              <div className="space-y-2">
+                {clinics.slice(0, 3).map((clinic) => (
+                  <div key={clinic.id} className="text-sm text-slate-700 border border-slate-100 rounded-xl p-3">
+                    <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
+                    <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
+                  </div>
+                ))}
+                {clinics.length > 3 ? (
+                  <p className="text-xs text-slate-500">+{clinics.length - 3} clínica(s) adicional(is).</p>
+                ) : null}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                onClick={handleOpenClinicN2}
+                disabled={clinicActionStatus === 'loading'}
+              >
+                Editar clínicas (N2)
+              </button>
+            </div>
+            {clinicActionMessage ? (
+              <p className={`text-xs ${clinicActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+                {clinicActionMessage}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Configurações', subtitle: 'Parâmetros e catálogo de procedimentos' })}
@@ -1702,6 +2393,54 @@ function DashboardApp({ authEmail = '', onSignOut }) {
     );
   };
 
+  const openSmartNavigation = () => {
+    setShowPatientN2(false);
+    setShowMobileNavDrawer(true);
+  };
+
+  const mobileNavActionConfigByTab = {
+    overview: {
+      left: [
+        { key: 'overview-home', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
+        { key: 'overview-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+      ],
+      right: [
+        { key: 'overview-settings', icon: 'settings', label: 'Ajustes', onClick: () => setActiveTab('settings') },
+        { key: 'overview-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+      ]
+    },
+    patients: {
+      left: [
+        { key: 'patients-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'patients-new', icon: 'edit', label: 'Novo', onClick: openCreatePatientN2 }
+      ],
+      right: [
+        { key: 'patients-search', icon: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
+        { key: 'patients-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+      ]
+    },
+    settings: {
+      left: [
+        { key: 'settings-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') }
+      ],
+      right: [
+        { key: 'settings-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+      ]
+    },
+    account: {
+      left: [
+        { key: 'account-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'account-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+      ],
+      right: [
+        { key: 'account-edit', icon: 'edit', label: 'Editar', onClick: openAccountEditN2 },
+        { key: 'account-clinics', icon: 'settings', label: 'Clínicas', onClick: handleOpenClinicN2 }
+      ]
+    }
+  };
+
+  const mobileNavActionConfig = mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
+
   return (
     <div className="app-shell">
       <div className="app-frame">
@@ -1712,11 +2451,6 @@ function DashboardApp({ authEmail = '', onSignOut }) {
               <p className="font-semibold text-slate-200">Conectado</p>
               <p className="truncate">{authEmail}</p>
             </div>
-          ) : null}
-          {onSignOut ? (
-            <button className="btn btn--ghost mb-3" onClick={onSignOut}>
-              Sair
-            </button>
           ) : null}
           <nav className="app-nav">
             {tabs.map((tab) => (
@@ -1820,6 +2554,58 @@ function DashboardApp({ authEmail = '', onSignOut }) {
         </div>
       )}
 
+      <AccountN2Modal
+        isOpen={isAccountEditN2Open}
+        title="Editar conta"
+        subtitle="Atualização de credenciais via Supabase Auth"
+        onClose={() => setIsAccountEditN2Open(false)}
+        onSave={handleAccountUpdate}
+        isSaving={authActionStatus === 'loading'}
+      >
+        <label className="form-field">
+          <span>Novo e-mail</span>
+          <input
+            type="email"
+            className="form-input"
+            value={accountEmailDraft}
+            onChange={(event) => setAccountEmailDraft(event.target.value)}
+            placeholder="novoemail@clinica.com"
+          />
+        </label>
+        <label className="form-field">
+          <span>Nova senha</span>
+          <input
+            type="password"
+            className="form-input"
+            value={accountPasswordDraft}
+            onChange={(event) => setAccountPasswordDraft(event.target.value)}
+            placeholder="********"
+          />
+        </label>
+      </AccountN2Modal>
+
+      <PublicProfileN2Modal
+        isOpen={isPublicProfileN2Open}
+        onClose={() => setIsPublicProfileN2Open(false)}
+        onSave={handleSavePublicProfile}
+        isSaving={profileActionStatus === 'loading'}
+        draft={publicProfileDraft}
+        onChange={(field, value) => setPublicProfileDraft((prev) => ({ ...prev, [field]: value }))}
+      />
+
+      <ClinicN2Modal
+        isOpen={isClinicN2Open}
+        clinics={clinics}
+        selectedClinicId={selectedClinicId}
+        draft={clinicDraft}
+        onSelectClinic={handleSelectClinic}
+        onChange={(field, value) => setClinicDraft((prev) => ({ ...prev, [field]: value }))}
+        onCreateNew={handleCreateNewClinic}
+        onSave={handleSaveClinic}
+        onClose={() => setIsClinicN2Open(false)}
+        isSaving={clinicActionStatus === 'loading'}
+      />
+
       <PatientN2Modal
         isOpen={showPatientN2 && (patientModalMode === 'create' || Boolean(selectedPatient))}
         mode={patientModalMode}
@@ -1836,11 +2622,17 @@ function DashboardApp({ authEmail = '', onSignOut }) {
         onFormChange={handlePatientFormChange}
         onPreviousTab={() => moveFormTab(-1)}
         onNextTab={() => moveFormTab(1)}
-        onOpenNavigationMap={() => setShowMobileNavDrawer(true)}
         onSubmit={handleCreatePatientSubmit}
         onStartEdit={handleStartPatientEdit}
         onCancelEdit={handleCancelPatientEdit}
         onSaveEdit={handleSavePatientEdit}
+      />
+
+      <MobileMd3Nav
+        visible={isMobileViewport}
+        leftActions={mobileNavActionConfig.left}
+        rightActions={mobileNavActionConfig.right}
+        onOpenSmartNavigation={openSmartNavigation}
       />
     </div>
   );
@@ -1848,6 +2640,7 @@ function DashboardApp({ authEmail = '', onSignOut }) {
 
 function AuthGateApp() {
   const [supabaseClient] = useState(() => createSupabaseBrowserClient());
+  const [accountService] = useState(() => (supabaseClient ? createAccountService(supabaseClient) : null));
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState('signin');
@@ -1947,11 +2740,6 @@ function AuthGateApp() {
     }
   };
 
-  const signOut = async () => {
-    if (!supabaseClient) return;
-    await supabaseClient.auth.signOut();
-  };
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Carregando autenticação...</div>;
   }
@@ -2031,7 +2819,13 @@ function AuthGateApp() {
     );
   }
 
-  return <DashboardApp authEmail={session.user.email || ''} onSignOut={signOut} />;
+  return (
+    <DashboardApp
+      authEmail={session.user.email || ''}
+      authUser={session.user}
+      accountService={accountService}
+    />
+  );
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<AuthGateApp />);
