@@ -9,6 +9,32 @@ const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
 const APP_VERSION_FALLBACK = '0.1.25';
 const CHANGELOG_PATH = './CHANGELOG.md';
+const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
+
+const getSupabaseConfig = () => {
+  const injected = globalThis.__APP_ENV__ || {};
+  const fromWindow = globalThis || {};
+
+  return {
+    url: injected.SUPABASE_URL || fromWindow.SUPABASE_URL || '',
+    anonKey: injected.SUPABASE_ANON || fromWindow.SUPABASE_ANON || ''
+  };
+};
+
+const createSupabaseBrowserClient = () => {
+  const { url, anonKey } = getSupabaseConfig();
+  const factory = globalThis?.supabase?.createClient;
+  if (!factory || !url || !anonKey) return null;
+
+  return factory(url, anonKey, {
+    auth: {
+      storageKey: SUPABASE_STORAGE_KEY,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
+};
 
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
@@ -689,7 +715,7 @@ const readStoredPatientsSearchVisibility = () => {
   }
 };
 
-function App() {
+function DashboardApp({ authEmail = '', onSignOut }) {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
   const [activeTab, setActiveTab] = useState(initialUiState.activeTab || 'overview');
@@ -1679,6 +1705,17 @@ function App() {
       <div className="app-frame">
         <aside className="app-sidebar">
           <div className="app-brand">Odonto<span>Flow</span></div>
+          {authEmail ? (
+            <div className="text-[11px] leading-snug text-slate-300 mb-3">
+              <p className="font-semibold text-slate-200">Conectado</p>
+              <p className="truncate">{authEmail}</p>
+            </div>
+          ) : null}
+          {onSignOut ? (
+            <button className="btn btn--ghost mb-3" onClick={onSignOut}>
+              Sair
+            </button>
+          ) : null}
           <nav className="app-nav">
             {tabs.map((tab) => (
               <button
@@ -1807,4 +1844,155 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+function AuthGateApp() {
+  const [supabaseClient] = useState(() => createSupabaseBrowserClient());
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  useEffect(() => {
+    if (!supabaseClient) {
+      setLoading(false);
+      return undefined;
+    }
+
+    let mounted = true;
+    supabaseClient.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setSession(data?.session || null);
+      setLoading(false);
+    });
+
+    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession || null);
+    });
+
+    return () => {
+      mounted = false;
+      listener?.subscription?.unsubscribe();
+    };
+  }, [supabaseClient]);
+
+  const submitCredentials = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+    setAuthMessage('');
+
+    if (!supabaseClient) return;
+    if (!email || !password) {
+      setAuthError('Informe e-mail e senha para continuar.');
+      return;
+    }
+
+    if (mode === 'signup') {
+      const { error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) {
+        setAuthError(error.message || 'Não foi possível criar sua conta.');
+        return;
+      }
+      setAuthMessage('Conta criada. Verifique seu e-mail para confirmar o cadastro, se aplicável.');
+      return;
+    }
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      setAuthError(error.message || 'Falha ao entrar com e-mail e senha.');
+      return;
+    }
+    setAuthMessage('Login realizado com sucesso.');
+  };
+
+  const loginWithGoogle = async () => {
+    setAuthError('');
+    setAuthMessage('');
+    if (!supabaseClient) return;
+
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+        queryParams: { prompt: 'select_account' }
+      }
+    });
+
+    if (error) {
+      setAuthError(error.message || 'Falha ao iniciar login com Google.');
+    }
+  };
+
+  const signOut = async () => {
+    if (!supabaseClient) return;
+    await supabaseClient.auth.signOut();
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-slate-500">Carregando autenticação...</div>;
+  }
+
+  if (!supabaseClient) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-xl space-y-3">
+          <h1 className="text-xl font-bold text-slate-900">Configuração do Supabase pendente</h1>
+          <p className="text-sm text-slate-600">
+            Defina as variáveis <strong>SUPABASE_URL</strong> e <strong>SUPABASE_ANON</strong> em <code>apps/web/env.js</code>.
+          </p>
+          <p className="text-xs text-slate-400">Assim o app habilita cadastro e login social com Google via Supabase Auth.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-md space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
+            <h1 className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
+            <p className="text-sm text-slate-600 mt-1">Crie sua conta e acesse quando quiser, inclusive com Google.</p>
+          </div>
+
+          <form onSubmit={submitCredentials} className="space-y-3">
+            <input
+              type="email"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              placeholder="seuemail@clinica.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+            <input
+              type="password"
+              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              placeholder="Sua senha"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button type="submit" className="w-full bg-sky-700 hover:bg-sky-800 text-white rounded-xl px-3 py-2 text-sm font-bold">
+              {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
+            </button>
+          </form>
+
+          <button type="button" onClick={loginWithGoogle} className="w-full bg-white border border-slate-300 hover:bg-slate-50 rounded-xl px-3 py-2 text-sm font-semibold">
+            Continuar com Google
+          </button>
+
+          <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => setMode((prev) => (prev === 'signup' ? 'signin' : 'signup'))}>
+            {mode === 'signup' ? 'Já tenho conta, quero entrar' : 'Não tenho conta, quero me cadastrar'}
+          </button>
+
+          {authMessage ? <p className="text-xs text-emerald-600 font-semibold">{authMessage}</p> : null}
+          {authError ? <p className="text-xs text-rose-600 font-semibold">{authError}</p> : null}
+        </div>
+      </div>
+    );
+  }
+
+  return <DashboardApp authEmail={session.user.email || ''} onSignOut={signOut} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<AuthGateApp />);

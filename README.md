@@ -53,3 +53,13 @@ Para detalhes da organização e evolução, consulte `docs/estrutura-repositori
 - Base SQL inicial e massa de dados estão em `backend/supabase/`.
 - Aplicar migration + importar CSVs quando iniciar a troca de `localStorage` para banco.
 - O frontend web já está preparado para ler `backend/supabase/sample-data/*.csv` como fonte principal (com fallback local).
+
+## Supabase Auth no frontend (Google + e-mail/senha)
+- O app web usa as variáveis **`SUPABASE_URL`** e **`SUPABASE_ANON`** para criar o client Supabase no navegador.
+- Para ambiente local/estático, configure `apps/web/env.js` (veja `apps/web/env.example.js`).
+- Para deploy, injete os mesmos nomes de variáveis no pipeline e gere `env.js` antes de publicar.
+- O fluxo de autenticação implementado:
+  - criação de conta com e-mail/senha;
+  - login com e-mail/senha;
+  - login social com Google (`signInWithOAuth`);
+  - sessão persistida com renovação automática de token.
