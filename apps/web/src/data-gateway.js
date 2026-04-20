@@ -1,4 +1,5 @@
 const CSV_PATH = './backend/supabase/sample-data';
+const CLINIC_PROFILE_STORAGE_KEY = 'odontoflow:clinic-registration';
 
 const parseCsv = (csvText) => {
   const [headerLine, ...rows] = csvText.trim().split('\n');
@@ -38,6 +39,38 @@ const fetchCsv = async (fileName) => {
     throw new Error(`Falha ao carregar ${fileName}`);
   }
   return response.text();
+};
+
+const normalizeCnpjDigits = (value) => String(value || '').replace(/\D/g, '').slice(0, 14);
+
+export const formatCnpj = (value) => {
+  const digits = normalizeCnpjDigits(value);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+};
+
+const calcCnpjDigit = (baseDigits, weights) => {
+  const sum = baseDigits.reduce((acc, digit, index) => acc + (digit * weights[index]), 0);
+  const remainder = sum % 11;
+  return remainder < 2 ? 0 : 11 - remainder;
+};
+
+export const isValidCnpj = (value) => {
+  const digits = normalizeCnpjDigits(value);
+  if (digits.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digits)) return false;
+
+  const numbers = digits.split('').map(Number);
+  const firstWeights = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  const secondWeights = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+  const firstDigit = calcCnpjDigit(numbers.slice(0, 12), firstWeights);
+  const secondDigit = calcCnpjDigit([...numbers.slice(0, 12), firstDigit], secondWeights);
+
+  return firstDigit === numbers[12] && secondDigit === numbers[13];
 };
 
 export const loadClinicDataset = async () => {
@@ -127,6 +160,168 @@ export const fetchAddressByCep = async (cep) => {
   };
 };
 
+export const fetchCompanyByCnpj = async (cnpj) => {
+  const normalizedCnpj = normalizeCnpjDigits(cnpj);
+
+  if (!isValidCnpj(normalizedCnpj)) {
+    throw new Error('CNPJ inválido. Confira os 14 dígitos e tente novamente.');
+  }
+
+  let response;
+  try {
+    response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${normalizedCnpj}`);
+  } catch (error) {
+    throw new Error('Falha de conexão ao consultar CNPJ.');
+  }
+
+  if (response.status === 429) {
+    throw new Error('Limite de consultas de CNPJ atingido. Aguarde alguns instantes e tente novamente.');
+  }
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('CNPJ não encontrado na base pública.');
+    }
+
+    throw new Error('Serviço de CNPJ indisponível no momento.');
+  }
+
+  const data = await response.json();
+
+  return {
+    cnpj: data.cnpj || normalizedCnpj,
+    legalName: data.razao_social || '',
+    tradeName: data.nome_fantasia || '',
+    legalNature: data.natureza_juridica || '',
+    primaryCnae: data.cnae_fiscal_descricao
+      ? `${data.cnae_fiscal || ''} - ${data.cnae_fiscal_descricao}`.trim()
+      : (data.cnae_fiscal || ''),
+    registrationStatus: data.descricao_situacao_cadastral || data.situacao_cadastral || ''
+  };
+};
+
+const readLocalClinicRegistration = () => {
+  try {
+    const serialized = window.localStorage.getItem(CLINIC_PROFILE_STORAGE_KEY);
+    return serialized ? JSON.parse(serialized) : null;
+  } catch (error) {
+    return null;
+  }
+};
+
+const writeLocalClinicRegistration = (payload) => {
+  window.localStorage.setItem(CLINIC_PROFILE_STORAGE_KEY, JSON.stringify(payload));
+};
+
+export const loadClinicRegistration = async () => {
+  const supabaseClient = globalThis?.window?.supabase;
+
+  if (supabaseClient?.from) {
+    const { data: clinicData, error: clinicError } = await supabaseClient
+      .from('clinics')
+      .select('id, phone, email, address')
+      .limit(1)
+      .maybeSingle();
+
+    if (clinicError) {
+      throw new Error(clinicError.message || 'Falha ao carregar dados da clínica.');
+    }
+
+    if (!clinicData) {
+      return readLocalClinicRegistration();
+    }
+
+    const { data: fiscalData, error: fiscalError } = await supabaseClient
+      .from('clinic_fiscal_profiles')
+      .select('cnpj, legal_name, trade_name, legal_nature, primary_cnae, registration_status')
+      .eq('clinic_id', clinicData.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (fiscalError) {
+      throw new Error(fiscalError.message || 'Falha ao carregar dados fiscais da clínica.');
+    }
+
+    return {
+      clinicId: clinicData.id,
+      contact: {
+        phone: clinicData.phone || '',
+        email: clinicData.email || '',
+        address: clinicData.address || ''
+      },
+      fiscal: {
+        cnpj: fiscalData?.cnpj || '',
+        legalName: fiscalData?.legal_name || '',
+        tradeName: fiscalData?.trade_name || '',
+        legalNature: fiscalData?.legal_nature || '',
+        primaryCnae: fiscalData?.primary_cnae || '',
+        registrationStatus: fiscalData?.registration_status || ''
+      }
+    };
+  }
+
+  return readLocalClinicRegistration();
+};
+
+export const saveClinicRegistration = async ({ clinicId, contact, fiscal }) => {
+  if (!isValidCnpj(fiscal?.cnpj)) {
+    throw new Error('CNPJ inválido para salvar.');
+  }
+
+  const normalizedCnpj = normalizeCnpjDigits(fiscal.cnpj);
+  const payload = {
+    clinicId: clinicId || null,
+    contact: {
+      phone: contact?.phone || '',
+      email: contact?.email || '',
+      address: contact?.address || ''
+    },
+    fiscal: {
+      cnpj: normalizedCnpj,
+      legalName: fiscal?.legalName || '',
+      tradeName: fiscal?.tradeName || '',
+      legalNature: fiscal?.legalNature || '',
+      primaryCnae: fiscal?.primaryCnae || '',
+      registrationStatus: fiscal?.registrationStatus || ''
+    }
+  };
+
+  const supabaseClient = globalThis?.window?.supabase;
+
+  if (supabaseClient?.from && clinicId) {
+    const { error: clinicError } = await supabaseClient
+      .from('clinics')
+      .update({
+        phone: payload.contact.phone,
+        email: payload.contact.email,
+        address: payload.contact.address
+      })
+      .eq('id', clinicId);
+
+    if (clinicError) {
+      throw new Error(clinicError.message || 'Falha ao salvar contato da clínica.');
+    }
+
+    const { error: fiscalError } = await supabaseClient
+      .from('clinic_fiscal_profiles')
+      .upsert({
+        clinic_id: clinicId,
+        cnpj: payload.fiscal.cnpj,
+        legal_name: payload.fiscal.legalName,
+        trade_name: payload.fiscal.tradeName,
+        legal_nature: payload.fiscal.legalNature,
+        primary_cnae: payload.fiscal.primaryCnae,
+        registration_status: payload.fiscal.registrationStatus
+      }, { onConflict: 'clinic_id' });
+
+    if (fiscalError) {
+      throw new Error(fiscalError.message || 'Falha ao salvar perfil fiscal da clínica.');
+    }
+  }
+
+  writeLocalClinicRegistration(payload);
+  return payload;
+};
 
 export const setActiveClinicRpc = async (clinicId) => {
   if (!clinicId) {
