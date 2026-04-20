@@ -1,0 +1,125 @@
+name: Deploy Pages | shared
+
+on:
+  workflow_call:
+    inputs:
+      target_env:
+        description: Ambiente de destino no GitHub Pages.
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-${{ inputs.target_env }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.target_env }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v5
+
+      - name: Montar artefato para o ambiente
+        env:
+          TARGET_ENV: ${{ inputs.target_env }}
+          SOURCE_REF: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          TARGET_DIR="dist/${TARGET_ENV}"
+          mkdir -p "${TARGET_DIR}/apps/web" "${TARGET_DIR}/backend/supabase/sample-data"
+
+          cp index.html "${TARGET_DIR}/index.html"
+          cp apps/web/styles.css "${TARGET_DIR}/apps/web/styles.css"
+          cp apps/web/standalone-react.jsx "${TARGET_DIR}/apps/web/standalone-react.jsx"
+          cp -r apps/web/src "${TARGET_DIR}/apps/web/src"
+          cp -r backend/supabase/sample-data/. "${TARGET_DIR}/backend/supabase/sample-data"
+
+          cat > dist/index.html <<HTML
+          <!doctype html>
+          <html lang="pt-BR">
+            <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>OdontoFlow | Ambientes</title>
+              <style>
+                body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; line-height: 1.5; padding: 0 16px; }
+                h1 { margin-bottom: 8px; }
+                ul { padding-left: 18px; }
+                a { font-weight: 600; }
+              </style>
+            </head>
+            <body>
+              <h1>OdontoFlow - Ambientes publicados</h1>
+              <ul>
+                <li><a href="./main/">main (produção)</a></li>
+                <li><a href="./beta/">beta (testes)</a></li>
+                <li><a href="./development/">development (desenvolvimento)</a></li>
+              </ul>
+              <p>Último deploy do ambiente <strong>${TARGET_ENV}</strong> via evento <strong>${EVENT_NAME}</strong> (ref: <strong>${SOURCE_REF}</strong>).</p>
+            </body>
+          </html>
+          HTML
+
+      - name: Publicar no branch gh-pages (sem action externa)
+        env:
+          TARGET_ENV: ${{ inputs.target_env }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          TMP_DIST="$(mktemp -d)"
+          cp -r "dist/${TARGET_ENV}" "${TMP_DIST}/${TARGET_ENV}"
+          cp dist/index.html "${TMP_DIST}/index.html"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git fetch origin gh-pages
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          rm -rf "${TARGET_ENV}"
+          cp -r "${TMP_DIST}/${TARGET_ENV}" "${TARGET_ENV}"
+
+          cp "${TMP_DIST}/index.html" index.html
+
+          touch .nojekyll
+          git add "${TARGET_ENV}" index.html .nojekyll
+
+          if git diff --cached --quiet; then
+            echo "Nenhuma mudança para publicar em ${TARGET_ENV}."
+            exit 0
+          fi
+
+          git commit -m "chore(deploy): publish ${TARGET_ENV} from ${GITHUB_SHA}"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git" gh-pages
+
+      - name: Exibir URL do deploy para clique
+        env:
+          TARGET_ENV: ${{ inputs.target_env }}
+        run: |
+          set -euo pipefail
+          DEPLOY_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/${TARGET_ENV}/"
+
+          echo "🚀 Deploy publicado em: ${DEPLOY_URL}"
+          echo "::notice title=Deploy URL::${DEPLOY_URL}"
+
+          {
+            echo "## ✅ Deploy concluído"
+            echo
+            echo "Ambiente: **${TARGET_ENV}**"
+            echo
+            echo "🔗 **URL:** [${DEPLOY_URL}](${DEPLOY_URL})"
+          } >> "$GITHUB_STEP_SUMMARY"
