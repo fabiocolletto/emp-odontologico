@@ -41,7 +41,7 @@ jobs:
           cp -r apps/web/src "${TARGET_DIR}/apps/web/src"
           cp -r backend/supabase/sample-data/. "${TARGET_DIR}/backend/supabase/sample-data"
 
-          cat > dist/index.html <<HTML
+          cat > dist/environments.html <<HTML
           <!doctype html>
           <html lang="pt-BR">
             <head>
@@ -67,6 +67,12 @@ jobs:
           </html>
           HTML
 
+          if [ "${TARGET_ENV}" = "main" ]; then
+            cp "${TARGET_DIR}/index.html" dist/index.html
+          else
+            cp dist/environments.html dist/index.html
+          fi
+
       - name: Publicar no branch gh-pages (sem action externa)
         env:
           TARGET_ENV: ${{ inputs.target_env }}
@@ -78,6 +84,7 @@ jobs:
           TMP_DIST="$(mktemp -d)"
           cp -r "dist/${TARGET_ENV}" "${TMP_DIST}/${TARGET_ENV}"
           cp dist/index.html "${TMP_DIST}/index.html"
+          cp dist/environments.html "${TMP_DIST}/environments.html"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -93,10 +100,15 @@ jobs:
           rm -rf "${TARGET_ENV}"
           cp -r "${TMP_DIST}/${TARGET_ENV}" "${TARGET_ENV}"
 
+          if [ "${TARGET_ENV}" = "main" ]; then
+            cp -r "${TMP_DIST}/${TARGET_ENV}/." .
+          fi
+
           cp "${TMP_DIST}/index.html" index.html
+          cp "${TMP_DIST}/environments.html" environments.html
 
           touch .nojekyll
-          git add "${TARGET_ENV}" index.html .nojekyll
+          git add "${TARGET_ENV}" environments.html index.html apps backend .nojekyll
 
           if git diff --cached --quiet; then
             echo "Nenhuma mudança para publicar em ${TARGET_ENV}."
@@ -111,10 +123,19 @@ jobs:
           TARGET_ENV: ${{ inputs.target_env }}
         run: |
           set -euo pipefail
-          DEPLOY_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/${TARGET_ENV}/"
+          BASE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+          if [ "${TARGET_ENV}" = "main" ]; then
+            DEPLOY_URL="${BASE_URL}/"
+            LEGACY_URL="${BASE_URL}/main/"
+          else
+            DEPLOY_URL="${BASE_URL}/${TARGET_ENV}/"
+          fi
 
           echo "🚀 Deploy publicado em: ${DEPLOY_URL}"
           echo "::notice title=Deploy URL::${DEPLOY_URL}"
+          if [ "${TARGET_ENV}" = "main" ]; then
+            echo "::notice title=URL legada (/main)::${LEGACY_URL}"
+          fi
 
           {
             echo "## ✅ Deploy concluído"
@@ -122,4 +143,8 @@ jobs:
             echo "Ambiente: **${TARGET_ENV}**"
             echo
             echo "🔗 **URL:** [${DEPLOY_URL}](${DEPLOY_URL})"
+            if [ "${TARGET_ENV}" = "main" ]; then
+              echo
+              echo "ℹ️ URL legada: [${LEGACY_URL}](${LEGACY_URL})"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
