@@ -343,11 +343,76 @@ select {
   z-index: 180;
 }
 
-.mobile-profile-trigger {
+.mobile-md3-nav {
   position: fixed;
-  top: max(0.85rem, env(safe-area-inset-top));
-  right: max(0.85rem, env(safe-area-inset-right));
-  z-index: 180;
+  left: 0;
+  right: 0;
+  bottom: max(0.6rem, env(safe-area-inset-bottom));
+  z-index: 210;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.mobile-md3-nav__rail {
+  width: min(96vw, 560px);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: rgba(15, 106, 167, 0.46);
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.26);
+  backdrop-filter: blur(14px) saturate(125%);
+  -webkit-backdrop-filter: blur(14px) saturate(125%);
+  pointer-events: auto;
+}
+
+.mobile-md3-nav__side {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.mobile-md3-nav__side--left { justify-content: flex-start; }
+.mobile-md3-nav__side--right { justify-content: flex-end; }
+
+.mobile-md3-nav__action {
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #f8fbff;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 0.62rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.mobile-md3-nav__action.is-active {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.mobile-md3-nav__fab {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  background: rgba(5, 150, 105, 0.74);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.32);
 }
 
 .mobile-nav-trigger__button {
@@ -668,6 +733,12 @@ select {
   overflow-y: auto;
   padding: clamp(1.2rem, 2vw, 2.2rem);
   padding-bottom: clamp(1.2rem, 2vw, 2.2rem);
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    padding-bottom: calc(7.2rem + env(safe-area-inset-bottom));
+  }
 }
 
 .page-title {

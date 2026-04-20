@@ -930,6 +930,49 @@ const ClinicN2Modal = ({
   );
 };
 
+const MobileMd3Nav = ({
+  visible,
+  leftActions = [],
+  rightActions = [],
+  onOpenSmartNavigation
+}) => {
+  if (!visible) return null;
+
+  const renderAction = (action) => (
+    <button
+      key={action.key}
+      type="button"
+      className={`mobile-md3-nav__action ${action.active ? 'is-active' : ''}`}
+      onClick={action.onClick}
+      aria-label={action.ariaLabel || action.label}
+    >
+      <AppIcon name={action.icon} size={14} />
+      <span>{action.label}</span>
+    </button>
+  );
+
+  return (
+    <nav className="mobile-md3-nav" aria-label="Barra de navegação móvel">
+      <div className="mobile-md3-nav__rail">
+        <div className="mobile-md3-nav__side mobile-md3-nav__side--left">
+          {leftActions.map(renderAction)}
+        </div>
+        <button
+          type="button"
+          className="mobile-md3-nav__fab"
+          onClick={onOpenSmartNavigation}
+          aria-label="Abrir navegação inteligente"
+        >
+          <AppIcon name="menu" size={18} />
+        </button>
+        <div className="mobile-md3-nav__side mobile-md3-nav__side--right">
+          {rightActions.map(renderAction)}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
 const readStoredUiState = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -2350,24 +2393,56 @@ function DashboardApp({
     );
   };
 
+  const openSmartNavigation = () => {
+    setShowPatientN2(false);
+    setShowMobileNavDrawer(true);
+  };
+
+  const mobileNavActionConfigByTab = {
+    overview: {
+      left: [
+        { key: 'overview-home', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
+        { key: 'overview-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+      ],
+      right: [
+        { key: 'overview-settings', icon: 'settings', label: 'Ajustes', onClick: () => setActiveTab('settings') },
+        { key: 'overview-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+      ]
+    },
+    patients: {
+      left: [
+        { key: 'patients-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'patients-new', icon: 'edit', label: 'Novo', onClick: openCreatePatientN2 }
+      ],
+      right: [
+        { key: 'patients-search', icon: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
+        { key: 'patients-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+      ]
+    },
+    settings: {
+      left: [
+        { key: 'settings-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') }
+      ],
+      right: [
+        { key: 'settings-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+      ]
+    },
+    account: {
+      left: [
+        { key: 'account-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'account-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+      ],
+      right: [
+        { key: 'account-edit', icon: 'edit', label: 'Editar', onClick: openAccountEditN2 },
+        { key: 'account-clinics', icon: 'settings', label: 'Clínicas', onClick: handleOpenClinicN2 }
+      ]
+    }
+  };
+
+  const mobileNavActionConfig = mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
+
   return (
     <div className="app-shell">
-      {isMobileViewport ? (
-        <div className="mobile-profile-trigger">
-          <button
-            className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
-            onClick={() => {
-              setShowMobileNavDrawer(false);
-              setShowPatientN2(false);
-              setShowMobileNavDrawer(true);
-            }}
-            aria-label="Abrir navegação inteligente"
-          >
-            <AppIcon name="menu" size={13} className="btn-icon" />
-            <span className="btn-label">Navegação</span>
-          </button>
-        </div>
-      ) : null}
       <div className="app-frame">
         <aside className="app-sidebar">
           <div className="app-brand">Odonto<span>Flow</span></div>
@@ -2551,6 +2626,13 @@ function DashboardApp({
         onStartEdit={handleStartPatientEdit}
         onCancelEdit={handleCancelPatientEdit}
         onSaveEdit={handleSavePatientEdit}
+      />
+
+      <MobileMd3Nav
+        visible={isMobileViewport}
+        leftActions={mobileNavActionConfig.left}
+        rightActions={mobileNavActionConfig.right}
+        onOpenSmartNavigation={openSmartNavigation}
       />
     </div>
   );
