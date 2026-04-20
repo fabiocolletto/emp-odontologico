@@ -53,6 +53,17 @@
   --card-g-h: 192px;
 }
 
+/* Padronização global de raio em px (inclui utilitários Tailwind usados no JSX) */
+.rounded-none { border-radius: 0 !important; }
+.rounded-sm { border-radius: 8px !important; }
+.rounded,
+.rounded-md { border-radius: 12px !important; }
+.rounded-lg { border-radius: 14px !important; }
+.rounded-xl { border-radius: 16px !important; }
+.rounded-2xl { border-radius: 20px !important; }
+.rounded-3xl { border-radius: 24px !important; }
+.rounded-full { border-radius: 999px !important; }
+
 @supports (height: 100dvh) {
   :root {
     --viewport-h: 100dvh;

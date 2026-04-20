@@ -719,6 +719,47 @@ const PatientN2Modal = ({
   );
 };
 
+const AccountN2Modal = ({
+  isOpen,
+  title,
+  subtitle,
+  onClose,
+  onSave,
+  isSaving,
+  children
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+            {subtitle ? <p className="modal-step-label">{subtitle}</p> : null}
+          </div>
+          <div className="modal-header__actions">
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral" onClick={onClose}>
+              <AppIcon name="close" size={13} className="btn-icon" />
+              <span className="btn-label">Cancelar</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSave} disabled={isSaving}>
+              <AppIcon name="check" size={13} className="btn-icon" />
+              <span className="btn-label">{isSaving ? 'Salvando...' : 'Salvar'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="modal-body">
+          <div className="modal-grid">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const readStoredUiState = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -787,12 +828,14 @@ function DashboardApp({
   const [authActionMessage, setAuthActionMessage] = useState('');
   const [accountEmailDraft, setAccountEmailDraft] = useState(authUser?.email || '');
   const [accountPasswordDraft, setAccountPasswordDraft] = useState('');
+  const [isAccountEditN2Open, setIsAccountEditN2Open] = useState(false);
   const [publicProfileDraft, setPublicProfileDraft] = useState({
     full_name: '',
     phone: '',
     address: '',
     birth_date: ''
   });
+  const [isPublicProfileN2Open, setIsPublicProfileN2Open] = useState(false);
   const [profileActionStatus, setProfileActionStatus] = useState('idle');
   const [profileActionMessage, setProfileActionMessage] = useState('');
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
@@ -1030,6 +1073,16 @@ function DashboardApp({
     }
   };
 
+  const openAccountEditN2 = () => {
+    setAccountEmailDraft(authUserWidget?.email || authEmail || '');
+    setAccountPasswordDraft('');
+    setIsAccountEditN2Open(true);
+  };
+
+  const openPublicProfileEditN2 = () => {
+    setIsPublicProfileN2Open(true);
+  };
+
   const handleAccountUpdate = async () => {
     if (!accountService?.updateAuthUser) return;
 
@@ -1053,6 +1106,7 @@ function DashboardApp({
       await accountService.updateAuthUser(payload);
       await refreshAuthWidget();
       setAccountPasswordDraft('');
+      setIsAccountEditN2Open(false);
       setAuthActionStatus('success');
       setAuthActionMessage('Conta atualizada com sucesso via Supabase Auth.');
     } catch (error) {
@@ -1110,6 +1164,7 @@ function DashboardApp({
       });
       setProfileActionStatus('success');
       setProfileActionMessage('Perfil público salvo com sucesso.');
+      setIsPublicProfileN2Open(false);
     } catch (error) {
       setProfileActionStatus('error');
       setProfileActionMessage(error?.message || 'Não foi possível salvar o perfil público.');
@@ -1915,32 +1970,14 @@ function DashboardApp({
 
           <div className="bg-white border data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
-            <div className="grid md:grid-cols-2 gap-3">
-              <label className="text-sm text-slate-600">
-                Novo e-mail
-                <input
-                  type="email"
-                  className="search-input mt-1"
-                  value={accountEmailDraft}
-                  onChange={(event) => setAccountEmailDraft(event.target.value)}
-                  placeholder="novoemail@clinica.com"
-                />
-              </label>
-              <label className="text-sm text-slate-600">
-                Nova senha
-                <input
-                  type="password"
-                  className="search-input mt-1"
-                  value={accountPasswordDraft}
-                  onChange={(event) => setAccountPasswordDraft(event.target.value)}
-                  placeholder="********"
-                />
-              </label>
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
+              <div><strong>E-mail atual:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
+              <div><strong>Senha:</strong> ********</div>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button className="btn btn--primary" onClick={handleAccountUpdate} disabled={authActionStatus === 'loading'}>
-                Salvar alterações
+              <button className="btn btn--primary" onClick={openAccountEditN2} disabled={authActionStatus === 'loading'}>
+                Editar (N2)
               </button>
               {accountService?.signOut ? (
                 <button className="btn btn--ghost" onClick={accountService.signOut} disabled={authActionStatus === 'loading'}>
@@ -1963,51 +2000,16 @@ function DashboardApp({
 
           <div className="bg-white border data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.users</code>)</p>
-            <div className="grid md:grid-cols-2 gap-3">
-              <label className="text-sm text-slate-600">
-                Nome
-                <input
-                  type="text"
-                  className="search-input mt-1"
-                  value={publicProfileDraft.full_name}
-                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, full_name: event.target.value }))}
-                  placeholder="Nome completo"
-                />
-              </label>
-              <label className="text-sm text-slate-600">
-                Telefone
-                <input
-                  type="text"
-                  className="search-input mt-1"
-                  value={publicProfileDraft.phone}
-                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, phone: event.target.value }))}
-                  placeholder="(00) 00000-0000"
-                />
-              </label>
-              <label className="text-sm text-slate-600 md:col-span-2">
-                Endereço
-                <input
-                  type="text"
-                  className="search-input mt-1"
-                  value={publicProfileDraft.address}
-                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, address: event.target.value }))}
-                  placeholder="Rua, número, bairro, cidade/UF"
-                />
-              </label>
-              <label className="text-sm text-slate-600">
-                Data de nascimento
-                <input
-                  type="date"
-                  className="search-input mt-1"
-                  value={publicProfileDraft.birth_date || ''}
-                  onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, birth_date: event.target.value }))}
-                />
-              </label>
+            <div className="grid md:grid-cols-2 gap-3 text-sm">
+              <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
+              <div><strong>Telefone:</strong> {publicProfileDraft.phone || '-'}</div>
+              <div><strong>Endereço:</strong> {publicProfileDraft.address || '-'}</div>
+              <div><strong>Data de nascimento:</strong> {publicProfileDraft.birth_date || '-'}</div>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button className="btn btn--primary" onClick={handleSavePublicProfile} disabled={profileActionStatus === 'loading'}>
-                Salvar perfil público
+              <button className="btn btn--primary" onClick={openPublicProfileEditN2} disabled={profileActionStatus === 'loading'}>
+                Editar (N2)
               </button>
               <button
                 className="btn btn--ghost"
@@ -2157,6 +2159,85 @@ function DashboardApp({
           </aside>
         </div>
       )}
+
+      <AccountN2Modal
+        isOpen={isAccountEditN2Open}
+        title="Editar conta"
+        subtitle="Atualização de credenciais via Supabase Auth"
+        onClose={() => setIsAccountEditN2Open(false)}
+        onSave={handleAccountUpdate}
+        isSaving={authActionStatus === 'loading'}
+      >
+        <label className="form-field">
+          <span>Novo e-mail</span>
+          <input
+            type="email"
+            className="form-input"
+            value={accountEmailDraft}
+            onChange={(event) => setAccountEmailDraft(event.target.value)}
+            placeholder="novoemail@clinica.com"
+          />
+        </label>
+        <label className="form-field">
+          <span>Nova senha</span>
+          <input
+            type="password"
+            className="form-input"
+            value={accountPasswordDraft}
+            onChange={(event) => setAccountPasswordDraft(event.target.value)}
+            placeholder="********"
+          />
+        </label>
+      </AccountN2Modal>
+
+      <AccountN2Modal
+        isOpen={isPublicProfileN2Open}
+        title="Editar perfil público"
+        subtitle="Dados da tabela public.users"
+        onClose={() => setIsPublicProfileN2Open(false)}
+        onSave={handleSavePublicProfile}
+        isSaving={profileActionStatus === 'loading'}
+      >
+        <label className="form-field">
+          <span>Nome</span>
+          <input
+            type="text"
+            className="form-input"
+            value={publicProfileDraft.full_name}
+            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, full_name: event.target.value }))}
+            placeholder="Nome completo"
+          />
+        </label>
+        <label className="form-field">
+          <span>Telefone</span>
+          <input
+            type="text"
+            className="form-input"
+            value={publicProfileDraft.phone}
+            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, phone: event.target.value }))}
+            placeholder="(00) 00000-0000"
+          />
+        </label>
+        <label className="form-field form-field--full">
+          <span>Endereço</span>
+          <input
+            type="text"
+            className="form-input"
+            value={publicProfileDraft.address}
+            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, address: event.target.value }))}
+            placeholder="Rua, número, bairro, cidade/UF"
+          />
+        </label>
+        <label className="form-field">
+          <span>Data de nascimento</span>
+          <input
+            type="date"
+            className="form-input"
+            value={publicProfileDraft.birth_date || ''}
+            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, birth_date: event.target.value }))}
+          />
+        </label>
+      </AccountN2Modal>
 
       <PatientN2Modal
         isOpen={showPatientN2 && (patientModalMode === 'create' || Boolean(selectedPatient))}
