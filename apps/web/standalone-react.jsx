@@ -1889,7 +1889,7 @@ function DashboardApp({
           title={title}
           subtitle={subtitle}
           actions={actions}
-          navigation={navigation}
+          navigation={null}
         />
       ) : null
     );
@@ -2373,14 +2373,14 @@ function DashboardApp({
           <button
             className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
             onClick={() => {
-              setActiveTab('account');
               setShowMobileNavDrawer(false);
               setShowPatientN2(false);
+              setShowMobileNavDrawer(true);
             }}
-            aria-label="Abrir tela de perfil"
+            aria-label="Abrir navegação inteligente"
           >
-            <AppIcon name="settings" size={13} className="btn-icon" />
-            <span className="btn-label">Perfil</span>
+            <AppIcon name="menu" size={13} className="btn-icon" />
+            <span className="btn-label">Navegação</span>
           </button>
         </div>
       ) : null}
