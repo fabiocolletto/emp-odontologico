@@ -103,13 +103,73 @@
       };
     };
 
+    const loadClinics = async (userId) => {
+      const client = ensureClient();
+      if (!userId) return [];
+
+      const { data, error } = await client
+        .from('odf_clinics')
+        .select('id, trade_name, legal_name, document_number, email, phone, city, state, timezone, status, owner_user_id')
+        .eq('owner_user_id', userId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw toError('Falha ao carregar clínicas do usuário.', error);
+      if (data?.length) return data;
+
+      const { data: created, error: createError } = await client
+        .from('odf_clinics')
+        .insert({
+          trade_name: 'Minha Clínica',
+          owner_user_id: userId,
+          created_by: userId,
+          updated_by: userId
+        })
+        .select('id, trade_name, legal_name, document_number, email, phone, city, state, timezone, status, owner_user_id')
+        .single();
+
+      if (createError) throw toError('Falha ao criar clínica padrão do usuário.', createError);
+      return created ? [created] : [];
+    };
+
+    const saveClinic = async ({ userId, clinic }) => {
+      const client = ensureClient();
+      if (!userId) throw new Error('Usuário inválido para salvar clínica.');
+
+      const payload = {
+        id: clinic?.id || undefined,
+        trade_name: clinic?.trade_name || 'Minha Clínica',
+        legal_name: clinic?.legal_name || '',
+        document_number: clinic?.document_number || '',
+        email: clinic?.email || '',
+        phone: clinic?.phone || '',
+        city: clinic?.city || '',
+        state: clinic?.state || '',
+        timezone: clinic?.timezone || 'America/Sao_Paulo',
+        status: clinic?.status || 'trial',
+        owner_user_id: userId,
+        created_by: clinic?.id ? undefined : userId,
+        updated_by: userId
+      };
+
+      const { data, error } = await client
+        .from('odf_clinics')
+        .upsert(payload, { onConflict: 'id' })
+        .select('id, trade_name, legal_name, document_number, email, phone, city, state, timezone, status, owner_user_id')
+        .single();
+
+      if (error) throw toError('Falha ao salvar clínica.', error);
+      return data;
+    };
+
     return {
       getAuthUser,
       updateAuthUser,
       signOut,
       deleteAuthUser,
       loadPublicProfile,
-      savePublicProfile
+      savePublicProfile,
+      loadClinics,
+      saveClinic
     };
   };
 

@@ -66,7 +66,9 @@ const createAccountService = (supabaseClient) => {
       return true;
     },
     loadPublicProfile: async () => null,
-    savePublicProfile: async ({ userId, profile }) => ({ id: userId, ...profile })
+    savePublicProfile: async ({ userId, profile }) => ({ id: userId, ...profile }),
+    loadClinics: async () => [],
+    saveClinic: async ({ clinic }) => clinic
   };
 };
 
@@ -839,6 +841,100 @@ const PublicProfileN2Modal = ({
   );
 };
 
+const ClinicN2Modal = ({
+  isOpen,
+  clinics,
+  selectedClinicId,
+  draft,
+  onSelectClinic,
+  onChange,
+  onCreateNew,
+  onSave,
+  onClose,
+  isSaving
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Clínicas do usuário</h3>
+            <p className="modal-step-label">Selecione uma clínica para editar ou crie uma nova.</p>
+          </div>
+          <div className="modal-header__actions">
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info" onClick={onCreateNew}>
+              <AppIcon name="edit" size={13} className="btn-icon" />
+              <span className="btn-label">Nova clínica</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral" onClick={onClose}>
+              <AppIcon name="close" size={13} className="btn-icon" />
+              <span className="btn-label">Cancelar</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSave} disabled={isSaving}>
+              <AppIcon name="check" size={13} className="btn-icon" />
+              <span className="btn-label">{isSaving ? 'Salvando...' : 'Salvar clínica'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="modal-body space-y-4">
+          <label className="form-field">
+            <span>Clínica selecionada</span>
+            <select className="form-input" value={selectedClinicId || ''} onChange={(event) => onSelectClinic(event.target.value)}>
+              {clinics.map((clinic) => (
+                <option key={clinic.id} value={clinic.id}>{clinic.trade_name}</option>
+              ))}
+              {!selectedClinicId && <option value="">Nova clínica</option>}
+            </select>
+          </label>
+
+          <div className="modal-grid">
+            <label className="form-field">
+              <span>Nome fantasia</span>
+              <input className="form-input" value={draft.trade_name} onChange={(event) => onChange('trade_name', event.target.value)} placeholder="Minha Clínica" />
+            </label>
+            <label className="form-field">
+              <span>Razão social</span>
+              <input className="form-input" value={draft.legal_name} onChange={(event) => onChange('legal_name', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>Documento</span>
+              <input className="form-input" value={draft.document_number} onChange={(event) => onChange('document_number', event.target.value)} placeholder="CNPJ" />
+            </label>
+            <label className="form-field">
+              <span>Email</span>
+              <input className="form-input" type="email" value={draft.email} onChange={(event) => onChange('email', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>Telefone</span>
+              <input className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>Cidade</span>
+              <input className="form-input" value={draft.city} onChange={(event) => onChange('city', event.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>UF</span>
+              <input className="form-input" value={draft.state} onChange={(event) => onChange('state', event.target.value.toUpperCase().slice(0, 2))} />
+            </label>
+            <label className="form-field">
+              <span>Status</span>
+              <select className="form-input" value={draft.status} onChange={(event) => onChange('status', event.target.value)}>
+                <option value="trial">trial</option>
+                <option value="active">active</option>
+                <option value="suspended">suspended</option>
+                <option value="archived">archived</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const readStoredUiState = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -918,6 +1014,23 @@ function DashboardApp({
   const [isPublicProfileN2Open, setIsPublicProfileN2Open] = useState(false);
   const [profileActionStatus, setProfileActionStatus] = useState('idle');
   const [profileActionMessage, setProfileActionMessage] = useState('');
+  const [clinics, setClinics] = useState([]);
+  const [selectedClinicId, setSelectedClinicId] = useState('');
+  const [clinicDraft, setClinicDraft] = useState({
+    id: '',
+    trade_name: '',
+    legal_name: '',
+    document_number: '',
+    email: '',
+    phone: '',
+    city: '',
+    state: '',
+    timezone: 'America/Sao_Paulo',
+    status: 'trial'
+  });
+  const [isClinicN2Open, setIsClinicN2Open] = useState(false);
+  const [clinicActionStatus, setClinicActionStatus] = useState('idle');
+  const [clinicActionMessage, setClinicActionMessage] = useState('');
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
   );
@@ -1163,6 +1276,19 @@ function DashboardApp({
     setIsPublicProfileN2Open(true);
   };
 
+  const toClinicDraft = (clinic) => ({
+    id: clinic?.id || '',
+    trade_name: clinic?.trade_name || '',
+    legal_name: clinic?.legal_name || '',
+    document_number: clinic?.document_number || '',
+    email: clinic?.email || '',
+    phone: clinic?.phone || '',
+    city: clinic?.city || '',
+    state: clinic?.state || '',
+    timezone: clinic?.timezone || 'America/Sao_Paulo',
+    status: clinic?.status || 'trial'
+  });
+
   const handleAccountUpdate = async () => {
     if (!accountService?.updateAuthUser) return;
 
@@ -1250,6 +1376,65 @@ function DashboardApp({
     } catch (error) {
       setProfileActionStatus('error');
       setProfileActionMessage(error?.message || 'Não foi possível salvar o perfil público.');
+    }
+  };
+
+  const refreshClinics = async (userId) => {
+    if (!accountService?.loadClinics || !userId) return;
+    const data = await accountService.loadClinics(userId);
+    setClinics(data || []);
+    if (data?.length) {
+      const defaultClinic = data[0];
+      setSelectedClinicId(defaultClinic.id);
+      setClinicDraft(toClinicDraft(defaultClinic));
+    }
+  };
+
+  const handleOpenClinicN2 = async () => {
+    setIsClinicN2Open(true);
+    try {
+      await refreshClinics(authUserWidget?.id);
+    } catch (error) {
+      setClinicActionStatus('error');
+      setClinicActionMessage(error?.message || 'Não foi possível carregar clínicas.');
+    }
+  };
+
+  const handleSelectClinic = (clinicId) => {
+    setSelectedClinicId(clinicId);
+    const clinic = clinics.find((item) => item.id === clinicId);
+    if (clinic) {
+      setClinicDraft(toClinicDraft(clinic));
+    }
+  };
+
+  const handleCreateNewClinic = () => {
+    setSelectedClinicId('');
+    setClinicDraft(toClinicDraft(null));
+  };
+
+  const handleSaveClinic = async () => {
+    if (!accountService?.saveClinic || !authUserWidget?.id) return;
+    if (!clinicDraft.trade_name.trim()) {
+      setClinicActionStatus('error');
+      setClinicActionMessage('Informe ao menos o nome fantasia da clínica.');
+      return;
+    }
+
+    setClinicActionStatus('loading');
+    setClinicActionMessage('Salvando clínica...');
+    try {
+      await accountService.saveClinic({
+        userId: authUserWidget.id,
+        clinic: clinicDraft
+      });
+      await refreshClinics(authUserWidget.id);
+      setClinicActionStatus('success');
+      setClinicActionMessage('Clínica salva com sucesso.');
+      setIsClinicN2Open(false);
+    } catch (error) {
+      setClinicActionStatus('error');
+      setClinicActionMessage(error?.message || 'Não foi possível salvar clínica.');
     }
   };
 
@@ -1421,6 +1606,7 @@ function DashboardApp({
           setPublicProfileDraft((prev) => ({ ...prev, email: prev.email || user.email }));
         }
         await refreshPublicProfile(user?.id);
+        await refreshClinics(user?.id);
       } catch (error) {
         if (!active) return;
         setAuthActionStatus('error');
@@ -2126,6 +2312,39 @@ function DashboardApp({
               </p>
             ) : null}
           </div>
+
+          <div className="bg-white border data-card data-card--g space-y-4">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínicas do proprietário (tabela <code>public.odf_clinics</code>)</p>
+            {clinics.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhuma clínica encontrada. Ao abrir o editor, uma clínica padrão será criada automaticamente.</p>
+            ) : (
+              <div className="space-y-2">
+                {clinics.slice(0, 3).map((clinic) => (
+                  <div key={clinic.id} className="text-sm text-slate-700 border border-slate-100 rounded-xl p-3">
+                    <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
+                    <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
+                  </div>
+                ))}
+                {clinics.length > 3 ? (
+                  <p className="text-xs text-slate-500">+{clinics.length - 3} clínica(s) adicional(is).</p>
+                ) : null}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                onClick={handleOpenClinicN2}
+                disabled={clinicActionStatus === 'loading'}
+              >
+                Editar clínicas (N2)
+              </button>
+            </div>
+            {clinicActionMessage ? (
+              <p className={`text-xs ${clinicActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+                {clinicActionMessage}
+              </p>
+            ) : null}
+          </div>
         </div>
       );
     }
@@ -2297,6 +2516,19 @@ function DashboardApp({
         isSaving={profileActionStatus === 'loading'}
         draft={publicProfileDraft}
         onChange={(field, value) => setPublicProfileDraft((prev) => ({ ...prev, [field]: value }))}
+      />
+
+      <ClinicN2Modal
+        isOpen={isClinicN2Open}
+        clinics={clinics}
+        selectedClinicId={selectedClinicId}
+        draft={clinicDraft}
+        onSelectClinic={handleSelectClinic}
+        onChange={(field, value) => setClinicDraft((prev) => ({ ...prev, [field]: value }))}
+        onCreateNew={handleCreateNewClinic}
+        onSave={handleSaveClinic}
+        onClose={() => setIsClinicN2Open(false)}
+        isSaving={clinicActionStatus === 'loading'}
       />
 
       <PatientN2Modal
