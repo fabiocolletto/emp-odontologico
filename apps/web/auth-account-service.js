@@ -43,35 +43,64 @@
       if (!userId) return null;
 
       const { data, error } = await client
-        .from('users')
-        .select('id, full_name, phone, address, birth_date')
-        .eq('id', userId)
+        .from('odf_users')
+        .select('user_id, full_name, email, phone, metadata')
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (error) throw toError('Falha ao carregar perfil público.', error);
-      return data || null;
+      if (!data) return null;
+
+      return {
+        user_id: data.user_id,
+        full_name: data.full_name || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        address: data?.metadata?.address || '',
+        birth_date: data?.metadata?.birth_date || ''
+      };
     };
 
     const savePublicProfile = async ({ userId, profile }) => {
       const client = ensureClient();
       if (!userId) throw new Error('ID do usuário é obrigatório para salvar o perfil público.');
 
-      const payload = {
-        id: userId,
-        full_name: profile?.full_name || '',
-        phone: profile?.phone || '',
+      const { data: existingProfile } = await client
+        .from('odf_users')
+        .select('metadata')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const nextMetadata = {
+        ...(existingProfile?.metadata || {}),
         address: profile?.address || '',
         birth_date: profile?.birth_date || null
       };
 
+      const payload = {
+        user_id: userId,
+        full_name: profile?.full_name || '',
+        email: profile?.email || '',
+        phone: profile?.phone || '',
+        metadata: nextMetadata
+      };
+
       const { data, error } = await client
-        .from('users')
-        .upsert(payload, { onConflict: 'id' })
-        .select('id, full_name, phone, address, birth_date')
+        .from('odf_users')
+        .upsert(payload, { onConflict: 'user_id' })
+        .select('user_id, full_name, email, phone, metadata')
         .maybeSingle();
 
       if (error) throw toError('Falha ao salvar perfil público.', error);
-      return data || payload;
+      const source = data || payload;
+      return {
+        user_id: source.user_id,
+        full_name: source.full_name || '',
+        email: source.email || '',
+        phone: source.phone || '',
+        address: source?.metadata?.address || '',
+        birth_date: source?.metadata?.birth_date || ''
+      };
     };
 
     return {

@@ -760,6 +760,85 @@ const AccountN2Modal = ({
   );
 };
 
+const PublicProfileN2Modal = ({
+  isOpen,
+  onClose,
+  onSave,
+  isSaving,
+  draft,
+  onChange
+}) => {
+  const [activeTab, setActiveTab] = useState('primary');
+
+  useEffect(() => {
+    if (isOpen) setActiveTab('primary');
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-wrap">
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="modal-card modal-card--wide">
+        <div className="modal-header">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Editar perfil público</h3>
+            <p className="modal-step-label">Dados salvos em public.odf_users</p>
+          </div>
+          <div className="modal-header__actions">
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral" onClick={onClose}>
+              <AppIcon name="close" size={13} className="btn-icon" />
+              <span className="btn-label">Cancelar</span>
+            </button>
+            <button className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--success" onClick={onSave} disabled={isSaving}>
+              <AppIcon name="check" size={13} className="btn-icon" />
+              <span className="btn-label">{isSaving ? 'Salvando...' : 'Salvar'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="modal-body space-y-4">
+          <div className="bio-steps" aria-label="Abas do perfil público">
+            <button type="button" className={`bio-step ${activeTab === 'primary' ? 'is-active' : ''}`} onClick={() => setActiveTab('primary')}>
+              1. Dados primários
+            </button>
+            <button type="button" className={`bio-step ${activeTab === 'complementary' ? 'is-active' : ''}`} onClick={() => setActiveTab('complementary')}>
+              2. Complementar
+            </button>
+          </div>
+
+          {activeTab === 'primary' ? (
+            <div className="modal-grid">
+              <label className="form-field">
+                <span>Nome</span>
+                <input type="text" className="form-input" value={draft.full_name} onChange={(event) => onChange('full_name', event.target.value)} placeholder="Nome completo" />
+              </label>
+              <label className="form-field">
+                <span>E-mail</span>
+                <input type="email" className="form-input" value={draft.email} onChange={(event) => onChange('email', event.target.value)} placeholder="nome@email.com" />
+              </label>
+              <label className="form-field">
+                <span>Telefone</span>
+                <input type="text" className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} placeholder="(00) 00000-0000" />
+              </label>
+            </div>
+          ) : (
+            <div className="modal-grid">
+              <label className="form-field form-field--full">
+                <span>Endereço</span>
+                <input type="text" className="form-input" value={draft.address} onChange={(event) => onChange('address', event.target.value)} placeholder="Rua, número, bairro, cidade/UF" />
+              </label>
+              <label className="form-field">
+                <span>Data de nascimento</span>
+                <input type="date" className="form-input" value={draft.birth_date || ''} onChange={(event) => onChange('birth_date', event.target.value)} />
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const readStoredUiState = () => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -831,6 +910,7 @@ function DashboardApp({
   const [isAccountEditN2Open, setIsAccountEditN2Open] = useState(false);
   const [publicProfileDraft, setPublicProfileDraft] = useState({
     full_name: '',
+    email: '',
     phone: '',
     address: '',
     birth_date: ''
@@ -1140,6 +1220,7 @@ function DashboardApp({
     const profile = await accountService.loadPublicProfile(userId);
     setPublicProfileDraft({
       full_name: profile?.full_name || '',
+      email: profile?.email || authUserWidget?.email || authEmail || '',
       phone: profile?.phone || '',
       address: profile?.address || '',
       birth_date: profile?.birth_date || ''
@@ -1158,6 +1239,7 @@ function DashboardApp({
       });
       setPublicProfileDraft({
         full_name: saved?.full_name || '',
+        email: saved?.email || '',
         phone: saved?.phone || '',
         address: saved?.address || '',
         birth_date: saved?.birth_date || ''
@@ -1336,6 +1418,7 @@ function DashboardApp({
         setAuthUserWidget(user || null);
         if (user?.email) {
           setAccountEmailDraft(user.email);
+          setPublicProfileDraft((prev) => ({ ...prev, email: prev.email || user.email }));
         }
         await refreshPublicProfile(user?.id);
       } catch (error) {
@@ -1999,9 +2082,10 @@ function DashboardApp({
           </div>
 
           <div className="bg-white border data-card data-card--g space-y-4">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.users</code>)</p>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.odf_users</code>)</p>
             <div className="grid md:grid-cols-2 gap-3 text-sm">
               <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
+              <div><strong>E-mail:</strong> {publicProfileDraft.email || '-'}</div>
               <div><strong>Telefone:</strong> {publicProfileDraft.phone || '-'}</div>
               <div><strong>Endereço:</strong> {publicProfileDraft.address || '-'}</div>
               <div><strong>Data de nascimento:</strong> {publicProfileDraft.birth_date || '-'}</div>
@@ -2190,54 +2274,14 @@ function DashboardApp({
         </label>
       </AccountN2Modal>
 
-      <AccountN2Modal
+      <PublicProfileN2Modal
         isOpen={isPublicProfileN2Open}
-        title="Editar perfil público"
-        subtitle="Dados da tabela public.users"
         onClose={() => setIsPublicProfileN2Open(false)}
         onSave={handleSavePublicProfile}
         isSaving={profileActionStatus === 'loading'}
-      >
-        <label className="form-field">
-          <span>Nome</span>
-          <input
-            type="text"
-            className="form-input"
-            value={publicProfileDraft.full_name}
-            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, full_name: event.target.value }))}
-            placeholder="Nome completo"
-          />
-        </label>
-        <label className="form-field">
-          <span>Telefone</span>
-          <input
-            type="text"
-            className="form-input"
-            value={publicProfileDraft.phone}
-            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, phone: event.target.value }))}
-            placeholder="(00) 00000-0000"
-          />
-        </label>
-        <label className="form-field form-field--full">
-          <span>Endereço</span>
-          <input
-            type="text"
-            className="form-input"
-            value={publicProfileDraft.address}
-            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, address: event.target.value }))}
-            placeholder="Rua, número, bairro, cidade/UF"
-          />
-        </label>
-        <label className="form-field">
-          <span>Data de nascimento</span>
-          <input
-            type="date"
-            className="form-input"
-            value={publicProfileDraft.birth_date || ''}
-            onChange={(event) => setPublicProfileDraft((prev) => ({ ...prev, birth_date: event.target.value }))}
-          />
-        </label>
-      </AccountN2Modal>
+        draft={publicProfileDraft}
+        onChange={(field, value) => setPublicProfileDraft((prev) => ({ ...prev, [field]: value }))}
+      />
 
       <PatientN2Modal
         isOpen={showPatientN2 && (patientModalMode === 'create' || Boolean(selectedPatient))}
