@@ -213,15 +213,21 @@ const writeLocalClinicRegistration = (payload) => {
   window.localStorage.setItem(CLINIC_PROFILE_STORAGE_KEY, JSON.stringify(payload));
 };
 
-export const loadClinicRegistration = async () => {
+export const loadClinicRegistration = async (clinicId) => {
   const supabaseClient = globalThis?.window?.supabase;
 
   if (supabaseClient?.from) {
-    const { data: clinicData, error: clinicError } = await supabaseClient
+    let clinicQuery = supabaseClient
       .from('clinics')
-      .select('id, phone, email, address')
-      .limit(1)
-      .maybeSingle();
+      .select('id, phone, email, address');
+
+    if (clinicId) {
+      clinicQuery = clinicQuery.eq('id', clinicId);
+    } else {
+      clinicQuery = clinicQuery.limit(1);
+    }
+
+    const { data: clinicData, error: clinicError } = await clinicQuery.maybeSingle();
 
     if (clinicError) {
       throw new Error(clinicError.message || 'Falha ao carregar dados da clínica.');

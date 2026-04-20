@@ -92,6 +92,14 @@ const Dashboard = () => {
   const [clinicRegistrationStatus, setClinicRegistrationStatus] = useState('idle');
   const [clinicRegistrationMessage, setClinicRegistrationMessage] = useState('');
 
+  const fiscalRequiredFields = [
+    { key: 'legalName', label: 'razão social' },
+    { key: 'tradeName', label: 'nome fantasia' },
+    { key: 'legalNature', label: 'natureza jurídica' },
+    { key: 'primaryCnae', label: 'CNAE principal' },
+    { key: 'registrationStatus', label: 'situação cadastral' }
+  ];
+
   useEffect(() => {
     const savedSortPreference = window.localStorage.getItem(PATIENTS_SORT_KEY);
     const savedSearchVisibility = window.localStorage.getItem(PATIENTS_SEARCH_VISIBLE_KEY);
@@ -234,10 +242,25 @@ const Dashboard = () => {
   }, [modalPatient, selectedPatient]);
 
   useEffect(() => {
+    if (!currentClinic?.id) return;
+
     const hydrateClinicRegistration = async () => {
       try {
-        const data = await loadClinicRegistration();
-        if (!data) return;
+        const data = await loadClinicRegistration(currentClinic.id);
+        if (!data) {
+          setClinicRegistrationForm({
+            phone: '',
+            email: '',
+            address: '',
+            cnpj: '',
+            legalName: '',
+            tradeName: '',
+            legalNature: '',
+            primaryCnae: '',
+            registrationStatus: ''
+          });
+          return;
+        }
 
         setClinicRegistrationForm({
           phone: data.contact?.phone || '',
@@ -257,7 +280,7 @@ const Dashboard = () => {
     };
 
     hydrateClinicRegistration();
-  }, []);
+  }, [currentClinic?.id]);
 
   useEffect(() => {
     const shouldLockScroll = mobileNavOpen;
@@ -348,6 +371,10 @@ const Dashboard = () => {
 
     try {
       const company = await fetchCompanyByCnpj(cnpj);
+      const missingFields = fiscalRequiredFields
+        .filter((field) => !company[field.key])
+        .map((field) => field.label);
+
       setClinicRegistrationForm((current) => ({
         ...current,
         cnpj: formatCnpj(company.cnpj || cnpj),
@@ -358,7 +385,11 @@ const Dashboard = () => {
         registrationStatus: company.registrationStatus || current.registrationStatus
       }));
       setCnpjLookupStatus('success');
-      setCnpjLookupMessage('Dados fiscais preenchidos. Complete manualmente os campos que faltarem.');
+      setCnpjLookupMessage(
+        missingFields.length > 0
+          ? `Dados fiscais preenchidos. Complete manualmente: ${missingFields.join(', ')}.`
+          : 'Dados fiscais preenchidos automaticamente.'
+      );
     } catch (error) {
       setCnpjLookupStatus('error');
       setCnpjLookupMessage(error?.message || 'Não foi possível consultar o CNPJ.');
