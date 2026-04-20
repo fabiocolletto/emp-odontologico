@@ -84,3 +84,10 @@ export const APPOINTMENTS = [
   { id: 'local-a2', name: 'Ricardo Albuquerque', time: '10:30', procedure: 'Extração Siso', date: '2024-04-18T10:30:00Z' },
   { id: 'local-a3', name: 'Juliana Ferreira', time: '14:15', procedure: 'Avaliação Ortodôntica', date: '2024-04-18T14:15:00Z' }
 ];
+
+
+export const AVAILABLE_CLINICS_FALLBACK = [
+  { id: 'clinic-matriz-sp', name: 'Clínica Matriz SP' },
+  { id: 'clinic-zona-sul', name: 'Unidade Zona Sul' },
+  { id: 'clinic-zona-leste', name: 'Unidade Zona Leste' }
+];

@@ -16,7 +16,7 @@ const isToday = (dateString) => {
   );
 };
 
-const DailyPanel = ({ appointments, allPatients, usingFallbackData, onOpenPatientRecord }) => {
+const DailyPanel = ({ appointments, allPatients, usingFallbackData, onOpenPatientRecord, currentClinic }) => {
   const patientIndicators = useMemo(() => {
     const total = allPatients.length;
     const dailyTrend = Math.max(appointments.filter((item) => isToday(item.date)).length, 1);
@@ -28,7 +28,7 @@ const DailyPanel = ({ appointments, allPatients, usingFallbackData, onOpenPatien
   }, [allPatients, appointments]);
 
   return (
-    <ViewLayout title="Painel Diário" badge="Clínica Matriz SP">
+    <ViewLayout title="Painel Diário" badge={currentClinic?.name || undefined}>
       <div className="space-y-12">
         {usingFallbackData && (
           <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl px-5 py-4 text-xs font-semibold">
