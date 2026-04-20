@@ -526,7 +526,6 @@ const PatientN2Modal = ({
   onFormChange,
   onPreviousTab,
   onNextTab,
-  onOpenNavigationMap,
   onSubmit,
   onStartEdit,
   onCancelEdit,
@@ -709,10 +708,6 @@ const PatientN2Modal = ({
             <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--next" onClick={onNextTab}>
               <AppIcon name="chevron-right" size={16} className="btn-icon" />
               <span className="btn-label">Próxima etapa</span>
-            </button>
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--map" onClick={onOpenNavigationMap}>
-              <AppIcon name="map" size={14} className="btn-icon" />
-              <span className="btn-label">Mapa</span>
             </button>
           </div>
         </div>
@@ -1847,18 +1842,7 @@ function DashboardApp({
       .map((key) => quickLinksCatalog[key])
       .filter(Boolean);
 
-    const contextHeaderActions = activeTab === 'overview'
-      ? []
-      : [
-        {
-          key: 'open-map',
-          tone: 'neutral',
-          icon: 'map',
-          label: 'Mapa',
-          ariaLabel: 'Abrir mapa de navegação',
-          onClick: () => setShowMobileNavDrawer(true)
-        }
-      ];
+    const contextHeaderActions = [];
 
     const quickLinksNavigation = (
       <div className="quick-links-shell">
@@ -2563,7 +2547,6 @@ function DashboardApp({
         onFormChange={handlePatientFormChange}
         onPreviousTab={() => moveFormTab(-1)}
         onNextTab={() => moveFormTab(1)}
-        onOpenNavigationMap={() => setShowMobileNavDrawer(true)}
         onSubmit={handleCreatePatientSubmit}
         onStartEdit={handleStartPatientEdit}
         onCancelEdit={handleCancelPatientEdit}
