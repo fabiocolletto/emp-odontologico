@@ -496,28 +496,15 @@ const Dashboard = () => {
 
   return (
     <AppShell
-      headerLeading={isNavSearchActive ? null : <div className="app-header__brand"><Stethoscope size={18} /> OdontoFlow</div>}
+      headerLeading={<div className="app-header__brand"><Stethoscope size={18} /> OdontoFlow</div>}
       headerCenter={(
-        isNavSearchActive ? (
-          <UiNavSearchBar
-            value={patientSearch}
-            onChange={(event) => setPatientSearch(event.target.value)}
-            onClear={() => setPatientSearch('')}
-            onCancel={() => {
-              setIsPatientSearchVisible(false);
-              setPatientSearch('');
-            }}
-            placeholder="Pesquisar pacientes..."
-          />
-        ) : (
-          <div>
-            <h1 className="app-header__title">{activeSectionTitle}</h1>
-            <p className="app-header__subtitle">{activeSectionSubtitle}</p>
-          </div>
-        )
+        <div>
+          <h1 className="app-header__title">{activeSectionTitle}</h1>
+          <p className="app-header__subtitle">{activeSectionSubtitle}</p>
+        </div>
       )}
       headerTrailing={(
-        <div className={`app-header__actions ${isNavSearchActive ? 'app-header__actions--hidden' : ''}`}>
+        <div className="app-header__actions">
           <UiButton
             onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
             icon={Plus}
@@ -577,43 +564,58 @@ const Dashboard = () => {
         </div>
       )}
       footer={(
-        <nav className="bottom-tabbar" aria-label="Navegação principal" data-level="0">
-          {navItems.slice(0, 2).map((item) => (
-            <a
-              key={item.id}
-              className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
-              href="#"
-              data-route={item.id === 'overview' ? 'painel' : 'pacientes'}
-              aria-current={activeTab === item.id ? 'page' : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                setActiveTab(item.id);
+        isNavSearchActive ? (
+          <div className="bottom-tabbar bottom-tabbar--search" aria-label="Pesquisa de pacientes" data-level="0">
+            <UiNavSearchBar
+              value={patientSearch}
+              onChange={(event) => setPatientSearch(event.target.value)}
+              onClear={() => setPatientSearch('')}
+              onCancel={() => {
+                setIsPatientSearchVisible(false);
+                setPatientSearch('');
               }}
-            >
-              <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
-              <span className="bottom-tabbar__label">{item.label}</span>
-            </a>
-          ))}
-          <button className="bottom-tabbar__fab" type="button" aria-label="Novo paciente" onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}>
-            <span className="bottom-tabbar__fab-icon" aria-hidden="true"><Plus size={28} /></span>
-          </button>
-          {navItems.slice(2).map((item) => (
-            <a
-              key={item.id}
-              className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
-              href="#"
-              data-route={item.id === 'settings' ? 'buscar' : 'conta'}
-              aria-current={activeTab === item.id ? 'page' : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                setActiveTab(item.id);
-              }}
-            >
-              <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
-              <span className="bottom-tabbar__label">{item.label}</span>
-            </a>
-          ))}
-        </nav>
+              placeholder="Pesquisar pacientes..."
+            />
+          </div>
+        ) : (
+          <nav className="bottom-tabbar" aria-label="Navegação principal" data-level="0">
+            {navItems.slice(0, 2).map((item) => (
+              <a
+                key={item.id}
+                className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
+                href="#"
+                data-route={item.id === 'overview' ? 'painel' : 'pacientes'}
+                aria-current={activeTab === item.id ? 'page' : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  setActiveTab(item.id);
+                }}
+              >
+                <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
+                <span className="bottom-tabbar__label">{item.label}</span>
+              </a>
+            ))}
+            <button className="bottom-tabbar__fab" type="button" aria-label="Novo paciente" onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}>
+              <span className="bottom-tabbar__fab-icon" aria-hidden="true"><Plus size={28} /></span>
+            </button>
+            {navItems.slice(2).map((item) => (
+              <a
+                key={item.id}
+                className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
+                href="#"
+                data-route={item.id === 'settings' ? 'buscar' : 'conta'}
+                aria-current={activeTab === item.id ? 'page' : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  setActiveTab(item.id);
+                }}
+              >
+                <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
+                <span className="bottom-tabbar__label">{item.label}</span>
+              </a>
+            ))}
+          </nav>
+        )
       )}
     >
 
