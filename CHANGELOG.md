@@ -2,6 +2,86 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.0.0 - 2026-04-21
+
+### Added
+- Início oficial da versão 1 para aplicação dos módulos sobre o framework consolidado.
+- Scripts de verificação da base estrutural:
+  - `scripts/smoke-runtime.sh`
+  - `scripts/check-framework.sh`
+
+### Changed
+- Versão do app sincronizada para `1.0.0`.
+
+## v0-final - 2026-04-21
+
+### Changed
+- Framework de layout consolidado como base oficial (shell, breakpoints, níveis e primitivas).
+- Pendências de fechamento da v0 executadas com runtime estável + checks estruturais.
+
+## v0.1.33 - 2026-04-21
+
+### Added
+- Plano formal de fechamento da versão 0 do framework em `docs/v0-framework-finalization-plan.md`, com critérios de conclusão e marco de transição para `v1.0.0`.
+
+### Changed
+- Versão fallback exibida no app standalone atualizada para `0.1.33`.
+- Registro de versão sincronizado em `apps/web/src/constants.js` para `0.1.33`.
+- Documentos de framework (`framework-layout` e `framework-checkup`) passaram a referenciar explicitamente o plano de finalização da etapa v0.
+
+## v0.1.32 - 2026-04-21
+
+### Fixed
+- Corrigida regressão de tela branca na abertura do app: `index.html` voltou a iniciar pelo entrypoint funcional `apps/web/standalone-react.jsx`.
+- Restaurado `apps/web/standalone-react.jsx` para garantir execução imediata no ambiente atual (sem pipeline de build da árvore modular).
+
+### Changed
+- Mantida a separação de estilos do framework em `apps/web/framework-shell.css`.
+- Documentação de framework/check-up ajustada para refletir o estado real do runtime e o próximo passo de migração segura.
+
+## v0.1.31 - 2026-04-21
+
+### Changed
+- Fluxo standalone legado removido: `index.html` passa a inicializar o app modular oficial via `apps/web/src/main.js` com Babel em modo módulo.
+- Estrutura de estilos normalizada: blocos oficiais do framework foram extraídos de `apps/web/styles.css` para `apps/web/framework-shell.css`.
+- `docs/framework-checkup.md` atualizado para registrar resolução completa das pendências estruturais da etapa de consolidação.
+
+## v0.1.30 - 2026-04-21
+
+### Added
+- Documento de auditoria estrutural `docs/framework-checkup.md` com checklist de validação do framework, inconsistências corrigidas e pendências estruturais registradas para continuidade disciplinada.
+
+### Changed
+- Contrato de nível 0 reforçado no markup da navegação principal (`data-level="0"` na sidebar e na bottom navigation).
+- Documentação oficial do framework (`docs/framework-layout.md`) passou a referenciar explicitamente o check-up estrutural.
+
+## v0.1.29 - 2026-04-21
+
+### Added
+- Documentação oficial do framework em `docs/framework-layout.md`, consolidando shell, breakpoints, níveis 0/1/2/3, componentes estruturais e regras de preservação para continuidade das próximas etapas.
+
+### Changed
+- Normalização da estrutura da sidebar para o contrato oficial (`app-sidebar__header`, `app-sidebar__nav`, `app-sidebar__footer`) e alinhamento da nomenclatura de navegação principal.
+- Organização dos estilos estruturais com seções explícitas para shell desktop, tablet paisagem e primitivas de níveis (detail pane/drawer/sheet/overlay), para facilitar manutenção.
+
+## v0.1.28 - 2026-04-21
+
+### Added
+- Primitivas estruturais do framework para profundidade de navegação: `DetailPane` (nível 2), `AppDrawer` (nível 3), `AppSheet` (nível 3) e `app-overlay` com fechamento por clique fora e `Escape` no drawer.
+
+### Changed
+- Modelo de níveis formalizado no shell com convenções explícitas (`data-shell-level`, `data-level`) para orientar containers de nível 0/1/2/3.
+- Sidebar passa a cobrir também tablet paisagem (600–1023 em orientação horizontal), mantendo bottom navigation apenas em mobile e tablet retrato.
+- Fluxo de pacientes em viewport ampla suporta detail pane acoplado (lista + detalhe), preservando o fluxo mobile/tablet retrato.
+
+## v0.1.27 - 2026-04-21
+
+### Changed
+- Shell responsivo consolidado como estrutura oficial reutilizável com `app-shell`, `app-header`, `app-body` e `app-footer`, incluindo `app-main` e suporte a `app-sidebar` no mesmo componente base.
+- Tablet (600px–1023px) passa a usar densidade oficial: header 72px, padding horizontal de 20px no header/body e body com espaçamento superior ampliado, mantendo navegação inferior mobile.
+- Desktop (1024px+) passa a usar arquitetura com sidebar fixa de 240px e navegação principal lateral (`Painel`, `Pacientes`, `Buscar`, `Conta`), com ocultação completa da bottom tab bar/footer visual.
+- Ação primária de “Novo paciente” permanece no fluxo desktop via botão discreto no header para evitar perda funcional quando o FAB mobile não é exibido.
+
 ## v0.1.26 - 2026-04-20
 
 ### Added

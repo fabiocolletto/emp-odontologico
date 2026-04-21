@@ -1,6 +1,50 @@
 :root {
   color-scheme: light;
   --viewport-h: 100vh;
+  --app-bg: #F5F7FB;
+  --surface-base: rgba(255, 255, 255, 0.92);
+  --surface-solid: #FFFFFF;
+  --surface-border: rgba(15, 23, 42, 0.08);
+
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-tertiary: #94A3B8;
+
+  --brand-primary: #22C55E;
+  --brand-primary-press: #16A34A;
+  --nav-active: #2563EB;
+  --nav-inactive: #8E8E93;
+
+  --shadow-soft: 0 4px 20px rgba(15, 23, 42, 0.08);
+  --shadow-fab: 0 8px 24px rgba(34, 197, 94, 0.22);
+
+  --radius-header: 0px;
+  --radius-tabbar: 0px;
+  --radius-fab: 999px;
+
+  --header-height-mobile: 64px;
+  --header-height-desktop: 72px;
+
+  --tabbar-height: 84px;
+  --tabbar-inner-height: 72px;
+  --tabbar-horizontal-padding: 12px;
+  --tabbar-bottom-padding: 8px;
+
+  --tab-item-height: 56px;
+  --tab-icon-size: 22px;
+  --tab-label-size: 11px;
+  --tab-label-line-height: 1.1;
+  --tab-label-weight: 500;
+
+  --fab-size: 56px;
+  --fab-icon-size: 28px;
+
+  --content-max-width: 1280px;
+  --page-padding-mobile: 16px;
+  --page-padding-tablet: 20px;
+  --page-padding-desktop: 24px;
+
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 
   /* Core palette */
   --bg-page: #eef2f6;
