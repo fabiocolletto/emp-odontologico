@@ -75,8 +75,8 @@ const createAccountService = (supabaseClient) => {
 const tabs = [
   { id: 'overview', label: 'Painel', icon: 'home' },
   { id: 'patients', label: 'Pacientes', icon: 'users' },
-  { id: 'settings', label: 'Configurações', icon: 'settings' },
-  { id: 'account', label: 'Conta', icon: 'settings' }
+  { id: 'financial', label: 'Financeiro', icon: 'plan' },
+  { id: 'profile', label: 'Perfil', icon: 'settings' }
 ];
 
 const MOBILE_NAV_SHORTCUTS = [
@@ -84,8 +84,8 @@ const MOBILE_NAV_SHORTCUTS = [
   { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
   { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
-  { id: 'settings', label: 'Configurações', tab: 'settings', icon: 'settings', group: 'Gestão' },
-  { id: 'account', label: 'Conta', tab: 'account', icon: 'settings', group: 'Gestão' }
+  { id: 'financial', label: 'Financeiro', tab: 'financial', icon: 'plan', group: 'Gestão' },
+  { id: 'profile', label: 'Perfil', tab: 'profile', icon: 'settings', group: 'Gestão' }
 ];
 
 const AppIcon = ({ name, size = 14, className = '' }) => {
@@ -2018,13 +2018,21 @@ function DashboardApp({
         ariaLabel: 'Abrir nível de ordenação',
         onClick: () => setIsPatientsSortLevelOpen(true)
       },
-      settings: {
-        key: 'settings',
-        icon: 'settings',
+      financial: {
+        key: 'financial',
+        icon: 'plan',
         tone: 'settings',
-        label: 'Config',
-        ariaLabel: 'Abrir configurações',
-        onClick: () => setActiveTab('settings')
+        label: 'Financeiro',
+        ariaLabel: 'Abrir financeiro',
+        onClick: () => setActiveTab('financial')
+      },
+      profile: {
+        key: 'profile',
+        icon: 'settings',
+        tone: 'account',
+        label: 'Perfil',
+        ariaLabel: 'Abrir perfil',
+        onClick: () => setActiveTab('profile')
       }
     };
 
@@ -2032,14 +2040,19 @@ function DashboardApp({
       overview: {
         level: 0,
         previous: null,
-        next: ['agenda-hoje', 'patients', 'settings']
+        next: ['agenda-hoje', 'patients', 'financial', 'profile']
       },
       patients: {
         level: 1,
         previous: 'overview',
         next: ['new-patient', 'patients-search', 'patients-sort', 'patients-multi']
       },
-      settings: {
+      financial: {
+        level: 1,
+        previous: 'overview',
+        next: []
+      },
+      profile: {
         level: 1,
         previous: 'overview',
         next: []
@@ -2399,14 +2412,14 @@ function DashboardApp({
       );
     }
 
-    if (activeTab === 'account') {
+    if (activeTab === 'profile') {
       const provider = authUserWidget?.app_metadata?.provider || authUserWidget?.aud || '-';
       const providers = authUserWidget?.app_metadata?.providers?.join(', ') || provider;
 
       return (
         <div className="space-y-6">
-          {renderN1Header({ icon: 'settings', title: 'Conta', subtitle: 'Auth Supabase e preferências pessoais' })}
-          {!isMobileViewport && <h2 className="page-title">Conta</h2>}
+          {renderN1Header({ icon: 'settings', title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
+          {!isMobileViewport && <h2 className="page-title">Perfil</h2>}
 
           <div className="ui-card data-card data-card--g space-y-4">
             <div className="flex flex-wrap gap-3 items-center justify-between">
@@ -2546,8 +2559,8 @@ function DashboardApp({
 
     return (
       <div className="space-y-6">
-        {renderN1Header({ icon: 'settings', title: 'Configurações', subtitle: 'Parâmetros e catálogo de procedimentos' })}
-        {!isMobileViewport && <h2 className="page-title">Configurações</h2>}
+        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Cobrança, assinaturas e faturamento' })}
+        {!isMobileViewport && <h2 className="page-title">Financeiro</h2>}
         <div className="ui-card data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
@@ -2573,8 +2586,8 @@ function DashboardApp({
         { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
-        { key: 'overview-settings', icon: 'settings', tone: 'settings', label: 'Ajustes', onClick: () => setActiveTab('settings') },
-        { key: 'overview-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'overview-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => setActiveTab('financial') },
+        { key: 'overview-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => setActiveTab('profile') }
       ]
     },
     patients: {
@@ -2599,15 +2612,15 @@ function DashboardApp({
         { key: 'patients-sort', icon: 'filter', tone: 'settings', label: 'Ordenar', onClick: () => setIsPatientsSortLevelOpen(true), active: isPatientsSortLevelOpen }
       ]
     },
-    settings: {
+    financial: {
       left: [
-        { key: 'settings-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') }
+        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') }
       ],
       right: [
-        { key: 'settings-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'financial-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => setActiveTab('profile') }
       ]
     },
-    account: {
+    profile: {
       left: [
         { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
         { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
@@ -2660,7 +2673,7 @@ function DashboardApp({
       return {
         left: [
           { key: 'account-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } },
-          { key: 'account-open', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
+          { key: 'account-open', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => setActiveTab('profile') }
         ],
         center: {
           key: 'account-save',

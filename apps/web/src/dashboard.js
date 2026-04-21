@@ -344,7 +344,7 @@ const Dashboard = () => {
   const navItems = [
     { id: 'overview', icon: Home, label: 'Painel' },
     { id: 'patients', icon: Users, label: 'Pacientes' },
-    { id: 'settings', icon: UserPlus, label: 'Cadastro' },
+    { id: 'financial', icon: BadgeDollarSign, label: 'Financeiro' },
     { id: 'profile', icon: User, label: 'Perfil' }
   ];
 
@@ -577,7 +577,7 @@ const Dashboard = () => {
   const activeSectionTitle = useMemo(() => ({
     overview: 'Painel Diário',
     patients: 'Base de Pacientes',
-    settings: 'Cadastro da Clínica',
+    financial: 'Financeiro',
     profile: activeProfileItem?.label || 'Perfil'
   }[activeTab] || 'OdontoFlow'), [activeProfileItem?.label, activeTab]);
 
@@ -682,7 +682,7 @@ const Dashboard = () => {
               key={item.id}
               className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
               href="#"
-              data-route={item.id === 'settings' ? 'cadastro' : 'perfil'}
+              data-route={item.id === 'financial' ? 'financeiro' : 'perfil'}
               aria-current={activeTab === item.id ? 'page' : undefined}
               onClick={(event) => {
                 event.preventDefault();
@@ -840,12 +840,12 @@ const Dashboard = () => {
         </ViewLayout>
       )}
 
-      {activeTab === 'settings' && (
-        <ViewLayout title="Cadastro da Clínica" badge="Tela de Cadastro">
+      {activeTab === 'financial' && (
+        <ViewLayout>
           <div className="space-y-8">
             <RegistrationWorkspace
-              title="Cadastro da Clínica"
-              subtitle="Ferramenta Reutilizável de Cadastro"
+              title="Financeiro e cobrança"
+              subtitle="Gestão de assinatura, cobrança e dados fiscais"
               icon={UserPlus}
               actions={isClinicEditing ? (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
