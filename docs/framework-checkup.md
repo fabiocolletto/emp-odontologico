@@ -40,4 +40,5 @@ No fechamento desta etapa:
 
 ## Conclusão
 
-O framework atual está apto para servir como fundação oficial dos próximos módulos: a próxima fase pode focar em aplicar a base nas telas internas, sem redefinir shell/navegação/níveis.
+O framework atual está apto para servir como fundação oficial dos próximos módulos.
+Para declarar **fechamento completo da versão 0**, seguir o plano em `docs/v0-framework-finalization-plan.md`.

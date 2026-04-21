@@ -4,6 +4,7 @@ Este documento define o contrato oficial do framework estrutural do app.
 Ele deve ser preservado e evoluído, **não recriado por tela**.
 
 > Auditoria estrutural de referência: `docs/framework-checkup.md`.
+> Plano de fechamento da versão 0: `docs/v0-framework-finalization-plan.md`.
 
 ## 1) Objetivo
 

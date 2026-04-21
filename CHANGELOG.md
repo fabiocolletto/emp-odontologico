@@ -2,6 +2,16 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.33 - 2026-04-21
+
+### Added
+- Plano formal de fechamento da versão 0 do framework em `docs/v0-framework-finalization-plan.md`, com critérios de conclusão e marco de transição para `v1.0.0`.
+
+### Changed
+- Versão fallback exibida no app standalone atualizada para `0.1.33`.
+- Registro de versão sincronizado em `apps/web/src/constants.js` para `0.1.33`.
+- Documentos de framework (`framework-layout` e `framework-checkup`) passaram a referenciar explicitamente o plano de finalização da etapa v0.
+
 ## v0.1.32 - 2026-04-21
 
 ### Fixed
