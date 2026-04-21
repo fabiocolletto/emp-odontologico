@@ -5,6 +5,7 @@ Ele deve ser preservado e evoluído, **não recriado por tela**.
 
 > Auditoria estrutural de referência: `docs/framework-checkup.md`.
 > Plano de fechamento da versão 0: `docs/v0-framework-finalization-plan.md`.
+> Base visual oficial da versão 1: `docs/design-system-v1.md`.
 > Status: versão 0 do framework fechada; ciclo de aplicação iniciado em `v1.0.0`.
 
 ## 1) Objetivo

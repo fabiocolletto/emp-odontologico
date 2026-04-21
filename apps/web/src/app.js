@@ -40,23 +40,23 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-white space-y-4">
-        <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
-        <p className="text-[10px] font-semibold text-slate-400">Versão {APP_VERSION}</p>
+      <div className="ds-loading-screen">
+        <div className="ds-spinner" />
+        <p className="ds-loading-screen__title">Sincronizando Ecossistema</p>
+        <p className="ds-loading-screen__meta">Versão {APP_VERSION}</p>
       </div>
     );
   }
 
   if (!clinicContextReady) {
     return (
-      <div className="min-h-screen bg-[#EAEEF2] flex items-center justify-center px-6">
-        <div className="bg-white w-full max-w-xl rounded-3xl border border-slate-200 shadow-xl p-8 space-y-5">
-          <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.24em] bg-amber-50 text-amber-700 border border-amber-200">
+      <div className="ds-empty-state-shell">
+        <div className="ds-card ds-empty-state">
+          <span className="ds-badge ds-badge--warning">
             Onboarding obrigatório
           </span>
-          <h1 className="text-2xl font-black text-slate-900">Crie sua clínica para continuar</h1>
-          <p className="text-sm text-slate-600 leading-relaxed">
+          <h1 className="ds-empty-state__title">Crie sua clínica para continuar</h1>
+          <p className="ds-empty-state__description">
             Não encontramos <strong>user_clinic_context.active_clinic_id</strong> para este usuário.
             Para proteger o tenancy do sistema, a navegação principal fica bloqueada até concluir a criação inicial.
           </p>
@@ -66,12 +66,12 @@ const App = () => {
               ensureClinicContext();
               setClinicContextReady(true);
             }}
-            className="w-full bg-sky-700 text-white rounded-2xl py-3 px-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-sky-800 transition"
+            className="ui-btn ui-btn--primary ui-btn--lg"
           >
             Criar clínica inicial
           </button>
-          <p className="text-[11px] text-slate-400 font-semibold">Status: {onboardingLabel}</p>
-          <p className="text-[10px] font-semibold text-slate-400">Versão {APP_VERSION}</p>
+          <p className="ds-empty-state__status">Status: {onboardingLabel}</p>
+          <p className="ds-empty-state__meta">Versão {APP_VERSION}</p>
         </div>
       </div>
     );

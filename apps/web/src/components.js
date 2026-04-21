@@ -4,31 +4,31 @@ import { Bell } from 'lucide-react';
 // --- COMPONENTES ATÔMICOS (NÍVEL 0) ---
 
 export const FormField = ({ label, children, icon: Icon, disabled }) => (
-  <div className="group flex flex-col w-full">
-    <div className={`relative flex flex-col transition-all duration-300 px-0 py-5 ${disabled ? 'border-b border-dashed border-slate-300' : 'border-b-2 border-slate-200 group-focus-within:border-sky-600 group-focus-within:pl-4 transition-all'}`}>
-      <label className="text-[11px] font-bold uppercase tracking-wider mb-2.5 transition-all text-slate-600 group-focus-within:text-sky-700">{label}</label>
-      <div className="flex items-center gap-4">
-        {Icon && <Icon size={16} className="text-slate-400 group-focus-within:text-sky-600 transition-colors" />}
-        <div className="flex-1 w-full min-h-[32px] flex items-center">{children}</div>
+  <div className="ds-field">
+    <div className={`ds-field__control ${disabled ? 'is-disabled' : ''}`.trim()}>
+      <label className="ds-field__label">{label}</label>
+      <div className="ds-field__input-wrap">
+        {Icon && <Icon size={16} className="ds-field__icon" />}
+        <div className="ds-field__input">{children}</div>
       </div>
     </div>
   </div>
 );
 
 export const KpiCard = ({ title, value, subtitle, trend, trendValue, icon: Icon, color }) => (
-  <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-slate-300/20 transition-all duration-500 border border-slate-100/50 group shrink-0 min-w-[280px] md:min-w-0">
+  <article className="ds-card ds-kpi-card group shrink-0 min-w-[280px] md:min-w-0">
     <div className="flex justify-between items-start mb-10">
-      <div className={`p-4 rounded-2xl ${color} bg-opacity-10 shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+      <div className={`ds-kpi-card__icon ${color} bg-opacity-10 group-hover:scale-110 transition-transform duration-500`}>
         <Icon size={24} className={color.replace('bg-', 'text-')} />
       </div>
-      <div className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest ${trend === 'up' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'}`}>
+      <div className={`ds-badge ${trend === 'up' ? 'ds-badge--success' : 'ds-badge--danger'}`}>
         {trend === 'up' ? '+' : '-'}{trendValue}%
       </div>
     </div>
-    <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">{title}</h4>
-    <p className="text-4xl font-light text-slate-900 tracking-tighter mb-2">{value}</p>
-    <p className="text-xs text-slate-400 font-medium leading-relaxed">{subtitle}</p>
-  </div>
+    <h4 className="ds-kpi-card__title">{title}</h4>
+    <p className="ds-kpi-card__value">{value}</p>
+    <p className="ds-kpi-card__subtitle">{subtitle}</p>
+  </article>
 );
 
 const BUTTON_SIZE_CLASS = {
@@ -189,22 +189,22 @@ export const AppSheet = ({ isOpen, onClose, children, title = 'Sheet' }) => {
 };
 
 export const AdaptiveHeader = ({ title, subtitle, icon: Icon, iconColor = 'bg-sky-700', actions }) => (
-  <div className="px-10 py-6 flex justify-between items-center border-b border-slate-100 bg-white/50 shrink-0">
-    <div className="flex items-center gap-5">
+  <header className="ds-section-header">
+    <div className="ds-section-header__heading">
       {Icon && (
-        <div className={`p-3.5 rounded-2xl shadow-lg ring-4 ring-slate-50 transition-all duration-500 ${iconColor}`}>
+        <div className={`ds-section-header__icon ${iconColor}`}>
           <Icon size={20} className="text-white" />
         </div>
       )}
       <div>
-        <h4 className="text-xl font-bold text-slate-900 leading-none">{title}</h4>
-        {subtitle && <p className="text-[10px] font-black uppercase text-slate-400 mt-2 tracking-widest">{subtitle}</p>}
+        <h4 className="ds-section-header__title">{title}</h4>
+        {subtitle && <p className="ds-section-header__subtitle">{subtitle}</p>}
       </div>
     </div>
-    <div className="flex items-center gap-2">
+    <div className="ds-action-bar">
       {actions}
     </div>
-  </div>
+  </header>
 );
 
 export const AdaptiveModal = ({ isOpen, onClose, children }) => {

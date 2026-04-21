@@ -2020,3 +2020,170 @@ select {
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================================================
+   V1 — Design System visual oficial
+   ========================================================= */
+:root {
+  --ds-color-bg-app: #eef2f6;
+  --ds-color-bg-surface: #ffffff;
+  --ds-color-bg-surface-soft: #f8fafc;
+  --ds-color-bg-surface-muted: #f1f5f9;
+  --ds-color-bg-accent: #0b6aa7;
+  --ds-color-bg-accent-strong: #0a1b44;
+
+  --ds-color-text-strong: #0f172a;
+  --ds-color-text-base: #1e293b;
+  --ds-color-text-muted: #64748b;
+  --ds-color-text-soft: #94a3b8;
+  --ds-color-text-on-accent: #f8fbff;
+
+  --ds-color-border-subtle: #e2e8f0;
+  --ds-color-border-soft: #edf2f7;
+  --ds-color-focus: color-mix(in srgb, var(--ds-color-bg-accent) 34%, white);
+
+  --ds-shadow-xs: 0 1px 2px rgba(2, 6, 23, 0.06);
+  --ds-shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.08);
+  --ds-shadow-md: 0 16px 34px rgba(2, 6, 23, 0.14);
+
+  --ds-radius-sm: 10px;
+  --ds-radius-md: 14px;
+  --ds-radius-lg: 18px;
+  --ds-radius-pill: 999px;
+
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.25rem;
+  --ds-space-6: 1.5rem;
+  --ds-space-8: 2rem;
+
+  --ds-font-label: 0.7rem;
+  --ds-font-caption: 0.76rem;
+  --ds-font-body: 0.92rem;
+  --ds-font-title: clamp(1.1rem, 1.8vw, 1.35rem);
+
+  --ds-icon-sm: 16px;
+  --ds-icon-md: 20px;
+  --ds-icon-lg: 24px;
+}
+
+.ds-card {
+  background: var(--ds-color-bg-surface);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-xs);
+}
+
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: var(--ds-radius-pill);
+  border: 1px solid var(--ds-color-border-subtle);
+  padding: 0.35rem 0.7rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ds-badge--success { background: #ecfdf3; border-color: #bbf7d0; color: #166534; }
+.ds-badge--danger { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.ds-badge--warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+
+.ds-field { width: 100%; }
+.ds-field__control {
+  border-bottom: 2px solid var(--ds-color-border-subtle);
+  padding: var(--ds-space-4) 0;
+  transition: border-color 180ms ease;
+}
+.ds-field__control:focus-within { border-bottom-color: var(--ds-color-bg-accent); }
+.ds-field__control.is-disabled { border-bottom-style: dashed; }
+.ds-field__label {
+  display: block;
+  margin-bottom: 0.65rem;
+  color: var(--ds-color-text-muted);
+  font-size: var(--ds-font-label);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.ds-field__input-wrap { display: flex; align-items: center; gap: 0.75rem; }
+.ds-field__icon { color: var(--ds-color-text-soft); width: var(--ds-icon-sm); height: var(--ds-icon-sm); }
+.ds-field__input { flex: 1 1 auto; min-height: 32px; display: flex; align-items: center; }
+
+.ds-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-6) var(--ds-space-8);
+  border-bottom: 1px solid var(--ds-color-border-soft);
+  background: color-mix(in srgb, white 76%, #f8fbff);
+}
+.ds-section-header__heading { display: flex; align-items: center; gap: var(--ds-space-4); }
+.ds-section-header__icon {
+  padding: 0.8rem;
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-sm);
+  outline: 4px solid #f8fafc;
+}
+.ds-section-header__title { margin: 0; color: var(--ds-color-text-strong); font-size: var(--ds-font-title); font-weight: 700; }
+.ds-section-header__subtitle {
+  margin: 0.45rem 0 0;
+  color: var(--ds-color-text-soft);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ds-action-bar { display: inline-flex; align-items: center; gap: var(--ds-space-2); flex-wrap: wrap; }
+
+.ds-kpi-card { padding: var(--ds-space-8); box-shadow: var(--ds-shadow-xs); transition: box-shadow 180ms ease, transform 180ms ease; }
+.ds-kpi-card:hover { box-shadow: var(--ds-shadow-md); transform: translateY(-1px); }
+.ds-kpi-card__icon { padding: 1rem; border-radius: var(--ds-radius-md); box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06); }
+.ds-kpi-card__title { margin: 0 0 0.4rem; color: var(--ds-color-text-muted); font-size: var(--ds-font-label); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.ds-kpi-card__value { margin: 0 0 0.45rem; color: var(--ds-color-text-strong); font-size: clamp(1.9rem, 4.2vw, 2.35rem); font-weight: 300; letter-spacing: -0.02em; }
+.ds-kpi-card__subtitle { margin: 0; color: var(--ds-color-text-soft); font-size: var(--ds-font-caption); font-weight: 600; }
+
+.ds-loading-screen {
+  min-height: 100vh;
+  background: var(--ds-color-bg-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-4);
+}
+.ds-spinner {
+  width: 40px; height: 40px;
+  border-radius: var(--ds-radius-pill);
+  border: 3px solid var(--ds-color-bg-accent);
+  border-top-color: transparent;
+  animation: ds-spin 0.9s linear infinite;
+}
+.ds-loading-screen__title { margin: 0; color: #cbd5e1; font-size: 0.65rem; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; }
+.ds-loading-screen__meta { margin: 0; color: var(--ds-color-text-soft); font-size: 0.68rem; font-weight: 700; }
+
+.ds-empty-state-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--ds-color-bg-app);
+}
+.ds-empty-state {
+  width: min(100%, 680px);
+  padding: clamp(1.25rem, 2.8vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+.ds-empty-state__title { margin: 0; color: var(--ds-color-text-strong); font-size: clamp(1.28rem, 3.1vw, 1.8rem); font-weight: 850; }
+.ds-empty-state__description { margin: 0; color: var(--ds-color-text-muted); font-size: var(--ds-font-body); line-height: 1.55; }
+.ds-empty-state__status,
+.ds-empty-state__meta { margin: 0; color: var(--ds-color-text-soft); font-size: var(--ds-font-caption); font-weight: 700; }
+
+@keyframes ds-spin { to { transform: rotate(360deg); } }
