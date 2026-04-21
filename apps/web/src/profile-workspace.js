@@ -55,9 +55,9 @@ const resolveProfileSections = (clinicName) => ([
     title: 'Conta',
     order: 1,
     items: [
-      { id: 'notifications', label: 'Notificações', icon: Bell, route: 'profile.notifications', badge: '5', description: 'Alertas do sistema', visibility: true, order: 1 },
-      { id: 'account-data', label: 'Dados da conta', icon: User, route: 'profile.account-data', visibility: true, order: 2 },
-      { id: 'security-access', label: 'Segurança e acesso', icon: Shield, route: 'profile.security-access', visibility: true, order: 3 }
+      { id: 'notifications', label: 'Notificações', icon: Bell, route: 'profile.notifications', badge: '5', description: 'Alertas do sistema', visibility: true, order: 1, widgetSize: 'sm' },
+      { id: 'account-data', label: 'Dados da conta', icon: User, route: 'profile.account-data', visibility: true, order: 2, widgetSize: 'md' },
+      { id: 'security-access', label: 'Segurança e acesso', icon: Shield, route: 'profile.security-access', visibility: true, order: 3, widgetSize: 'sm' }
     ]
   },
   {
@@ -65,9 +65,9 @@ const resolveProfileSections = (clinicName) => ([
     title: 'Assinatura e financeiro',
     order: 2,
     items: [
-      { id: 'plan-subscription', label: 'Plano e assinatura', icon: BadgeDollarSign, route: 'profile.plan-subscription', visibility: true, order: 1 },
-      { id: 'payments', label: 'Pagamentos', icon: CreditCard, route: 'profile.payments', visibility: true, order: 2 },
-      { id: 'invoices', label: 'Faturas', icon: FileText, route: 'profile.invoices', visibility: true, order: 3 }
+      { id: 'plan-subscription', label: 'Plano e assinatura', icon: BadgeDollarSign, route: 'profile.plan-subscription', visibility: true, order: 1, widgetSize: 'md' },
+      { id: 'payments', label: 'Pagamentos', icon: CreditCard, route: 'profile.payments', visibility: true, order: 2, widgetSize: 'sm' },
+      { id: 'invoices', label: 'Faturas', icon: FileText, route: 'profile.invoices', visibility: true, order: 3, widgetSize: 'lg' }
     ]
   },
   {
@@ -75,9 +75,9 @@ const resolveProfileSections = (clinicName) => ([
     title: 'Ambiente profissional',
     order: 3,
     items: [
-      { id: 'current-clinic', label: 'Clínica atual', icon: Building2, route: 'profile.current-clinic', description: clinicName || 'Não definida', visibility: true, order: 1 },
-      { id: 'team-permissions', label: 'Equipe e permissões', icon: Users, route: 'profile.team-permissions', visibility: true, order: 2 },
-      { id: 'system-preferences', label: 'Preferências do sistema', icon: SlidersHorizontal, route: 'profile.system-preferences', visibility: true, order: 3 }
+      { id: 'current-clinic', label: 'Clínica atual', icon: Building2, route: 'profile.current-clinic', description: clinicName || 'Não definida', visibility: true, order: 1, widgetSize: 'md' },
+      { id: 'team-permissions', label: 'Equipe e permissões', icon: Users, route: 'profile.team-permissions', visibility: true, order: 2, widgetSize: 'md' },
+      { id: 'system-preferences', label: 'Preferências do sistema', icon: SlidersHorizontal, route: 'profile.system-preferences', visibility: true, order: 3, widgetSize: 'sm' }
     ]
   },
   {
@@ -85,14 +85,22 @@ const resolveProfileSections = (clinicName) => ([
     title: 'Suporte e sessão',
     order: 4,
     items: [
-      { id: 'help', label: 'Ajuda', icon: CircleHelp, route: 'profile.help', visibility: true, order: 1 },
-      { id: 'about', label: 'Sobre o app', icon: Info, route: 'profile.about', visibility: true, order: 2 },
-      { id: 'logout', label: 'Sair', icon: LogOut, route: 'profile.logout', visibility: true, order: 3 }
+      { id: 'help', label: 'Ajuda', icon: CircleHelp, route: 'profile.help', visibility: true, order: 1, widgetSize: 'sm' },
+      { id: 'about', label: 'Sobre o app', icon: Info, route: 'profile.about', visibility: true, order: 2, widgetSize: 'sm' },
+      { id: 'logout', label: 'Sair', icon: LogOut, route: 'profile.logout', visibility: true, order: 3, widgetSize: 'sm' }
     ]
   }
 ]);
 
+const PROFILE_MODELS = [
+  { id: 'md3', label: 'Modelo MD3', inspiration: 'Material Design 3', description: 'Cards responsivos com hierarquia por elevação e densidade equilibrada.' },
+  { id: 'notion', label: 'Modelo Notion', inspiration: 'Notion', description: 'Blocos informativos com foco em legibilidade, estrutura e contexto.' },
+  { id: 'ifood', label: 'Modelo Serviço', inspiration: 'Apps de serviços', description: 'Lista rápida com CTA direto e ênfase em ações frequentes.' },
+  { id: 'saas', label: 'Modelo SaaS', inspiration: 'SaaS moderno', description: 'Widgets escaláveis por tamanho (P/M/G) com expansão progressiva.' }
+];
+
 export const loadProfileWorkspaceData = async ({ clinicName }) => ({
   userProfile: resolveProfileUser(clinicName),
-  sections: resolveProfileSections(clinicName)
+  sections: resolveProfileSections(clinicName),
+  models: PROFILE_MODELS
 });

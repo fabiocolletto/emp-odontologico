@@ -110,12 +110,16 @@ const Dashboard = () => {
   const [isAuxDrawerOpen, setIsAuxDrawerOpen] = useState(false);
   const [isAuxSheetOpen, setIsAuxSheetOpen] = useState(false);
   const [isWideViewport, setIsWideViewport] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const [profileStack, setProfileStack] = useState(['root']);
+  const [expandedProfileWidgets, setExpandedProfileWidgets] = useState({});
+  const [activeProfileModel, setActiveProfileModel] = useState('md3');
   const [lightSessionUser, setLightSessionUser] = useState(() => loadLightSessionSnapshot());
   const [profileWorkspaceState, setProfileWorkspaceState] = useState({
     status: 'idle',
     userProfile: null,
     sections: [],
+    models: [],
     errorMessage: '',
     loadedClinicName: ''
   });
@@ -330,6 +334,7 @@ const Dashboard = () => {
   useEffect(() => {
     const evaluateWideViewport = () => {
       const width = window.innerWidth;
+      setViewportWidth(width);
       const isLandscapeTablet = width >= 600 && width <= 1023 && window.innerWidth > window.innerHeight;
       setIsWideViewport(width >= 1024 || isLandscapeTablet);
     };
@@ -347,6 +352,8 @@ const Dashboard = () => {
   ];
 
   const profileSectionsSchema = profileWorkspaceState.sections;
+  const profileModels = profileWorkspaceState.models || [];
+  const isMobileProfile = viewportWidth < 768;
 
   const profileItemsById = useMemo(() => (
     profileSectionsSchema.flatMap((section) => section.items).reduce((accumulator, item) => {
@@ -365,6 +372,10 @@ const Dashboard = () => {
 
   const handleBackProfileScreen = () => {
     setProfileStack((current) => (current.length > 1 ? current.slice(0, -1) : current));
+  };
+
+  const handleToggleProfileWidget = (itemId) => {
+    setExpandedProfileWidgets((current) => ({ ...current, [itemId]: !current[itemId] }));
   };
 
   useEffect(() => {
@@ -387,6 +398,7 @@ const Dashboard = () => {
           status: 'ready',
           userProfile: payload.userProfile,
           sections: payload.sections,
+          models: payload.models || [],
           errorMessage: '',
           loadedClinicName: currentClinic?.name || ''
         });
@@ -1098,35 +1110,94 @@ const Dashboard = () => {
                       </button>
                     </header>
 
+                    <div className="profile-model-picker" role="tablist" aria-label="Modelos de cadastro de perfil">
+                      {profileModels.map((model) => (
+                        <button
+                          key={model.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={activeProfileModel === model.id}
+                          className={`profile-model-chip ${activeProfileModel === model.id ? 'is-active' : ''}`}
+                          onClick={() => setActiveProfileModel(model.id)}
+                        >
+                          {model.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {!isMobileProfile && (
+                      <div className="profile-model-summary">
+                        {profileModels.find((model) => model.id === activeProfileModel)?.inspiration}
+                        {' · '}
+                        {profileModels.find((model) => model.id === activeProfileModel)?.description}
+                      </div>
+                    )}
+
                     <div className="profile-settings-list">
                       {[...profileSectionsSchema]
                         .sort((a, b) => a.order - b.order)
                         .map((section) => (
                           <section key={section.id} className="profile-settings-section" aria-label={section.title}>
                             {section.title ? <p className="profile-settings-section__title">{section.title}</p> : null}
-                            <div className="profile-settings-section__items">
-                              {[...section.items]
-                                .filter((item) => item.visibility)
-                                .sort((a, b) => a.order - b.order)
-                                .map((item) => (
-                                  <button
-                                    key={item.id}
-                                    type="button"
-                                    className="profile-settings-item"
-                                    onClick={() => handleOpenProfileScreen(item.id)}
-                                  >
-                                    <span className="profile-settings-item__leading" aria-hidden="true">
-                                      <item.icon size={18} />
-                                    </span>
-                                    <span className="profile-settings-item__content">
-                                      <span>{item.label}</span>
-                                      {item.description ? <small>{item.description}</small> : null}
-                                    </span>
-                                    {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
-                                    <ChevronRight size={18} className="profile-settings-item__chevron" aria-hidden="true" />
-                                  </button>
-                                ))}
-                            </div>
+                            {isMobileProfile ? (
+                              <div className="profile-settings-section__items">
+                                {[...section.items]
+                                  .filter((item) => item.visibility)
+                                  .sort((a, b) => a.order - b.order)
+                                  .map((item) => (
+                                    <div key={item.id} className="profile-settings-row-wrap">
+                                      <button
+                                        type="button"
+                                        className="profile-settings-item"
+                                        onClick={() => handleToggleProfileWidget(item.id)}
+                                      >
+                                        <span className="profile-settings-item__leading" aria-hidden="true">
+                                          <item.icon size={18} />
+                                        </span>
+                                        <span className="profile-settings-item__content">
+                                          <span>{item.label}</span>
+                                          {item.description ? <small>{item.description}</small> : null}
+                                        </span>
+                                        {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
+                                        <ChevronRight size={18} className={`profile-settings-item__chevron ${expandedProfileWidgets[item.id] ? 'is-open' : ''}`} aria-hidden="true" />
+                                      </button>
+                                      {expandedProfileWidgets[item.id] && (
+                                        <div className="profile-settings-item__expand">
+                                          <p>{item.description || 'Dados básicos do widget de perfil.'}</p>
+                                          <UiButton label="Abrir detalhe" size="sm" tone="info" onClick={() => handleOpenProfileScreen(item.id)} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              <div className="profile-widget-grid">
+                                {[...section.items]
+                                  .filter((item) => item.visibility)
+                                  .sort((a, b) => a.order - b.order)
+                                  .map((item) => (
+                                    <article key={item.id} className={`profile-widget profile-widget--${item.widgetSize || 'sm'}`}>
+                                      <header>
+                                        <span className="profile-settings-item__leading" aria-hidden="true"><item.icon size={18} /></span>
+                                        <h4>{item.label}</h4>
+                                        {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
+                                      </header>
+                                      <p>{item.description || 'Widget de cadastro de perfil replicável.'}</p>
+                                      <div className="profile-widget__actions">
+                                        <button type="button" onClick={() => handleToggleProfileWidget(item.id)}>
+                                          {expandedProfileWidgets[item.id] ? 'Ocultar' : 'Expandir'}
+                                        </button>
+                                        <button type="button" onClick={() => handleOpenProfileScreen(item.id)}>Abrir</button>
+                                      </div>
+                                      {expandedProfileWidgets[item.id] && (
+                                        <div className="profile-widget__expanded">
+                                          Rota preparada: <strong>{item.route}</strong>
+                                        </div>
+                                      )}
+                                    </article>
+                                  ))}
+                              </div>
+                            )}
                           </section>
                         ))}
                     </div>
