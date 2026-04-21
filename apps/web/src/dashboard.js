@@ -535,11 +535,13 @@ const Dashboard = () => {
       )}
       sidebar={(
         <div className="app-sidebar__inner">
-          <div className="app-sidebar__brand">
-            <Stethoscope size={18} />
-            <span>OdontoFlow</span>
+          <div className="app-sidebar__header">
+            <div className="app-sidebar__brand">
+              <Stethoscope size={18} />
+              <span>OdontoFlow</span>
+            </div>
           </div>
-          <nav className="app-sidebar__nav" aria-label="Navegação principal desktop">
+          <nav className="app-sidebar__nav" aria-label="Navegação principal">
             {navItems.map((item) => (
               <button
                 key={item.id}

@@ -2,6 +2,15 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.29 - 2026-04-21
+
+### Added
+- Documentação oficial do framework em `docs/framework-layout.md`, consolidando shell, breakpoints, níveis 0/1/2/3, componentes estruturais e regras de preservação para continuidade das próximas etapas.
+
+### Changed
+- Normalização da estrutura da sidebar para o contrato oficial (`app-sidebar__header`, `app-sidebar__nav`, `app-sidebar__footer`) e alinhamento da nomenclatura de navegação principal.
+- Organização dos estilos estruturais com seções explícitas para shell desktop, tablet paisagem e primitivas de níveis (detail pane/drawer/sheet/overlay), para facilitar manutenção.
+
 ## v0.1.28 - 2026-04-21
 
 ### Added

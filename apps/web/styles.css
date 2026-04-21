@@ -2251,6 +2251,7 @@ body {
   }
 }
 
+/* ---------- Framework Shell: Desktop (1024+) ---------- */
 @media (min-width: 1024px) {
   .app-shell--wide {
     flex-direction: row;
@@ -2270,6 +2271,11 @@ body {
     display: grid;
     grid-template-rows: auto 1fr auto;
     gap: 16px;
+  }
+
+  .app-sidebar__header {
+    display: flex;
+    align-items: center;
   }
 
   .app-sidebar__brand {
@@ -2348,6 +2354,7 @@ body {
   }
 }
 
+/* ---------- Framework Shell: Tablet landscape (600-1023 landscape) ---------- */
 @media (min-width: 600px) and (max-width: 1023px) and (orientation: landscape) {
   .app-shell--wide {
     flex-direction: row;
@@ -2367,6 +2374,11 @@ body {
     display: grid;
     grid-template-rows: auto 1fr auto;
     gap: 16px;
+  }
+
+  .app-sidebar__header {
+    display: flex;
+    align-items: center;
   }
 
   .app-sidebar__brand {
@@ -2429,6 +2441,7 @@ body {
   }
 }
 
+/* ---------- Framework Levels & Structural primitives ---------- */
 .app-level2-layout {
   display: block;
 }
