@@ -85,3 +85,38 @@ Prioridade contínua:
 3. Regras de composição
 4. Aplicação incremental nas telas e módulos
 
+## 8. Aplicação prática em módulos reais (V1.1)
+
+Módulos priorizados e tratados:
+
+- **Pacientes (Nível 1)**:
+  - cards da grade padronizados com `ui-card`;
+  - busca padronizada com `ui-search`;
+  - vazio padronizado com `ui-empty-state`;
+  - paginação/ações padronizadas com `ui-action-bar`.
+- **Painel/Dashboard (Nível 1)**:
+  - cards de KPI e bloco de agenda com `ui-card`;
+  - itens de agenda com `ui-list-item`;
+  - alerta de fallback padronizado com `ui-alert`.
+- **Conta (Nível 1 + N2 auxiliar)**:
+  - blocos de conta, perfil e clínicas com `ui-card`;
+  - lista de clínicas com `ui-list-item`;
+  - estado vazio de clínicas com `ui-empty-state`.
+- **Configurações (Nível 1)**:
+  - bloco principal convergido para `ui-card`.
+
+## 9. Padrões de composição consolidados
+
+- Header interno de módulo + bloco de ações (`ui-action-bar`).
+- Busca sempre com `ui-search` dentro do bloco do módulo.
+- Conteúdo principal em superfícies `ui-card`.
+- Listagens clicáveis usando `ui-list-item`.
+- Estados sem dados usando `ui-empty-state`.
+- Mensagens de contexto/sistema usando `ui-alert`.
+
+## 10. Decisões de consistência adotadas na V1.1
+
+1. Eliminar classes utilitárias locais para superfícies brancas quando houver `ui-card`.
+2. Evitar estados vazios em texto solto; sempre usar `ui-empty-state`.
+3. Unificar barra de ações/paginação em `ui-action-bar`.
+4. Preservar a arquitetura estrutural V0 (shell, breakpoints, níveis 0/1/2/3) sem desvio.

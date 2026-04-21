@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.1 - 2026-04-21
+
+### Changed
+- Aplicação prática do design system V1 nos módulos principais do runtime oficial (`apps/web/standalone-react.jsx`): Painel, Pacientes, Conta e Configurações convergidos para `ui-card`, `ui-search`, `ui-list-item`, `ui-empty-state`, `ui-alert` e `ui-action-bar`.
+- Documentação do design system evoluída com exemplos reais de módulo, padrões de composição e decisões de consistência da etapa V1.1.
+
 ## v1.1.0 - 2026-04-21
 
 ### Added

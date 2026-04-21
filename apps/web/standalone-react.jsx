@@ -1932,21 +1932,24 @@ function DashboardApp({
           })}
           {!isMobileViewport && <h2 className="page-title">Painel Diário</h2>}
           {usingFallbackData && (
-            <p className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3 py-2">
+            <p className="ui-alert text-xs">
               Dados de fallback ativos. Quando os arquivos em backend/supabase/sample-data estiverem disponíveis no servidor, os dados reais serão usados automaticamente.
             </p>
           )}
           <div className="data-grid">
-            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Atendimentos</p><p className="kpi-value">12</p></div>
-            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Faturamento</p><p className="kpi-value">R$ 8.4k</p></div>
-            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Ocupação</p><p className="kpi-value">92%</p></div>
+            <div className="ui-card data-card data-card--p"><p className="kpi-label">Atendimentos</p><p className="kpi-value">12</p></div>
+            <div className="ui-card data-card data-card--p"><p className="kpi-label">Faturamento</p><p className="kpi-value">R$ 8.4k</p></div>
+            <div className="ui-card data-card data-card--p"><p className="kpi-label">Ocupação</p><p className="kpi-value">92%</p></div>
           </div>
 
-          <div className="bg-white rounded-2xl border p-5 space-y-3">
-            <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">Agenda de Hoje (N2 ao clicar)</h3>
+          <div className="ui-card space-y-3">
+            <div className="ui-section-header">
+              <h3 className="ui-section-header__title">Agenda de Hoje (N2 ao clicar)</h3>
+              <span className="ui-badge">{filteredAppointments.length} registros</span>
+            </div>
             <div className="search-row">
               <input
-                className="search-input"
+                className="search-input ui-search"
                 placeholder="Pesquisar agendamentos (nome, horário, procedimento...)"
                 value={appointmentsQuery}
                 onChange={(e) => setAppointmentsQuery(e.target.value)}
@@ -1956,7 +1959,10 @@ function DashboardApp({
 
             <div className="agenda-list">
               {visibleAppointments.length === 0 ? (
-                <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
+                <div className="ui-empty-state">
+                  <strong>Nenhum agendamento encontrado</strong>
+                  <span>Ajuste os filtros de busca para continuar.</span>
+                </div>
               ) : (
                 visibleAppointments.map((item) => {
                   const patient = patients.find((p) => p.name === item.name);
@@ -1964,7 +1970,7 @@ function DashboardApp({
                     <button
                       key={item.id}
                       onClick={() => openPatientN2(patient)}
-                      className="list-button data-card data-card--m"
+                      className="list-button data-card data-card--m ui-list-item"
                     >
                       <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
                       <p className="font-bold text-slate-900">{item.name}</p>
@@ -1980,12 +1986,12 @@ function DashboardApp({
                   : 'Todos os agendamentos carregados'}
               </div>
             ) : (
-              <div className="pagination-row">
-                <button
-                  className="btn btn--pager"
-                  onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
-                  disabled={appointmentsPagination.page === 1}
-                >
+            <div className="pagination-row ui-action-bar">
+              <button
+                className="btn btn--pager"
+                onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
+                disabled={appointmentsPagination.page === 1}
+              >
                   ← Anterior
                 </button>
                 <span className="pagination-label">
@@ -2016,7 +2022,7 @@ function DashboardApp({
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
-            <div className="flex gap-2 flex-wrap justify-end">
+            <div className="flex gap-2 flex-wrap justify-end ui-action-bar">
               <AddRecordButton
                 label="Novo paciente"
                 ariaLabel="Cadastrar novo paciente"
@@ -2050,10 +2056,10 @@ function DashboardApp({
             onClose={() => setFormFeedback('')}
           />
           {isPatientsSearchVisible ? (
-            <div className="patients-search-section">
+            <div className="patients-search-section ui-card">
               <div className="search-row">
                 <input
-                  className="search-input search-input--compact"
+                  className="search-input search-input--compact ui-search"
                   placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
                   value={patientsQuery}
                   onChange={(e) => setPatientsQuery(e.target.value)}
@@ -2098,7 +2104,7 @@ function DashboardApp({
             </div>
           ) : null}
           {isPatientsMultiMode ? (
-            <div className="bg-transparent rounded-2xl border border-slate-200/70 p-4 flex flex-wrap gap-2 items-center justify-between backdrop-blur-sm">
+            <div className="ui-card flex flex-wrap gap-2 items-center justify-between">
               <p className="text-xs font-black uppercase tracking-widest text-slate-500">
                 {selectedPatientIds.length} selecionado(s)
               </p>
@@ -2135,10 +2141,13 @@ function DashboardApp({
           <div className="patients-data-section">
             <div className="data-grid patients-grid">
             {visiblePatients.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
+              <div className="ui-empty-state">
+                <strong>Nenhum paciente encontrado</strong>
+                <span>Altere a pesquisa ou ajuste a ordenação.</span>
+              </div>
             ) : (
               visiblePatients.map((p) => (
-                <article key={p.id} className={`data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
+                <article key={p.id} className={`ui-card data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
                   <button
                     onClick={() => {
                       if (isPatientsMultiMode) {
@@ -2196,7 +2205,7 @@ function DashboardApp({
                 : 'Todos os pacientes carregados'}
             </div>
           ) : (
-            <div className="pagination-row">
+            <div className="pagination-row ui-action-bar">
               <button
                 className="btn btn--pager"
                 onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
@@ -2229,7 +2238,7 @@ function DashboardApp({
           {renderN1Header({ icon: 'settings', title: 'Conta', subtitle: 'Auth Supabase e preferências pessoais' })}
           {!isMobileViewport && <h2 className="page-title">Conta</h2>}
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <div className="flex flex-wrap gap-3 items-center justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
@@ -2264,7 +2273,7 @@ function DashboardApp({
             </div>
           </div>
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
             <div className="grid md:grid-cols-2 gap-3 text-sm">
               <div><strong>E-mail atual:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
@@ -2306,7 +2315,7 @@ function DashboardApp({
             ) : null}
           </div>
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.odf_users</code>)</p>
             <div className="grid md:grid-cols-2 gap-3 text-sm">
               <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
@@ -2340,14 +2349,17 @@ function DashboardApp({
             ) : null}
           </div>
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínicas do proprietário (tabela <code>public.odf_clinics</code>)</p>
             {clinics.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhuma clínica encontrada. Ao abrir o editor, uma clínica padrão será criada automaticamente.</p>
+              <div className="ui-empty-state">
+                <strong>Nenhuma clínica encontrada</strong>
+                <span>Ao abrir o editor, uma clínica padrão será criada automaticamente.</span>
+              </div>
             ) : (
               <div className="space-y-2">
                 {clinics.slice(0, 3).map((clinic) => (
-                  <div key={clinic.id} className="text-sm text-slate-700 border border-slate-100 rounded-xl p-3">
+                  <div key={clinic.id} className="ui-list-item text-sm text-slate-700">
                     <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
                     <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
                   </div>
@@ -2380,7 +2392,7 @@ function DashboardApp({
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Configurações', subtitle: 'Parâmetros e catálogo de procedimentos' })}
         {!isMobileViewport && <h2 className="page-title">Configurações</h2>}
-        <div className="bg-white border data-card data-card--g">
+        <div className="ui-card data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
             <li>Limpeza Profilática</li>
