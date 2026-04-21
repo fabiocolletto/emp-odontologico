@@ -29,15 +29,12 @@ Framework de layout **consolidado como base oficial** para evolução das próxi
 3. **Clareza de manutenção** dos estilos estruturais:
    - seções explícitas para desktop, tablet paisagem e primitivas de nível.
 
-## Pendências estruturais (registradas)
+## Pendências estruturais
 
-1. Existe CSS legado extenso no mesmo arquivo global (`apps/web/styles.css`) além dos blocos do framework.
-   - Risco: manutenção mais difícil.
-   - Próximo passo sugerido: extração gradual para módulo dedicado do framework (ex.: `framework-shell.css`) sem quebrar o contrato atual.
+No fechamento desta etapa, **as duas pendências estruturais anteriores foram resolvidas**:
 
-2. O repositório mantém também uma base standalone histórica (`apps/web/standalone-react.jsx`) com arquitetura própria.
-   - Risco: coexistência de padrões em dois fluxos diferentes de runtime.
-   - Próximo passo sugerido: plano de convergência para o shell oficial, evitando drift arquitetural.
+1. Estilos do framework foram extraídos para `apps/web/framework-shell.css`.
+2. Fluxo standalone legado foi removido; o `index.html` agora inicializa o app modular oficial em `apps/web/src/main.js`.
 
 ## Conclusão
 

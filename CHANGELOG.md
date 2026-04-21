@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.31 - 2026-04-21
+
+### Changed
+- Fluxo standalone legado removido: `index.html` passa a inicializar o app modular oficial via `apps/web/src/main.js` com Babel em modo módulo.
+- Estrutura de estilos normalizada: blocos oficiais do framework foram extraídos de `apps/web/styles.css` para `apps/web/framework-shell.css`.
+- `docs/framework-checkup.md` atualizado para registrar resolução completa das pendências estruturais da etapa de consolidação.
+
 ## v0.1.30 - 2026-04-21
 
 ### Added

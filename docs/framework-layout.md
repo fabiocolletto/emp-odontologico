@@ -92,6 +92,12 @@ Convenções implementadas:
 - **Overlay:** `.app-overlay` + `.app-overlay__backdrop`.
 - **Header/Body estruturais:** `.app-header`, `.app-body`.
 
+## 6.1) Localização oficial da infraestrutura
+
+- Entrada oficial do app: `apps/web/src/main.js` (carregada por `index.html`).
+- Tokens e estilos legados/base: `apps/web/styles.css`.
+- Estilos oficiais do framework (shell, breakpoints e primitivas): `apps/web/framework-shell.css`.
+
 ## 7) Regras de preservação (contrato de continuidade)
 
 1. Não recriar shell por página.
