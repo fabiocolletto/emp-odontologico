@@ -55,7 +55,7 @@ const resolveProfileSections = (clinicName) => ([
     title: 'Conta',
     order: 1,
     items: [
-      { id: 'notifications', label: 'Notificações', icon: Bell, route: 'profile.notifications', badge: 'Ativo', description: 'Preferências de alertas', visibility: true, order: 1 },
+      { id: 'notifications', label: 'Notificações', icon: Bell, route: 'profile.notifications', badge: '5', description: 'Alertas do sistema', visibility: true, order: 1 },
       { id: 'account-data', label: 'Dados da conta', icon: User, route: 'profile.account-data', visibility: true, order: 2 },
       { id: 'security-access', label: 'Segurança e acesso', icon: Shield, route: 'profile.security-access', visibility: true, order: 3 }
     ]
@@ -96,4 +96,3 @@ export const loadProfileWorkspaceData = async ({ clinicName }) => ({
   userProfile: resolveProfileUser(clinicName),
   sections: resolveProfileSections(clinicName)
 });
-

@@ -1089,7 +1089,13 @@ const Dashboard = () => {
                         <p>{profileWorkspaceState.userProfile.subtitle}</p>
                         <span>{profileWorkspaceState.userProfile.email}</span>
                       </div>
-                      <UiButton label="Ver conta" tone="info" size="sm" onClick={() => handleOpenProfileScreen('account-data')} />
+                      <button
+                        type="button"
+                        className="profile-identity-card__cta"
+                        onClick={() => handleOpenProfileScreen('account-data')}
+                      >
+                        Ver minha conta <ChevronRight size={16} />
+                      </button>
                     </header>
 
                     <div className="profile-settings-list">
