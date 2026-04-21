@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.10 - 2026-04-21
+
+### Changed
+- Atualizadas as diretrizes operacionais do agente em `docs/governanca/agent.md` para tornar obrigatório o update do logchange ao finalizar qualquer alteração de arquivo.
+- Formalizada regra mandatória de entrega: nenhuma mudança pode ser concluída sem atualização correspondente no `CHANGELOG.md`.
+
 ## v1.1.9 - 2026-04-21
 
 ### Changed
