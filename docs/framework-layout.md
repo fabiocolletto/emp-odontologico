@@ -3,6 +3,8 @@
 Este documento define o contrato oficial do framework estrutural do app.  
 Ele deve ser preservado e evoluído, **não recriado por tela**.
 
+> Auditoria estrutural de referência: `docs/framework-checkup.md`.
+
 ## 1) Objetivo
 
 Padronizar a arquitetura visual e de navegação para:

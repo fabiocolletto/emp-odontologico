@@ -541,7 +541,7 @@ const Dashboard = () => {
               <span>OdontoFlow</span>
             </div>
           </div>
-          <nav className="app-sidebar__nav" aria-label="Navegação principal">
+          <nav className="app-sidebar__nav" aria-label="Navegação principal" data-level="0">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -560,7 +560,7 @@ const Dashboard = () => {
         </div>
       )}
       footer={(
-        <nav className="bottom-tabbar" aria-label="Navegação principal">
+        <nav className="bottom-tabbar" aria-label="Navegação principal" data-level="0">
           {navItems.slice(0, 2).map((item) => (
             <a
               key={item.id}

@@ -2,6 +2,15 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.30 - 2026-04-21
+
+### Added
+- Documento de auditoria estrutural `docs/framework-checkup.md` com checklist de validação do framework, inconsistências corrigidas e pendências estruturais registradas para continuidade disciplinada.
+
+### Changed
+- Contrato de nível 0 reforçado no markup da navegação principal (`data-level="0"` na sidebar e na bottom navigation).
+- Documentação oficial do framework (`docs/framework-layout.md`) passou a referenciar explicitamente o check-up estrutural.
+
 ## v0.1.29 - 2026-04-21
 
 ### Added
