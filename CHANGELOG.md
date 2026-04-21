@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.9 - 2026-04-21
+
+### Changed
+- Em telas de pacientes com barra inferior ativa (compact), ocultadas ações duplicadas do header para evitar redundância de comando.
+- Barra inferior de pacientes reequilibrada para ações úteis de operação (`Novo`, `Multi`, `Buscar`, `Ordenar`) substituindo atalhos menos úteis no contexto imediato.
+- Campo de pesquisa de pacientes convertido para visual flat (sem fundo branco, sem borda/sombra), alinhado ao título da página.
+
 ## v1.1.8 - 2026-04-21
 
 ### Changed

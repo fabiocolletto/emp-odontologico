@@ -2104,9 +2104,9 @@ function DashboardApp({
             subtitle: 'Cadastro, busca e acesso ao Nível 2',
             actions: []
           })}
-          <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
+          <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
-            <div className="flex gap-2 flex-wrap justify-end ui-action-bar">
+            <div className="flex gap-2 flex-wrap justify-end ui-action-bar page-header__actions">
               <AddRecordButton
                 label="Novo paciente"
                 ariaLabel="Cadastrar novo paciente"
@@ -2140,7 +2140,7 @@ function DashboardApp({
             onClose={() => setFormFeedback('')}
           />
           {isPatientsSearchVisible ? (
-            <div className="patients-search-section ui-card">
+            <div className="patients-search-section">
               <div className="search-row">
                 <input
                   className="search-input search-input--compact ui-search"
@@ -2507,12 +2507,24 @@ function DashboardApp({
     },
     patients: {
       left: [
-        { key: 'patients-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
-        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
+        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 },
+        {
+          key: 'patients-multi',
+          icon: 'multi',
+          tone: 'info',
+          label: 'Multi',
+          onClick: () => {
+            setIsPatientsMultiMode((prev) => {
+              if (prev) setSelectedPatientIds([]);
+              return !prev;
+            });
+          },
+          active: isPatientsMultiMode
+        }
       ],
       right: [
         { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
-        { key: 'patients-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'patients-sort', icon: 'filter', tone: 'settings', label: 'Ordenar', onClick: () => setIsPatientsSortLevelOpen(true), active: isPatientsSortLevelOpen }
       ]
     },
     settings: {

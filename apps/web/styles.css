@@ -919,6 +919,10 @@ select {
   flex-wrap: wrap;
 }
 
+.page-header--compact-nav .page-header__actions {
+  display: none;
+}
+
 .bio-header-shell {
   display: none;
 }
@@ -1498,6 +1502,14 @@ select {
   background: #fff;
   color: var(--text-base);
   padding: 0.58rem 0.75rem;
+}
+
+.patients-search-section .search-input {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-inline: 0;
 }
 
 .search-input--compact {
