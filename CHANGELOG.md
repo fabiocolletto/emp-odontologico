@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.15 - 2026-04-21
+
+### Changed
+- Simplificação da navegação responsiva com duas variações explícitas: **tela cheia** (mantida no comportamento consolidado até v1.1.13) e **janela flutuante (N2)**.
+- Em janela flutuante, a barra de navegação passa a substituir/ocupar o footer da própria janela em todos os fluxos N2 (Pacientes, Conta, Perfil e Clínicas), removendo redundância de barras diferentes por modal.
+- Estrutura da janela flutuante reforçada em conjunto único `header + body + footer`, preservando rolagem interna apenas no body e sem deslocar altura/largura do container.
+
 ## v1.1.14 - 2026-04-21
 
 ### Changed

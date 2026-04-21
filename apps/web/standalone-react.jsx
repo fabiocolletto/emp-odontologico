@@ -532,13 +532,12 @@ const PatientN2Modal = ({
   isEditingView,
   onClose,
   onFormChange,
-  onPreviousTab,
-  onNextTab,
   onSelectTab,
   onSubmit,
   onStartEdit,
   onCancelEdit,
-  onSaveEdit
+  onSaveEdit,
+  footerNav
 }) => {
   if (!isOpen) return null;
   const isCreateMode = mode === 'create';
@@ -696,17 +695,8 @@ const PatientN2Modal = ({
           )}
         </div>
 
-        <div className="modal-footer modal-footer--stack">
-          <div className="n2-mobile-nav">
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--prev" onClick={onPreviousTab}>
-              <AppIcon name="chevron-left" size={16} className="btn-icon" />
-              <span className="btn-label">Etapa anterior</span>
-            </button>
-            <button className="btn btn--mobile-tab n2-mobile-nav__btn n2-mobile-nav__btn--next" onClick={onNextTab}>
-              <AppIcon name="chevron-right" size={16} className="btn-icon" />
-              <span className="btn-label">Próxima etapa</span>
-            </button>
-          </div>
+        <div className="modal-footer modal-footer--window-nav">
+          {footerNav || <CadastroFooterHint message="Navegação de formulário disponível no rodapé da janela." />}
         </div>
       </div>
     </div>
@@ -2815,13 +2805,12 @@ function DashboardApp({
           setIsPatientViewEditing(false);
         }}
         onFormChange={handlePatientFormChange}
-        onPreviousTab={() => moveFormTab(-1)}
-        onNextTab={() => moveFormTab(1)}
         onSelectTab={(tabId) => setPatientFormTab(tabId)}
         onSubmit={handleCreatePatientSubmit}
         onStartEdit={handleStartPatientEdit}
         onCancelEdit={handleCancelPatientEdit}
         onSaveEdit={handleSavePatientEdit}
+        footerNav={embeddedWindowNav}
       />
 
       <MobileMd3Nav
