@@ -621,7 +621,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Nome completo</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   value={isCreateMode ? form.name : (viewForm?.name || patient?.name || '')}
                   onChange={(e) => onFormChange('name', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -631,7 +631,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Data de nascimento</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   type={isCreateMode ? 'date' : 'text'}
                   value={isCreateMode ? form.birth : (viewForm?.birth || patient?.birth || '-')}
                   onChange={(e) => onFormChange('birth', e.target.value)}
@@ -646,7 +646,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Telefone</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   value={isCreateMode ? form.phone : (viewForm?.phone || patient?.phone || '')}
                   onChange={(e) => onFormChange('phone', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -656,7 +656,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>E-mail</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   type="email"
                   value={isCreateMode ? form.email : (viewForm?.email || patient?.email || '')}
                   onChange={(e) => onFormChange('email', e.target.value)}
@@ -672,7 +672,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Plano</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   value={isCreateMode ? form.plan : (viewForm?.plan || patient?.plan || '')}
                   onChange={(e) => onFormChange('plan', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -688,7 +688,7 @@ const PatientN2Modal = ({
               <label className={`form-field ${!isCreateMode ? 'form-field--full' : ''}`}>
                 <span>Observações clínicas</span>
                 <textarea
-                  className="modal-notes-input"
+                  className="modal-notes-input ui-textarea"
                   value={isCreateMode ? form.notes : (viewForm?.notes ?? notesValue)}
                   onChange={(e) => onFormChange('notes', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -807,26 +807,26 @@ const PublicProfileN2Modal = ({
             <div className="modal-grid">
               <label className="form-field">
                 <span>Nome</span>
-                <input type="text" className="form-input" value={draft.full_name} onChange={(event) => onChange('full_name', event.target.value)} placeholder="Nome completo" />
+                <input type="text" className="form-input ui-input" value={draft.full_name} onChange={(event) => onChange('full_name', event.target.value)} placeholder="Nome completo" />
               </label>
               <label className="form-field">
                 <span>E-mail</span>
-                <input type="email" className="form-input" value={draft.email} onChange={(event) => onChange('email', event.target.value)} placeholder="nome@email.com" />
+                <input type="email" className="form-input ui-input" value={draft.email} onChange={(event) => onChange('email', event.target.value)} placeholder="nome@email.com" />
               </label>
               <label className="form-field">
                 <span>Telefone</span>
-                <input type="text" className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} placeholder="(00) 00000-0000" />
+                <input type="text" className="form-input ui-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} placeholder="(00) 00000-0000" />
               </label>
             </div>
           ) : (
             <div className="modal-grid">
               <label className="form-field form-field--full">
                 <span>Endereço</span>
-                <input type="text" className="form-input" value={draft.address} onChange={(event) => onChange('address', event.target.value)} placeholder="Rua, número, bairro, cidade/UF" />
+                <input type="text" className="form-input ui-input" value={draft.address} onChange={(event) => onChange('address', event.target.value)} placeholder="Rua, número, bairro, cidade/UF" />
               </label>
               <label className="form-field">
                 <span>Data de nascimento</span>
-                <input type="date" className="form-input" value={draft.birth_date || ''} onChange={(event) => onChange('birth_date', event.target.value)} />
+                <input type="date" className="form-input ui-input" value={draft.birth_date || ''} onChange={(event) => onChange('birth_date', event.target.value)} />
               </label>
             </div>
           )}
@@ -877,7 +877,7 @@ const ClinicN2Modal = ({
         <div className="modal-body space-y-4">
           <label className="form-field">
             <span>Clínica selecionada</span>
-            <select className="form-input" value={selectedClinicId || ''} onChange={(event) => onSelectClinic(event.target.value)}>
+            <select className="form-input ui-input" value={selectedClinicId || ''} onChange={(event) => onSelectClinic(event.target.value)}>
               {clinics.map((clinic) => (
                 <option key={clinic.id} value={clinic.id}>{clinic.trade_name}</option>
               ))}
@@ -888,35 +888,35 @@ const ClinicN2Modal = ({
           <div className="modal-grid">
             <label className="form-field">
               <span>Nome fantasia</span>
-              <input className="form-input" value={draft.trade_name} onChange={(event) => onChange('trade_name', event.target.value)} placeholder="Minha Clínica" />
+              <input className="form-input ui-input" value={draft.trade_name} onChange={(event) => onChange('trade_name', event.target.value)} placeholder="Minha Clínica" />
             </label>
             <label className="form-field">
               <span>Razão social</span>
-              <input className="form-input" value={draft.legal_name} onChange={(event) => onChange('legal_name', event.target.value)} />
+              <input className="form-input ui-input" value={draft.legal_name} onChange={(event) => onChange('legal_name', event.target.value)} />
             </label>
             <label className="form-field">
               <span>Documento</span>
-              <input className="form-input" value={draft.document_number} onChange={(event) => onChange('document_number', event.target.value)} placeholder="CNPJ" />
+              <input className="form-input ui-input" value={draft.document_number} onChange={(event) => onChange('document_number', event.target.value)} placeholder="CNPJ" />
             </label>
             <label className="form-field">
               <span>Email</span>
-              <input className="form-input" type="email" value={draft.email} onChange={(event) => onChange('email', event.target.value)} />
+              <input className="form-input ui-input" type="email" value={draft.email} onChange={(event) => onChange('email', event.target.value)} />
             </label>
             <label className="form-field">
               <span>Telefone</span>
-              <input className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} />
+              <input className="form-input ui-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} />
             </label>
             <label className="form-field">
               <span>Cidade</span>
-              <input className="form-input" value={draft.city} onChange={(event) => onChange('city', event.target.value)} />
+              <input className="form-input ui-input" value={draft.city} onChange={(event) => onChange('city', event.target.value)} />
             </label>
             <label className="form-field">
               <span>UF</span>
-              <input className="form-input" value={draft.state} onChange={(event) => onChange('state', event.target.value.toUpperCase().slice(0, 2))} />
+              <input className="form-input ui-input" value={draft.state} onChange={(event) => onChange('state', event.target.value.toUpperCase().slice(0, 2))} />
             </label>
             <label className="form-field">
               <span>Status</span>
-              <select className="form-input" value={draft.status} onChange={(event) => onChange('status', event.target.value)}>
+              <select className="form-input ui-input" value={draft.status} onChange={(event) => onChange('status', event.target.value)}>
                 <option value="trial">trial</option>
                 <option value="active">active</option>
                 <option value="suspended">suspended</option>
@@ -1735,8 +1735,9 @@ function DashboardApp({
 
   if (view === 'loader') {
     return (
-      <div className="app-viewport flex flex-col items-center justify-center bg-white space-y-4">
+      <div className="app-viewport flex flex-col items-center justify-center space-y-4">
         <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
+        <div className="ui-badge">Inicializando</div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
       </div>
     );
@@ -1744,7 +1745,7 @@ function DashboardApp({
 
   if (view === 'landing') {
     return (
-      <div className="app-viewport flex flex-col items-center justify-between bg-[#F2F2F7] p-10 py-24 text-center">
+      <div className="app-viewport flex flex-col items-center justify-between p-10 py-24 text-center">
         <div className="space-y-8">
           <div className="w-20 h-20 bg-sky-700 rounded-2xl flex items-center justify-center text-white shadow-2xl mx-auto text-3xl">🦷</div>
           <div className="space-y-3">
@@ -1764,7 +1765,7 @@ function DashboardApp({
             Acessar Unidade
           </button>
           <span
-            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600"
+            className="ui-badge"
             aria-label={`Versão V${releaseInfo.version}`}
           >
             V{releaseInfo.version}
@@ -2578,7 +2579,7 @@ function DashboardApp({
           <span>Novo e-mail</span>
           <input
             type="email"
-            className="form-input"
+            className="form-input ui-input"
             value={accountEmailDraft}
             onChange={(event) => setAccountEmailDraft(event.target.value)}
             placeholder="novoemail@clinica.com"
@@ -2588,7 +2589,7 @@ function DashboardApp({
           <span>Nova senha</span>
           <input
             type="password"
-            className="form-input"
+            className="form-input ui-input"
             value={accountPasswordDraft}
             onChange={(event) => setAccountPasswordDraft(event.target.value)}
             placeholder="********"
@@ -2753,13 +2754,13 @@ function AuthGateApp() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-slate-500">Carregando autenticação...</div>;
+    return <div className="min-h-screen flex items-center justify-center"><div className="ui-empty-state" style={{ minWidth: "280px" }}>Carregando autenticação...</div></div>;
   }
 
   if (!supabaseClient) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-xl space-y-4">
+        <div className="ui-card w-full max-w-xl space-y-4">
           <h1 className="text-xl font-bold text-slate-900">Configuração do Supabase pendente</h1>
           <p className="text-sm text-slate-600">
             Configure as variáveis <strong>SUPABASE_URL</strong> e <strong>SUPABASE_ANON</strong> no Environment do GitHub Actions usado no deploy.
@@ -2779,7 +2780,7 @@ function AuthGateApp() {
   if (!session?.user) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-md space-y-4">
+        <div className="ui-card w-full max-w-md space-y-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
             <h1 className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
@@ -2789,24 +2790,24 @@ function AuthGateApp() {
           <form onSubmit={submitCredentials} className="space-y-3">
             <input
               type="email"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="ui-input w-full"
               placeholder="seuemail@clinica.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
             <input
               type="password"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="ui-input w-full"
               placeholder="Sua senha"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-            <button type="submit" className="w-full bg-sky-700 hover:bg-sky-800 text-white rounded-xl px-3 py-2 text-sm font-bold">
+            <button type="submit" className="btn btn--primary w-full">
               {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
             </button>
           </form>
 
-          <button type="button" onClick={loginWithGoogle} className="w-full bg-white border border-slate-300 hover:bg-slate-50 rounded-xl px-3 py-2 text-sm font-semibold">
+          <button type="button" onClick={loginWithGoogle} className="btn btn--ghost w-full">
             Continuar com Google
           </button>
 

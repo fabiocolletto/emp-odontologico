@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.2 - 2026-04-21
+
+### Changed
+- Refinamento de aplicação do design system em fluxos auxiliares reais (N2/N3 e autenticação) no runtime oficial: campos de formulário migrados para `ui-input`/`ui-textarea`, cartões de autenticação para `ui-card` e estados de carregamento com padrão de DS.
+- Convergência adicional de consistência visual sem expansão funcional, preservando framework estrutural V0.
+
 ## v1.1.1 - 2026-04-21
 
 ### Changed

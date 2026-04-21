@@ -120,3 +120,9 @@ Módulos priorizados e tratados:
 2. Evitar estados vazios em texto solto; sempre usar `ui-empty-state`.
 3. Unificar barra de ações/paginação em `ui-action-bar`.
 4. Preservar a arquitetura estrutural V0 (shell, breakpoints, níveis 0/1/2/3) sem desvio.
+
+## 11. Refinamentos aplicados na sequência (V1.1.x)
+
+- Fluxos auxiliares de N2/N3 convergidos para campos do sistema (`ui-input` e `ui-textarea`) em modais de Pacientes, Perfil e Clínicas.
+- Fluxos de autenticação (configuração, login e loading) convergidos para superfícies oficiais `ui-card` e estados consistentes com o design system.
+- Sem criação de novos módulos/negócio: somente consolidação de consistência visual e previsibilidade de composição.
