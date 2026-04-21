@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.8 - 2026-04-21
+
+### Changed
+- Corrigido fallback de navegação em tablet retrato: quando não estiver em layout wide (desktop ou tablet paisagem), a barra inferior compacta permanece disponível.
+- Sidebar passa a renderizar somente em modo wide; removida condição ambígua que permitia ficar sem fonte de navegação em alguns widths/orientações.
+- Ajustado padding do conteúdo para a barra inferior em `max-width: 1023px`, evitando sobreposição em tablets compactos.
+
 ## v1.1.7 - 2026-04-21
 
 ### Changed

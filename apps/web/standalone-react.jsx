@@ -1085,6 +1085,11 @@ function DashboardApp({
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
   );
+  const [isWideNavigation, setIsWideNavigation] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(min-width: 1024px)').matches
+      || window.matchMedia('(min-width: 600px) and (orientation: landscape)').matches;
+  });
   const [showMobileNavDrawer, setShowMobileNavDrawer] = useState(false);
   const [mobileNavState, setMobileNavState] = useState(() => {
     const stored = readStoredMobileNavState();
@@ -1665,6 +1670,22 @@ function DashboardApp({
     }
     media.addListener(handler);
     return () => media.removeListener(handler);
+  }, []);
+
+  useEffect(() => {
+    const updateWideNavigation = () => {
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+      const isTabletLandscape = window.matchMedia('(min-width: 600px) and (orientation: landscape)').matches;
+      setIsWideNavigation(isDesktop || isTabletLandscape);
+    };
+
+    updateWideNavigation();
+    window.addEventListener('resize', updateWideNavigation);
+    window.addEventListener('orientationchange', updateWideNavigation);
+    return () => {
+      window.removeEventListener('resize', updateWideNavigation);
+      window.removeEventListener('orientationchange', updateWideNavigation);
+    };
   }, []);
 
   useEffect(() => {
@@ -2577,29 +2598,31 @@ function DashboardApp({
   return (
     <div className="app-shell">
       <div className="app-frame">
-        <aside className="app-sidebar">
-          <div className="app-brand">Odonto<span>Flow</span></div>
-          {authEmail ? (
-            <div className="text-[11px] leading-snug text-slate-300 mb-3">
-              <p className="font-semibold text-slate-200">Conectado</p>
-              <p className="truncate">{authEmail}</p>
-            </div>
-          ) : null}
-          <nav className="app-nav">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
-                aria-current={activeTab === tab.id ? 'page' : undefined}
-                title={tab.label}
-              >
-                <AppIcon name={tab.icon} size={14} />
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </aside>
+        {isWideNavigation ? (
+          <aside className="app-sidebar">
+            <div className="app-brand">Odonto<span>Flow</span></div>
+            {authEmail ? (
+              <div className="text-[11px] leading-snug text-slate-300 mb-3">
+                <p className="font-semibold text-slate-200">Conectado</p>
+                <p className="truncate">{authEmail}</p>
+              </div>
+            ) : null}
+            <nav className="app-nav">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
+                  aria-current={activeTab === tab.id ? 'page' : undefined}
+                  title={tab.label}
+                >
+                  <AppIcon name={tab.icon} size={14} />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </aside>
+        ) : null}
 
         <main className="app-content">
           {renderContent()}
@@ -2765,7 +2788,7 @@ function DashboardApp({
       />
 
       <MobileMd3Nav
-        visible={isMobileViewport && !showMobileNavDrawer}
+        visible={!isWideNavigation && !showMobileNavDrawer}
         leftActions={mobileNavActionConfig.left}
         centerAction={mobileNavActionConfig.center}
         rightActions={mobileNavActionConfig.right}

@@ -892,7 +892,7 @@ select {
   padding-bottom: clamp(1.2rem, 2vw, 2.2rem);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .app-content {
     padding-bottom: calc(var(--mobile-tabbar-height) + env(safe-area-inset-bottom) + var(--space-4));
   }

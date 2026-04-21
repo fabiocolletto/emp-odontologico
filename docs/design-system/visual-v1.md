@@ -139,6 +139,7 @@ Módulos priorizados e tratados:
   - barra contínua incorporada ao rodapé (sem floating, sem arredondamento);
   - suporta ações contextuais por fluxo (ex.: em Clínica N2: Cancelar, Duplicar, Salvar, Excluir, Arquivar);
   - barra móvel é ocultada enquanto o drawer de navegação inteligente estiver aberto para evitar sobreposição visual.
+  - em tablet retrato (>=600 e não-paisagem), mantém-se navegação **compacta inferior**; sidebar é exclusiva de tablet paisagem/desktop.
 
 ## 13. Padrão global para telas de cadastro (header/body/footer)
 
