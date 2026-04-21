@@ -298,6 +298,7 @@ const BioHeader = ({
                 className={`btn btn--ghost bio-header__action ${actions.length > 2 ? 'bio-header__action--grid' : ''} modal-action-btn modal-action-btn--${action.tone || 'neutral'}`}
                 onClick={action.onClick}
                 aria-label={action.ariaLabel || action.label}
+                disabled={action.disabled}
               >
                 <AppIcon name={action.icon} size={18} className="btn-icon" />
                 <span className="btn-label">{action.label}</span>
@@ -521,6 +522,24 @@ const CadastroFooterHint = ({ message = 'Use a barra de navegação inferior par
   </div>
 );
 
+const MobileScreenHeader = ({
+  icon,
+  title,
+  subtitle,
+  actions = [],
+  navigation = null
+}) => (
+  <div className="bio-header-shell">
+    <BioHeader
+      icon={icon}
+      title={title}
+      subtitle={subtitle}
+      actions={actions}
+      navigation={navigation}
+    />
+  </div>
+);
+
 const PatientN2Modal = ({
   isOpen,
   mode,
@@ -548,28 +567,26 @@ const PatientN2Modal = ({
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
       <div className="modal-card modal-card--wide cadastro-shell">
-        <div className="bio-header-shell">
-          <BioHeader
-            icon="users"
-            title={isCreateMode ? 'Novo paciente' : (patient?.name || 'Prontuário')}
-            subtitle="Cadastro de paciente"
-            actions={[]}
-            navigation={(
-              <div className="bio-steps" aria-label="Etapas do formulário de paciente">
-                {PATIENT_FORM_TABS.map((tab) => (
-                  <button
-                    type="button"
-                    key={tab.id}
-                    className={`bio-step ${tab.id === activeTab ? 'is-active' : ''}`}
-                    onClick={() => onSelectTab?.(tab.id)}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          />
-        </div>
+        <MobileScreenHeader
+          icon="users"
+          title={isCreateMode ? 'Novo paciente' : (patient?.name || 'Prontuário')}
+          subtitle="Cadastro de paciente"
+          actions={[]}
+          navigation={(
+            <div className="bio-steps" aria-label="Etapas do formulário de paciente">
+              {PATIENT_FORM_TABS.map((tab) => (
+                <button
+                  type="button"
+                  key={tab.id}
+                  className={`bio-step ${tab.id === activeTab ? 'is-active' : ''}`}
+                  onClick={() => onSelectTab?.(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+        />
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">
@@ -719,6 +736,15 @@ const AccountN2Modal = ({
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
       <div className="modal-card modal-card--wide cadastro-shell">
+        <MobileScreenHeader
+          icon="settings"
+          title={title}
+          subtitle={subtitle}
+          actions={[
+            { key: 'account-modal-cancel', label: 'Cancelar', icon: 'close', tone: 'neutral', onClick: onClose },
+            { key: 'account-modal-save', label: isSaving ? 'Salvando...' : 'Salvar', icon: 'check', tone: 'success', onClick: onSave, disabled: isSaving }
+          ]}
+        />
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">{title}</h3>
@@ -769,6 +795,25 @@ const PublicProfileN2Modal = ({
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
       <div className="modal-card modal-card--wide cadastro-shell">
+        <MobileScreenHeader
+          icon="user"
+          title="Editar perfil público"
+          subtitle="Dados salvos em public.odf_users"
+          actions={[
+            { key: 'public-profile-cancel', label: 'Cancelar', icon: 'close', tone: 'neutral', onClick: onClose },
+            { key: 'public-profile-save', label: isSaving ? 'Salvando...' : 'Salvar', icon: 'check', tone: 'success', onClick: onSave, disabled: isSaving }
+          ]}
+          navigation={(
+            <div className="bio-steps" aria-label="Abas do perfil público">
+              <button type="button" className={`bio-step ${activeTab === 'primary' ? 'is-active' : ''}`} onClick={() => setActiveTab('primary')}>
+                1. Dados primários
+              </button>
+              <button type="button" className={`bio-step ${activeTab === 'complementary' ? 'is-active' : ''}`} onClick={() => setActiveTab('complementary')}>
+                2. Complementar
+              </button>
+            </div>
+          )}
+        />
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Editar perfil público</h3>
@@ -786,7 +831,7 @@ const PublicProfileN2Modal = ({
           </div>
         </div>
         <div className="modal-body space-y-4">
-          <div className="bio-steps" aria-label="Abas do perfil público">
+          <div className="hidden md:flex bio-steps" aria-label="Abas do perfil público">
             <button type="button" className={`bio-step ${activeTab === 'primary' ? 'is-active' : ''}`} onClick={() => setActiveTab('primary')}>
               1. Dados primários
             </button>
@@ -850,6 +895,16 @@ const ClinicN2Modal = ({
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
       <div className="modal-card modal-card--wide cadastro-shell">
+        <MobileScreenHeader
+          icon="settings"
+          title="Clínicas do usuário"
+          subtitle="Selecione uma clínica para editar ou crie uma nova."
+          actions={[
+            { key: 'clinic-modal-new', label: 'Nova clínica', icon: 'edit', tone: 'info', onClick: onCreateNew },
+            { key: 'clinic-modal-cancel', label: 'Cancelar', icon: 'close', tone: 'neutral', onClick: onClose },
+            { key: 'clinic-modal-save', label: isSaving ? 'Salvando...' : 'Salvar', icon: 'check', tone: 'success', onClick: onSave, disabled: isSaving }
+          ]}
+        />
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Clínicas do usuário</h3>
