@@ -7,7 +7,6 @@ import {
   ChevronsUpDown,
   Globe,
   Layers,
-  LayoutDashboard,
   ListChecks,
   Pencil,
   Phone,
@@ -17,11 +16,11 @@ import {
   Stethoscope,
   Square,
   Trash2,
-  Menu,
   User,
   UserPlus,
   Users,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { APPOINTMENTS, AVAILABLE_CLINICS_FALLBACK, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
 import {
@@ -36,7 +35,7 @@ import {
   saveProcedureRecord,
   setActiveClinicRpc
 } from './data-gateway.js';
-import { AdaptiveHeader, AdaptiveModal, FormField, UiButton, ViewLayout } from './components.js';
+import { AdaptiveHeader, AdaptiveModal, AppShell, FormField, UiButton, ViewLayout } from './components.js';
 import DailyPanel from './daily-panel.js';
 
 const Dashboard = () => {
@@ -51,7 +50,6 @@ const Dashboard = () => {
   const [appointments, setAppointments] = useState(APPOINTMENTS);
   const [usingFallbackData, setUsingFallbackData] = useState(true);
   const [datasetHydrated, setDatasetHydrated] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const [modalPatient, setModalPatient] = useState(false);
   const [modalSettingsProc, setModalSettingsProc] = useState(false);
@@ -284,25 +282,12 @@ const Dashboard = () => {
     hydrateClinicRegistration();
   }, [currentClinic?.id]);
 
-  useEffect(() => {
-    const shouldLockScroll = mobileNavOpen;
-    document.body.style.overflow = shouldLockScroll ? 'hidden' : '';
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [mobileNavOpen]);
-
   const navItems = [
-    { id: 'overview', icon: LayoutDashboard, label: 'Painel Diário (Nível 0)' },
-    { id: 'patients', icon: Users, label: 'Base de Pacientes' },
-    { id: 'settings', icon: Settings, label: 'Configurações' }
+    { id: 'overview', icon: Home, label: 'Painel' },
+    { id: 'patients', icon: Users, label: 'Pacientes' },
+    { id: 'settings', icon: Search, label: 'Buscar' },
+    { id: 'account', icon: User, label: 'Conta' }
   ];
-
-  const handleMobileNavSelect = (tabId) => {
-    setActiveTab(tabId);
-    setMobileNavOpen(false);
-  };
 
   const handleSwitchClinic = async (clinicId) => {
     if (!clinicId || clinicId === currentClinic?.id) return;
@@ -467,95 +452,41 @@ const Dashboard = () => {
     }
   };
 
+  const activeSectionTitle = useMemo(() => ({
+    overview: 'Painel Diário',
+    patients: 'Base de Pacientes',
+    settings: 'Configurações',
+    account: 'Conta'
+  }[activeTab] || 'OdontoFlow'), [activeTab]);
+
+  const activeSectionSubtitle = currentClinic?.name || 'Clínica não definida';
+
   return (
-    <div className="min-h-screen bg-[#EAEEF2] flex flex-col md:flex-row font-sans selection:bg-sky-100">
-      <div className="mobile-nav-trigger md:hidden">
-        <UiButton
-          icon={Menu}
-          label="Navegação"
-          tone="neutral"
-          size="md"
-          className="mobile-nav-trigger__button"
-          onClick={() => setMobileNavOpen(true)}
-        />
-      </div>
-
-      {mobileNavOpen && (
-        <div className="mobile-smart-window md:hidden" role="dialog" aria-modal="true" aria-label="Navegação inteligente">
-          <button className="mobile-smart-window__overlay" type="button" aria-label="Fechar navegação" onClick={() => setMobileNavOpen(false)} />
-          <aside className="mobile-smart-window__panel">
-            <div className="mobile-smart-window__header">
-              <div>
-                <p className="mobile-smart-window__kicker">Navegação Inteligente</p>
-                <h2>OdontoFlow</h2>
-                <p className="text-xs text-slate-500 mt-1 font-semibold">{currentClinic?.name || 'Clínica não definida'}</p>
-              </div>
-              <UiButton icon={X} labelLayout="hidden" tone="neutral" onClick={() => setMobileNavOpen(false)} aria-label="Fechar" />
-            </div>
-
-            <nav className="mobile-smart-window__nav" aria-label="Menu principal">
-              {navItems.map((item) => (
-                <UiButton
-                  key={item.id}
-                  onClick={() => handleMobileNavSelect(item.id)}
-                  icon={item.icon}
-                  label={item.label}
-                  size="lg"
-                  labelLayout="side"
-                  className={`sidebar-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
-                />
-              ))}
-            </nav>
-            <div className="px-4 mt-4 space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Trocar clínica</p>
-              <div className="relative">
-                <ChevronsUpDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <select
-                  value={currentClinic?.id || ''}
-                  onChange={(event) => handleSwitchClinic(event.target.value)}
-                  disabled={clinicSwitchStatus === 'loading'}
-                  className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-100 disabled:opacity-50"
-                >
-                  {availableClinics.map((clinic) => (
-                    <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </aside>
+    <AppShell
+      headerLeading={<div className="app-header__brand"><Stethoscope size={18} /> OdontoFlow</div>}
+      headerCenter={(
+        <div>
+          <h1 className="app-header__title">{activeSectionTitle}</h1>
+          <p className="app-header__subtitle">{activeSectionSubtitle}</p>
         </div>
       )}
-
-      <aside className="hidden md:flex flex-col bg-white border-r border-slate-200 h-screen sticky top-0 w-72 z-40 shrink-0">
-        <div className="p-8 pb-10 flex items-center gap-4 overflow-hidden">
-          <div className="bg-sky-700 p-3 rounded-2xl text-white shadow-xl shadow-sky-100 shrink-0"><Stethoscope size={24} /></div>
-          <div>
-            <span className="text-2xl font-light text-slate-900 italic tracking-tighter leading-none shrink-0">Odonto<span className="text-sky-700 font-bold not-italic">Flow</span></span>
-            <p className="text-xs text-slate-500 mt-1 font-semibold">{currentClinic?.name || 'Clínica não definida'}</p>
-          </div>
-        </div>
-        <nav className="flex-1 px-6 space-y-4">
-          {navItems.map((item) => (
-            <UiButton
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              icon={item.icon}
-              label={item.label}
-              size="lg"
-              labelLayout="side"
-              className={`sidebar-nav-btn ${activeTab === item.id ? 'is-active' : ''}`}
-            />
-          ))}
-        </nav>
-        <div className="px-6 pb-8 space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Trocar clínica</p>
+      headerTrailing={(
+        <div className="app-header__actions">
+          <UiButton
+            onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
+            icon={Plus}
+            label="Novo paciente"
+            tone="primary"
+            size="sm"
+            className="app-header__primary-action"
+          />
           <div className="relative">
-            <ChevronsUpDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <ChevronsUpDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <select
               value={currentClinic?.id || ''}
               onChange={(event) => handleSwitchClinic(event.target.value)}
               disabled={clinicSwitchStatus === 'loading'}
-              className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-100 disabled:opacity-50"
+              className="app-header__select"
             >
               {availableClinics.map((clinic) => (
                 <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
@@ -563,7 +494,71 @@ const Dashboard = () => {
             </select>
           </div>
         </div>
-      </aside>
+      )}
+      sidebar={(
+        <div className="app-sidebar__inner">
+          <div className="app-sidebar__brand">
+            <Stethoscope size={18} />
+            <span>OdontoFlow</span>
+          </div>
+          <nav className="app-sidebar__nav" aria-label="Navegação principal desktop">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`app-sidebar__item ${activeTab === item.id ? 'is-active' : ''}`}
+                onClick={() => setActiveTab(item.id)}
+              >
+                <span className="app-sidebar__item-icon" aria-hidden="true"><item.icon size={18} /></span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="app-sidebar__footer">
+            <span>{currentClinic?.name || 'Clínica não definida'}</span>
+          </div>
+        </div>
+      )}
+      footer={(
+        <nav className="bottom-tabbar" aria-label="Navegação principal">
+          {navItems.slice(0, 2).map((item) => (
+            <a
+              key={item.id}
+              className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
+              href="#"
+              data-route={item.id === 'overview' ? 'painel' : 'pacientes'}
+              aria-current={activeTab === item.id ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                setActiveTab(item.id);
+              }}
+            >
+              <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
+              <span className="bottom-tabbar__label">{item.label}</span>
+            </a>
+          ))}
+          <button className="bottom-tabbar__fab" type="button" aria-label="Novo paciente" onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}>
+            <span className="bottom-tabbar__fab-icon" aria-hidden="true"><Plus size={28} /></span>
+          </button>
+          {navItems.slice(2).map((item) => (
+            <a
+              key={item.id}
+              className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
+              href="#"
+              data-route={item.id === 'settings' ? 'buscar' : 'conta'}
+              aria-current={activeTab === item.id ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                setActiveTab(item.id);
+              }}
+            >
+              <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
+              <span className="bottom-tabbar__label">{item.label}</span>
+            </a>
+          ))}
+        </nav>
+      )}
+    >
 
       {activeTab === 'overview' && (
         <DailyPanel
@@ -859,6 +854,14 @@ const Dashboard = () => {
           </div>
         </ViewLayout>
       )}
+      {activeTab === 'account' && (
+        <ViewLayout>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
+            <h3 className="text-xl font-bold text-slate-900">Conta</h3>
+            <p className="text-sm text-slate-600 mt-2">Área de conta em estrutura base padronizada.</p>
+          </div>
+        </ViewLayout>
+      )}
 
       <AdaptiveModal isOpen={modalSettingsProc} onClose={() => setModalSettingsProc(false)}>
         <AdaptiveHeader
@@ -1074,7 +1077,7 @@ const Dashboard = () => {
           </div>
         </div>
       </AdaptiveModal>
-    </div>
+    </AppShell>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, MapPin } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 // --- COMPONENTES ATÔMICOS (NÍVEL 0) ---
 
@@ -84,32 +84,44 @@ export const UiButton = ({
 
 // --- COMPONENTES DE ESTRUTURA (NÍVEL 1, 2 E 3) ---
 
-export const ViewLayout = ({ title, badge, actions, children }) => (
-  <div className="flex-1 flex flex-col overflow-y-auto scroll-smooth bg-[#EAEEF2]">
-    <header className="px-8 pt-12 pb-8 md:pt-20 md:pb-12 bg-white/50 backdrop-blur-sm sticky top-0 z-30 md:relative md:bg-transparent border-b md:border-none border-slate-100">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-0">
-        <div className="flex flex-col gap-4">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tighter leading-none">{title}</h1>
-          {badge && (
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase text-sky-700 bg-sky-50 px-4 py-1.5 rounded-full w-fit ring-1 ring-sky-100 shadow-sm animate-in fade-in slide-in-from-top-1">
-              <MapPin size={10} /> {badge}
-            </div>
-          )}
+export const AppShell = ({
+  headerLeading,
+  headerCenter,
+  headerTrailing,
+  children,
+  footer,
+  sidebar
+}) => (
+  <div className={`app-shell ${sidebar ? 'app-shell--desktop' : ''}`.trim()}>
+    {sidebar && (
+      <aside className="app-sidebar">
+        {sidebar}
+      </aside>
+    )}
+    <div className="app-main">
+      <header className="app-header">
+        <div className="app-header__inner">
+          <div className="app-header__leading">{headerLeading}</div>
+          <div className="app-header__center">{headerCenter}</div>
+          <div className="app-header__trailing">{headerTrailing}</div>
         </div>
-        <div className="w-full md:w-auto flex items-center justify-end gap-4 mb-2">
-          {actions ? actions : (
-            <>
-              <UiButton icon={Bell} size="md" tone="neutral" labelLayout="hidden" />
-              <div className="w-10 h-10 bg-sky-700 rounded-xl text-white flex items-center justify-center font-bold shadow-lg shadow-sky-100 ring-4 ring-white">L</div>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-    <section className="max-w-6xl mx-auto w-full p-8 pb-16 md:pb-20">
-      {children}
-    </section>
+      </header>
+
+      <main className="app-body">
+        {children}
+      </main>
+
+      <footer className="app-footer">
+        {footer}
+      </footer>
+    </div>
   </div>
+);
+
+export const ViewLayout = ({ children }) => (
+  <section className="app-view-layout">
+    {children}
+  </section>
 );
 
 export const AdaptiveHeader = ({ title, subtitle, icon: Icon, iconColor = 'bg-sky-700', actions }) => (
