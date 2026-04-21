@@ -720,7 +720,8 @@ const AccountN2Modal = ({
   onClose,
   onSave,
   isSaving,
-  children
+  children,
+  footerNav
 }) => {
   if (!isOpen) return null;
 
@@ -749,7 +750,9 @@ const AccountN2Modal = ({
             {children}
           </div>
         </div>
-        <CadastroFooterHint />
+        <div className="modal-footer modal-footer--window-nav">
+          {footerNav || <CadastroFooterHint />}
+        </div>
       </div>
     </div>
   );
@@ -761,7 +764,8 @@ const PublicProfileN2Modal = ({
   onSave,
   isSaving,
   draft,
-  onChange
+  onChange,
+  footerNav
 }) => {
   const [activeTab, setActiveTab] = useState('primary');
 
@@ -829,7 +833,9 @@ const PublicProfileN2Modal = ({
             </div>
           )}
         </div>
-        <CadastroFooterHint />
+        <div className="modal-footer modal-footer--window-nav">
+          {footerNav || <CadastroFooterHint />}
+        </div>
       </div>
     </div>
   );
@@ -845,7 +851,8 @@ const ClinicN2Modal = ({
   onCreateNew,
   onSave,
   onClose,
-  isSaving
+  isSaving,
+  footerNav
 }) => {
   if (!isOpen) return null;
 
@@ -924,7 +931,9 @@ const ClinicN2Modal = ({
             </label>
           </div>
         </div>
-        <CadastroFooterHint message="Ações de clínica disponíveis na barra inferior (cancelar, duplicar, salvar, excluir, arquivar)." />
+        <div className="modal-footer modal-footer--window-nav">
+          {footerNav || <CadastroFooterHint message="Ações de clínica disponíveis na barra inferior (cancelar, duplicar, salvar, excluir, arquivar)." />}
+        </div>
       </div>
     </div>
   );
@@ -935,7 +944,8 @@ const MobileMd3Nav = ({
   leftActions = [],
   rightActions = [],
   centerAction,
-  onOpenSmartNavigation
+  onOpenSmartNavigation,
+  embedded = false
 }) => {
   if (!visible) return null;
   const leftPrimary = leftActions.slice(0, 2);
@@ -957,7 +967,7 @@ const MobileMd3Nav = ({
   );
 
   return (
-    <nav className="mobile-md3-nav" aria-label="Barra de navegação móvel">
+    <nav className={`mobile-md3-nav ${embedded ? 'mobile-md3-nav--embedded' : ''}`.trim()} aria-label="Barra de navegação móvel">
       {leftPrimary.map(renderAction)}
       {centerAction ? (
         <button
@@ -2607,6 +2617,17 @@ function DashboardApp({
 
     return mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
   })();
+  const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
+  const embeddedWindowNav = (
+    <MobileMd3Nav
+      visible={!isWideNavigation}
+      embedded
+      leftActions={mobileNavActionConfig.left}
+      centerAction={mobileNavActionConfig.center}
+      rightActions={mobileNavActionConfig.right}
+      onOpenSmartNavigation={openSmartNavigation}
+    />
+  );
 
   return (
     <div className="app-shell">
@@ -2732,6 +2753,7 @@ function DashboardApp({
         onClose={() => setIsAccountEditN2Open(false)}
         onSave={handleAccountUpdate}
         isSaving={authActionStatus === 'loading'}
+        footerNav={embeddedWindowNav}
       >
         <label className="form-field">
           <span>Novo e-mail</span>
@@ -2762,6 +2784,7 @@ function DashboardApp({
         isSaving={profileActionStatus === 'loading'}
         draft={publicProfileDraft}
         onChange={(field, value) => setPublicProfileDraft((prev) => ({ ...prev, [field]: value }))}
+        footerNav={embeddedWindowNav}
       />
 
       <ClinicN2Modal
@@ -2775,6 +2798,7 @@ function DashboardApp({
         onSave={handleSaveClinic}
         onClose={() => setIsClinicN2Open(false)}
         isSaving={clinicActionStatus === 'loading'}
+        footerNav={embeddedWindowNav}
       />
 
       <PatientN2Modal
@@ -2801,7 +2825,7 @@ function DashboardApp({
       />
 
       <MobileMd3Nav
-        visible={!isWideNavigation && !showMobileNavDrawer}
+        visible={!isWideNavigation && !showMobileNavDrawer && !isFloatingWindowOpen}
         leftActions={mobileNavActionConfig.left}
         centerAction={mobileNavActionConfig.center}
         rightActions={mobileNavActionConfig.right}

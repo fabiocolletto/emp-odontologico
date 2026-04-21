@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.14 - 2026-04-21
+
+### Changed
+- Barra de navegação mobile, quando usada em contexto de janela flutuante (N2), deixa de ficar fixa na viewport e passa a ser incorporada como footer da própria janela.
+- Footer das janelas flutuantes de Conta/Perfil/Clínicas ganhou suporte a navegação embutida, mantendo header/body/footer como blocos independentes e preservando rolagem interna apenas no conteúdo.
+- Rodapé da janela com navegação embutida passa a usar o mesmo fundo do header (`bg-surface-soft`) para reforçar unidade visual do container.
+
 ## v1.1.13 - 2026-04-21
 
 ### Changed

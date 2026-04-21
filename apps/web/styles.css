@@ -493,6 +493,13 @@ select {
   border-radius: 0;
 }
 
+.mobile-md3-nav--embedded {
+  position: static;
+  border-top: 0;
+  background: var(--bg-surface-soft);
+  padding-bottom: 0;
+}
+
 .mobile-md3-nav__action {
   border: 0;
   border-radius: 0;
@@ -1881,6 +1888,11 @@ select {
   position: sticky;
   bottom: 0;
   background: #fff;
+}
+
+.modal-footer--window-nav {
+  background: var(--bg-surface-soft);
+  border-top: 1px solid var(--border-soft);
 }
 
 .modal-footer--stack {
