@@ -35,7 +35,17 @@ import {
   saveProcedureRecord,
   setActiveClinicRpc
 } from './data-gateway.js';
-import { AdaptiveHeader, AdaptiveModal, AppShell, FormField, UiButton, ViewLayout } from './components.js';
+import {
+  AdaptiveHeader,
+  AdaptiveModal,
+  AppDrawer,
+  AppSheet,
+  AppShell,
+  DetailPane,
+  FormField,
+  UiButton,
+  ViewLayout
+} from './components.js';
 import DailyPanel from './daily-panel.js';
 
 const Dashboard = () => {
@@ -91,6 +101,9 @@ const Dashboard = () => {
   const [cnpjLookupMessage, setCnpjLookupMessage] = useState('');
   const [clinicRegistrationStatus, setClinicRegistrationStatus] = useState('idle');
   const [clinicRegistrationMessage, setClinicRegistrationMessage] = useState('');
+  const [isAuxDrawerOpen, setIsAuxDrawerOpen] = useState(false);
+  const [isAuxSheetOpen, setIsAuxSheetOpen] = useState(false);
+  const [isWideViewport, setIsWideViewport] = useState(false);
 
   const fiscalRequiredFields = [
     { key: 'legalName', label: 'razão social' },
@@ -153,7 +166,11 @@ const Dashboard = () => {
 
   const handleOpenPatientRecord = (patient) => {
     setSelectedPatient(patient);
-    setModalPatient(true);
+    if (isWideViewport && activeTab === 'patients') {
+      setModalPatient(false);
+    } else {
+      setModalPatient(true);
+    }
     setIsEditing(false);
   };
 
@@ -281,6 +298,18 @@ const Dashboard = () => {
 
     hydrateClinicRegistration();
   }, [currentClinic?.id]);
+
+  useEffect(() => {
+    const evaluateWideViewport = () => {
+      const width = window.innerWidth;
+      const isLandscapeTablet = width >= 600 && width <= 1023 && window.innerWidth > window.innerHeight;
+      setIsWideViewport(width >= 1024 || isLandscapeTablet);
+    };
+
+    evaluateWideViewport();
+    window.addEventListener('resize', evaluateWideViewport);
+    return () => window.removeEventListener('resize', evaluateWideViewport);
+  }, []);
 
   const navItems = [
     { id: 'overview', icon: Home, label: 'Painel' },
@@ -493,6 +522,15 @@ const Dashboard = () => {
               ))}
             </select>
           </div>
+          <UiButton
+            onClick={() => setIsAuxDrawerOpen(true)}
+            icon={Layers}
+            labelLayout="hidden"
+            tone="neutral"
+            size="sm"
+            className="app-header__aux-trigger"
+            aria-label="Abrir ações auxiliares"
+          />
         </div>
       )}
       sidebar={(
@@ -571,11 +609,10 @@ const Dashboard = () => {
       )}
 
       {activeTab === 'patients' && (
-        <ViewLayout
-          title="Base de Pacientes"
-          badge="Índice de Prontuários"
-          actions={(
-            <div className="flex items-center gap-3">
+        <ViewLayout>
+          <div className={`app-level2-layout ${isWideViewport ? 'is-wide' : ''}`} data-level="2-container">
+            <div className="app-level2-layout__main">
+              <div className="flex items-center gap-3 mb-4">
               <UiButton
                 onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
                 icon={UserPlus}
@@ -600,9 +637,7 @@ const Dashboard = () => {
                 size="md"
                 className="uppercase tracking-widest"
               />
-            </div>
-          )}
-        >
+              </div>
           <div className="space-y-10">
             {isPatientSearchVisible && (
               <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
@@ -677,6 +712,30 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
+          </div>
+            </div>
+            <DetailPane
+              title={selectedPatient ? selectedPatient.name : 'Detalhe do paciente'}
+              isOpen={isWideViewport && Boolean(selectedPatient)}
+              onClose={() => setSelectedPatient(null)}
+            >
+              {selectedPatient ? (
+                <div className="space-y-3 text-sm text-slate-700">
+                  <p><strong>ID:</strong> {selectedPatient.id}</p>
+                  <p><strong>Telefone:</strong> {selectedPatient.phone || '-'}</p>
+                  <UiButton
+                    onClick={() => {
+                      setModalPatient(true);
+                      setIsEditing(true);
+                    }}
+                    icon={Pencil}
+                    label="Editar paciente"
+                    tone="primary"
+                    size="sm"
+                  />
+                </div>
+              ) : null}
+            </DetailPane>
           </div>
         </ViewLayout>
       )}
@@ -859,9 +918,29 @@ const Dashboard = () => {
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
             <h3 className="text-xl font-bold text-slate-900">Conta</h3>
             <p className="text-sm text-slate-600 mt-2">Área de conta em estrutura base padronizada.</p>
+            <UiButton
+              onClick={() => setIsAuxSheetOpen(true)}
+              icon={ListChecks}
+              label="Abrir seleção auxiliar"
+              tone="info"
+              size="sm"
+              className="mt-4"
+            />
           </div>
         </ViewLayout>
       )}
+
+      <AppDrawer isOpen={isAuxDrawerOpen} onClose={() => setIsAuxDrawerOpen(false)} title="Ações de nível 3">
+        <p className="text-sm text-slate-600">
+          Container oficial de tarefa auxiliar (nível 3) para ações contextuais, sem quebrar a navegação principal.
+        </p>
+      </AppDrawer>
+
+      <AppSheet isOpen={isAuxSheetOpen} onClose={() => setIsAuxSheetOpen(false)} title="Seleção contextual">
+        <p className="text-sm text-slate-600">
+          Base de sheet para subescolhas e tarefas subordinadas de nível 3.
+        </p>
+      </AppSheet>
 
       <AdaptiveModal isOpen={modalSettingsProc} onClose={() => setModalSettingsProc(false)}>
         <AdaptiveHeader

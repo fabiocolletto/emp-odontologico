@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Bell } from 'lucide-react';
 
 // --- COMPONENTES ATÔMICOS (NÍVEL 0) ---
@@ -92,7 +92,7 @@ export const AppShell = ({
   footer,
   sidebar
 }) => (
-  <div className={`app-shell ${sidebar ? 'app-shell--desktop' : ''}`.trim()}>
+  <div className={`app-shell ${sidebar ? 'app-shell--wide' : ''}`.trim()} data-shell-level="0">
     {sidebar && (
       <aside className="app-sidebar">
         {sidebar}
@@ -107,7 +107,7 @@ export const AppShell = ({
         </div>
       </header>
 
-      <main className="app-body">
+      <main className="app-body" data-shell-level="1">
         {children}
       </main>
 
@@ -119,10 +119,74 @@ export const AppShell = ({
 );
 
 export const ViewLayout = ({ children }) => (
-  <section className="app-view-layout">
+  <section className="app-view-layout app-level app-level--1" data-level="1">
     {children}
   </section>
 );
+
+export const DetailPane = ({ title, isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+  return (
+    <aside className="detail-pane app-level app-level--2" data-level="2" aria-label={title || 'Painel de detalhe'}>
+      <div className="detail-pane__header">
+        <h3>{title || 'Detalhe'}</h3>
+        {onClose && (
+          <button type="button" className="detail-pane__close" onClick={onClose} aria-label="Fechar detalhe">
+            ×
+          </button>
+        )}
+      </div>
+      <div className="detail-pane__body">
+        {children}
+      </div>
+    </aside>
+  );
+};
+
+export const AppDrawer = ({ isOpen, onClose, side = 'right', children, title = 'Drawer' }) => {
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+  return (
+    <div className="app-overlay" role="presentation">
+      <button className="app-overlay__backdrop" type="button" aria-label="Fechar drawer" onClick={onClose} />
+      <aside className={`app-drawer app-drawer--${side} app-level app-level--3`} data-level="3" aria-label={title}>
+        <div className="app-drawer__header">
+          <h3>{title}</h3>
+          <button type="button" className="app-drawer__close" onClick={onClose} aria-label="Fechar">
+            ×
+          </button>
+        </div>
+        <div className="app-drawer__body">{children}</div>
+      </aside>
+    </div>
+  );
+};
+
+export const AppSheet = ({ isOpen, onClose, children, title = 'Sheet' }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="app-overlay" role="presentation">
+      <button className="app-overlay__backdrop" type="button" aria-label="Fechar sheet" onClick={onClose} />
+      <section className="app-sheet app-level app-level--3" data-level="3" aria-label={title}>
+        <div className="app-sheet__header">
+          <h3>{title}</h3>
+          <button type="button" className="app-sheet__close" onClick={onClose} aria-label="Fechar">
+            ×
+          </button>
+        </div>
+        <div className="app-sheet__body">{children}</div>
+      </section>
+    </div>
+  );
+};
 
 export const AdaptiveHeader = ({ title, subtitle, icon: Icon, iconColor = 'bg-sky-700', actions }) => (
   <div className="px-10 py-6 flex justify-between items-center border-b border-slate-100 bg-white/50 shrink-0">

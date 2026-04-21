@@ -2,6 +2,16 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.28 - 2026-04-21
+
+### Added
+- Primitivas estruturais do framework para profundidade de navegação: `DetailPane` (nível 2), `AppDrawer` (nível 3), `AppSheet` (nível 3) e `app-overlay` com fechamento por clique fora e `Escape` no drawer.
+
+### Changed
+- Modelo de níveis formalizado no shell com convenções explícitas (`data-shell-level`, `data-level`) para orientar containers de nível 0/1/2/3.
+- Sidebar passa a cobrir também tablet paisagem (600–1023 em orientação horizontal), mantendo bottom navigation apenas em mobile e tablet retrato.
+- Fluxo de pacientes em viewport ampla suporta detail pane acoplado (lista + detalhe), preservando o fluxo mobile/tablet retrato.
+
 ## v0.1.27 - 2026-04-21
 
 ### Changed
