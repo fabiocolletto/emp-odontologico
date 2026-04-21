@@ -5,6 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Dashboard from './dashboard.js';
+import { UiAlert, UiBadge, UiButton, UiCard, UiEmptyState, UiSkeleton } from './components.js';
 import { APP_VERSION } from './constants.js';
 
 const ACTIVE_CLINIC_KEY = 'odontoflow:active-clinic-id';
@@ -40,39 +41,42 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-white space-y-4">
-        <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
-        <p className="text-[10px] font-semibold text-slate-400">Versão {APP_VERSION}</p>
+      <div className="app-viewport" style={{ display: 'grid', placeItems: 'center', padding: 'var(--space-6)' }}>
+        <UiCard className="stack-3" style={{ width: 'min(420px, 100%)' }}>
+          <UiBadge tone="success">Inicializando</UiBadge>
+          <UiSkeleton style={{ height: '14px', width: '75%' }} />
+          <UiSkeleton style={{ height: '14px', width: '55%' }} />
+          <p className="text-xs text-muted">Versão {APP_VERSION}</p>
+        </UiCard>
       </div>
     );
   }
 
   if (!clinicContextReady) {
     return (
-      <div className="min-h-screen bg-[#EAEEF2] flex items-center justify-center px-6">
-        <div className="bg-white w-full max-w-xl rounded-3xl border border-slate-200 shadow-xl p-8 space-y-5">
-          <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.24em] bg-amber-50 text-amber-700 border border-amber-200">
-            Onboarding obrigatório
-          </span>
-          <h1 className="text-2xl font-black text-slate-900">Crie sua clínica para continuar</h1>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            Não encontramos <strong>user_clinic_context.active_clinic_id</strong> para este usuário.
-            Para proteger o tenancy do sistema, a navegação principal fica bloqueada até concluir a criação inicial.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              ensureClinicContext();
-              setClinicContextReady(true);
-            }}
-            className="w-full bg-sky-700 text-white rounded-2xl py-3 px-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-sky-800 transition"
-          >
-            Criar clínica inicial
-          </button>
-          <p className="text-[11px] text-slate-400 font-semibold">Status: {onboardingLabel}</p>
-          <p className="text-[10px] font-semibold text-slate-400">Versão {APP_VERSION}</p>
-        </div>
+      <div className="app-viewport" style={{ display: 'grid', placeItems: 'center', padding: 'var(--space-6)' }}>
+        <UiCard className="stack-4" style={{ width: 'min(620px, 100%)' }}>
+          <UiBadge>Onboarding obrigatório</UiBadge>
+          <UiEmptyState
+            title="Crie sua clínica para continuar"
+            message="Não encontramos user_clinic_context.active_clinic_id para este usuário. A navegação principal fica bloqueada até concluir a criação inicial."
+            action={(
+              <UiButton
+                tone="primary"
+                className="w-full"
+                onClick={() => {
+                  ensureClinicContext();
+                  setClinicContextReady(true);
+                }}
+                label="Criar clínica inicial"
+              />
+            )}
+          />
+          <UiAlert>
+            <strong>Status:</strong> {onboardingLabel}
+          </UiAlert>
+          <p className="text-xs text-muted">Versão {APP_VERSION}</p>
+        </UiCard>
       </div>
     );
   }

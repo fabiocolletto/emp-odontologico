@@ -2,6 +2,17 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.0 - 2026-04-21
+
+### Added
+- Documento oficial do Design System Visual V1 em `docs/design-system/visual-v1.md`.
+- Novo conjunto de componentes base do design system (field/input/select/textarea/search, card, badge, alert, empty state, avatar, skeleton e shell de tabela) em `apps/web/styles.css` e wrappers React em `apps/web/src/components.js`.
+
+### Changed
+- Tokens visuais globais consolidados em contrato único no `:root` de `apps/web/styles.css`, incluindo cores, superfícies, texto, bordas, raios, sombras, tipografia, ícones, estados de interação e densidade por breakpoint.
+- Tela de inicialização/onboarding em `apps/web/src/app.js` migrada para uso de componentes base do design system (`UiCard`, `UiBadge`, `UiSkeleton`, `UiEmptyState`, `UiAlert`, `UiButton`).
+- Referências de documentação atualizadas em `README.md` e `docs/framework-layout.md` para o contrato visual V1.
+
 ## v1.0.0 - 2026-04-21
 
 ### Added

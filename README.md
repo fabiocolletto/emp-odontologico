@@ -48,6 +48,12 @@ Sistema de gestão empresarial para clínicas odontológicas.
 
 Para detalhes da organização e evolução, consulte `docs/estrutura-repositorio.md`.
 
+## Design System Visual (V1)
+- Documento oficial: `docs/design-system/visual-v1.md`.
+- Tokens e componentes base oficiais: `apps/web/styles.css` e `apps/web/src/components.js`.
+- Contrato estrutural da V0 permanece em `apps/web/framework-shell.css`.
+
+
 
 ## Migração futura para Supabase
 - Base SQL inicial e massa de dados estão em `backend/supabase/`.
