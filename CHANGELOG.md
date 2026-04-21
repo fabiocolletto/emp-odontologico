@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.27 - 2026-04-21
+
+### Changed
+- Shell responsivo consolidado como estrutura oficial reutilizável com `app-shell`, `app-header`, `app-body` e `app-footer`, incluindo `app-main` e suporte a `app-sidebar` no mesmo componente base.
+- Tablet (600px–1023px) passa a usar densidade oficial: header 72px, padding horizontal de 20px no header/body e body com espaçamento superior ampliado, mantendo navegação inferior mobile.
+- Desktop (1024px+) passa a usar arquitetura com sidebar fixa de 240px e navegação principal lateral (`Painel`, `Pacientes`, `Buscar`, `Conta`), com ocultação completa da bottom tab bar/footer visual.
+- Ação primária de “Novo paciente” permanece no fluxo desktop via botão discreto no header para evitar perda funcional quando o FAB mobile não é exibido.
+
 ## v0.1.26 - 2026-04-20
 
 ### Added
