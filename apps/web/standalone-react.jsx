@@ -107,6 +107,7 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
     map: <><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13L15 19.5 9 17 3.5 19.5v-13Z" /><path d="M9 4v13M15 6.5v13" /></>,
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
+    archive: <><rect x="3" y="4" width="18" height="5" rx="1.2" /><path d="M5.5 9.2V19a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V9.2" /><path d="M10 13h4" /></>,
     edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
@@ -934,6 +935,7 @@ const MobileMd3Nav = ({
   visible,
   leftActions = [],
   rightActions = [],
+  centerAction,
   onOpenSmartNavigation
 }) => {
   if (!visible) return null;
@@ -958,16 +960,29 @@ const MobileMd3Nav = ({
   return (
     <nav className="mobile-md3-nav" aria-label="Barra de navegação móvel">
       {leftPrimary.map(renderAction)}
-      <button
-        type="button"
-        className="mobile-md3-nav__fab"
-        onClick={onOpenSmartNavigation}
-        aria-label="Abrir navegação inteligente"
-        title="Navegação"
-      >
-        <AppIcon name="menu" size={18} />
-        <span className="mobile-md3-nav__label">Navegação</span>
-      </button>
+      {centerAction ? (
+        <button
+          type="button"
+          className={`mobile-md3-nav__fab mobile-md3-nav__action--${centerAction.tone || 'info'}`}
+          onClick={centerAction.onClick}
+          aria-label={centerAction.ariaLabel || centerAction.label}
+          title={centerAction.label}
+        >
+          <AppIcon name={centerAction.icon || 'menu'} size={18} />
+          <span className="mobile-md3-nav__label">{centerAction.label}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="mobile-md3-nav__fab"
+          onClick={onOpenSmartNavigation}
+          aria-label="Abrir navegação inteligente"
+          title="Navegação"
+        >
+          <AppIcon name="menu" size={18} />
+          <span className="mobile-md3-nav__label">Navegação</span>
+        </button>
+      )}
       {rightPrimary.map(renderAction)}
     </nav>
   );
@@ -1474,6 +1489,55 @@ function DashboardApp({
       setClinicActionStatus('error');
       setClinicActionMessage(error?.message || 'Não foi possível salvar clínica.');
     }
+  };
+
+  const handleDuplicateClinic = () => {
+    const baseName = clinicDraft.trade_name?.trim() || 'Nova Clínica';
+    setSelectedClinicId('');
+    setClinicDraft((current) => ({
+      ...current,
+      id: '',
+      trade_name: `${baseName} (cópia)`,
+      status: 'trial'
+    }));
+    setClinicActionStatus('success');
+    setClinicActionMessage('Cópia preparada. Revise e salve para criar a nova clínica.');
+  };
+
+  const handleArchiveClinic = async () => {
+    if (!accountService?.saveClinic || !authUserWidget?.id) return;
+    const archivedDraft = { ...clinicDraft, status: 'archived' };
+    setClinicDraft(archivedDraft);
+    setClinicActionStatus('loading');
+    setClinicActionMessage('Arquivando clínica...');
+    try {
+      await accountService.saveClinic({
+        userId: authUserWidget.id,
+        clinic: archivedDraft
+      });
+      await refreshClinics(authUserWidget.id);
+      setClinicActionStatus('success');
+      setClinicActionMessage('Clínica arquivada com sucesso.');
+    } catch (error) {
+      setClinicActionStatus('error');
+      setClinicActionMessage(error?.message || 'Não foi possível arquivar clínica.');
+    }
+  };
+
+  const handleDeleteClinic = () => {
+    if (!selectedClinicId) {
+      setClinicActionStatus('error');
+      setClinicActionMessage('Selecione uma clínica existente para excluir.');
+      return;
+    }
+    const canDelete = window.confirm('Excluir esta clínica da lista local?');
+    if (!canDelete) return;
+
+    setClinics((prev) => prev.filter((clinic) => clinic.id !== selectedClinicId));
+    setSelectedClinicId('');
+    setClinicDraft(toClinicDraft(null));
+    setClinicActionStatus('success');
+    setClinicActionMessage('Clínica removida da lista local. Salve se desejar persistir alterações.');
   };
 
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
@@ -2452,7 +2516,19 @@ function DashboardApp({
     }
   };
 
-  const mobileNavActionConfig = mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
+  const mobileNavActionConfig = (isClinicN2Open
+    ? {
+      left: [
+        { key: 'clinic-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setIsClinicN2Open(false) },
+        { key: 'clinic-duplicate', icon: 'edit', tone: 'info', label: 'Duplicar', onClick: handleDuplicateClinic }
+      ],
+      center: { key: 'clinic-save', icon: 'check', tone: 'success', label: 'Salvar', onClick: handleSaveClinic },
+      right: [
+        { key: 'clinic-delete', icon: 'close', tone: 'danger', label: 'Excluir', onClick: handleDeleteClinic },
+        { key: 'clinic-archive', icon: 'archive', tone: 'settings', label: 'Arquivar', onClick: handleArchiveClinic }
+      ]
+    }
+    : (mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview));
 
   return (
     <div className="app-shell">
@@ -2646,6 +2722,7 @@ function DashboardApp({
       <MobileMd3Nav
         visible={isMobileViewport && !showMobileNavDrawer}
         leftActions={mobileNavActionConfig.left}
+        centerAction={mobileNavActionConfig.center}
         rightActions={mobileNavActionConfig.right}
         onOpenSmartNavigation={openSmartNavigation}
       />

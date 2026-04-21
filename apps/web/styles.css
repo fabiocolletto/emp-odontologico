@@ -528,6 +528,7 @@ select {
 .mobile-md3-nav__action--search.is-active { color: #0f4f7f; }
 .mobile-md3-nav__action--success.is-active { color: #166534; }
 .mobile-md3-nav__action--info.is-active { color: #0f4f7f; }
+.mobile-md3-nav__action--danger.is-active { color: #b91c1c; }
 
 .mobile-md3-nav__action:focus-visible,
 .mobile-md3-nav__fab:focus-visible {

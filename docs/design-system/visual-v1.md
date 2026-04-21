@@ -137,4 +137,5 @@ Módulos priorizados e tratados:
   - estrutura final em **5 botões** fixos (2 + botão central de navegação + 2);
   - ícone como elemento principal e label abaixo com peso/fonte reduzidos;
   - barra contínua incorporada ao rodapé (sem floating, sem arredondamento);
+  - suporta ações contextuais por fluxo (ex.: em Clínica N2: Cancelar, Duplicar, Salvar, Excluir, Arquivar);
   - barra móvel é ocultada enquanto o drawer de navegação inteligente estiver aberto para evitar sobreposição visual.

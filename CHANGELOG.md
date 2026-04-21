@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.5 - 2026-04-21
+
+### Changed
+- Barra de navegação mobile passa a exibir ações úteis contextuais no modo de edição/criação de clínicas (Cancelar, Duplicar, Salvar, Excluir, Arquivar), mantendo estrutura fixa de 5 botões.
+- Ação central da tab bar torna-se dinâmica por contexto (menu padrão ou salvar em fluxo de clínica), sem alterar o framework estrutural.
+
 ## v1.1.4 - 2026-04-21
 
 ### Changed
