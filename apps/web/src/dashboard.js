@@ -1,10 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Bell,
   ArrowRight,
   Archive,
+  BadgeDollarSign,
+  Building2,
   Check,
   CheckSquare,
   ChevronsUpDown,
+  ChevronRight,
+  CircleHelp,
+  CreditCard,
+  FileText,
   Globe,
   Layers,
   ListChecks,
@@ -15,6 +22,10 @@ import {
   Settings,
   Stethoscope,
   Square,
+  Shield,
+  SlidersHorizontal,
+  LogOut,
+  Info,
   Trash2,
   User,
   UserPlus,
@@ -107,6 +118,13 @@ const Dashboard = () => {
   const [isAuxDrawerOpen, setIsAuxDrawerOpen] = useState(false);
   const [isAuxSheetOpen, setIsAuxSheetOpen] = useState(false);
   const [isWideViewport, setIsWideViewport] = useState(false);
+  const [profileStack, setProfileStack] = useState(['root']);
+
+  const userProfile = useMemo(() => ({
+    name: 'Dra. Mariana Costa',
+    subtitle: currentClinic?.name ? `Gestora clínica · ${currentClinic.name}` : 'Gestora clínica',
+    email: 'mariana@odontoflow.com'
+  }), [currentClinic?.name]);
 
   const fiscalRequiredFields = [
     { key: 'legalName', label: 'razão social' },
@@ -327,8 +345,70 @@ const Dashboard = () => {
     { id: 'overview', icon: Home, label: 'Painel' },
     { id: 'patients', icon: Users, label: 'Pacientes' },
     { id: 'settings', icon: UserPlus, label: 'Cadastro' },
-    { id: 'account', icon: User, label: 'Conta' }
+    { id: 'profile', icon: User, label: 'Perfil' }
   ];
+
+  const profileSectionsSchema = useMemo(() => ([
+    {
+      id: 'account',
+      title: 'Conta',
+      order: 1,
+      items: [
+        { id: 'notifications', label: 'Notificações', icon: Bell, route: 'profile.notifications', badge: 'Ativo', description: 'Preferências de alertas', visibility: true, order: 1 },
+        { id: 'account-data', label: 'Dados da conta', icon: User, route: 'profile.account-data', visibility: true, order: 2 },
+        { id: 'security-access', label: 'Segurança e acesso', icon: Shield, route: 'profile.security-access', visibility: true, order: 3 }
+      ]
+    },
+    {
+      id: 'subscription',
+      title: 'Assinatura e financeiro',
+      order: 2,
+      items: [
+        { id: 'plan-subscription', label: 'Plano e assinatura', icon: BadgeDollarSign, route: 'profile.plan-subscription', visibility: true, order: 1 },
+        { id: 'payments', label: 'Pagamentos', icon: CreditCard, route: 'profile.payments', visibility: true, order: 2 },
+        { id: 'invoices', label: 'Faturas', icon: FileText, route: 'profile.invoices', visibility: true, order: 3 }
+      ]
+    },
+    {
+      id: 'professional',
+      title: 'Ambiente profissional',
+      order: 3,
+      items: [
+        { id: 'current-clinic', label: 'Clínica atual', icon: Building2, route: 'profile.current-clinic', description: currentClinic?.name || 'Não definida', visibility: true, order: 1 },
+        { id: 'team-permissions', label: 'Equipe e permissões', icon: Users, route: 'profile.team-permissions', visibility: true, order: 2 },
+        { id: 'system-preferences', label: 'Preferências do sistema', icon: SlidersHorizontal, route: 'profile.system-preferences', visibility: true, order: 3 }
+      ]
+    },
+    {
+      id: 'support',
+      title: 'Suporte e sessão',
+      order: 4,
+      items: [
+        { id: 'help', label: 'Ajuda', icon: CircleHelp, route: 'profile.help', visibility: true, order: 1 },
+        { id: 'about', label: 'Sobre o app', icon: Info, route: 'profile.about', visibility: true, order: 2 },
+        { id: 'logout', label: 'Sair', icon: LogOut, route: 'profile.logout', visibility: true, order: 3 }
+      ]
+    }
+  ]), [currentClinic?.name]);
+
+  const profileItemsById = useMemo(() => (
+    profileSectionsSchema.flatMap((section) => section.items).reduce((accumulator, item) => {
+      accumulator[item.id] = item;
+      return accumulator;
+    }, {})
+  ), [profileSectionsSchema]);
+
+  const profileActiveScreen = profileStack[profileStack.length - 1];
+  const activeProfileItem = profileActiveScreen === 'root' ? null : profileItemsById[profileActiveScreen];
+
+  const handleOpenProfileScreen = (itemId) => {
+    if (!profileItemsById[itemId]) return;
+    setProfileStack((current) => [...current, itemId]);
+  };
+
+  const handleBackProfileScreen = () => {
+    setProfileStack((current) => (current.length > 1 ? current.slice(0, -1) : current));
+  };
 
   const handleSwitchClinic = async (clinicId) => {
     if (!clinicId || clinicId === currentClinic?.id) return;
@@ -498,8 +578,8 @@ const Dashboard = () => {
     overview: 'Painel Diário',
     patients: 'Base de Pacientes',
     settings: 'Cadastro da Clínica',
-    account: 'Conta'
-  }[activeTab] || 'OdontoFlow'), [activeTab]);
+    profile: activeProfileItem?.label || 'Perfil'
+  }[activeTab] || 'OdontoFlow'), [activeProfileItem?.label, activeTab]);
 
   const activeSectionSubtitle = currentClinic?.name || 'Clínica não definida';
 
@@ -560,7 +640,10 @@ const Dashboard = () => {
                 key={item.id}
                 type="button"
                 className={`app-sidebar__item ${activeTab === item.id ? 'is-active' : ''}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (item.id === 'profile') setProfileStack(['root']);
+                }}
               >
                 <span className="app-sidebar__item-icon" aria-hidden="true"><item.icon size={18} /></span>
                 <span>{item.label}</span>
@@ -584,6 +667,7 @@ const Dashboard = () => {
               onClick={(event) => {
                 event.preventDefault();
                 setActiveTab(item.id);
+                if (item.id === 'profile') setProfileStack(['root']);
               }}
             >
               <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
@@ -598,11 +682,12 @@ const Dashboard = () => {
               key={item.id}
               className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
               href="#"
-              data-route={item.id === 'settings' ? 'cadastro' : 'conta'}
+              data-route={item.id === 'settings' ? 'cadastro' : 'perfil'}
               aria-current={activeTab === item.id ? 'page' : undefined}
               onClick={(event) => {
                 event.preventDefault();
                 setActiveTab(item.id);
+                if (item.id === 'profile') setProfileStack(['root']);
               }}
             >
               <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
@@ -972,19 +1057,75 @@ const Dashboard = () => {
           </div>
         </ViewLayout>
       )}
-      {activeTab === 'account' && (
+      {activeTab === 'profile' && (
         <ViewLayout>
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
-            <h3 className="text-xl font-bold text-slate-900">Conta</h3>
-            <p className="text-sm text-slate-600 mt-2">Área de conta em estrutura base padronizada.</p>
-            <UiButton
-              onClick={() => setIsAuxSheetOpen(true)}
-              icon={ListChecks}
-              label="Abrir seleção auxiliar"
-              tone="info"
-              size="sm"
-              className="mt-4"
-            />
+          <div className="profile-screen">
+            {profileActiveScreen !== 'root' && (
+              <div className="profile-screen__subheader">
+                <button type="button" className="profile-screen__back" onClick={handleBackProfileScreen} aria-label="Voltar para perfil">
+                  <ArrowRight size={18} style={{ transform: 'rotate(180deg)' }} />
+                  Voltar
+                </button>
+                <h3>{activeProfileItem?.label || 'Perfil'}</h3>
+              </div>
+            )}
+
+            {profileActiveScreen === 'root' ? (
+              <>
+                <header className="profile-identity-card">
+                  <div className="profile-identity-card__avatar" aria-hidden="true">
+                    {userProfile.name.charAt(0)}
+                  </div>
+                  <div className="profile-identity-card__content">
+                    <h3>{userProfile.name}</h3>
+                    <p>{userProfile.subtitle}</p>
+                    <span>{userProfile.email}</span>
+                  </div>
+                  <UiButton label="Ver conta" tone="info" size="sm" onClick={() => handleOpenProfileScreen('account-data')} />
+                </header>
+
+                <div className="profile-settings-list">
+                  {profileSectionsSchema
+                    .sort((a, b) => a.order - b.order)
+                    .map((section) => (
+                      <section key={section.id} className="profile-settings-section" aria-label={section.title}>
+                        {section.title ? <p className="profile-settings-section__title">{section.title}</p> : null}
+                        <div className="profile-settings-section__items">
+                          {section.items
+                            .filter((item) => item.visibility)
+                            .sort((a, b) => a.order - b.order)
+                            .map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className="profile-settings-item"
+                                onClick={() => handleOpenProfileScreen(item.id)}
+                              >
+                                <span className="profile-settings-item__leading" aria-hidden="true">
+                                  <item.icon size={18} />
+                                </span>
+                                <span className="profile-settings-item__content">
+                                  <span>{item.label}</span>
+                                  {item.description ? <small>{item.description}</small> : null}
+                                </span>
+                                {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
+                                <ChevronRight size={18} className="profile-settings-item__chevron" aria-hidden="true" />
+                              </button>
+                            ))}
+                        </div>
+                      </section>
+                    ))}
+                </div>
+              </>
+            ) : (
+              <section className="profile-screen__detail">
+                <h4>{activeProfileItem?.label}</h4>
+                <p>
+                  Tela de nível 1 preparada para rota <strong>{activeProfileItem?.route}</strong>.
+                  Conecte este espaço aos dados reais de sessão/perfil sem alterar o shell principal.
+                </p>
+              </section>
+            )}
           </div>
         </ViewLayout>
       )}
