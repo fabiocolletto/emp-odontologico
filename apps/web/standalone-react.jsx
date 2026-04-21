@@ -514,6 +514,12 @@ const toPatientFromForm = (form) => ({
   lastVisit: '-'
 });
 
+const CadastroFooterHint = ({ message = 'Use a barra de navegação inferior para ações de cadastro.' }) => (
+  <div className="modal-footer cadastro-shell__footer">
+    <p className="text-xs text-muted">{message}</p>
+  </div>
+);
+
 const PatientN2Modal = ({
   isOpen,
   mode,
@@ -557,7 +563,7 @@ const PatientN2Modal = ({
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="bio-header-shell">
           <BioHeader
             icon="users"
@@ -731,7 +737,7 @@ const AccountN2Modal = ({
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">{title}</h3>
@@ -753,6 +759,7 @@ const AccountN2Modal = ({
             {children}
           </div>
         </div>
+        <CadastroFooterHint />
       </div>
     </div>
   );
@@ -777,7 +784,7 @@ const PublicProfileN2Modal = ({
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Editar perfil público</h3>
@@ -832,6 +839,7 @@ const PublicProfileN2Modal = ({
             </div>
           )}
         </div>
+        <CadastroFooterHint />
       </div>
     </div>
   );
@@ -854,7 +862,7 @@ const ClinicN2Modal = ({
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Clínicas do usuário</h3>
@@ -926,6 +934,7 @@ const ClinicN2Modal = ({
             </label>
           </div>
         </div>
+        <CadastroFooterHint message="Ações de clínica disponíveis na barra inferior (cancelar, duplicar, salvar, excluir, arquivar)." />
       </div>
     </div>
   );
@@ -2516,19 +2525,65 @@ function DashboardApp({
     }
   };
 
-  const mobileNavActionConfig = (isClinicN2Open
-    ? {
-      left: [
-        { key: 'clinic-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setIsClinicN2Open(false) },
-        { key: 'clinic-duplicate', icon: 'edit', tone: 'info', label: 'Duplicar', onClick: handleDuplicateClinic }
-      ],
-      center: { key: 'clinic-save', icon: 'check', tone: 'success', label: 'Salvar', onClick: handleSaveClinic },
-      right: [
-        { key: 'clinic-delete', icon: 'close', tone: 'danger', label: 'Excluir', onClick: handleDeleteClinic },
-        { key: 'clinic-archive', icon: 'archive', tone: 'settings', label: 'Arquivar', onClick: handleArchiveClinic }
-      ]
+  const mobileNavActionConfig = (() => {
+    if (isClinicN2Open) {
+      return {
+        left: [
+          { key: 'clinic-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setIsClinicN2Open(false) },
+          { key: 'clinic-duplicate', icon: 'edit', tone: 'info', label: 'Duplicar', onClick: handleDuplicateClinic }
+        ],
+        center: { key: 'clinic-save', icon: 'check', tone: 'success', label: 'Salvar', onClick: handleSaveClinic },
+        right: [
+          { key: 'clinic-delete', icon: 'close', tone: 'danger', label: 'Excluir', onClick: handleDeleteClinic },
+          { key: 'clinic-archive', icon: 'archive', tone: 'settings', label: 'Arquivar', onClick: handleArchiveClinic }
+        ]
+      };
     }
-    : (mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview));
+
+    if (showPatientN2) {
+      return {
+        left: [
+          { key: 'patient-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setShowPatientN2(false) },
+          { key: 'patient-prev', icon: 'chevron-left', tone: 'overview', label: 'Anterior', onClick: () => moveFormTab(-1) }
+        ],
+        center: {
+          key: 'patient-save',
+          icon: 'check',
+          tone: 'success',
+          label: patientModalMode === 'create' ? 'Salvar' : (isPatientViewEditing ? 'Salvar' : 'Editar'),
+          onClick: patientModalMode === 'create'
+            ? handleCreatePatientSubmit
+            : (isPatientViewEditing ? handleSavePatientEdit : handleStartPatientEdit)
+        },
+        right: [
+          { key: 'patient-next', icon: 'chevron-right', tone: 'patients', label: 'Próxima', onClick: () => moveFormTab(1) },
+          { key: 'patient-close', icon: 'close', tone: 'danger', label: 'Fechar', onClick: () => setShowPatientN2(false) }
+        ]
+      };
+    }
+
+    if (isAccountEditN2Open || isPublicProfileN2Open) {
+      return {
+        left: [
+          { key: 'account-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } },
+          { key: 'account-open', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
+        ],
+        center: {
+          key: 'account-save',
+          icon: 'check',
+          tone: 'success',
+          label: 'Salvar',
+          onClick: isPublicProfileN2Open ? handleSavePublicProfile : handleAccountUpdate
+        },
+        right: [
+          { key: 'account-profile', icon: 'edit', tone: 'info', label: 'Perfil', onClick: openPublicProfileEditN2 },
+          { key: 'account-close', icon: 'close', tone: 'danger', label: 'Fechar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } }
+        ]
+      };
+    }
+
+    return mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
+  })();
 
   return (
     <div className="app-shell">

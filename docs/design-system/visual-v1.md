@@ -139,3 +139,12 @@ Módulos priorizados e tratados:
   - barra contínua incorporada ao rodapé (sem floating, sem arredondamento);
   - suporta ações contextuais por fluxo (ex.: em Clínica N2: Cancelar, Duplicar, Salvar, Excluir, Arquivar);
   - barra móvel é ocultada enquanto o drawer de navegação inteligente estiver aberto para evitar sobreposição visual.
+
+## 13. Padrão global para telas de cadastro (header/body/footer)
+
+- Toda tela de cadastro/edição N2 deve usar shell comum com:
+  - header preservado (padrão atual aprovado),
+  - body com formulário,
+  - footer informativo de ações.
+- Em mobile, as ações principais de cadastro devem ficar concentradas na barra inferior contextual (5 botões), evitando duplicidade de barras/botões no topo.
+- Aplicado em: Pacientes N2, Conta N2, Perfil público N2 e Clínicas N2.

@@ -562,6 +562,16 @@ select {
   white-space: nowrap;
 }
 
+.cadastro-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.cadastro-shell__footer {
+  border-top: 1px solid var(--border-soft);
+  background: color-mix(in srgb, #ffffff 92%, #eef3fa);
+}
+
 .mobile-nav-trigger__button {
   box-shadow: 0 10px 22px rgba(15, 35, 72, 0.16);
 }
@@ -885,6 +895,11 @@ select {
 @media (max-width: 768px) {
   .app-content {
     padding-bottom: calc(var(--mobile-tabbar-height) + env(safe-area-inset-bottom) + var(--space-4));
+  }
+
+  .modal-header__actions,
+  .n2-mobile-nav {
+    display: none !important;
   }
 }
 

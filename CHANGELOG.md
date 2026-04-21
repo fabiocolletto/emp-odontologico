@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.6 - 2026-04-21
+
+### Changed
+- Introduzido padrão global de telas de cadastro com shell `header/body/footer` (`cadastro-shell`) aplicado aos fluxos N2 de Pacientes, Conta, Perfil Público e Clínicas.
+- Em mobile, ações de cadastro migradas para a barra inferior contextual de 5 botões; ações duplicadas no header/modal foram suprimidas para evitar barra antiga concorrente.
+- Barra contextual passa a adaptar ações úteis por tela de cadastro (ex.: Clínica N2 com Cancelar, Duplicar, Salvar, Excluir, Arquivar).
+
 ## v1.1.5 - 2026-04-21
 
 ### Changed
