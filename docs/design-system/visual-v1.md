@@ -148,3 +148,4 @@ Módulos priorizados e tratados:
   - footer informativo de ações.
 - Em mobile, as ações principais de cadastro devem ficar concentradas na barra inferior contextual (5 botões), evitando duplicidade de barras/botões no topo.
 - Aplicado em: Pacientes N2, Conta N2, Perfil público N2 e Clínicas N2.
+- Em Pacientes N2, os chips de etapa (`Identificação`, `Contato`, `Dados clínicos`) são clicáveis para navegação direta, coexistindo com `Anterior`/`Próxima` na barra inferior.

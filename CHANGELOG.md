@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.7 - 2026-04-21
+
+### Changed
+- Removidos os botões de ação abaixo do subtítulo no cadastro de pacientes (chrome duplicado); as ações ficam centralizadas na barra inferior contextual.
+- Etapas de paciente (`Identificação`, `Contato`, `Dados clínicos`) passaram a ser clicáveis para navegação direta, mantendo também `Anterior`/`Próxima` na barra.
+- Barra de navegação contextual mantém padrão sem fundos/bordas nos botões, usando apenas cor de ícone e título por propósito.
+
 ## v1.1.6 - 2026-04-21
 
 ### Changed

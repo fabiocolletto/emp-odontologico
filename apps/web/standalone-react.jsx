@@ -533,6 +533,7 @@ const PatientN2Modal = ({
   onFormChange,
   onPreviousTab,
   onNextTab,
+  onSelectTab,
   onSubmit,
   onStartEdit,
   onCancelEdit,
@@ -542,23 +543,6 @@ const PatientN2Modal = ({
   const isCreateMode = mode === 'create';
   const currentTab = PATIENT_FORM_TABS.find((tab) => tab.id === activeTab);
   const canEditView = !isCreateMode && isEditingView;
-  const modalHeaderActions = [
-    ...(!isCreateMode && !isEditingView
-      ? [{ key: 'enable-edit', tone: 'info', icon: 'edit', label: 'Habilitar edição', onClick: onStartEdit }]
-      : []),
-    ...(!isCreateMode && isEditingView
-      ? [
-        { key: 'cancel-edit', tone: 'neutral', icon: 'close', label: 'Cancelar', onClick: onCancelEdit },
-        { key: 'save-edit', tone: 'success', icon: 'check', label: 'Salvar', onClick: onSaveEdit }
-      ]
-      : []),
-    ...(isCreateMode
-      ? [{ key: 'save-patient', tone: 'success', icon: 'check', label: 'Salvar paciente', onClick: onSubmit }]
-      : []),
-    ...(!isEditingView
-      ? [{ key: 'close-modal', tone: 'danger', icon: 'close', label: 'Fechar', onClick: onClose, ariaLabel: 'Fechar janela' }]
-      : [])
-  ];
 
   return (
     <div className="modal-wrap">
@@ -569,13 +553,18 @@ const PatientN2Modal = ({
             icon="users"
             title={isCreateMode ? 'Novo paciente' : (patient?.name || 'Prontuário')}
             subtitle="Cadastro de paciente"
-            actions={modalHeaderActions}
+            actions={[]}
             navigation={(
               <div className="bio-steps" aria-label="Etapas do formulário de paciente">
                 {PATIENT_FORM_TABS.map((tab) => (
-                  <span key={tab.id} className={`bio-step ${tab.id === activeTab ? 'is-active' : ''}`}>
+                  <button
+                    type="button"
+                    key={tab.id}
+                    className={`bio-step ${tab.id === activeTab ? 'is-active' : ''}`}
+                    onClick={() => onSelectTab?.(tab.id)}
+                  >
                     {tab.label}
-                  </span>
+                  </button>
                 ))}
               </div>
             )}
@@ -2768,6 +2757,7 @@ function DashboardApp({
         onFormChange={handlePatientFormChange}
         onPreviousTab={() => moveFormTab(-1)}
         onNextTab={() => moveFormTab(1)}
+        onSelectTab={(tabId) => setPatientFormTab(tabId)}
         onSubmit={handleCreatePatientSubmit}
         onStartEdit={handleStartPatientEdit}
         onCancelEdit={handleCancelPatientEdit}
