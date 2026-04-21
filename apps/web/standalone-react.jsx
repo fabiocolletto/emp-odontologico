@@ -107,6 +107,7 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
     map: <><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13L15 19.5 9 17 3.5 19.5v-13Z" /><path d="M9 4v13M15 6.5v13" /></>,
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
+    archive: <><rect x="3" y="4" width="18" height="5" rx="1.2" /><path d="M5.5 9.2V19a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V9.2" /><path d="M10 13h4" /></>,
     edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
@@ -513,6 +514,12 @@ const toPatientFromForm = (form) => ({
   lastVisit: '-'
 });
 
+const CadastroFooterHint = ({ message = 'Use a barra de navegação inferior para ações de cadastro.' }) => (
+  <div className="modal-footer cadastro-shell__footer">
+    <p className="text-xs text-muted">{message}</p>
+  </div>
+);
+
 const PatientN2Modal = ({
   isOpen,
   mode,
@@ -526,6 +533,7 @@ const PatientN2Modal = ({
   onFormChange,
   onPreviousTab,
   onNextTab,
+  onSelectTab,
   onSubmit,
   onStartEdit,
   onCancelEdit,
@@ -535,40 +543,28 @@ const PatientN2Modal = ({
   const isCreateMode = mode === 'create';
   const currentTab = PATIENT_FORM_TABS.find((tab) => tab.id === activeTab);
   const canEditView = !isCreateMode && isEditingView;
-  const modalHeaderActions = [
-    ...(!isCreateMode && !isEditingView
-      ? [{ key: 'enable-edit', tone: 'info', icon: 'edit', label: 'Habilitar edição', onClick: onStartEdit }]
-      : []),
-    ...(!isCreateMode && isEditingView
-      ? [
-        { key: 'cancel-edit', tone: 'neutral', icon: 'close', label: 'Cancelar', onClick: onCancelEdit },
-        { key: 'save-edit', tone: 'success', icon: 'check', label: 'Salvar', onClick: onSaveEdit }
-      ]
-      : []),
-    ...(isCreateMode
-      ? [{ key: 'save-patient', tone: 'success', icon: 'check', label: 'Salvar paciente', onClick: onSubmit }]
-      : []),
-    ...(!isEditingView
-      ? [{ key: 'close-modal', tone: 'danger', icon: 'close', label: 'Fechar', onClick: onClose, ariaLabel: 'Fechar janela' }]
-      : [])
-  ];
 
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="bio-header-shell">
           <BioHeader
             icon="users"
             title={isCreateMode ? 'Novo paciente' : (patient?.name || 'Prontuário')}
             subtitle="Cadastro de paciente"
-            actions={modalHeaderActions}
+            actions={[]}
             navigation={(
               <div className="bio-steps" aria-label="Etapas do formulário de paciente">
                 {PATIENT_FORM_TABS.map((tab) => (
-                  <span key={tab.id} className={`bio-step ${tab.id === activeTab ? 'is-active' : ''}`}>
+                  <button
+                    type="button"
+                    key={tab.id}
+                    className={`bio-step ${tab.id === activeTab ? 'is-active' : ''}`}
+                    onClick={() => onSelectTab?.(tab.id)}
+                  >
                     {tab.label}
-                  </span>
+                  </button>
                 ))}
               </div>
             )}
@@ -621,7 +617,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Nome completo</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   value={isCreateMode ? form.name : (viewForm?.name || patient?.name || '')}
                   onChange={(e) => onFormChange('name', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -631,7 +627,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Data de nascimento</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   type={isCreateMode ? 'date' : 'text'}
                   value={isCreateMode ? form.birth : (viewForm?.birth || patient?.birth || '-')}
                   onChange={(e) => onFormChange('birth', e.target.value)}
@@ -646,7 +642,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Telefone</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   value={isCreateMode ? form.phone : (viewForm?.phone || patient?.phone || '')}
                   onChange={(e) => onFormChange('phone', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -656,7 +652,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>E-mail</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   type="email"
                   value={isCreateMode ? form.email : (viewForm?.email || patient?.email || '')}
                   onChange={(e) => onFormChange('email', e.target.value)}
@@ -672,7 +668,7 @@ const PatientN2Modal = ({
               <label className="form-field">
                 <span>Plano</span>
                 <input
-                  className="form-input"
+                  className="form-input ui-input"
                   value={isCreateMode ? form.plan : (viewForm?.plan || patient?.plan || '')}
                   onChange={(e) => onFormChange('plan', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -688,7 +684,7 @@ const PatientN2Modal = ({
               <label className={`form-field ${!isCreateMode ? 'form-field--full' : ''}`}>
                 <span>Observações clínicas</span>
                 <textarea
-                  className="modal-notes-input"
+                  className="modal-notes-input ui-textarea"
                   value={isCreateMode ? form.notes : (viewForm?.notes ?? notesValue)}
                   onChange={(e) => onFormChange('notes', e.target.value)}
                   disabled={!isCreateMode && !canEditView}
@@ -730,7 +726,7 @@ const AccountN2Modal = ({
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">{title}</h3>
@@ -752,6 +748,7 @@ const AccountN2Modal = ({
             {children}
           </div>
         </div>
+        <CadastroFooterHint />
       </div>
     </div>
   );
@@ -776,7 +773,7 @@ const PublicProfileN2Modal = ({
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Editar perfil público</h3>
@@ -807,30 +804,31 @@ const PublicProfileN2Modal = ({
             <div className="modal-grid">
               <label className="form-field">
                 <span>Nome</span>
-                <input type="text" className="form-input" value={draft.full_name} onChange={(event) => onChange('full_name', event.target.value)} placeholder="Nome completo" />
+                <input type="text" className="form-input ui-input" value={draft.full_name} onChange={(event) => onChange('full_name', event.target.value)} placeholder="Nome completo" />
               </label>
               <label className="form-field">
                 <span>E-mail</span>
-                <input type="email" className="form-input" value={draft.email} onChange={(event) => onChange('email', event.target.value)} placeholder="nome@email.com" />
+                <input type="email" className="form-input ui-input" value={draft.email} onChange={(event) => onChange('email', event.target.value)} placeholder="nome@email.com" />
               </label>
               <label className="form-field">
                 <span>Telefone</span>
-                <input type="text" className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} placeholder="(00) 00000-0000" />
+                <input type="text" className="form-input ui-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} placeholder="(00) 00000-0000" />
               </label>
             </div>
           ) : (
             <div className="modal-grid">
               <label className="form-field form-field--full">
                 <span>Endereço</span>
-                <input type="text" className="form-input" value={draft.address} onChange={(event) => onChange('address', event.target.value)} placeholder="Rua, número, bairro, cidade/UF" />
+                <input type="text" className="form-input ui-input" value={draft.address} onChange={(event) => onChange('address', event.target.value)} placeholder="Rua, número, bairro, cidade/UF" />
               </label>
               <label className="form-field">
                 <span>Data de nascimento</span>
-                <input type="date" className="form-input" value={draft.birth_date || ''} onChange={(event) => onChange('birth_date', event.target.value)} />
+                <input type="date" className="form-input ui-input" value={draft.birth_date || ''} onChange={(event) => onChange('birth_date', event.target.value)} />
               </label>
             </div>
           )}
         </div>
+        <CadastroFooterHint />
       </div>
     </div>
   );
@@ -853,7 +851,7 @@ const ClinicN2Modal = ({
   return (
     <div className="modal-wrap">
       <div className="modal-backdrop" onClick={onClose}></div>
-      <div className="modal-card modal-card--wide">
+      <div className="modal-card modal-card--wide cadastro-shell">
         <div className="modal-header">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Clínicas do usuário</h3>
@@ -877,7 +875,7 @@ const ClinicN2Modal = ({
         <div className="modal-body space-y-4">
           <label className="form-field">
             <span>Clínica selecionada</span>
-            <select className="form-input" value={selectedClinicId || ''} onChange={(event) => onSelectClinic(event.target.value)}>
+            <select className="form-input ui-input" value={selectedClinicId || ''} onChange={(event) => onSelectClinic(event.target.value)}>
               {clinics.map((clinic) => (
                 <option key={clinic.id} value={clinic.id}>{clinic.trade_name}</option>
               ))}
@@ -888,35 +886,35 @@ const ClinicN2Modal = ({
           <div className="modal-grid">
             <label className="form-field">
               <span>Nome fantasia</span>
-              <input className="form-input" value={draft.trade_name} onChange={(event) => onChange('trade_name', event.target.value)} placeholder="Minha Clínica" />
+              <input className="form-input ui-input" value={draft.trade_name} onChange={(event) => onChange('trade_name', event.target.value)} placeholder="Minha Clínica" />
             </label>
             <label className="form-field">
               <span>Razão social</span>
-              <input className="form-input" value={draft.legal_name} onChange={(event) => onChange('legal_name', event.target.value)} />
+              <input className="form-input ui-input" value={draft.legal_name} onChange={(event) => onChange('legal_name', event.target.value)} />
             </label>
             <label className="form-field">
               <span>Documento</span>
-              <input className="form-input" value={draft.document_number} onChange={(event) => onChange('document_number', event.target.value)} placeholder="CNPJ" />
+              <input className="form-input ui-input" value={draft.document_number} onChange={(event) => onChange('document_number', event.target.value)} placeholder="CNPJ" />
             </label>
             <label className="form-field">
               <span>Email</span>
-              <input className="form-input" type="email" value={draft.email} onChange={(event) => onChange('email', event.target.value)} />
+              <input className="form-input ui-input" type="email" value={draft.email} onChange={(event) => onChange('email', event.target.value)} />
             </label>
             <label className="form-field">
               <span>Telefone</span>
-              <input className="form-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} />
+              <input className="form-input ui-input" value={draft.phone} onChange={(event) => onChange('phone', event.target.value)} />
             </label>
             <label className="form-field">
               <span>Cidade</span>
-              <input className="form-input" value={draft.city} onChange={(event) => onChange('city', event.target.value)} />
+              <input className="form-input ui-input" value={draft.city} onChange={(event) => onChange('city', event.target.value)} />
             </label>
             <label className="form-field">
               <span>UF</span>
-              <input className="form-input" value={draft.state} onChange={(event) => onChange('state', event.target.value.toUpperCase().slice(0, 2))} />
+              <input className="form-input ui-input" value={draft.state} onChange={(event) => onChange('state', event.target.value.toUpperCase().slice(0, 2))} />
             </label>
             <label className="form-field">
               <span>Status</span>
-              <select className="form-input" value={draft.status} onChange={(event) => onChange('status', event.target.value)}>
+              <select className="form-input ui-input" value={draft.status} onChange={(event) => onChange('status', event.target.value)}>
                 <option value="trial">trial</option>
                 <option value="active">active</option>
                 <option value="suspended">suspended</option>
@@ -925,6 +923,7 @@ const ClinicN2Modal = ({
             </label>
           </div>
         </div>
+        <CadastroFooterHint message="Ações de clínica disponíveis na barra inferior (cancelar, duplicar, salvar, excluir, arquivar)." />
       </div>
     </div>
   );
@@ -934,41 +933,55 @@ const MobileMd3Nav = ({
   visible,
   leftActions = [],
   rightActions = [],
+  centerAction,
   onOpenSmartNavigation
 }) => {
   if (!visible) return null;
+  const leftPrimary = leftActions.slice(0, 2);
+  const rightPrimary = rightActions.slice(0, 2);
 
   const renderAction = (action) => (
     <button
       key={action.key}
       type="button"
-      className={`mobile-md3-nav__action ${action.active ? 'is-active' : ''}`}
+      className={`mobile-md3-nav__action mobile-md3-nav__action--${action.tone || 'neutral'} ${action.active ? 'is-active' : ''}`}
       onClick={action.onClick}
       aria-label={action.ariaLabel || action.label}
+      aria-current={action.active ? 'page' : undefined}
+      title={action.label}
     >
-      <AppIcon name={action.icon} size={14} />
-      <span>{action.label}</span>
+      <AppIcon name={action.icon} size={18} />
+      <span className="mobile-md3-nav__label">{action.label}</span>
     </button>
   );
 
   return (
     <nav className="mobile-md3-nav" aria-label="Barra de navegação móvel">
-      <div className="mobile-md3-nav__rail">
-        <div className="mobile-md3-nav__side mobile-md3-nav__side--left">
-          {leftActions.map(renderAction)}
-        </div>
+      {leftPrimary.map(renderAction)}
+      {centerAction ? (
+        <button
+          type="button"
+          className={`mobile-md3-nav__fab mobile-md3-nav__action--${centerAction.tone || 'info'}`}
+          onClick={centerAction.onClick}
+          aria-label={centerAction.ariaLabel || centerAction.label}
+          title={centerAction.label}
+        >
+          <AppIcon name={centerAction.icon || 'menu'} size={18} />
+          <span className="mobile-md3-nav__label">{centerAction.label}</span>
+        </button>
+      ) : (
         <button
           type="button"
           className="mobile-md3-nav__fab"
           onClick={onOpenSmartNavigation}
           aria-label="Abrir navegação inteligente"
+          title="Navegação"
         >
           <AppIcon name="menu" size={18} />
+          <span className="mobile-md3-nav__label">Navegação</span>
         </button>
-        <div className="mobile-md3-nav__side mobile-md3-nav__side--right">
-          {rightActions.map(renderAction)}
-        </div>
-      </div>
+      )}
+      {rightPrimary.map(renderAction)}
     </nav>
   );
 };
@@ -1072,6 +1085,11 @@ function DashboardApp({
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
   );
+  const [isWideNavigation, setIsWideNavigation] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(min-width: 1024px)').matches
+      || window.matchMedia('(min-width: 600px) and (orientation: landscape)').matches;
+  });
   const [showMobileNavDrawer, setShowMobileNavDrawer] = useState(false);
   const [mobileNavState, setMobileNavState] = useState(() => {
     const stored = readStoredMobileNavState();
@@ -1476,6 +1494,55 @@ function DashboardApp({
     }
   };
 
+  const handleDuplicateClinic = () => {
+    const baseName = clinicDraft.trade_name?.trim() || 'Nova Clínica';
+    setSelectedClinicId('');
+    setClinicDraft((current) => ({
+      ...current,
+      id: '',
+      trade_name: `${baseName} (cópia)`,
+      status: 'trial'
+    }));
+    setClinicActionStatus('success');
+    setClinicActionMessage('Cópia preparada. Revise e salve para criar a nova clínica.');
+  };
+
+  const handleArchiveClinic = async () => {
+    if (!accountService?.saveClinic || !authUserWidget?.id) return;
+    const archivedDraft = { ...clinicDraft, status: 'archived' };
+    setClinicDraft(archivedDraft);
+    setClinicActionStatus('loading');
+    setClinicActionMessage('Arquivando clínica...');
+    try {
+      await accountService.saveClinic({
+        userId: authUserWidget.id,
+        clinic: archivedDraft
+      });
+      await refreshClinics(authUserWidget.id);
+      setClinicActionStatus('success');
+      setClinicActionMessage('Clínica arquivada com sucesso.');
+    } catch (error) {
+      setClinicActionStatus('error');
+      setClinicActionMessage(error?.message || 'Não foi possível arquivar clínica.');
+    }
+  };
+
+  const handleDeleteClinic = () => {
+    if (!selectedClinicId) {
+      setClinicActionStatus('error');
+      setClinicActionMessage('Selecione uma clínica existente para excluir.');
+      return;
+    }
+    const canDelete = window.confirm('Excluir esta clínica da lista local?');
+    if (!canDelete) return;
+
+    setClinics((prev) => prev.filter((clinic) => clinic.id !== selectedClinicId));
+    setSelectedClinicId('');
+    setClinicDraft(toClinicDraft(null));
+    setClinicActionStatus('success');
+    setClinicActionMessage('Clínica removida da lista local. Salve se desejar persistir alterações.');
+  };
+
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
   const activePatients = filteredPatients.filter((patient) => !patient.archivedAt);
   const sortedPatients = [...activePatients].sort((a, b) => {
@@ -1603,6 +1670,22 @@ function DashboardApp({
     }
     media.addListener(handler);
     return () => media.removeListener(handler);
+  }, []);
+
+  useEffect(() => {
+    const updateWideNavigation = () => {
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+      const isTabletLandscape = window.matchMedia('(min-width: 600px) and (orientation: landscape)').matches;
+      setIsWideNavigation(isDesktop || isTabletLandscape);
+    };
+
+    updateWideNavigation();
+    window.addEventListener('resize', updateWideNavigation);
+    window.addEventListener('orientationchange', updateWideNavigation);
+    return () => {
+      window.removeEventListener('resize', updateWideNavigation);
+      window.removeEventListener('orientationchange', updateWideNavigation);
+    };
   }, []);
 
   useEffect(() => {
@@ -1735,8 +1818,9 @@ function DashboardApp({
 
   if (view === 'loader') {
     return (
-      <div className="app-viewport flex flex-col items-center justify-center bg-white space-y-4">
+      <div className="app-viewport flex flex-col items-center justify-center space-y-4">
         <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
+        <div className="ui-badge">Inicializando</div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
       </div>
     );
@@ -1744,7 +1828,7 @@ function DashboardApp({
 
   if (view === 'landing') {
     return (
-      <div className="app-viewport flex flex-col items-center justify-between bg-[#F2F2F7] p-10 py-24 text-center">
+      <div className="app-viewport flex flex-col items-center justify-between p-10 py-24 text-center">
         <div className="space-y-8">
           <div className="w-20 h-20 bg-sky-700 rounded-2xl flex items-center justify-center text-white shadow-2xl mx-auto text-3xl">🦷</div>
           <div className="space-y-3">
@@ -1764,7 +1848,7 @@ function DashboardApp({
             Acessar Unidade
           </button>
           <span
-            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600"
+            className="ui-badge"
             aria-label={`Versão V${releaseInfo.version}`}
           >
             V{releaseInfo.version}
@@ -1932,21 +2016,24 @@ function DashboardApp({
           })}
           {!isMobileViewport && <h2 className="page-title">Painel Diário</h2>}
           {usingFallbackData && (
-            <p className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-3 py-2">
+            <p className="ui-alert text-xs">
               Dados de fallback ativos. Quando os arquivos em backend/supabase/sample-data estiverem disponíveis no servidor, os dados reais serão usados automaticamente.
             </p>
           )}
           <div className="data-grid">
-            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Atendimentos</p><p className="kpi-value">12</p></div>
-            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Faturamento</p><p className="kpi-value">R$ 8.4k</p></div>
-            <div className="bg-white border data-card data-card--p"><p className="kpi-label">Ocupação</p><p className="kpi-value">92%</p></div>
+            <div className="ui-card data-card data-card--p"><p className="kpi-label">Atendimentos</p><p className="kpi-value">12</p></div>
+            <div className="ui-card data-card data-card--p"><p className="kpi-label">Faturamento</p><p className="kpi-value">R$ 8.4k</p></div>
+            <div className="ui-card data-card data-card--p"><p className="kpi-label">Ocupação</p><p className="kpi-value">92%</p></div>
           </div>
 
-          <div className="bg-white rounded-2xl border p-5 space-y-3">
-            <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">Agenda de Hoje (N2 ao clicar)</h3>
+          <div className="ui-card space-y-3">
+            <div className="ui-section-header">
+              <h3 className="ui-section-header__title">Agenda de Hoje (N2 ao clicar)</h3>
+              <span className="ui-badge">{filteredAppointments.length} registros</span>
+            </div>
             <div className="search-row">
               <input
-                className="search-input"
+                className="search-input ui-search"
                 placeholder="Pesquisar agendamentos (nome, horário, procedimento...)"
                 value={appointmentsQuery}
                 onChange={(e) => setAppointmentsQuery(e.target.value)}
@@ -1956,7 +2043,10 @@ function DashboardApp({
 
             <div className="agenda-list">
               {visibleAppointments.length === 0 ? (
-                <p className="text-sm text-slate-500">Nenhum agendamento encontrado para o termo pesquisado.</p>
+                <div className="ui-empty-state">
+                  <strong>Nenhum agendamento encontrado</strong>
+                  <span>Ajuste os filtros de busca para continuar.</span>
+                </div>
               ) : (
                 visibleAppointments.map((item) => {
                   const patient = patients.find((p) => p.name === item.name);
@@ -1964,7 +2054,7 @@ function DashboardApp({
                     <button
                       key={item.id}
                       onClick={() => openPatientN2(patient)}
-                      className="list-button data-card data-card--m"
+                      className="list-button data-card data-card--m ui-list-item"
                     >
                       <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
                       <p className="font-bold text-slate-900">{item.name}</p>
@@ -1980,12 +2070,12 @@ function DashboardApp({
                   : 'Todos os agendamentos carregados'}
               </div>
             ) : (
-              <div className="pagination-row">
-                <button
-                  className="btn btn--pager"
-                  onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
-                  disabled={appointmentsPagination.page === 1}
-                >
+            <div className="pagination-row ui-action-bar">
+              <button
+                className="btn btn--pager"
+                onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
+                disabled={appointmentsPagination.page === 1}
+              >
                   ← Anterior
                 </button>
                 <span className="pagination-label">
@@ -2014,9 +2104,9 @@ function DashboardApp({
             subtitle: 'Cadastro, busca e acesso ao Nível 2',
             actions: []
           })}
-          <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''}`}>
+          <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
             <h2 className="page-title">Base de Pacientes</h2>
-            <div className="flex gap-2 flex-wrap justify-end">
+            <div className="flex gap-2 flex-wrap justify-end ui-action-bar page-header__actions">
               <AddRecordButton
                 label="Novo paciente"
                 ariaLabel="Cadastrar novo paciente"
@@ -2053,7 +2143,7 @@ function DashboardApp({
             <div className="patients-search-section">
               <div className="search-row">
                 <input
-                  className="search-input search-input--compact"
+                  className="search-input search-input--compact ui-search"
                   placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
                   value={patientsQuery}
                   onChange={(e) => setPatientsQuery(e.target.value)}
@@ -2098,7 +2188,7 @@ function DashboardApp({
             </div>
           ) : null}
           {isPatientsMultiMode ? (
-            <div className="bg-transparent rounded-2xl border border-slate-200/70 p-4 flex flex-wrap gap-2 items-center justify-between backdrop-blur-sm">
+            <div className="ui-card flex flex-wrap gap-2 items-center justify-between">
               <p className="text-xs font-black uppercase tracking-widest text-slate-500">
                 {selectedPatientIds.length} selecionado(s)
               </p>
@@ -2135,10 +2225,13 @@ function DashboardApp({
           <div className="patients-data-section">
             <div className="data-grid patients-grid">
             {visiblePatients.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhum paciente encontrado para o termo pesquisado.</p>
+              <div className="ui-empty-state">
+                <strong>Nenhum paciente encontrado</strong>
+                <span>Altere a pesquisa ou ajuste a ordenação.</span>
+              </div>
             ) : (
               visiblePatients.map((p) => (
-                <article key={p.id} className={`data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
+                <article key={p.id} className={`ui-card data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
                   <button
                     onClick={() => {
                       if (isPatientsMultiMode) {
@@ -2196,7 +2289,7 @@ function DashboardApp({
                 : 'Todos os pacientes carregados'}
             </div>
           ) : (
-            <div className="pagination-row">
+            <div className="pagination-row ui-action-bar">
               <button
                 className="btn btn--pager"
                 onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
@@ -2229,7 +2322,7 @@ function DashboardApp({
           {renderN1Header({ icon: 'settings', title: 'Conta', subtitle: 'Auth Supabase e preferências pessoais' })}
           {!isMobileViewport && <h2 className="page-title">Conta</h2>}
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <div className="flex flex-wrap gap-3 items-center justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
@@ -2264,7 +2357,7 @@ function DashboardApp({
             </div>
           </div>
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
             <div className="grid md:grid-cols-2 gap-3 text-sm">
               <div><strong>E-mail atual:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
@@ -2306,7 +2399,7 @@ function DashboardApp({
             ) : null}
           </div>
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.odf_users</code>)</p>
             <div className="grid md:grid-cols-2 gap-3 text-sm">
               <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
@@ -2340,14 +2433,17 @@ function DashboardApp({
             ) : null}
           </div>
 
-          <div className="bg-white border data-card data-card--g space-y-4">
+          <div className="ui-card data-card data-card--g space-y-4">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínicas do proprietário (tabela <code>public.odf_clinics</code>)</p>
             {clinics.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhuma clínica encontrada. Ao abrir o editor, uma clínica padrão será criada automaticamente.</p>
+              <div className="ui-empty-state">
+                <strong>Nenhuma clínica encontrada</strong>
+                <span>Ao abrir o editor, uma clínica padrão será criada automaticamente.</span>
+              </div>
             ) : (
               <div className="space-y-2">
                 {clinics.slice(0, 3).map((clinic) => (
-                  <div key={clinic.id} className="text-sm text-slate-700 border border-slate-100 rounded-xl p-3">
+                  <div key={clinic.id} className="ui-list-item text-sm text-slate-700">
                     <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
                     <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
                   </div>
@@ -2380,7 +2476,7 @@ function DashboardApp({
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Configurações', subtitle: 'Parâmetros e catálogo de procedimentos' })}
         {!isMobileViewport && <h2 className="page-title">Configurações</h2>}
-        <div className="bg-white border data-card data-card--g">
+        <div className="ui-card data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
             <li>Limpeza Profilática</li>
@@ -2401,70 +2497,144 @@ function DashboardApp({
   const mobileNavActionConfigByTab = {
     overview: {
       left: [
-        { key: 'overview-home', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
-        { key: 'overview-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+        { key: 'overview-home', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
+        { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
-        { key: 'overview-settings', icon: 'settings', label: 'Ajustes', onClick: () => setActiveTab('settings') },
-        { key: 'overview-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'overview-settings', icon: 'settings', tone: 'settings', label: 'Ajustes', onClick: () => setActiveTab('settings') },
+        { key: 'overview-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
       ]
     },
     patients: {
       left: [
-        { key: 'patients-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
-        { key: 'patients-new', icon: 'edit', label: 'Novo', onClick: openCreatePatientN2 }
+        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 },
+        {
+          key: 'patients-multi',
+          icon: 'multi',
+          tone: 'info',
+          label: 'Multi',
+          onClick: () => {
+            setIsPatientsMultiMode((prev) => {
+              if (prev) setSelectedPatientIds([]);
+              return !prev;
+            });
+          },
+          active: isPatientsMultiMode
+        }
       ],
       right: [
-        { key: 'patients-search', icon: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
-        { key: 'patients-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
+        { key: 'patients-sort', icon: 'filter', tone: 'settings', label: 'Ordenar', onClick: () => setIsPatientsSortLevelOpen(true), active: isPatientsSortLevelOpen }
       ]
     },
     settings: {
       left: [
-        { key: 'settings-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') }
+        { key: 'settings-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') }
       ],
       right: [
-        { key: 'settings-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'settings-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
       ]
     },
     account: {
       left: [
-        { key: 'account-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
-        { key: 'account-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+        { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
-        { key: 'account-edit', icon: 'edit', label: 'Editar', onClick: openAccountEditN2 },
-        { key: 'account-clinics', icon: 'settings', label: 'Clínicas', onClick: handleOpenClinicN2 }
+        { key: 'account-edit', icon: 'edit', tone: 'info', label: 'Editar', onClick: openAccountEditN2 },
+        { key: 'account-clinics', icon: 'settings', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
       ]
     }
   };
 
-  const mobileNavActionConfig = mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
+  const mobileNavActionConfig = (() => {
+    if (isClinicN2Open) {
+      return {
+        left: [
+          { key: 'clinic-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setIsClinicN2Open(false) },
+          { key: 'clinic-duplicate', icon: 'edit', tone: 'info', label: 'Duplicar', onClick: handleDuplicateClinic }
+        ],
+        center: { key: 'clinic-save', icon: 'check', tone: 'success', label: 'Salvar', onClick: handleSaveClinic },
+        right: [
+          { key: 'clinic-delete', icon: 'close', tone: 'danger', label: 'Excluir', onClick: handleDeleteClinic },
+          { key: 'clinic-archive', icon: 'archive', tone: 'settings', label: 'Arquivar', onClick: handleArchiveClinic }
+        ]
+      };
+    }
+
+    if (showPatientN2) {
+      return {
+        left: [
+          { key: 'patient-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setShowPatientN2(false) },
+          { key: 'patient-prev', icon: 'chevron-left', tone: 'overview', label: 'Anterior', onClick: () => moveFormTab(-1) }
+        ],
+        center: {
+          key: 'patient-save',
+          icon: 'check',
+          tone: 'success',
+          label: patientModalMode === 'create' ? 'Salvar' : (isPatientViewEditing ? 'Salvar' : 'Editar'),
+          onClick: patientModalMode === 'create'
+            ? handleCreatePatientSubmit
+            : (isPatientViewEditing ? handleSavePatientEdit : handleStartPatientEdit)
+        },
+        right: [
+          { key: 'patient-next', icon: 'chevron-right', tone: 'patients', label: 'Próxima', onClick: () => moveFormTab(1) },
+          { key: 'patient-close', icon: 'close', tone: 'danger', label: 'Fechar', onClick: () => setShowPatientN2(false) }
+        ]
+      };
+    }
+
+    if (isAccountEditN2Open || isPublicProfileN2Open) {
+      return {
+        left: [
+          { key: 'account-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } },
+          { key: 'account-open', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
+        ],
+        center: {
+          key: 'account-save',
+          icon: 'check',
+          tone: 'success',
+          label: 'Salvar',
+          onClick: isPublicProfileN2Open ? handleSavePublicProfile : handleAccountUpdate
+        },
+        right: [
+          { key: 'account-profile', icon: 'edit', tone: 'info', label: 'Perfil', onClick: openPublicProfileEditN2 },
+          { key: 'account-close', icon: 'close', tone: 'danger', label: 'Fechar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } }
+        ]
+      };
+    }
+
+    return mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
+  })();
 
   return (
     <div className="app-shell">
       <div className="app-frame">
-        <aside className="app-sidebar">
-          <div className="app-brand">Odonto<span>Flow</span></div>
-          {authEmail ? (
-            <div className="text-[11px] leading-snug text-slate-300 mb-3">
-              <p className="font-semibold text-slate-200">Conectado</p>
-              <p className="truncate">{authEmail}</p>
-            </div>
-          ) : null}
-          <nav className="app-nav">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
-              >
-                <AppIcon name={tab.icon} size={14} />
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </aside>
+        {isWideNavigation ? (
+          <aside className="app-sidebar">
+            <div className="app-brand">Odonto<span>Flow</span></div>
+            {authEmail ? (
+              <div className="text-[11px] leading-snug text-slate-300 mb-3">
+                <p className="font-semibold text-slate-200">Conectado</p>
+                <p className="truncate">{authEmail}</p>
+              </div>
+            ) : null}
+            <nav className="app-nav">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
+                  aria-current={activeTab === tab.id ? 'page' : undefined}
+                  title={tab.label}
+                >
+                  <AppIcon name={tab.icon} size={14} />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </aside>
+        ) : null}
 
         <main className="app-content">
           {renderContent()}
@@ -2566,7 +2736,7 @@ function DashboardApp({
           <span>Novo e-mail</span>
           <input
             type="email"
-            className="form-input"
+            className="form-input ui-input"
             value={accountEmailDraft}
             onChange={(event) => setAccountEmailDraft(event.target.value)}
             placeholder="novoemail@clinica.com"
@@ -2576,7 +2746,7 @@ function DashboardApp({
           <span>Nova senha</span>
           <input
             type="password"
-            className="form-input"
+            className="form-input ui-input"
             value={accountPasswordDraft}
             onChange={(event) => setAccountPasswordDraft(event.target.value)}
             placeholder="********"
@@ -2622,6 +2792,7 @@ function DashboardApp({
         onFormChange={handlePatientFormChange}
         onPreviousTab={() => moveFormTab(-1)}
         onNextTab={() => moveFormTab(1)}
+        onSelectTab={(tabId) => setPatientFormTab(tabId)}
         onSubmit={handleCreatePatientSubmit}
         onStartEdit={handleStartPatientEdit}
         onCancelEdit={handleCancelPatientEdit}
@@ -2629,8 +2800,9 @@ function DashboardApp({
       />
 
       <MobileMd3Nav
-        visible={isMobileViewport}
+        visible={!isWideNavigation && !showMobileNavDrawer}
         leftActions={mobileNavActionConfig.left}
+        centerAction={mobileNavActionConfig.center}
         rightActions={mobileNavActionConfig.right}
         onOpenSmartNavigation={openSmartNavigation}
       />
@@ -2741,13 +2913,13 @@ function AuthGateApp() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-slate-500">Carregando autenticação...</div>;
+    return <div className="min-h-screen flex items-center justify-center"><div className="ui-empty-state" style={{ minWidth: "280px" }}>Carregando autenticação...</div></div>;
   }
 
   if (!supabaseClient) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-xl space-y-4">
+        <div className="ui-card w-full max-w-xl space-y-4">
           <h1 className="text-xl font-bold text-slate-900">Configuração do Supabase pendente</h1>
           <p className="text-sm text-slate-600">
             Configure as variáveis <strong>SUPABASE_URL</strong> e <strong>SUPABASE_ANON</strong> no Environment do GitHub Actions usado no deploy.
@@ -2767,7 +2939,7 @@ function AuthGateApp() {
   if (!session?.user) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8 w-full max-w-md space-y-4">
+        <div className="ui-card w-full max-w-md space-y-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
             <h1 className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
@@ -2777,24 +2949,24 @@ function AuthGateApp() {
           <form onSubmit={submitCredentials} className="space-y-3">
             <input
               type="email"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="ui-input w-full"
               placeholder="seuemail@clinica.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
             <input
               type="password"
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+              className="ui-input w-full"
               placeholder="Sua senha"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-            <button type="submit" className="w-full bg-sky-700 hover:bg-sky-800 text-white rounded-xl px-3 py-2 text-sm font-bold">
+            <button type="submit" className="btn btn--primary w-full">
               {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
             </button>
           </form>
 
-          <button type="button" onClick={loginWithGoogle} className="w-full bg-white border border-slate-300 hover:bg-slate-50 rounded-xl px-3 py-2 text-sm font-semibold">
+          <button type="button" onClick={loginWithGoogle} className="btn btn--ghost w-full">
             Continuar com Google
           </button>
 

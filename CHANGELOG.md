@@ -2,6 +2,76 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.9 - 2026-04-21
+
+### Changed
+- Em telas de pacientes com barra inferior ativa (compact), ocultadas ações duplicadas do header para evitar redundância de comando.
+- Barra inferior de pacientes reequilibrada para ações úteis de operação (`Novo`, `Multi`, `Buscar`, `Ordenar`) substituindo atalhos menos úteis no contexto imediato.
+- Campo de pesquisa de pacientes convertido para visual flat (sem fundo branco, sem borda/sombra), alinhado ao título da página.
+
+## v1.1.8 - 2026-04-21
+
+### Changed
+- Corrigido fallback de navegação em tablet retrato: quando não estiver em layout wide (desktop ou tablet paisagem), a barra inferior compacta permanece disponível.
+- Sidebar passa a renderizar somente em modo wide; removida condição ambígua que permitia ficar sem fonte de navegação em alguns widths/orientações.
+- Ajustado padding do conteúdo para a barra inferior em `max-width: 1023px`, evitando sobreposição em tablets compactos.
+
+## v1.1.7 - 2026-04-21
+
+### Changed
+- Removidos os botões de ação abaixo do subtítulo no cadastro de pacientes (chrome duplicado); as ações ficam centralizadas na barra inferior contextual.
+- Etapas de paciente (`Identificação`, `Contato`, `Dados clínicos`) passaram a ser clicáveis para navegação direta, mantendo também `Anterior`/`Próxima` na barra.
+- Barra de navegação contextual mantém padrão sem fundos/bordas nos botões, usando apenas cor de ícone e título por propósito.
+
+## v1.1.6 - 2026-04-21
+
+### Changed
+- Introduzido padrão global de telas de cadastro com shell `header/body/footer` (`cadastro-shell`) aplicado aos fluxos N2 de Pacientes, Conta, Perfil Público e Clínicas.
+- Em mobile, ações de cadastro migradas para a barra inferior contextual de 5 botões; ações duplicadas no header/modal foram suprimidas para evitar barra antiga concorrente.
+- Barra contextual passa a adaptar ações úteis por tela de cadastro (ex.: Clínica N2 com Cancelar, Duplicar, Salvar, Excluir, Arquivar).
+
+## v1.1.5 - 2026-04-21
+
+### Changed
+- Barra de navegação mobile passa a exibir ações úteis contextuais no modo de edição/criação de clínicas (Cancelar, Duplicar, Salvar, Excluir, Arquivar), mantendo estrutura fixa de 5 botões.
+- Ação central da tab bar torna-se dinâmica por contexto (menu padrão ou salvar em fluxo de clínica), sem alterar o framework estrutural.
+
+## v1.1.4 - 2026-04-21
+
+### Changed
+- Barra de navegação mobile finalizada no padrão iOS solicitado: barra contínua fixa no rodapé, sem cantos arredondados/flutuação, com 5 botões e hierarquia visual de ícone principal + label reduzido abaixo.
+- Simplificação estrutural da barra (remoção de containers internos desnecessários) e ajuste de espaçamento do conteúdo para coincidir com a borda superior da barra sem sobreposição.
+
+## v1.1.3 - 2026-04-21
+
+### Changed
+- Refinamento final da barra de navegação (sidebar + mobile) com estética consolidada e comportamento previsível: estado ativo mais claro, foco acessível, tons por contexto e microinterações consistentes.
+- Navegação mobile com `aria-current` nos itens ativos e ocultação automática da barra inferior durante abertura do drawer inteligente para evitar sobreposição.
+- Documentação do design system atualizada com seção específica de padrão final de navegação.
+
+## v1.1.2 - 2026-04-21
+
+### Changed
+- Refinamento de aplicação do design system em fluxos auxiliares reais (N2/N3 e autenticação) no runtime oficial: campos de formulário migrados para `ui-input`/`ui-textarea`, cartões de autenticação para `ui-card` e estados de carregamento com padrão de DS.
+- Convergência adicional de consistência visual sem expansão funcional, preservando framework estrutural V0.
+
+## v1.1.1 - 2026-04-21
+
+### Changed
+- Aplicação prática do design system V1 nos módulos principais do runtime oficial (`apps/web/standalone-react.jsx`): Painel, Pacientes, Conta e Configurações convergidos para `ui-card`, `ui-search`, `ui-list-item`, `ui-empty-state`, `ui-alert` e `ui-action-bar`.
+- Documentação do design system evoluída com exemplos reais de módulo, padrões de composição e decisões de consistência da etapa V1.1.
+
+## v1.1.0 - 2026-04-21
+
+### Added
+- Documento oficial do Design System Visual V1 em `docs/design-system/visual-v1.md`.
+- Novo conjunto de componentes base do design system (field/input/select/textarea/search, card, badge, alert, empty state, avatar, skeleton e shell de tabela) em `apps/web/styles.css` e wrappers React em `apps/web/src/components.js`.
+
+### Changed
+- Tokens visuais globais consolidados em contrato único no `:root` de `apps/web/styles.css`, incluindo cores, superfícies, texto, bordas, raios, sombras, tipografia, ícones, estados de interação e densidade por breakpoint.
+- Tela de inicialização/onboarding em `apps/web/src/app.js` migrada para uso de componentes base do design system (`UiCard`, `UiBadge`, `UiSkeleton`, `UiEmptyState`, `UiAlert`, `UiButton`).
+- Referências de documentação atualizadas em `README.md` e `docs/framework-layout.md` para o contrato visual V1.
+
 ## v1.0.0 - 2026-04-21
 
 ### Added

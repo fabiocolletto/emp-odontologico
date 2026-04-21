@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 
 // --- COMPONENTES ATÔMICOS (NÍVEL 0) ---
 
@@ -81,6 +81,75 @@ export const UiButton = ({
     </button>
   );
 };
+
+
+export const UiField = ({ label, htmlFor, children }) => (
+  <label className="ui-field" htmlFor={htmlFor}>
+    {label ? <span className="ui-field__label">{label}</span> : null}
+    {children}
+  </label>
+);
+
+export const UiInput = ({ label, id, className = '', ...props }) => (
+  <UiField label={label} htmlFor={id}>
+    <input id={id} className={`ui-input ${className}`.trim()} {...props} />
+  </UiField>
+);
+
+export const UiSelect = ({ label, id, className = '', children, ...props }) => (
+  <UiField label={label} htmlFor={id}>
+    <select id={id} className={`ui-select ${className}`.trim()} {...props}>
+      {children}
+    </select>
+  </UiField>
+);
+
+export const UiTextarea = ({ label, id, className = '', ...props }) => (
+  <UiField label={label} htmlFor={id}>
+    <textarea id={id} className={`ui-textarea ${className}`.trim()} {...props} />
+  </UiField>
+);
+
+export const UiSearchField = ({ label, id, className = '', ...props }) => (
+  <UiField label={label} htmlFor={id}>
+    <div className="ui-search-wrap">
+      <Search size={16} className="ui-search-wrap__icon" />
+      <input id={id} className={`ui-search ${className}`.trim()} {...props} />
+    </div>
+  </UiField>
+);
+
+export const UiCard = ({ className = '', children, ...props }) => (
+  <section className={`ui-card ${className}`.trim()} {...props}>{children}</section>
+);
+
+export const UiBadge = ({ tone = 'neutral', className = '', children }) => (
+  <span className={`ui-badge ${tone !== 'neutral' ? `ui-badge--${tone}` : ''} ${className}`.trim()}>
+    {children}
+  </span>
+);
+
+export const UiAlert = ({ tone = 'info', className = '', children }) => (
+  <div className={`ui-alert ${tone !== 'info' ? `ui-alert--${tone}` : ''} ${className}`.trim()} role="status">
+    {children}
+  </div>
+);
+
+export const UiEmptyState = ({ title, message, action }) => (
+  <div className="ui-empty-state">
+    {title ? <strong>{title}</strong> : null}
+    {message ? <span>{message}</span> : null}
+    {action || null}
+  </div>
+);
+
+export const UiAvatar = ({ label = '?' }) => (
+  <span className="ui-avatar" aria-label={`Avatar ${label}`}>{label}</span>
+);
+
+export const UiSkeleton = ({ className = '', style }) => (
+  <div className={`ui-skeleton ${className}`.trim()} style={style} aria-hidden="true" />
+);
 
 // --- COMPONENTES DE ESTRUTURA (NÍVEL 1, 2 E 3) ---
 
