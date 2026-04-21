@@ -287,3 +287,64 @@ export const AdaptiveModal = ({ isOpen, onClose, children }) => {
     </div>
   );
 };
+
+export const RegistrationWorkspace = ({
+  title,
+  subtitle,
+  icon: Icon,
+  iconColor = 'bg-sky-700',
+  actions,
+  tabs = [],
+  activeTab,
+  onTabChange,
+  footer
+}) => {
+  const resolvedTab = tabs.find((tab) => tab.id === activeTab) || tabs[0];
+
+  return (
+    <section className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden cadastro-shell">
+      <div className="px-6 md:px-8 py-5 border-b border-slate-100 bg-white/90">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-4">
+            {Icon && (
+              <div className={`p-3 rounded-2xl shadow-sm ring-2 ring-slate-50 ${iconColor}`}>
+                <Icon size={18} className="text-white" />
+              </div>
+            )}
+            <div>
+              <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">{title}</h3>
+              {subtitle ? <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1">{subtitle}</p> : null}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">{actions}</div>
+        </div>
+      </div>
+
+      <div className="p-4 md:p-6 space-y-5 min-h-[420px]">
+        {tabs.length > 0 && (
+          <nav className="flex items-center gap-2 flex-wrap" aria-label="Categorias do cadastro">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onTabChange?.(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                  tab.id === resolvedTab?.id
+                    ? 'bg-sky-700 text-white shadow-sm'
+                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        )}
+        <div>{resolvedTab?.content}</div>
+      </div>
+
+      <div className="cadastro-shell__footer p-4 md:px-6 md:py-4">
+        {footer}
+      </div>
+    </section>
+  );
+};

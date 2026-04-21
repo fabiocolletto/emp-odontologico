@@ -43,6 +43,7 @@ import {
   AppShell,
   DetailPane,
   FormField,
+  RegistrationWorkspace,
   UiButton,
   ViewLayout
 } from './components.js';
@@ -102,6 +103,7 @@ const Dashboard = () => {
   const [clinicRegistrationStatus, setClinicRegistrationStatus] = useState('idle');
   const [clinicRegistrationMessage, setClinicRegistrationMessage] = useState('');
   const [isClinicEditing, setIsClinicEditing] = useState(false);
+  const [activeClinicRegistrationTab, setActiveClinicRegistrationTab] = useState('contact');
   const [isAuxDrawerOpen, setIsAuxDrawerOpen] = useState(false);
   const [isAuxSheetOpen, setIsAuxSheetOpen] = useState(false);
   const [isWideViewport, setIsWideViewport] = useState(false);
@@ -756,174 +758,187 @@ const Dashboard = () => {
       {activeTab === 'settings' && (
         <ViewLayout title="Cadastro da Clínica" badge="Tela de Cadastro">
           <div className="space-y-8">
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8 space-y-6">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Cadastro da Clínica</p>
-                  <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Dados de Contato e Fiscal</h3>
-                </div>
-                {isClinicEditing ? (
-                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
-                    <UiButton
-                      onClick={() => setIsClinicEditing(false)}
-                      icon={X}
-                      tone="danger"
-                      labelLayout="hidden"
-                      title="Cancelar edição"
-                    />
-                    <UiButton
-                      onClick={handleSaveClinicRegistration}
-                      icon={Check}
-                      tone={clinicRegistrationStatus === 'error' ? 'danger' : 'success'}
-                      labelLayout="hidden"
-                      title={clinicRegistrationStatus === 'loading' ? 'Salvando cadastro...' : 'Salvar cadastro da clínica'}
-                      disabled={clinicRegistrationStatus === 'loading'}
-                      className="shadow-lg"
-                    />
-                  </div>
-                ) : (
+            <RegistrationWorkspace
+              title="Cadastro da Clínica"
+              subtitle="Ferramenta Reutilizável de Cadastro"
+              icon={UserPlus}
+              actions={isClinicEditing ? (
+                <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
                   <UiButton
-                    onClick={() => setIsClinicEditing(true)}
-                    icon={Pencil}
-                    label="Editar cadastro"
-                    tone="neutral"
-                    size="sm"
+                    onClick={() => setIsClinicEditing(false)}
+                    icon={X}
+                    tone="danger"
+                    labelLayout="hidden"
+                    title="Cancelar edição"
                   />
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Contato</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Telefone
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.phone}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, phone: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="(00) 00000-0000"
-                    />
-                  </label>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Email
-                    <input
-                      type="email"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.email}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, email: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="contato@clinica.com.br"
-                    />
-                  </label>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider md:col-span-2">
-                    Endereço
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.address}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, address: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="Rua, número, bairro, cidade/UF"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Fiscal</p>
                   <UiButton
-                    onClick={handleLookupCnpj}
-                    label={cnpjLookupStatus === 'loading' ? 'Consultando CNPJ...' : 'Consultar CNPJ'}
-                    tone={cnpjLookupStatus === 'error' ? 'danger' : 'info'}
-                    size="sm"
-                    disabled={!isClinicEditing || cnpjLookupStatus === 'loading'}
+                    onClick={handleSaveClinicRegistration}
+                    icon={Check}
+                    tone={clinicRegistrationStatus === 'error' ? 'danger' : 'success'}
+                    labelLayout="hidden"
+                    title={clinicRegistrationStatus === 'loading' ? 'Salvando cadastro...' : 'Salvar cadastro da clínica'}
+                    disabled={clinicRegistrationStatus === 'loading'}
+                    className="shadow-lg"
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    CNPJ
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.cnpj}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, cnpj: formatCnpj(event.target.value) }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="00.000.000/0000-00"
-                    />
-                  </label>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Situação Cadastral
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.registrationStatus}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, registrationStatus: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="Ativa, Inapta..."
-                    />
-                  </label>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Razão Social
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.legalName}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalName: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="Razão social da clínica"
-                    />
-                  </label>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Nome Fantasia
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.tradeName}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, tradeName: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="Nome fantasia"
-                    />
-                  </label>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Natureza Jurídica
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.legalNature}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalNature: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="Sociedade empresária..."
-                    />
-                  </label>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    CNAE Principal
-                    <input
-                      type="text"
-                      disabled={!isClinicEditing}
-                      value={clinicRegistrationForm.primaryCnae}
-                      onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, primaryCnae: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
-                      placeholder="8630-5/04 - Atividade odontológica"
-                    />
-                  </label>
+              ) : (
+                <UiButton
+                  onClick={() => setIsClinicEditing(true)}
+                  icon={Pencil}
+                  label="Editar cadastro"
+                  tone="neutral"
+                  size="sm"
+                />
+              )}
+              activeTab={activeClinicRegistrationTab}
+              onTabChange={setActiveClinicRegistrationTab}
+              tabs={[
+                {
+                  id: 'contact',
+                  label: 'Contato',
+                  content: (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Telefone
+                        <input
+                          type="text"
+                          disabled={!isClinicEditing}
+                          value={clinicRegistrationForm.phone}
+                          onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, phone: event.target.value }))}
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                          placeholder="(00) 00000-0000"
+                        />
+                      </label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Email
+                        <input
+                          type="email"
+                          disabled={!isClinicEditing}
+                          value={clinicRegistrationForm.email}
+                          onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, email: event.target.value }))}
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                          placeholder="contato@clinica.com.br"
+                        />
+                      </label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider md:col-span-2">
+                        Endereço
+                        <input
+                          type="text"
+                          disabled={!isClinicEditing}
+                          value={clinicRegistrationForm.address}
+                          onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, address: event.target.value }))}
+                          className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                          placeholder="Rua, número, bairro, cidade/UF"
+                        />
+                      </label>
+                    </div>
+                  )
+                },
+                {
+                  id: 'fiscal',
+                  label: 'Fiscal',
+                  content: (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Dados Fiscais</p>
+                        <UiButton
+                          onClick={handleLookupCnpj}
+                          label={cnpjLookupStatus === 'loading' ? 'Consultando CNPJ...' : 'Consultar CNPJ'}
+                          tone={cnpjLookupStatus === 'error' ? 'danger' : 'info'}
+                          size="sm"
+                          disabled={!isClinicEditing || cnpjLookupStatus === 'loading'}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          CNPJ
+                          <input
+                            type="text"
+                            disabled={!isClinicEditing}
+                            value={clinicRegistrationForm.cnpj}
+                            onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, cnpj: formatCnpj(event.target.value) }))}
+                            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                            placeholder="00.000.000/0000-00"
+                          />
+                        </label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Situação Cadastral
+                          <input
+                            type="text"
+                            disabled={!isClinicEditing}
+                            value={clinicRegistrationForm.registrationStatus}
+                            onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, registrationStatus: event.target.value }))}
+                            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                            placeholder="Ativa, Inapta..."
+                          />
+                        </label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Razão Social
+                          <input
+                            type="text"
+                            disabled={!isClinicEditing}
+                            value={clinicRegistrationForm.legalName}
+                            onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalName: event.target.value }))}
+                            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                            placeholder="Razão social da clínica"
+                          />
+                        </label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Nome Fantasia
+                          <input
+                            type="text"
+                            disabled={!isClinicEditing}
+                            value={clinicRegistrationForm.tradeName}
+                            onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, tradeName: event.target.value }))}
+                            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                            placeholder="Nome fantasia"
+                          />
+                        </label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Natureza Jurídica
+                          <input
+                            type="text"
+                            disabled={!isClinicEditing}
+                            value={clinicRegistrationForm.legalNature}
+                            onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalNature: event.target.value }))}
+                            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                            placeholder="Sociedade empresária..."
+                          />
+                        </label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          CNAE Principal
+                          <input
+                            type="text"
+                            disabled={!isClinicEditing}
+                            value={clinicRegistrationForm.primaryCnae}
+                            onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, primaryCnae: event.target.value }))}
+                            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                            placeholder="8630-5/04 - Atividade odontológica"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )
+                }
+              ]}
+              footer={(
+                <div className="space-y-2">
+                  {cnpjLookupMessage && (
+                    <p className={`text-xs font-semibold ${cnpjLookupStatus === 'error' ? 'text-rose-600' : 'text-sky-700'}`}>
+                      {cnpjLookupMessage}
+                    </p>
+                  )}
+                  {clinicRegistrationMessage && (
+                    <p className={`text-xs font-semibold ${clinicRegistrationStatus === 'error' ? 'text-rose-600' : 'text-emerald-700'}`}>
+                      {clinicRegistrationMessage}
+                    </p>
+                  )}
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    Janela de cadastro reutilizável com header, body com abas e footer de status.
+                  </p>
                 </div>
-              </div>
-
-              {cnpjLookupMessage && (
-                <p className={`text-xs font-semibold ${cnpjLookupStatus === 'error' ? 'text-rose-600' : 'text-sky-700'}`}>
-                  {cnpjLookupMessage}
-                </p>
               )}
-
-              {clinicRegistrationMessage && (
-                <p className={`text-xs font-semibold ${clinicRegistrationStatus === 'error' ? 'text-rose-600' : 'text-emerald-700'}`}>
-                  {clinicRegistrationMessage}
-                </p>
-              )}
-            </div>
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div
