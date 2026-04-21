@@ -31,10 +31,12 @@ Framework de layout **consolidado como base oficial** para evolução das próxi
 
 ## Pendências estruturais
 
-No fechamento desta etapa, **as duas pendências estruturais anteriores foram resolvidas**:
+No fechamento desta etapa:
 
-1. Estilos do framework foram extraídos para `apps/web/framework-shell.css`.
-2. Fluxo standalone legado foi removido; o `index.html` agora inicializa o app modular oficial em `apps/web/src/main.js`.
+1. ✅ Estilos do framework seguem extraídos em `apps/web/framework-shell.css`.
+2. ⚠️ A migração de runtime para `apps/web/src/main.js` foi revertida para evitar tela branca em execução local sem pipeline de build/transpilação de dependências JSX.
+   - Entrada funcional atual: `apps/web/standalone-react.jsx`.
+   - Próximo passo seguro: executar migração para entrypoint modular junto de build pipeline que transpile toda a árvore `apps/web/src`.
 
 ## Conclusão
 

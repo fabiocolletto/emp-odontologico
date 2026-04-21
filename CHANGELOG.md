@@ -2,6 +2,16 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v0.1.32 - 2026-04-21
+
+### Fixed
+- Corrigida regressão de tela branca na abertura do app: `index.html` voltou a iniciar pelo entrypoint funcional `apps/web/standalone-react.jsx`.
+- Restaurado `apps/web/standalone-react.jsx` para garantir execução imediata no ambiente atual (sem pipeline de build da árvore modular).
+
+### Changed
+- Mantida a separação de estilos do framework em `apps/web/framework-shell.css`.
+- Documentação de framework/check-up ajustada para refletir o estado real do runtime e o próximo passo de migração segura.
+
 ## v0.1.31 - 2026-04-21
 
 ### Changed
