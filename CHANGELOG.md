@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.16 - 2026-04-21
+
+### Changed
+- Padronização visual da janela de cadastro entre diferentes dimensões de tela: footer de navegação embutido agora centraliza o bloco de ações e mantém largura/altura consistentes.
+- Ajuste de responsividade da barra embutida em janelas flutuantes (`mobile-md3-nav--embedded`) com largura máxima, grid uniforme de 5 ações e espaçamento interno estável.
+- Correção de fallback em desktop/wide: quando a barra embutida não deve aparecer, o footer volta a exibir conteúdo auxiliar padrão (sem “rodapé vazio”).
+
 ## v1.1.15 - 2026-04-21
 
 ### Changed
