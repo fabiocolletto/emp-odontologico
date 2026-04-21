@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.13 - 2026-04-21
+
+### Changed
+- Ajuste fino no padrão `icon-first` em desktop amplo: quando ícone e título ficam lado a lado, ambos passam a ficar centralizados no container do botão.
+- Sombras dos botões foram suavizadas para reduzir peso visual, incluindo ações de modal (`modal-action-btn`) e elementos de navegação mais usados (sidebar ativa, botão gatilho mobile e FAB da barra inferior).
+- Nas barras de navegação, os títulos dos botões agora alternam por breakpoint: em celular compacto os labels são ocultados (ícone-only), enquanto em tablet os títulos são exibidos.
+
 ## v1.1.12 - 2026-04-21
 
 ### Changed
