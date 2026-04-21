@@ -101,6 +101,7 @@ const Dashboard = () => {
   const [cnpjLookupMessage, setCnpjLookupMessage] = useState('');
   const [clinicRegistrationStatus, setClinicRegistrationStatus] = useState('idle');
   const [clinicRegistrationMessage, setClinicRegistrationMessage] = useState('');
+  const [isClinicEditing, setIsClinicEditing] = useState(false);
   const [isAuxDrawerOpen, setIsAuxDrawerOpen] = useState(false);
   const [isAuxSheetOpen, setIsAuxSheetOpen] = useState(false);
   const [isWideViewport, setIsWideViewport] = useState(false);
@@ -290,9 +291,18 @@ const Dashboard = () => {
           primaryCnae: data.fiscal?.primaryCnae || '',
           registrationStatus: data.fiscal?.registrationStatus || ''
         });
+        const hasRegistrationData = Boolean(
+          data.contact?.phone
+          || data.contact?.email
+          || data.contact?.address
+          || data.fiscal?.cnpj
+          || data.fiscal?.legalName
+        );
+        setIsClinicEditing(!hasRegistrationData);
       } catch (error) {
         setClinicRegistrationStatus('error');
         setClinicRegistrationMessage(error?.message || 'Não foi possível carregar o cadastro da clínica.');
+        setIsClinicEditing(true);
       }
     };
 
@@ -314,7 +324,7 @@ const Dashboard = () => {
   const navItems = [
     { id: 'overview', icon: Home, label: 'Painel' },
     { id: 'patients', icon: Users, label: 'Pacientes' },
-    { id: 'settings', icon: Search, label: 'Buscar' },
+    { id: 'settings', icon: UserPlus, label: 'Cadastro' },
     { id: 'account', icon: User, label: 'Conta' }
   ];
 
@@ -475,6 +485,7 @@ const Dashboard = () => {
 
       setClinicRegistrationStatus('success');
       setClinicRegistrationMessage('Cadastro da clínica salvo com sucesso.');
+      setIsClinicEditing(false);
     } catch (error) {
       setClinicRegistrationStatus('error');
       setClinicRegistrationMessage(error?.message || 'Não foi possível salvar o cadastro da clínica.');
@@ -484,7 +495,7 @@ const Dashboard = () => {
   const activeSectionTitle = useMemo(() => ({
     overview: 'Painel Diário',
     patients: 'Base de Pacientes',
-    settings: 'Configurações',
+    settings: 'Cadastro da Clínica',
     account: 'Conta'
   }[activeTab] || 'OdontoFlow'), [activeTab]);
 
@@ -585,7 +596,7 @@ const Dashboard = () => {
               key={item.id}
               className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
               href="#"
-              data-route={item.id === 'settings' ? 'buscar' : 'conta'}
+              data-route={item.id === 'settings' ? 'cadastro' : 'conta'}
               aria-current={activeTab === item.id ? 'page' : undefined}
               onClick={(event) => {
                 event.preventDefault();
@@ -743,7 +754,7 @@ const Dashboard = () => {
       )}
 
       {activeTab === 'settings' && (
-        <ViewLayout title="Configurações" badge="Gestão Administrativa">
+        <ViewLayout title="Cadastro da Clínica" badge="Tela de Cadastro">
           <div className="space-y-8">
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8 space-y-6">
               <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -751,12 +762,34 @@ const Dashboard = () => {
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Cadastro da Clínica</p>
                   <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Dados de Contato e Fiscal</h3>
                 </div>
-                <UiButton
-                  onClick={handleSaveClinicRegistration}
-                  label={clinicRegistrationStatus === 'loading' ? 'Salvando...' : 'Salvar Cadastro'}
-                  tone={clinicRegistrationStatus === 'error' ? 'danger' : 'primary'}
-                  disabled={clinicRegistrationStatus === 'loading'}
-                />
+                {isClinicEditing ? (
+                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
+                    <UiButton
+                      onClick={() => setIsClinicEditing(false)}
+                      icon={X}
+                      tone="danger"
+                      labelLayout="hidden"
+                      title="Cancelar edição"
+                    />
+                    <UiButton
+                      onClick={handleSaveClinicRegistration}
+                      icon={Check}
+                      tone={clinicRegistrationStatus === 'error' ? 'danger' : 'success'}
+                      labelLayout="hidden"
+                      title={clinicRegistrationStatus === 'loading' ? 'Salvando cadastro...' : 'Salvar cadastro da clínica'}
+                      disabled={clinicRegistrationStatus === 'loading'}
+                      className="shadow-lg"
+                    />
+                  </div>
+                ) : (
+                  <UiButton
+                    onClick={() => setIsClinicEditing(true)}
+                    icon={Pencil}
+                    label="Editar cadastro"
+                    tone="neutral"
+                    size="sm"
+                  />
+                )}
               </div>
 
               <div className="space-y-3">
@@ -766,9 +799,10 @@ const Dashboard = () => {
                     Telefone
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.phone}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, phone: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="(00) 00000-0000"
                     />
                   </label>
@@ -776,9 +810,10 @@ const Dashboard = () => {
                     Email
                     <input
                       type="email"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.email}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, email: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="contato@clinica.com.br"
                     />
                   </label>
@@ -786,9 +821,10 @@ const Dashboard = () => {
                     Endereço
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.address}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, address: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="Rua, número, bairro, cidade/UF"
                     />
                   </label>
@@ -803,7 +839,7 @@ const Dashboard = () => {
                     label={cnpjLookupStatus === 'loading' ? 'Consultando CNPJ...' : 'Consultar CNPJ'}
                     tone={cnpjLookupStatus === 'error' ? 'danger' : 'info'}
                     size="sm"
-                    disabled={cnpjLookupStatus === 'loading'}
+                    disabled={!isClinicEditing || cnpjLookupStatus === 'loading'}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -811,9 +847,10 @@ const Dashboard = () => {
                     CNPJ
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.cnpj}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, cnpj: formatCnpj(event.target.value) }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="00.000.000/0000-00"
                     />
                   </label>
@@ -821,9 +858,10 @@ const Dashboard = () => {
                     Situação Cadastral
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.registrationStatus}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, registrationStatus: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="Ativa, Inapta..."
                     />
                   </label>
@@ -831,9 +869,10 @@ const Dashboard = () => {
                     Razão Social
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.legalName}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalName: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="Razão social da clínica"
                     />
                   </label>
@@ -841,9 +880,10 @@ const Dashboard = () => {
                     Nome Fantasia
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.tradeName}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, tradeName: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="Nome fantasia"
                     />
                   </label>
@@ -851,9 +891,10 @@ const Dashboard = () => {
                     Natureza Jurídica
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.legalNature}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, legalNature: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="Sociedade empresária..."
                     />
                   </label>
@@ -861,9 +902,10 @@ const Dashboard = () => {
                     CNAE Principal
                     <input
                       type="text"
+                      disabled={!isClinicEditing}
                       value={clinicRegistrationForm.primaryCnae}
                       onChange={(event) => setClinicRegistrationForm((current) => ({ ...current, primaryCnae: event.target.value }))}
-                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100"
+                      className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
                       placeholder="8630-5/04 - Atividade odontológica"
                     />
                   </label>
