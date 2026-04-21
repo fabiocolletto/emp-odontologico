@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Bell, Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 // --- COMPONENTES ATÔMICOS (NÍVEL 0) ---
 
@@ -117,6 +117,43 @@ export const UiSearchField = ({ label, id, className = '', ...props }) => (
       <input id={id} className={`ui-search ${className}`.trim()} {...props} />
     </div>
   </UiField>
+);
+
+export const UiNavSearchBar = ({
+  value,
+  onChange,
+  onCancel,
+  onClear,
+  placeholder = 'Pesquisar...'
+}) => (
+  <div className="ui-nav-search" role="search">
+    <Search size={16} className="ui-nav-search__icon" aria-hidden="true" />
+    <input
+      type="search"
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="ui-nav-search__input"
+      autoFocus
+    />
+    {value ? (
+      <button
+        type="button"
+        className="ui-nav-search__clear"
+        onClick={onClear}
+        aria-label="Limpar pesquisa"
+      >
+        <X size={16} />
+      </button>
+    ) : null}
+    <button
+      type="button"
+      className="ui-nav-search__cancel"
+      onClick={onCancel}
+    >
+      Cancelar
+    </button>
+  </div>
 );
 
 export const UiCard = ({ className = '', children, ...props }) => (

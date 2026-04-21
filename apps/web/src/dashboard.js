@@ -44,6 +44,7 @@ import {
   DetailPane,
   FormField,
   UiButton,
+  UiNavSearchBar,
   ViewLayout
 } from './components.js';
 import DailyPanel from './daily-panel.js';
@@ -104,6 +105,7 @@ const Dashboard = () => {
   const [isAuxDrawerOpen, setIsAuxDrawerOpen] = useState(false);
   const [isAuxSheetOpen, setIsAuxSheetOpen] = useState(false);
   const [isWideViewport, setIsWideViewport] = useState(false);
+  const isMobileViewport = !isWideViewport;
 
   const fiscalRequiredFields = [
     { key: 'legalName', label: 'razão social' },
@@ -489,18 +491,33 @@ const Dashboard = () => {
   }[activeTab] || 'OdontoFlow'), [activeTab]);
 
   const activeSectionSubtitle = currentClinic?.name || 'Clínica não definida';
+  const isPatientsTab = activeTab === 'patients';
+  const isNavSearchActive = isPatientsTab && isPatientSearchVisible && isMobileViewport;
 
   return (
     <AppShell
-      headerLeading={<div className="app-header__brand"><Stethoscope size={18} /> OdontoFlow</div>}
+      headerLeading={isNavSearchActive ? null : <div className="app-header__brand"><Stethoscope size={18} /> OdontoFlow</div>}
       headerCenter={(
-        <div>
-          <h1 className="app-header__title">{activeSectionTitle}</h1>
-          <p className="app-header__subtitle">{activeSectionSubtitle}</p>
-        </div>
+        isNavSearchActive ? (
+          <UiNavSearchBar
+            value={patientSearch}
+            onChange={(event) => setPatientSearch(event.target.value)}
+            onClear={() => setPatientSearch('')}
+            onCancel={() => {
+              setIsPatientSearchVisible(false);
+              setPatientSearch('');
+            }}
+            placeholder="Pesquisar pacientes..."
+          />
+        ) : (
+          <div>
+            <h1 className="app-header__title">{activeSectionTitle}</h1>
+            <p className="app-header__subtitle">{activeSectionSubtitle}</p>
+          </div>
+        )
       )}
       headerTrailing={(
-        <div className="app-header__actions">
+        <div className={`app-header__actions ${isNavSearchActive ? 'app-header__actions--hidden' : ''}`}>
           <UiButton
             onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
             icon={Plus}
@@ -624,7 +641,14 @@ const Dashboard = () => {
                 className="uppercase tracking-widest shadow-xl shadow-sky-100"
               />
               <UiButton
-                onClick={() => setIsPatientSearchVisible((current) => !current)}
+                onClick={() => {
+                  setIsPatientSearchVisible((current) => {
+                    if (current) {
+                      setPatientSearch('');
+                    }
+                    return !current;
+                  });
+                }}
                 icon={Search}
                 label="Pesquisa"
                 tone={isPatientSearchVisible ? 'info' : 'neutral'}
@@ -641,7 +665,7 @@ const Dashboard = () => {
               />
               </div>
           <div className="space-y-10">
-            {isPatientSearchVisible && (
+            {isPatientSearchVisible && !isMobileViewport && (
               <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
                 <Search className="text-slate-300" size={20} />
                 <input
