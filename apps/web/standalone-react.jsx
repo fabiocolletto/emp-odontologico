@@ -937,6 +937,8 @@ const MobileMd3Nav = ({
   onOpenSmartNavigation
 }) => {
   if (!visible) return null;
+  const leftPrimary = leftActions.slice(0, 2);
+  const rightPrimary = rightActions.slice(0, 2);
 
   const renderAction = (action) => (
     <button
@@ -948,29 +950,25 @@ const MobileMd3Nav = ({
       aria-current={action.active ? 'page' : undefined}
       title={action.label}
     >
-      <AppIcon name={action.icon} size={14} />
-      <span>{action.label}</span>
+      <AppIcon name={action.icon} size={18} />
+      <span className="mobile-md3-nav__label">{action.label}</span>
     </button>
   );
 
   return (
     <nav className="mobile-md3-nav" aria-label="Barra de navegação móvel">
-      <div className="mobile-md3-nav__rail">
-        <div className="mobile-md3-nav__side mobile-md3-nav__side--left">
-          {leftActions.map(renderAction)}
-        </div>
-        <button
-          type="button"
-          className="mobile-md3-nav__fab"
-          onClick={onOpenSmartNavigation}
-          aria-label="Abrir navegação inteligente"
-        >
-          <AppIcon name="menu" size={18} />
-        </button>
-        <div className="mobile-md3-nav__side mobile-md3-nav__side--right">
-          {rightActions.map(renderAction)}
-        </div>
-      </div>
+      {leftPrimary.map(renderAction)}
+      <button
+        type="button"
+        className="mobile-md3-nav__fab"
+        onClick={onOpenSmartNavigation}
+        aria-label="Abrir navegação inteligente"
+        title="Navegação"
+      >
+        <AppIcon name="menu" size={18} />
+        <span className="mobile-md3-nav__label">Navegação</span>
+      </button>
+      {rightPrimary.map(renderAction)}
     </nav>
   );
 };

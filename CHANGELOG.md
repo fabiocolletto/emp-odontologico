@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.4 - 2026-04-21
+
+### Changed
+- Barra de navegação mobile finalizada no padrão iOS solicitado: barra contínua fixa no rodapé, sem cantos arredondados/flutuação, com 5 botões e hierarquia visual de ícone principal + label reduzido abaixo.
+- Simplificação estrutural da barra (remoção de containers internos desnecessários) e ajuste de espaçamento do conteúdo para coincidir com a borda superior da barra sem sobreposição.
+
 ## v1.1.3 - 2026-04-21
 
 ### Changed
