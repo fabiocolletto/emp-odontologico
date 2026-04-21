@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.11 - 2026-04-21
+
+### Changed
+- Botões de ação dos widgets da tela Conta (setor de gestão de conta, perfil e clínicas) migrados para padrão **icon-first** da mesma família visual `modal-action-btn`, preservando tamanho/cor/estética da categoria.
+- Botão de edição de clínicas no widget da Conta substitui o título por ícone dominante em telas compactas, mantendo acessibilidade por `aria-label`.
+- Em telas médias (tablet), o rótulo foi reintroduzido em escala menor sob o ícone; em telas grandes, o rótulo passa para lateral do ícone com ajuste de proporção, alinhando com o comportamento de navegação lateral.
+
 ## v1.1.10 - 2026-04-21
 
 ### Changed

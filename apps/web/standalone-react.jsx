@@ -2366,28 +2366,34 @@ function DashboardApp({
 
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first"
                 onClick={openAccountEditN2}
                 disabled={authActionStatus === 'loading'}
+                aria-label="Editar conta"
               >
-                Editar (N2)
+                <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
+                <span className="modal-action-btn__label">Editar</span>
               </button>
               {accountService?.signOut ? (
                 <button
-                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral"
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first"
                   onClick={accountService.signOut}
                   disabled={authActionStatus === 'loading'}
+                  aria-label="Desconectar conta"
                 >
-                  Desconectar
+                  <AppIcon name="close" size={20} className="modal-action-btn__icon" />
+                  <span className="modal-action-btn__label">Desconectar</span>
                 </button>
               ) : null}
               {accountService?.deleteAuthUser ? (
                 <button
-                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger"
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first"
                   onClick={handleDeleteAccount}
                   disabled={authActionStatus === 'loading'}
+                  aria-label="Excluir conta"
                 >
-                  Excluir conta
+                  <AppIcon name="archive" size={20} className="modal-action-btn__icon" />
+                  <span className="modal-action-btn__label">Excluir</span>
                 </button>
               ) : null}
             </div>
@@ -2411,18 +2417,22 @@ function DashboardApp({
 
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first"
                 onClick={openPublicProfileEditN2}
                 disabled={profileActionStatus === 'loading'}
+                aria-label="Editar perfil público"
               >
-                Editar (N2)
+                <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
+                <span className="modal-action-btn__label">Editar</span>
               </button>
               <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral"
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first"
                 onClick={() => refreshPublicProfile(authUserWidget?.id)}
                 disabled={profileActionStatus === 'loading'}
+                aria-label="Recarregar perfil público"
               >
-                Recarregar perfil
+                <AppIcon name="info" size={20} className="modal-action-btn__icon" />
+                <span className="modal-action-btn__label">Recarregar</span>
               </button>
             </div>
 
@@ -2455,11 +2465,13 @@ function DashboardApp({
             )}
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info"
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first"
                 onClick={handleOpenClinicN2}
                 disabled={clinicActionStatus === 'loading'}
+                aria-label="Editar clínicas"
               >
-                Editar clínicas (N2)
+                <AppIcon name="edit" size={22} className="modal-action-btn__icon" />
+                <span className="modal-action-btn__label">Editar clínicas</span>
               </button>
             </div>
             {clinicActionMessage ? (

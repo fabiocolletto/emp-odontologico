@@ -1726,6 +1726,60 @@ select {
   transform: translateY(-1px);
 }
 
+.modal-action-btn--icon-first {
+  min-width: 42px;
+  min-height: 38px;
+  padding: 0.38rem 0.52rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+}
+
+.modal-action-btn__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+}
+
+.modal-action-btn__label {
+  display: none;
+  font-size: 0.68rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .modal-action-btn--icon-first {
+    min-width: 62px;
+    min-height: 42px;
+    flex-direction: column;
+    gap: 0.14rem;
+    padding: 0.42rem 0.58rem;
+  }
+
+  .modal-action-btn__label {
+    display: inline-flex;
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (min-width: 1200px) {
+  .modal-action-btn--icon-first {
+    flex-direction: row;
+    gap: 0.36rem;
+    min-width: 104px;
+    justify-content: flex-start;
+    padding: 0.45rem 0.72rem;
+  }
+
+  .modal-action-btn__label {
+    font-size: 0.72rem;
+  }
+}
+
 .modal-action-btn--neutral {
   color: var(--btn-glass-text);
   border-color: var(--btn-glass-border);
