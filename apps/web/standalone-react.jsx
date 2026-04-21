@@ -942,9 +942,11 @@ const MobileMd3Nav = ({
     <button
       key={action.key}
       type="button"
-      className={`mobile-md3-nav__action ${action.active ? 'is-active' : ''}`}
+      className={`mobile-md3-nav__action mobile-md3-nav__action--${action.tone || 'neutral'} ${action.active ? 'is-active' : ''}`}
       onClick={action.onClick}
       aria-label={action.ariaLabel || action.label}
+      aria-current={action.active ? 'page' : undefined}
+      title={action.label}
     >
       <AppIcon name={action.icon} size={14} />
       <span>{action.label}</span>
@@ -2414,40 +2416,40 @@ function DashboardApp({
   const mobileNavActionConfigByTab = {
     overview: {
       left: [
-        { key: 'overview-home', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
-        { key: 'overview-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+        { key: 'overview-home', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
+        { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
-        { key: 'overview-settings', icon: 'settings', label: 'Ajustes', onClick: () => setActiveTab('settings') },
-        { key: 'overview-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'overview-settings', icon: 'settings', tone: 'settings', label: 'Ajustes', onClick: () => setActiveTab('settings') },
+        { key: 'overview-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
       ]
     },
     patients: {
       left: [
-        { key: 'patients-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
-        { key: 'patients-new', icon: 'edit', label: 'Novo', onClick: openCreatePatientN2 }
+        { key: 'patients-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
       ],
       right: [
-        { key: 'patients-search', icon: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
-        { key: 'patients-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
+        { key: 'patients-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
       ]
     },
     settings: {
       left: [
-        { key: 'settings-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') }
+        { key: 'settings-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') }
       ],
       right: [
-        { key: 'settings-account', icon: 'settings', label: 'Conta', onClick: () => setActiveTab('account') }
+        { key: 'settings-account', icon: 'settings', tone: 'account', label: 'Conta', onClick: () => setActiveTab('account') }
       ]
     },
     account: {
       left: [
-        { key: 'account-overview', icon: 'home', label: 'Painel', onClick: () => setActiveTab('overview') },
-        { key: 'account-patients', icon: 'users', label: 'Pacientes', onClick: () => setActiveTab('patients') }
+        { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
-        { key: 'account-edit', icon: 'edit', label: 'Editar', onClick: openAccountEditN2 },
-        { key: 'account-clinics', icon: 'settings', label: 'Clínicas', onClick: handleOpenClinicN2 }
+        { key: 'account-edit', icon: 'edit', tone: 'info', label: 'Editar', onClick: openAccountEditN2 },
+        { key: 'account-clinics', icon: 'settings', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
       ]
     }
   };
@@ -2471,6 +2473,8 @@ function DashboardApp({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
+                aria-current={activeTab === tab.id ? 'page' : undefined}
+                title={tab.label}
               >
                 <AppIcon name={tab.icon} size={14} />
                 {tab.label}
@@ -2642,7 +2646,7 @@ function DashboardApp({
       />
 
       <MobileMd3Nav
-        visible={isMobileViewport}
+        visible={isMobileViewport && !showMobileNavDrawer}
         leftActions={mobileNavActionConfig.left}
         rightActions={mobileNavActionConfig.right}
         onOpenSmartNavigation={openSmartNavigation}

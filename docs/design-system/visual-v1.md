@@ -126,3 +126,14 @@ Módulos priorizados e tratados:
 - Fluxos auxiliares de N2/N3 convergidos para campos do sistema (`ui-input` e `ui-textarea`) em modais de Pacientes, Perfil e Clínicas.
 - Fluxos de autenticação (configuração, login e loading) convergidos para superfícies oficiais `ui-card` e estados consistentes com o design system.
 - Sem criação de novos módulos/negócio: somente consolidação de consistência visual e previsibilidade de composição.
+
+## 12. Navegação (estética final + comportamento)
+
+- **Sidebar (desktop/wide):**
+  - botões de navegação com estado ativo claro, indicador lateral e foco acessível;
+  - sem variações paralelas fora da família `btn--nav`.
+- **Barra móvel (compact):**
+  - ações com estado ativo semântico (`aria-current="page"`);
+  - variações tonais por contexto (`overview`, `patients`, `search`, `settings`, `account`, etc.);
+  - FAB central padronizado e foco visível;
+  - barra móvel é ocultada enquanto o drawer de navegação inteligente estiver aberto para evitar sobreposição visual.

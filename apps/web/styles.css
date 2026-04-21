@@ -260,30 +260,50 @@ select {
 }
 
 .btn--nav {
-  background: rgba(15, 106, 167, 0.52);
-  color: var(--btn-glass-text);
+  position: relative;
+  background: color-mix(in srgb, var(--surface-solid) 86%, var(--brand-100));
+  color: var(--text-base);
   text-align: left;
   width: 100%;
-  padding: 0.85rem 1rem;
+  padding: 0.82rem 1rem;
   justify-content: flex-start;
+  border-color: color-mix(in srgb, var(--brand-600) 18%, white);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .btn--nav.is-active {
-  background: rgba(11, 90, 143, 0.62);
-  color: var(--btn-glass-text);
-  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.22);
+  background: linear-gradient(180deg, #f3f9ff 0%, #e8f2ff 100%);
+  color: var(--brand-700);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.12);
 }
 
-.btn--nav--overview {
-  background: rgba(14, 116, 144, 0.52);
+.btn--nav.is-active::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--brand-600) 82%, white);
 }
 
-.btn--nav--patients {
-  background: rgba(37, 99, 235, 0.52);
+.btn--nav--overview .app-icon { color: color-mix(in srgb, #0ea5b7 80%, #0f172a); }
+.btn--nav--patients .app-icon { color: color-mix(in srgb, #2563eb 80%, #0f172a); }
+.btn--nav--settings .app-icon,
+.btn--nav--account .app-icon { color: color-mix(in srgb, #7c3aed 78%, #0f172a); }
+
+.btn--nav:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--brand-600) 30%, white);
+  background: color-mix(in srgb, #ffffff 92%, #e7eef8);
 }
 
-.btn--nav--settings {
-  background: rgba(124, 58, 237, 0.52);
+.btn--nav:focus-visible {
+  outline: none;
+  box-shadow: var(--state-focus-ring);
 }
 
 .btn--mobile-tab {
@@ -474,9 +494,9 @@ select {
   gap: 0.6rem;
   padding: 0.45rem 0.6rem;
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.36);
-  background: rgba(15, 106, 167, 0.46);
-  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.26);
+  border: 1px solid color-mix(in srgb, var(--brand-600) 22%, white);
+  background: color-mix(in srgb, #ffffff 86%, #e5eefb);
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.18);
   backdrop-filter: blur(14px) saturate(125%);
   -webkit-backdrop-filter: blur(14px) saturate(125%);
   pointer-events: auto;
@@ -493,10 +513,10 @@ select {
 .mobile-md3-nav__side--right { justify-content: flex-end; }
 
 .mobile-md3-nav__action {
-  border: 1px solid rgba(255, 255, 255, 0.34);
+  border: 1px solid color-mix(in srgb, var(--brand-600) 18%, white);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.16);
-  color: #f8fbff;
+  background: color-mix(in srgb, #ffffff 96%, #dbeafe);
+  color: var(--text-base);
   height: 40px;
   min-width: 40px;
   padding: 0 0.62rem;
@@ -507,24 +527,49 @@ select {
   font-weight: 800;
   letter-spacing: 0.01em;
   white-space: nowrap;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
 .mobile-md3-nav__action.is-active {
-  background: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
+  background: linear-gradient(180deg, #f3f9ff 0%, #e7f1ff 100%);
+  border-color: color-mix(in srgb, var(--brand-600) 30%, white);
+  color: var(--brand-700);
+}
+
+.mobile-md3-nav__action:hover {
+  transform: translateY(-1px);
+}
+
+.mobile-md3-nav__action--overview.is-active { color: #0f5f7f; }
+.mobile-md3-nav__action--patients.is-active { color: #1d4ed8; }
+.mobile-md3-nav__action--settings.is-active,
+.mobile-md3-nav__action--account.is-active { color: #6d28d9; }
+.mobile-md3-nav__action--search.is-active { color: #0f4f7f; }
+.mobile-md3-nav__action--success.is-active { color: #166534; }
+.mobile-md3-nav__action--info.is-active { color: #0f4f7f; }
+
+.mobile-md3-nav__action:focus-visible,
+.mobile-md3-nav__fab:focus-visible {
+  outline: none;
+  box-shadow: var(--state-focus-ring);
 }
 
 .mobile-md3-nav__fab {
   width: 54px;
   height: 54px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.44);
-  background: rgba(5, 150, 105, 0.74);
-  color: #fff;
+  border: 1px solid color-mix(in srgb, var(--brand-600) 30%, white);
+  background: linear-gradient(180deg, #e9f8ef 0%, #daf2e5 100%);
+  color: #155a35;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.32);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.2);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.mobile-md3-nav__fab:hover {
+  transform: translateY(-1px);
 }
 
 .mobile-nav-trigger__button {

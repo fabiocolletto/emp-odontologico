@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.3 - 2026-04-21
+
+### Changed
+- Refinamento final da barra de navegação (sidebar + mobile) com estética consolidada e comportamento previsível: estado ativo mais claro, foco acessível, tons por contexto e microinterações consistentes.
+- Navegação mobile com `aria-current` nos itens ativos e ocultação automática da barra inferior durante abertura do drawer inteligente para evitar sobreposição.
+- Documentação do design system atualizada com seção específica de padrão final de navegação.
+
 ## v1.1.2 - 2026-04-21
 
 ### Changed
