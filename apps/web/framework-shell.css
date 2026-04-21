@@ -171,11 +171,7 @@ body {
 
 @media (max-width: 599px) {
   .bottom-tabbar__item {
-    gap: 0;
-  }
-
-  .bottom-tabbar__label {
-    display: none;
+    gap: 2px;
   }
 }
 

@@ -499,7 +499,7 @@ select {
   background: var(--bg-surface-soft);
   padding: 0.2rem;
   width: 100%;
-  max-width: 430px;
+  max-width: min(100%, 620px);
   margin-inline: auto;
   border: 1px solid color-mix(in srgb, var(--border-subtle) 78%, white);
   border-radius: 16px;
@@ -585,11 +585,7 @@ select {
 
 @media (max-width: 599px) {
   .mobile-md3-nav__action {
-    gap: 0;
-  }
-
-  .mobile-md3-nav__label {
-    display: none;
+    gap: 0.08rem;
   }
 }
 

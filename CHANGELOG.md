@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.17 - 2026-04-21
+
+### Changed
+- Finalização do modelo de janela flutuante: footer de navegação deixa de exibir placeholder e passa a renderizar os botões de ação do fluxo em todos os contextos de viewport (incluindo desktop/tablet).
+- Restaurada exibição dos títulos dos botões em celulares para barras de navegação mobile (barra fixa e barra embutida), removendo ocultação de labels em telas compactas.
+- Ajuste de largura máxima da barra embutida para acomodar melhor os 5 botões com rótulo sem perda de legibilidade.
+
 ## v1.1.16 - 2026-04-21
 
 ### Changed

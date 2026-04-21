@@ -2608,7 +2608,7 @@ function DashboardApp({
     return mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
   })();
   const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
-  const embeddedWindowNav = !isWideNavigation ? (
+  const embeddedWindowNav = (
     <MobileMd3Nav
       visible
       embedded
@@ -2617,7 +2617,7 @@ function DashboardApp({
       rightActions={mobileNavActionConfig.right}
       onOpenSmartNavigation={openSmartNavigation}
     />
-  ) : null;
+  );
 
   return (
     <div className="app-shell">
