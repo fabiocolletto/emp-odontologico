@@ -19,9 +19,13 @@ Este documento define o fluxo operacional padrão para mudanças no projeto.
 - Quando houver necessidade de validação visual (ex.: telas, responsividade mobile, regressões de layout), instalar e configurar browser tools (ex.: Playwright/Chromium) antes da evidência final, caso o ambiente ainda não disponha dessas ferramentas.
 
 ## 4) Registrar
-- Atualizar changelog técnico.
+- Atualizar changelog técnico obrigatoriamente ao finalizar qualquer alteração de arquivo (código, docs, scripts, estilos ou configuração).
 - Descrever decisões arquiteturais.
 - Gerar commit semântico com escopo claro.
+
+### Regra mandatória de Logchange
+- Toda tarefa concluída com modificação em pelo menos um arquivo deve incluir atualização do `CHANGELOG.md` no mesmo ciclo de entrega.
+- É proibido encerrar entrega com arquivos alterados sem refletir a mudança correspondente no logchange.
 
 ## Definition of Done por Módulo
 

@@ -2,6 +2,62 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.17 - 2026-04-21
+
+### Changed
+- Finalização do modelo de janela flutuante: footer de navegação deixa de exibir placeholder e passa a renderizar os botões de ação do fluxo em todos os contextos de viewport (incluindo desktop/tablet).
+- Restaurada exibição dos títulos dos botões em celulares para barras de navegação mobile (barra fixa e barra embutida), removendo ocultação de labels em telas compactas.
+- Ajuste de largura máxima da barra embutida para acomodar melhor os 5 botões com rótulo sem perda de legibilidade.
+
+## v1.1.16 - 2026-04-21
+
+### Changed
+- Padronização visual da janela de cadastro entre diferentes dimensões de tela: footer de navegação embutido agora centraliza o bloco de ações e mantém largura/altura consistentes.
+- Ajuste de responsividade da barra embutida em janelas flutuantes (`mobile-md3-nav--embedded`) com largura máxima, grid uniforme de 5 ações e espaçamento interno estável.
+- Correção de fallback em desktop/wide: quando a barra embutida não deve aparecer, o footer volta a exibir conteúdo auxiliar padrão (sem “rodapé vazio”).
+
+## v1.1.15 - 2026-04-21
+
+### Changed
+- Simplificação da navegação responsiva com duas variações explícitas: **tela cheia** (mantida no comportamento consolidado até v1.1.13) e **janela flutuante (N2)**.
+- Em janela flutuante, a barra de navegação passa a substituir/ocupar o footer da própria janela em todos os fluxos N2 (Pacientes, Conta, Perfil e Clínicas), removendo redundância de barras diferentes por modal.
+- Estrutura da janela flutuante reforçada em conjunto único `header + body + footer`, preservando rolagem interna apenas no body e sem deslocar altura/largura do container.
+
+## v1.1.14 - 2026-04-21
+
+### Changed
+- Barra de navegação mobile, quando usada em contexto de janela flutuante (N2), deixa de ficar fixa na viewport e passa a ser incorporada como footer da própria janela.
+- Footer das janelas flutuantes de Conta/Perfil/Clínicas ganhou suporte a navegação embutida, mantendo header/body/footer como blocos independentes e preservando rolagem interna apenas no conteúdo.
+- Rodapé da janela com navegação embutida passa a usar o mesmo fundo do header (`bg-surface-soft`) para reforçar unidade visual do container.
+
+## v1.1.13 - 2026-04-21
+
+### Changed
+- Ajuste fino no padrão `icon-first` em desktop amplo: quando ícone e título ficam lado a lado, ambos passam a ficar centralizados no container do botão.
+- Sombras dos botões foram suavizadas para reduzir peso visual, incluindo ações de modal (`modal-action-btn`) e elementos de navegação mais usados (sidebar ativa, botão gatilho mobile e FAB da barra inferior).
+- Nas barras de navegação, os títulos dos botões agora alternam por breakpoint: em celular compacto os labels são ocultados (ícone-only), enquanto em tablet os títulos são exibidos.
+
+## v1.1.12 - 2026-04-21
+
+### Changed
+- Padronizada largura fixa para botões `modal-action-btn--icon-first` da categoria de ações dos widgets de Conta (`modal-action-btn--uniform`), com escalas responsivas por breakpoint para manter estética consistente.
+- No widget **Editar conta**, o rótulo `Desconectar` foi renomeado para `Sair`, equalizando proporção textual com os demais botões da mesma classe.
+- Removidos os botões de interação manual `Atualizar widget` (Auth) e `Recarregar` (Perfil público) da tela Conta.
+- No widget de clínicas da Conta, a ação principal foi alterada de edição para **Adicionar**, abrindo a N2 já em modo de criação de nova clínica.
+
+## v1.1.11 - 2026-04-21
+
+### Changed
+- Botões de ação dos widgets da tela Conta (setor de gestão de conta, perfil e clínicas) migrados para padrão **icon-first** da mesma família visual `modal-action-btn`, preservando tamanho/cor/estética da categoria.
+- Botão de edição de clínicas no widget da Conta substitui o título por ícone dominante em telas compactas, mantendo acessibilidade por `aria-label`.
+- Em telas médias (tablet), o rótulo foi reintroduzido em escala menor sob o ícone; em telas grandes, o rótulo passa para lateral do ícone com ajuste de proporção, alinhando com o comportamento de navegação lateral.
+
+## v1.1.10 - 2026-04-21
+
+### Changed
+- Atualizadas as diretrizes operacionais do agente em `docs/governanca/agent.md` para tornar obrigatório o update do logchange ao finalizar qualquer alteração de arquivo.
+- Formalizada regra mandatória de entrega: nenhuma mudança pode ser concluída sem atualização correspondente no `CHANGELOG.md`.
+
 ## v1.1.9 - 2026-04-21
 
 ### Changed
