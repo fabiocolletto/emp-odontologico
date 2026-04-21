@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.12 - 2026-04-21
+
+### Changed
+- Padronizada largura fixa para botões `modal-action-btn--icon-first` da categoria de ações dos widgets de Conta (`modal-action-btn--uniform`), com escalas responsivas por breakpoint para manter estética consistente.
+- No widget **Editar conta**, o rótulo `Desconectar` foi renomeado para `Sair`, equalizando proporção textual com os demais botões da mesma classe.
+- Removidos os botões de interação manual `Atualizar widget` (Auth) e `Recarregar` (Perfil público) da tela Conta.
+- No widget de clínicas da Conta, a ação principal foi alterada de edição para **Adicionar**, abrindo a N2 já em modo de criação de nova clínica.
+
 ## v1.1.11 - 2026-04-21
 
 ### Changed

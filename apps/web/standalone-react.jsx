@@ -108,6 +108,7 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     map: <><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13L15 19.5 9 17 3.5 19.5v-13Z" /><path d="M9 4v13M15 6.5v13" /></>,
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
     archive: <><rect x="3" y="4" width="18" height="5" rx="1.2" /><path d="M5.5 9.2V19a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V9.2" /><path d="M10 13h4" /></>,
+    plus: <path d="M12 5v14M5 12h14" />,
     edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
@@ -1456,6 +1457,20 @@ function DashboardApp({
     }
   };
 
+  const handleOpenClinicCreateN2 = async () => {
+    setIsClinicN2Open(true);
+    setSelectedClinicId('');
+    setClinicDraft(toClinicDraft(null));
+    try {
+      await refreshClinics(authUserWidget?.id);
+      setSelectedClinicId('');
+      setClinicDraft(toClinicDraft(null));
+    } catch (error) {
+      setClinicActionStatus('error');
+      setClinicActionMessage(error?.message || 'Não foi possível preparar o cadastro de clínica.');
+    }
+  };
+
   const handleSelectClinic = (clinicId) => {
     setSelectedClinicId(clinicId);
     const clinic = clinics.find((item) => item.id === clinicId);
@@ -2328,23 +2343,6 @@ function DashboardApp({
                 <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
                 <p className="text-sm text-slate-500">Dados carregados via <code>supabase.auth.getUser()</code>.</p>
               </div>
-              <button
-                className="btn btn--ghost"
-                onClick={async () => {
-                  setAuthActionStatus('loading');
-                  setAuthActionMessage('Atualizando dados da conta...');
-                  try {
-                    await refreshAuthWidget();
-                    setAuthActionStatus('success');
-                    setAuthActionMessage('Dados da conta atualizados.');
-                  } catch (error) {
-                    setAuthActionStatus('error');
-                    setAuthActionMessage(error?.message || 'Não foi possível atualizar os dados da conta.');
-                  }
-                }}
-              >
-                Atualizar widget
-              </button>
             </div>
 
             <div className="grid md:grid-cols-2 gap-3 text-sm">
@@ -2366,7 +2364,7 @@ function DashboardApp({
 
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first"
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
                 onClick={openAccountEditN2}
                 disabled={authActionStatus === 'loading'}
                 aria-label="Editar conta"
@@ -2376,18 +2374,18 @@ function DashboardApp({
               </button>
               {accountService?.signOut ? (
                 <button
-                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first"
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first modal-action-btn--uniform"
                   onClick={accountService.signOut}
                   disabled={authActionStatus === 'loading'}
                   aria-label="Desconectar conta"
                 >
                   <AppIcon name="close" size={20} className="modal-action-btn__icon" />
-                  <span className="modal-action-btn__label">Desconectar</span>
+                  <span className="modal-action-btn__label">Sair</span>
                 </button>
               ) : null}
               {accountService?.deleteAuthUser ? (
                 <button
-                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first"
+                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first modal-action-btn--uniform"
                   onClick={handleDeleteAccount}
                   disabled={authActionStatus === 'loading'}
                   aria-label="Excluir conta"
@@ -2417,22 +2415,13 @@ function DashboardApp({
 
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first"
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
                 onClick={openPublicProfileEditN2}
                 disabled={profileActionStatus === 'loading'}
                 aria-label="Editar perfil público"
               >
                 <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
                 <span className="modal-action-btn__label">Editar</span>
-              </button>
-              <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first"
-                onClick={() => refreshPublicProfile(authUserWidget?.id)}
-                disabled={profileActionStatus === 'loading'}
-                aria-label="Recarregar perfil público"
-              >
-                <AppIcon name="info" size={20} className="modal-action-btn__icon" />
-                <span className="modal-action-btn__label">Recarregar</span>
               </button>
             </div>
 
@@ -2465,13 +2454,13 @@ function DashboardApp({
             )}
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first"
-                onClick={handleOpenClinicN2}
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
+                onClick={handleOpenClinicCreateN2}
                 disabled={clinicActionStatus === 'loading'}
-                aria-label="Editar clínicas"
+                aria-label="Adicionar clínica"
               >
-                <AppIcon name="edit" size={22} className="modal-action-btn__icon" />
-                <span className="modal-action-btn__label">Editar clínicas</span>
+                <AppIcon name="plus" size={22} className="modal-action-btn__icon" />
+                <span className="modal-action-btn__label">Adicionar</span>
               </button>
             </div>
             {clinicActionMessage ? (

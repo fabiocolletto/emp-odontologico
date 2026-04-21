@@ -1749,6 +1749,10 @@ select {
   font-weight: 700;
 }
 
+.modal-action-btn--uniform {
+  inline-size: 44px;
+}
+
 @media (min-width: 768px) {
   .modal-action-btn--icon-first {
     min-width: 62px;
@@ -1764,6 +1768,10 @@ select {
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
+
+  .modal-action-btn--uniform {
+    inline-size: 72px;
+  }
 }
 
 @media (min-width: 1200px) {
@@ -1777,6 +1785,10 @@ select {
 
   .modal-action-btn__label {
     font-size: 0.72rem;
+  }
+
+  .modal-action-btn--uniform {
+    inline-size: 120px;
   }
 }
 
