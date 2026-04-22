@@ -72,22 +72,21 @@ const createAccountService = (supabaseClient) => {
   };
 };
 
-const LEVEL1_TABS = [
-  { id: 'overview', label: 'Painel', icon: 'home' },
-  { id: 'agenda', label: 'Agenda', icon: 'calendar' },
-  { id: 'patients', label: 'Pacientes', icon: 'users' },
-  { id: 'financial', label: 'Financeiro', icon: 'plan' },
-  { id: 'profile', label: 'Perfil', icon: 'settings' }
+const NAV_PRIMARY = [
+  { id: 'overview', label: 'Início', icon: 'home', tone: 'overview', group: 'Atendimento' },
+  { id: 'agenda', label: 'Agenda', icon: 'calendar', tone: 'agenda', group: 'Atendimento' },
+  { id: 'patients', label: 'Pacientes', icon: 'users', tone: 'patients', group: 'Cadastros' },
+  { id: 'financial', label: 'Financeiro', icon: 'plan', tone: 'settings', group: 'Gestão' },
+  { id: 'profile', label: 'Perfil', icon: 'id-card', tone: 'account', group: 'Gestão' }
 ];
 
+const LEVEL1_TABS = NAV_PRIMARY.map(({ id, label, icon }) => ({ id, label, icon }));
+const TAB_META = NAV_PRIMARY.reduce((acc, tab) => ({ ...acc, [tab.id]: tab }), {});
+
 const MOBILE_NAV_SHORTCUTS = [
-  { id: 'overview', label: 'Painel', tab: 'overview', icon: 'home', group: 'Atendimento' },
-  { id: 'agenda', label: 'Agenda', tab: 'agenda', icon: 'calendar', group: 'Atendimento' },
+  ...NAV_PRIMARY.map((tab) => ({ id: tab.id, label: tab.label, tab: tab.id, icon: tab.icon, group: tab.group })),
   { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'agenda', icon: 'calendar', group: 'Atendimento' },
-  { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
-  { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
-  { id: 'financial', label: 'Financeiro', tab: 'financial', icon: 'plan', group: 'Gestão' },
-  { id: 'profile', label: 'Perfil', tab: 'profile', icon: 'settings', group: 'Gestão' }
+  { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' }
 ];
 
 const AppIcon = ({ name, size = 14, className = '' }) => {
@@ -95,6 +94,7 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     home: <path d="M3 10.5 12 3l9 7.5M6.5 9.8V21h11V9.8" />,
     users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16.5 3.2a3.2 3.2 0 0 1 0 6.2" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a1.8 1.8 0 1 1-2.5 2.5l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a1.8 1.8 0 1 1-3.6 0v-.1a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a1.8 1.8 0 1 1-2.5-2.5l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a1.8 1.8 0 1 1 0-3.6h.1a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a1.8 1.8 0 1 1 2.5-2.5l.1.1a1 1 0 0 0 1.1.2h.2a1 1 0 0 0 .6-.9V4a1.8 1.8 0 1 1 3.6 0v.1a1 1 0 0 0 .6.9h.2a1 1 0 0 0 1.1-.2l.1-.1a1.8 1.8 0 1 1 2.5 2.5l-.1.1a1 1 0 0 0-.2 1.1v.2a1 1 0 0 0 .9.6H20a1.8 1.8 0 1 1 0 3.6h-.1a1 1 0 0 0-.9.6Z" /></>,
+    'id-card': <><rect x="3" y="5" width="18" height="14" rx="2.5" /><circle cx="9" cy="11" r="2.2" /><path d="M6.3 15.2c.6-1.1 1.5-1.7 2.7-1.7 1.1 0 2.1.6 2.7 1.7M14.5 9h4M14.5 12h4M14.5 15h3" /></>,
     phone: <path d="M22 16.8v3a2 2 0 0 1-2.2 2 19.7 19.7 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.7 19.7 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.7.8 2.5a2 2 0 0 1-.4 2.1L8.1 9.6a16 16 0 0 0 6.3 6.3l1.3-1.3a2 2 0 0 1 2.1-.4c.8.4 1.6.7 2.5.8A2 2 0 0 1 22 16.8Z" />,
     calendar: <><rect x="3" y="4" width="18" height="17" rx="2.5" /><path d="M8 2v4M16 2v4M3 10h18" /></>,
     birth: <><path d="M12 4v16M4 10h16M7 4v4M17 4v4M7 16v4M17 16v4" /></>,
@@ -1989,10 +1989,10 @@ function DashboardApp({
     const quickLinksCatalog = {
       overview: {
         key: 'overview',
-        icon: 'home',
-        tone: 'overview',
-        label: 'Painel',
-        ariaLabel: 'Ir para painel',
+        icon: TAB_META.overview.icon,
+        tone: TAB_META.overview.tone,
+        label: TAB_META.overview.label,
+        ariaLabel: 'Ir para início',
         onClick: () => goToLevel1('overview')
       },
       agenda: {
@@ -2072,9 +2072,9 @@ function DashboardApp({
       },
       profile: {
         key: 'profile',
-        icon: 'settings',
-        tone: 'account',
-        label: 'Perfil',
+        icon: TAB_META.profile.icon,
+        tone: TAB_META.profile.tone,
+        label: TAB_META.profile.label,
         ariaLabel: 'Abrir perfil',
         onClick: () => goToLevel1('profile')
       }
@@ -2158,13 +2158,13 @@ function DashboardApp({
         <div className="space-y-6">
           {renderN1Header({
             icon: 'home',
-            title: 'Painel',
+            title: 'Início',
             subtitle: 'Dashboard principal e visão consolidada',
             actions: []
           })}
-          {!isMobileViewport && <h2 className="page-title">Painel</h2>}
+          {!isMobileViewport && <h2 className="page-title">Início</h2>}
           <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Painel (nível 0)</p>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Início (nível 0)</p>
             <p className="text-sm text-slate-600">
               Esta é a tela de nível 0 do sistema: o dashboard principal de abertura com visão consolidada
               dos módulos operacionais.
@@ -2589,12 +2589,12 @@ function DashboardApp({
       ],
       right: [
         { key: 'overview-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') },
-        { key: 'overview-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+        { key: 'overview-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
       ]
     },
     agenda: {
       left: [
-        { key: 'agenda-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') }
+        { key: 'agenda-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
       ],
       right: [
         { key: 'agenda-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setAppointmentsQuery('') }
@@ -2602,7 +2602,7 @@ function DashboardApp({
     },
     patients: {
       left: [
-        { key: 'patients-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') },
+        { key: 'patients-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') },
         { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
       ],
       right: [
@@ -2612,20 +2612,20 @@ function DashboardApp({
     },
     financial: {
       left: [
-        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') }
+        { key: 'financial-clinic', icon: 'id-card', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
       ],
       right: [
-        { key: 'financial-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+        { key: 'financial-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
       ]
     },
     profile: {
       left: [
-        { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') },
+        { key: 'account-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') },
         { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
       ],
       right: [
         { key: 'account-edit', icon: 'edit', tone: 'info', label: 'Editar', onClick: openAccountEditN2 },
-        { key: 'account-clinics', icon: 'settings', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
+        { key: 'account-clinics', icon: 'id-card', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
       ]
     }
   };
@@ -2716,7 +2716,7 @@ function DashboardApp({
     if (showPatientN2) {
       return {
         left: [
-          { key: 'patient-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => { setShowPatientN2(false); goToLevel1('overview'); } },
+          { key: 'patient-clear', icon: 'clear', tone: 'info', label: 'Limpar', onClick: () => { setPatientViewForm(createEmptyPatientForm()); setFormFeedback(''); } },
           { key: 'patient-prev', icon: 'chevron-left', tone: 'overview', label: 'Anterior', onClick: () => moveFormTab(-1) }
         ],
         center: {
@@ -2730,7 +2730,7 @@ function DashboardApp({
         },
         right: [
           { key: 'patient-next', icon: 'chevron-right', tone: 'patients', label: 'Próxima', onClick: () => moveFormTab(1) },
-          { key: 'patient-close', icon: 'close', tone: 'danger', label: 'Fechar', onClick: () => setShowPatientN2(false) }
+          { key: 'patient-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setShowPatientN2(false) }
         ]
       };
     }
@@ -2739,7 +2739,7 @@ function DashboardApp({
       return {
         left: [
           { key: 'account-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } },
-          { key: 'account-open', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+          { key: 'account-open', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
         ],
         center: {
           key: 'account-save',
@@ -2748,9 +2748,9 @@ function DashboardApp({
           label: 'Salvar',
           onClick: isPublicProfileN2Open ? handleSavePublicProfile : handleAccountUpdate
         },
-        right: [
+      right: [
           { key: 'account-profile', icon: 'edit', tone: 'info', label: 'Perfil', onClick: openPublicProfileEditN2 },
-          { key: 'account-close', icon: 'close', tone: 'danger', label: 'Fechar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } }
+          { key: 'account-close', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => { setIsAccountEditN2Open(false); setIsPublicProfileN2Open(false); } }
         ]
       };
     }

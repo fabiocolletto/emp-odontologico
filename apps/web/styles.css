@@ -931,8 +931,7 @@ select {
     padding-bottom: calc(var(--mobile-tabbar-height) + env(safe-area-inset-bottom) + var(--space-4));
   }
 
-  .modal-header__actions,
-  .n2-mobile-nav {
+  .modal-header__actions {
     display: none !important;
   }
 }
@@ -1140,18 +1139,6 @@ select {
 .quick-links-btn--search { background: rgba(59, 130, 246, 0.52); }
 .quick-links-btn--multi { background: rgba(22, 163, 74, 0.52); }
 .quick-links-btn--settings { background: rgba(124, 58, 237, 0.52); }
-
-.n2-mobile-nav__btn--prev {
-  background: rgba(14, 116, 144, 0.52);
-}
-
-.n2-mobile-nav__btn--next {
-  background: rgba(37, 99, 235, 0.52);
-}
-
-.n2-mobile-nav__btn--map {
-  background: rgba(124, 58, 237, 0.52);
-}
 
 .quick-links-btn:active {
   transform: translateY(1px);
@@ -1380,7 +1367,6 @@ select {
 .page-header,
 .modal-header__actions,
 .bio-header__actions,
-.n2-mobile-nav,
 .pagination-row {
   background: transparent;
 }
@@ -1934,20 +1920,6 @@ select {
   gap: 0.35rem;
 }
 
-.n2-mobile-nav {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  padding: 0.35rem;
-  border-radius: 16px;
-  background: color-mix(in srgb, #ffffff 92%, #e7eef8);
-  border: 1px solid var(--border-subtle);
-}
-
-.n2-mobile-nav__btn {
-  min-height: 42px;
-}
-
 .modal-save {
   padding: 0.6rem 0.9rem;
 }
@@ -2019,7 +1991,6 @@ select {
 @media (max-width: 640px) {
   .btn,
   .quick-links-btn,
-  .n2-mobile-nav__btn,
   .mobile-shortcut {
     background-color: rgba(15, 106, 167, 0.48);
     backdrop-filter: blur(14px) saturate(125%);
@@ -2183,22 +2154,19 @@ select {
     border: 1px solid var(--border-subtle);
   }
 
-  .modal-footer__btn,
-  .n2-mobile-nav__btn {
+  .modal-footer__btn {
     min-height: 44px;
     border-radius: 14px;
     background: transparent;
   }
 
   .modal-header__btn .btn-label,
-  .modal-footer__btn .btn-label,
-  .n2-mobile-nav__btn .btn-label {
+  .modal-footer__btn .btn-label {
     display: none;
   }
 
   .modal-header__btn .btn-icon,
-  .modal-footer__btn .btn-icon,
-  .n2-mobile-nav__btn .btn-icon {
+  .modal-footer__btn .btn-icon {
     width: 18px;
     height: 18px;
   }
