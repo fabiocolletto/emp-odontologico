@@ -1165,8 +1165,10 @@ function DashboardApp({
   );
   const [isWideNavigation, setIsWideNavigation] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return window.matchMedia('(min-width: 1024px)').matches
-      || window.matchMedia('(min-width: 600px) and (orientation: landscape)').matches;
+    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    const isTablet = window.innerWidth >= 600 && window.innerWidth < 1024;
+    const isLandscape = window.innerWidth > window.innerHeight;
+    return isDesktop || (isTablet && isLandscape);
   });
   const [showMobileNavDrawer, setShowMobileNavDrawer] = useState(false);
   const [mobileNavState, setMobileNavState] = useState(() => {
@@ -1788,8 +1790,9 @@ function DashboardApp({
   useEffect(() => {
     const updateWideNavigation = () => {
       const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-      const isTabletLandscape = window.matchMedia('(min-width: 600px) and (orientation: landscape)').matches;
-      setIsWideNavigation(isDesktop || isTabletLandscape);
+      const isTablet = window.innerWidth >= 600 && window.innerWidth < 1024;
+      const isLandscape = window.innerWidth > window.innerHeight;
+      setIsWideNavigation(isDesktop || (isTablet && isLandscape));
     };
 
     updateWideNavigation();

@@ -531,6 +531,27 @@ select {
   color: var(--brand-700);
 }
 
+.mobile-md3-nav__action--overview,
+.mobile-md3-nav__fab.mobile-md3-nav__action--overview { color: #0f5f7f; }
+.mobile-md3-nav__action--agenda,
+.mobile-md3-nav__fab.mobile-md3-nav__action--agenda { color: #0f766e; }
+.mobile-md3-nav__action--patients,
+.mobile-md3-nav__fab.mobile-md3-nav__action--patients { color: #1d4ed8; }
+.mobile-md3-nav__action--settings,
+.mobile-md3-nav__fab.mobile-md3-nav__action--settings,
+.mobile-md3-nav__action--account,
+.mobile-md3-nav__fab.mobile-md3-nav__action--account { color: #6d28d9; }
+.mobile-md3-nav__action--search,
+.mobile-md3-nav__fab.mobile-md3-nav__action--search { color: #0f4f7f; }
+.mobile-md3-nav__action--success,
+.mobile-md3-nav__fab.mobile-md3-nav__action--success { color: #166534; }
+.mobile-md3-nav__action--info,
+.mobile-md3-nav__fab.mobile-md3-nav__action--info { color: #0369a1; }
+.mobile-md3-nav__action--danger,
+.mobile-md3-nav__fab.mobile-md3-nav__action--danger { color: #b91c1c; }
+.mobile-md3-nav__action--neutral,
+.mobile-md3-nav__fab.mobile-md3-nav__action--neutral { color: #475569; }
+
 .mobile-md3-nav__action:hover {
   transform: translateY(-0.5px);
 }
@@ -540,15 +561,6 @@ select {
   transform: none;
   cursor: not-allowed;
 }
-
-.mobile-md3-nav__action--overview.is-active { color: #0f5f7f; }
-.mobile-md3-nav__action--patients.is-active { color: #1d4ed8; }
-.mobile-md3-nav__action--settings.is-active,
-.mobile-md3-nav__action--account.is-active { color: #6d28d9; }
-.mobile-md3-nav__action--search.is-active { color: #0f4f7f; }
-.mobile-md3-nav__action--success.is-active { color: #166534; }
-.mobile-md3-nav__action--info.is-active { color: #0f4f7f; }
-.mobile-md3-nav__action--danger.is-active { color: #b91c1c; }
 
 .mobile-md3-nav__action:focus-visible,
 .mobile-md3-nav__fab:focus-visible {
