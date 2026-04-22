@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.22 - 2026-04-22
+
+### Changed
+- Formalizado no runtime standalone que a tela de **nível 0** é o **Painel** (`overview`), carregada como destino inicial de abertura.
+- A **Agenda** foi promovida para **nível 1** (`agenda`), alinhada com os demais módulos de nível 1: **Pacientes**, **Financeiro** e **Perfil**.
+- Barras contextuais de nível 1 passaram a usar **Painel** como botão de retorno ao nível 0, mantendo consistência do fluxo hierárquico entre telas.
+
 ## v1.1.21 - 2026-04-22
 
 ### Changed

@@ -73,15 +73,17 @@ const createAccountService = (supabaseClient) => {
 };
 
 const LEVEL1_TABS = [
-  { id: 'overview', label: 'Agenda', icon: 'calendar' },
+  { id: 'overview', label: 'Painel', icon: 'home' },
+  { id: 'agenda', label: 'Agenda', icon: 'calendar' },
   { id: 'patients', label: 'Pacientes', icon: 'users' },
   { id: 'financial', label: 'Financeiro', icon: 'plan' },
   { id: 'profile', label: 'Perfil', icon: 'settings' }
 ];
 
 const MOBILE_NAV_SHORTCUTS = [
-  { id: 'overview', label: 'Agenda', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
-  { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
+  { id: 'overview', label: 'Painel', tab: 'overview', icon: 'home', group: 'Atendimento' },
+  { id: 'agenda', label: 'Agenda', tab: 'agenda', icon: 'calendar', group: 'Atendimento' },
+  { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'agenda', icon: 'calendar', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
   { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
   { id: 'financial', label: 'Financeiro', tab: 'financial', icon: 'plan', group: 'Gestão' },
@@ -1097,7 +1099,9 @@ function DashboardApp({
 }) {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
-  const [activeTab, setActiveTab] = useState(initialUiState.activeTab || 'overview');
+  const [activeTab, setActiveTab] = useState(() => (
+    initialUiState.activeTab === 'agenda' ? 'agenda' : (initialUiState.activeTab || 'overview')
+  ));
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedPatientId, setSelectedPatientId] = useState(initialUiState.selectedPatientId || null);
   const [showPatientN2, setShowPatientN2] = useState(Boolean(initialUiState.showPatientN2));
@@ -1874,7 +1878,7 @@ function DashboardApp({
   }, [activeTab, isMobileViewport, patientsPagination.totalPages, activePatients.length]);
 
   useEffect(() => {
-    if (!isMobileViewport || activeTab !== 'overview') return;
+    if (!isMobileViewport || activeTab !== 'agenda') return;
     if (typeof window.IntersectionObserver !== 'function') return;
     const target = appointmentsInfiniteTriggerRef.current;
     if (!target) return;
@@ -1983,11 +1987,19 @@ function DashboardApp({
     const quickLinksCatalog = {
       overview: {
         key: 'overview',
-        icon: 'calendar',
+        icon: 'home',
         tone: 'overview',
+        label: 'Painel',
+        ariaLabel: 'Ir para painel',
+        onClick: () => goToLevel1('overview')
+      },
+      agenda: {
+        key: 'agenda',
+        icon: 'calendar',
+        tone: 'agenda',
         label: 'Agenda',
         ariaLabel: 'Ir para agenda',
-        onClick: () => goToLevel1('overview')
+        onClick: () => goToLevel1('agenda')
       },
       'agenda-hoje': {
         key: 'agenda-hoje',
@@ -1996,7 +2008,7 @@ function DashboardApp({
         label: 'Agenda',
         ariaLabel: 'Ir para agenda de hoje',
         onClick: () => {
-          goToLevel1('overview');
+          goToLevel1('agenda');
           setAppointmentsQuery('');
         }
       },
@@ -2070,7 +2082,12 @@ function DashboardApp({
       overview: {
         level: 0,
         previous: null,
-        next: ['agenda-hoje', 'patients', 'financial', 'profile']
+        next: ['agenda', 'patients', 'financial', 'profile']
+      },
+      agenda: {
+        level: 1,
+        previous: 'overview',
+        next: ['agenda-hoje']
       },
       patients: {
         level: 1,
@@ -2138,6 +2155,27 @@ function DashboardApp({
       return (
         <div className="space-y-6">
           {renderN1Header({
+            icon: 'home',
+            title: 'Painel',
+            subtitle: 'Dashboard principal e visão consolidada',
+            actions: []
+          })}
+          {!isMobileViewport && <h2 className="page-title">Painel</h2>}
+          <div className="ui-card data-card data-card--g space-y-3">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Painel (nível 0)</p>
+            <p className="text-sm text-slate-600">
+              Esta é a tela de nível 0 do sistema: o dashboard principal de abertura com visão consolidada
+              dos módulos operacionais.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'agenda') {
+      return (
+        <div className="space-y-6">
+          {renderN1Header({
             icon: 'calendar',
             title: 'Agenda',
             subtitle: 'Planejamento de atendimentos e compromissos',
@@ -2145,10 +2183,9 @@ function DashboardApp({
           })}
           {!isMobileViewport && <h2 className="page-title">Agenda</h2>}
           <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Agenda (placeholder)</p>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Agenda (nível 1)</p>
             <p className="text-sm text-slate-600">
-              Este destino de nível 0 foi reservado para a nova agenda operacional. Em breve: visão diária,
-              filtros por cadeira/profissional e expansão para detalhes em tela secundária.
+              Esta tela representa a Agenda no nível 1, ao lado de Pacientes, Financeiro e Perfil.
             </p>
           </div>
         </div>
@@ -2545,17 +2582,25 @@ function DashboardApp({
   const mobileNavActionConfigByTab = {
     overview: {
       left: [
-        { key: 'overview-home', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => goToLevel1('overview'), active: activeTab === 'overview' },
-        { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
+        { key: 'overview-home', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview'), active: activeTab === 'overview' },
+        { key: 'overview-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') }
       ],
       right: [
         { key: 'overview-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') },
         { key: 'overview-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
       ]
     },
+    agenda: {
+      left: [
+        { key: 'agenda-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') }
+      ],
+      right: [
+        { key: 'agenda-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setAppointmentsQuery('') }
+      ]
+    },
     patients: {
       left: [
-        { key: 'patients-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => goToLevel1('overview') },
+        { key: 'patients-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') },
         { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
       ],
       right: [
@@ -2565,7 +2610,7 @@ function DashboardApp({
     },
     financial: {
       left: [
-        { key: 'financial-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => goToLevel1('overview') }
+        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') }
       ],
       right: [
         { key: 'financial-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
@@ -2573,7 +2618,7 @@ function DashboardApp({
     },
     profile: {
       left: [
-        { key: 'account-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => goToLevel1('overview') },
+        { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => goToLevel1('overview') },
         { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
       ],
       right: [
@@ -2601,7 +2646,7 @@ function DashboardApp({
     if (showPatientN2) {
       return {
         left: [
-          { key: 'patient-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => { setShowPatientN2(false); goToLevel1('overview'); } },
+          { key: 'patient-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => { setShowPatientN2(false); goToLevel1('overview'); } },
           { key: 'patient-prev', icon: 'chevron-left', tone: 'overview', label: 'Anterior', onClick: () => moveFormTab(-1) }
         ],
         center: {
