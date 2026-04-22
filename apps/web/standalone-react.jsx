@@ -2125,12 +2125,12 @@ function DashboardApp({
         <div className="space-y-6 patients-sections">
           {renderN1Header({
             icon: 'users',
-            title: 'Base de Pacientes',
-            subtitle: 'Cadastro, busca e acesso ao Nível 2',
+            title: 'Cadastro de Paciente',
+            subtitle: 'Gerencie cadastros e encontre informações rapidamente',
             actions: []
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
-            <h2 className="page-title">Base de Pacientes</h2>
+            <h2 className="page-title">Cadastro de Paciente</h2>
             <div className="flex gap-2 flex-wrap justify-end ui-action-bar page-header__actions">
               <AddRecordButton
                 label="Novo paciente"
@@ -2539,7 +2539,7 @@ function DashboardApp({
     patients: {
       left: [
         { key: 'patients-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
-        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
+        { key: 'patients-filter', icon: 'filter', tone: 'settings', label: 'Filtrar', onClick: () => setIsPatientsSortLevelOpen(true) }
       ],
       center: { key: 'patients-add', icon: 'plus', tone: 'success', label: 'Adicionar', onClick: openCreatePatientN2 },
       right: [

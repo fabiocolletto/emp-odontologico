@@ -1431,6 +1431,16 @@ select {
   border-radius: 8px;
 }
 
+@media (max-width: 640px) {
+  .patient-card__open,
+  .patient-card__open:hover,
+  .patient-card__open:focus-visible {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
 .patient-card__header {
   display: flex;
   align-items: center;
