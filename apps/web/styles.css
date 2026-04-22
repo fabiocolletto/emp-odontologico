@@ -757,7 +757,10 @@ select {
 }
 
 .bio-header-shell {
-  display: none;
+  display: block;
+  padding: 0.5rem 0.2rem 0.35rem;
+  border-bottom: 0;
+  background: transparent;
 }
 
 .bio-header {

@@ -2067,15 +2067,13 @@ function DashboardApp({
     );
 
     const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
-      isMobileViewport ? (
-        <BioHeader
-          icon={icon}
-          title={title}
-          subtitle={subtitle}
-          actions={actions}
-          navigation={null}
-        />
-      ) : null
+      <BioHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        actions={actions}
+        navigation={null}
+      />
     );
 
     if (activeTab === 'overview') {
@@ -2087,7 +2085,6 @@ function DashboardApp({
             subtitle: 'Dashboard principal e visão consolidada',
             actions: []
           })}
-          {!isMobileViewport && <h2 className="page-title">Início</h2>}
           <div className="ui-card data-card data-card--g space-y-3">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Início (nível 0)</p>
             <p className="text-sm text-slate-600">
@@ -2108,7 +2105,6 @@ function DashboardApp({
             subtitle: 'Planejamento de atendimentos e compromissos',
             actions: []
           })}
-          {!isMobileViewport && <h2 className="page-title">Agenda</h2>}
           <div className="ui-card data-card data-card--g space-y-3">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Agenda (nível 1)</p>
             <p className="text-sm text-slate-600">
@@ -2130,7 +2126,6 @@ function DashboardApp({
             actions: []
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
-            <h2 className="page-title">Cadastro de Paciente</h2>
             <div className="flex gap-2 flex-wrap justify-end ui-action-bar page-header__actions">
               <AddRecordButton
                 label="Novo paciente"
@@ -2345,7 +2340,6 @@ function DashboardApp({
       return (
         <div className="space-y-6">
           {renderN1Header({ icon: 'settings', title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
-          {!isMobileViewport && <h2 className="page-title">Perfil</h2>}
 
           <div className="ui-card data-card data-card--g space-y-4">
             <div className="flex flex-wrap gap-3 items-center justify-between">
@@ -2487,7 +2481,6 @@ function DashboardApp({
       return (
         <div className="space-y-6">
           {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais' })}
-          {!isMobileViewport && <h2 className="page-title">Clínica</h2>}
           <div className="ui-card data-card data-card--g space-y-3">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínica (nível 1)</p>
             <p className="text-sm text-slate-600">
@@ -2502,7 +2495,6 @@ function DashboardApp({
     return (
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Cobrança, assinaturas e faturamento' })}
-        {!isMobileViewport && <h2 className="page-title">Financeiro</h2>}
         <div className="ui-card data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
