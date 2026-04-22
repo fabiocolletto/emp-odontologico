@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.21 - 2026-04-22
+
+### Changed
+- Navegação de nível 1 revisada para reforçar padrão operacional: primeiro botão contextual mantém retorno para **Agenda (nível 0)** em todos os fluxos.
+- Na tela de **Pacientes (nível 1)**, a barra contextual mobile foi reorganizada para priorizar ações solicitadas: **Agenda**, **Novo**, **Buscar** e **Editar** (mantendo o botão central para **Navegação inteligente**).
+
 ## v1.1.20 - 2026-04-22
 
 ### Changed

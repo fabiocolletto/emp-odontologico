@@ -1221,6 +1221,21 @@ function DashboardApp({
     setShowPatientN2(true);
   };
 
+  const handleOpenPatientEdit = () => {
+    if (selectedPatient) {
+      openPatientN2(selectedPatient);
+      return;
+    }
+
+    const firstPatient = visiblePatients[0];
+    if (firstPatient) {
+      openPatientN2(firstPatient);
+      return;
+    }
+
+    setFormFeedback('Selecione um paciente para editar.');
+  };
+
   const goToLevel1 = (tabId) => {
     if (!LEVEL1_TABS.some((tab) => tab.id === tabId)) return;
     setActiveTab(tabId);
@@ -2544,20 +2559,8 @@ function DashboardApp({
         { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
       ],
       right: [
-        {
-          key: 'patients-multi',
-          icon: 'multi',
-          tone: 'info',
-          label: 'Multi',
-          onClick: () => {
-            setIsPatientsMultiMode((prev) => {
-              if (prev) setSelectedPatientIds([]);
-              return !prev;
-            });
-          },
-          active: isPatientsMultiMode
-        },
-        { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible }
+        { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
+        { key: 'patients-edit', icon: 'edit', tone: 'info', label: 'Editar', onClick: handleOpenPatientEdit }
       ]
     },
     financial: {
