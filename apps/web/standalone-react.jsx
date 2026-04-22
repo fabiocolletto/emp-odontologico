@@ -540,7 +540,6 @@ const MobileScreenHeader = ({
 const DataManagementModalFrame = ({
   onClose,
   mobileHeader,
-  desktopHeader,
   bodyClassName = 'modal-body',
   footerNav,
   footerHintMessage,
@@ -550,7 +549,6 @@ const DataManagementModalFrame = ({
     <div className="modal-backdrop" onClick={onClose}></div>
     <div className="modal-card modal-card--wide cadastro-shell">
       <MobileScreenHeader {...mobileHeader} />
-      {desktopHeader}
       <div className={bodyClassName}>
         {children}
       </div>
