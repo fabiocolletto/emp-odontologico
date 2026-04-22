@@ -2524,7 +2524,10 @@ function DashboardApp({
     },
     patients: {
       left: [
-        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 },
+        { key: 'patients-overview', icon: 'calendar', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
+      ],
+      right: [
         {
           key: 'patients-multi',
           icon: 'multi',
@@ -2537,16 +2540,13 @@ function DashboardApp({
             });
           },
           active: isPatientsMultiMode
-        }
-      ],
-      right: [
-        { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
-        { key: 'patients-sort', icon: 'filter', tone: 'settings', label: 'Ordenar', onClick: () => setIsPatientsSortLevelOpen(true), active: isPatientsSortLevelOpen }
+        },
+        { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible }
       ]
     },
     financial: {
       left: [
-        { key: 'financial-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => setActiveTab('overview') }
+        { key: 'financial-overview', icon: 'calendar', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') }
       ],
       right: [
         { key: 'financial-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => setActiveTab('profile') }
@@ -2554,7 +2554,7 @@ function DashboardApp({
     },
     profile: {
       left: [
-        { key: 'account-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => setActiveTab('overview') },
+        { key: 'account-overview', icon: 'calendar', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
         { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
