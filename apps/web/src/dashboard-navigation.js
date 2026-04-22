@@ -2,8 +2,8 @@ import React from 'react';
 import {
   BadgeDollarSign,
   CalendarDays,
+  IdCard,
   Plus,
-  User,
   Users
 } from 'lucide-react';
 
@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { id: 'overview', icon: CalendarDays, label: 'Agenda', route: 'agenda' },
   { id: 'patients', icon: Users, label: 'Pacientes', route: 'pacientes' },
   { id: 'financial', icon: BadgeDollarSign, label: 'Financeiro', route: 'financeiro' },
-  { id: 'profile', icon: User, label: 'Perfil', route: 'perfil' }
+  { id: 'profile', icon: IdCard, label: 'Perfil', route: 'perfil' }
 ];
 
 export const DashboardSidebarNav = ({ activeTab, onSelectTab, clinicName }) => (
@@ -26,7 +26,7 @@ export const DashboardSidebarNav = ({ activeTab, onSelectTab, clinicName }) => (
         <button
           key={item.id}
           type="button"
-          className={`app-sidebar__item ${activeTab === item.id ? 'is-active' : ''}`}
+          className={`app-sidebar__item app-sidebar__item--${item.id} ${activeTab === item.id ? 'is-active' : ''}`}
           onClick={() => onSelectTab(item.id)}
         >
           <span className="app-sidebar__item-icon" aria-hidden="true"><item.icon size={18} /></span>
@@ -45,7 +45,7 @@ export const DashboardBottomTabbar = ({ activeTab, onSelectTab, onCreatePatient 
     {NAV_ITEMS.slice(0, 2).map((item) => (
       <a
         key={item.id}
-        className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
+        className={`bottom-tabbar__item bottom-tabbar__item--${item.id} ${activeTab === item.id ? 'is-active' : ''}`}
         href="#"
         data-route={item.route}
         aria-current={activeTab === item.id ? 'page' : undefined}
@@ -64,7 +64,7 @@ export const DashboardBottomTabbar = ({ activeTab, onSelectTab, onCreatePatient 
     {NAV_ITEMS.slice(2).map((item) => (
       <a
         key={item.id}
-        className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
+        className={`bottom-tabbar__item bottom-tabbar__item--${item.id} ${activeTab === item.id ? 'is-active' : ''}`}
         href="#"
         data-route={item.route}
         aria-current={activeTab === item.id ? 'page' : undefined}
@@ -79,4 +79,3 @@ export const DashboardBottomTabbar = ({ activeTab, onSelectTab, onCreatePatient 
     ))}
   </nav>
 );
-
