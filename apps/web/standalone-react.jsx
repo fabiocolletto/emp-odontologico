@@ -1115,6 +1115,7 @@ function DashboardApp({
   const [isPublicProfileN2Open, setIsPublicProfileN2Open] = useState(false);
   const [profileActionStatus, setProfileActionStatus] = useState('idle');
   const [profileActionMessage, setProfileActionMessage] = useState('');
+  const [expandedProfilePanel, setExpandedProfilePanel] = useState('auth');
   const [clinics, setClinics] = useState([]);
   const [selectedClinicId, setSelectedClinicId] = useState('');
   const [clinicDraft, setClinicDraft] = useState({
@@ -2329,143 +2330,206 @@ function DashboardApp({
     if (activeTab === 'profile') {
       const provider = authUserWidget?.app_metadata?.provider || authUserWidget?.aud || '-';
       const providers = authUserWidget?.app_metadata?.providers?.join(', ') || provider;
+      const profilePanels = [
+        { id: 'auth', label: 'Dados da conta', icon: 'id-card' },
+        { id: 'security', label: 'Segurança e sessão', icon: 'settings' },
+        { id: 'public-profile', label: 'Perfil público', icon: 'users' },
+        { id: 'clinics', label: 'Clínicas', icon: 'plan' }
+      ];
+
+      const renderAuthSummary = () => (
+        <>
+          <div className="grid md:grid-cols-2 gap-3 text-sm">
+            <div><strong>ID:</strong> <span className="break-all">{authUserWidget?.id || '-'}</span></div>
+            <div><strong>E-mail:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
+            <div><strong>Provedor:</strong> {providers}</div>
+            <div><strong>Email confirmado:</strong> {formatDateTime(authUserWidget?.email_confirmed_at)}</div>
+            <div><strong>Criado em:</strong> {formatDateTime(authUserWidget?.created_at)}</div>
+            <div><strong>Último login:</strong> {formatDateTime(authUserWidget?.last_sign_in_at)}</div>
+          </div>
+        </>
+      );
+
+      const renderSecurityActions = () => (
+        <>
+          <div className="grid md:grid-cols-2 gap-3 text-sm">
+            <div><strong>E-mail atual:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
+            <div><strong>Senha:</strong> ********</div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
+              onClick={openAccountEditN2}
+              disabled={authActionStatus === 'loading'}
+              aria-label="Editar conta"
+            >
+              <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
+              <span className="modal-action-btn__label">Editar</span>
+            </button>
+            {accountService?.signOut ? (
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first modal-action-btn--uniform"
+                onClick={accountService.signOut}
+                disabled={authActionStatus === 'loading'}
+                aria-label="Desconectar conta"
+              >
+                <AppIcon name="close" size={20} className="modal-action-btn__icon" />
+                <span className="modal-action-btn__label">Sair</span>
+              </button>
+            ) : null}
+            {accountService?.deleteAuthUser ? (
+              <button
+                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first modal-action-btn--uniform"
+                onClick={handleDeleteAccount}
+                disabled={authActionStatus === 'loading'}
+                aria-label="Excluir conta"
+              >
+                <AppIcon name="archive" size={20} className="modal-action-btn__icon" />
+                <span className="modal-action-btn__label">Excluir</span>
+              </button>
+            ) : null}
+          </div>
+
+          {authActionMessage ? (
+            <p className={`text-xs ${authActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+              {authActionMessage}
+            </p>
+          ) : null}
+        </>
+      );
+
+      const renderPublicProfileSummary = () => (
+        <>
+          <div className="grid md:grid-cols-2 gap-3 text-sm">
+            <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
+            <div><strong>E-mail:</strong> {publicProfileDraft.email || '-'}</div>
+            <div><strong>Telefone:</strong> {publicProfileDraft.phone || '-'}</div>
+            <div><strong>Endereço:</strong> {publicProfileDraft.address || '-'}</div>
+            <div><strong>Data de nascimento:</strong> {publicProfileDraft.birth_date || '-'}</div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
+              onClick={openPublicProfileEditN2}
+              disabled={profileActionStatus === 'loading'}
+              aria-label="Editar perfil público"
+            >
+              <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
+              <span className="modal-action-btn__label">Editar</span>
+            </button>
+          </div>
+
+          {profileActionMessage ? (
+            <p className={`text-xs ${profileActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+              {profileActionMessage}
+            </p>
+          ) : null}
+        </>
+      );
+
+      const renderClinicsSummary = () => (
+        <>
+          {clinics.length === 0 ? (
+            <div className="ui-empty-state">
+              <strong>Nenhuma clínica encontrada</strong>
+              <span>Ao abrir o editor, uma clínica padrão será criada automaticamente.</span>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {clinics.slice(0, 3).map((clinic) => (
+                <div key={clinic.id} className="ui-list-item text-sm text-slate-700">
+                  <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
+                  <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
+                </div>
+              ))}
+              {clinics.length > 3 ? (
+                <p className="text-xs text-slate-500">+{clinics.length - 3} clínica(s) adicional(is).</p>
+              ) : null}
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
+              onClick={handleOpenClinicCreateN2}
+              disabled={clinicActionStatus === 'loading'}
+              aria-label="Adicionar clínica"
+            >
+              <AppIcon name="plus" size={22} className="modal-action-btn__icon" />
+              <span className="modal-action-btn__label">Adicionar</span>
+            </button>
+          </div>
+          {clinicActionMessage ? (
+            <p className={`text-xs ${clinicActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
+              {clinicActionMessage}
+            </p>
+          ) : null}
+        </>
+      );
 
       return (
         <div className="space-y-6">
-          {renderN1Header({ icon: 'settings', title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
+          {renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
 
-          <div className="ui-card data-card data-card--g space-y-4">
-            <div className="flex flex-wrap gap-3 items-center justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
-                <p className="text-sm text-slate-500">Dados carregados via <code>supabase.auth.getUser()</code>.</p>
-              </div>
-            </div>
+          {isMobileViewport ? (
+            <div className="ui-card data-card data-card--g space-y-2">
+              {profilePanels.map((panel) => {
+                const isOpen = expandedProfilePanel === panel.id;
+                return (
+                  <div key={panel.id} className="border-b border-slate-200 last:border-b-0">
+                    <button
+                      type="button"
+                      className="w-full min-h-[64px] flex items-center gap-3 text-left px-1 py-2"
+                      onClick={() => setExpandedProfilePanel((current) => (current === panel.id ? '' : panel.id))}
+                    >
+                      <span className="inline-flex items-center justify-center text-slate-700">
+                        <AppIcon name={panel.icon} size={18} />
+                      </span>
+                      <span className="flex-1 text-[16px] font-medium text-slate-900">{panel.label}</span>
+                      <AppIcon name={isOpen ? 'chevron-up' : 'chevron-right'} size={16} className="text-slate-400" />
+                    </button>
 
-            <div className="grid md:grid-cols-2 gap-3 text-sm">
-              <div><strong>ID:</strong> <span className="break-all">{authUserWidget?.id || '-'}</span></div>
-              <div><strong>E-mail:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
-              <div><strong>Provedor:</strong> {providers}</div>
-              <div><strong>Email confirmado:</strong> {formatDateTime(authUserWidget?.email_confirmed_at)}</div>
-              <div><strong>Criado em:</strong> {formatDateTime(authUserWidget?.created_at)}</div>
-              <div><strong>Último login:</strong> {formatDateTime(authUserWidget?.last_sign_in_at)}</div>
-            </div>
-          </div>
-
-          <div className="ui-card data-card data-card--g space-y-4">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
-            <div className="grid md:grid-cols-2 gap-3 text-sm">
-              <div><strong>E-mail atual:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
-              <div><strong>Senha:</strong> ********</div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
-                onClick={openAccountEditN2}
-                disabled={authActionStatus === 'loading'}
-                aria-label="Editar conta"
-              >
-                <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
-                <span className="modal-action-btn__label">Editar</span>
-              </button>
-              {accountService?.signOut ? (
-                <button
-                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first modal-action-btn--uniform"
-                  onClick={accountService.signOut}
-                  disabled={authActionStatus === 'loading'}
-                  aria-label="Desconectar conta"
-                >
-                  <AppIcon name="close" size={20} className="modal-action-btn__icon" />
-                  <span className="modal-action-btn__label">Sair</span>
-                </button>
-              ) : null}
-              {accountService?.deleteAuthUser ? (
-                <button
-                  className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first modal-action-btn--uniform"
-                  onClick={handleDeleteAccount}
-                  disabled={authActionStatus === 'loading'}
-                  aria-label="Excluir conta"
-                >
-                  <AppIcon name="archive" size={20} className="modal-action-btn__icon" />
-                  <span className="modal-action-btn__label">Excluir</span>
-                </button>
-              ) : null}
-            </div>
-
-            {authActionMessage ? (
-              <p className={`text-xs ${authActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
-                {authActionMessage}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="ui-card data-card data-card--g space-y-4">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.odf_users</code>)</p>
-            <div className="grid md:grid-cols-2 gap-3 text-sm">
-              <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
-              <div><strong>E-mail:</strong> {publicProfileDraft.email || '-'}</div>
-              <div><strong>Telefone:</strong> {publicProfileDraft.phone || '-'}</div>
-              <div><strong>Endereço:</strong> {publicProfileDraft.address || '-'}</div>
-              <div><strong>Data de nascimento:</strong> {publicProfileDraft.birth_date || '-'}</div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
-                onClick={openPublicProfileEditN2}
-                disabled={profileActionStatus === 'loading'}
-                aria-label="Editar perfil público"
-              >
-                <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
-                <span className="modal-action-btn__label">Editar</span>
-              </button>
-            </div>
-
-            {profileActionMessage ? (
-              <p className={`text-xs ${profileActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
-                {profileActionMessage}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="ui-card data-card data-card--g space-y-4">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínicas do proprietário (tabela <code>public.odf_clinics</code>)</p>
-            {clinics.length === 0 ? (
-              <div className="ui-empty-state">
-                <strong>Nenhuma clínica encontrada</strong>
-                <span>Ao abrir o editor, uma clínica padrão será criada automaticamente.</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {clinics.slice(0, 3).map((clinic) => (
-                  <div key={clinic.id} className="ui-list-item text-sm text-slate-700">
-                    <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
-                    <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
+                    {isOpen ? (
+                      <div className="pb-3 pl-8 pr-1 text-sm text-slate-600 space-y-3">
+                        {panel.id === 'auth' ? renderAuthSummary() : null}
+                        {panel.id === 'security' ? renderSecurityActions() : null}
+                        {panel.id === 'public-profile' ? renderPublicProfileSummary() : null}
+                        {panel.id === 'clinics' ? renderClinicsSummary() : null}
+                      </div>
+                    ) : null}
                   </div>
-                ))}
-                {clinics.length > 3 ? (
-                  <p className="text-xs text-slate-500">+{clinics.length - 3} clínica(s) adicional(is).</p>
-                ) : null}
-              </div>
-            )}
-            <div className="flex flex-wrap gap-2">
-              <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
-                onClick={handleOpenClinicCreateN2}
-                disabled={clinicActionStatus === 'loading'}
-                aria-label="Adicionar clínica"
-              >
-                <AppIcon name="plus" size={22} className="modal-action-btn__icon" />
-                <span className="modal-action-btn__label">Adicionar</span>
-              </button>
+                );
+              })}
             </div>
-            {clinicActionMessage ? (
-              <p className={`text-xs ${clinicActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
-                {clinicActionMessage}
-              </p>
-            ) : null}
-          </div>
+          ) : (
+            <>
+              <div className="ui-card data-card data-card--g space-y-4">
+                <div className="flex flex-wrap gap-3 items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
+                    <p className="text-sm text-slate-500">Dados carregados via <code>supabase.auth.getUser()</code>.</p>
+                  </div>
+                </div>
+                {renderAuthSummary()}
+              </div>
+
+              <div className="ui-card data-card data-card--g space-y-4">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
+                {renderSecurityActions()}
+              </div>
+
+              <div className="ui-card data-card data-card--g space-y-4">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.odf_users</code>)</p>
+                {renderPublicProfileSummary()}
+              </div>
+
+              <div className="ui-card data-card data-card--g space-y-4">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínicas do proprietário (tabela <code>public.odf_clinics</code>)</p>
+                {renderClinicsSummary()}
+              </div>
+            </>
+          )}
         </div>
       );
     }
