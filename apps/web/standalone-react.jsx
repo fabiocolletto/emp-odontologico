@@ -2353,7 +2353,7 @@ function DashboardApp({
                   >
                     {isPatientsMultiMode
                       ? (selectedPatientIds.includes(p.id) ? '✓' : '○')
-                      : <AppIcon name="expand" size={14} />}
+                      : <AppIcon name="expand" size={16} />}
                   </button>
                   <div className="patient-card__header">
                     <div className="patient-avatar">{getInitials(p.name)}</div>

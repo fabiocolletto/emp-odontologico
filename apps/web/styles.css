@@ -1612,16 +1612,35 @@ select {
 .patient-card {
   position: relative;
   justify-content: flex-start;
-  min-height: 210px;
-  gap: var(--space-4);
+  min-height: 194px;
+  gap: var(--space-3);
   background: var(--bg-surface-elevated);
   border-color: #dce5f0;
 }
 
 .patient-card__open {
   position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
+  top: 0.72rem;
+  right: 0.72rem;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #1d4ed8;
+}
+
+.patient-card__open:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.patient-card__open:focus-visible {
+  background: transparent;
+  border-radius: 8px;
 }
 
 .patient-card__header {
@@ -1665,10 +1684,11 @@ select {
 }
 
 .patient-meta__value {
-  margin: 0.3rem 0 0;
+  margin: 0.12rem 0 0;
   color: var(--text-base);
   font-size: 0.84rem;
   font-weight: 600;
+  line-height: 1.25;
 }
 
 .patient-card__name {
@@ -2189,12 +2209,12 @@ select {
 
   .patient-card {
     min-height: auto;
-    padding: 1rem 0.95rem;
-    gap: 0.75rem;
+    padding: 0.88rem 0.9rem;
+    gap: 0.62rem;
   }
 
   .patient-card__header {
-    gap: 0.6rem;
+    gap: 0.52rem;
   }
 
   .patient-avatar {
@@ -2226,7 +2246,7 @@ select {
   }
 
   .patient-meta__value {
-    margin-top: 0.2rem;
+    margin-top: 0.08rem;
     font-size: 0.78rem;
   }
 
