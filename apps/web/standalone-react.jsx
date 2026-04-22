@@ -1835,6 +1835,7 @@ function DashboardApp({
 
   useEffect(() => {
     if (!isMobileViewport || activeTab !== 'patients') return;
+    if (typeof window.IntersectionObserver !== 'function') return;
     const target = patientsInfiniteTriggerRef.current;
     if (!target) return;
 
@@ -1853,6 +1854,7 @@ function DashboardApp({
 
   useEffect(() => {
     if (!isMobileViewport || activeTab !== 'overview') return;
+    if (typeof window.IntersectionObserver !== 'function') return;
     const target = appointmentsInfiniteTriggerRef.current;
     if (!target) return;
 
