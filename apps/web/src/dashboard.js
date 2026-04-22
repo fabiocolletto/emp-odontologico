@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Archive,
   BadgeDollarSign,
+  CalendarDays,
   Check,
   CheckSquare,
   ChevronsUpDown,
@@ -21,8 +22,7 @@ import {
   User,
   UserPlus,
   Users,
-  X,
-  Home
+  X
 } from 'lucide-react';
 import { APPOINTMENTS, AVAILABLE_CLINICS_FALLBACK, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
 import {
@@ -50,7 +50,6 @@ import {
   UiButton,
   ViewLayout
 } from './components.js';
-import DailyPanel from './daily-panel.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -345,7 +344,7 @@ const Dashboard = () => {
   }, []);
 
   const navItems = [
-    { id: 'overview', icon: Home, label: 'Painel' },
+    { id: 'overview', icon: CalendarDays, label: 'Agenda' },
     { id: 'patients', icon: Users, label: 'Pacientes' },
     { id: 'financial', icon: BadgeDollarSign, label: 'Financeiro' },
     { id: 'profile', icon: User, label: 'Perfil' }
@@ -577,7 +576,7 @@ const Dashboard = () => {
   };
 
   const activeSectionTitle = useMemo(() => ({
-    overview: 'Painel Diário',
+    overview: 'Agenda',
     patients: 'Base de Pacientes',
     financial: 'Financeiro',
     profile: activeProfileItem?.label || 'Perfil'
@@ -666,7 +665,7 @@ const Dashboard = () => {
               key={item.id}
               className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
               href="#"
-              data-route={item.id === 'overview' ? 'painel' : 'pacientes'}
+              data-route={item.id === 'overview' ? 'agenda' : 'pacientes'}
               aria-current={activeTab === item.id ? 'page' : undefined}
               onClick={(event) => {
                 event.preventDefault();
@@ -703,13 +702,12 @@ const Dashboard = () => {
     >
 
       {activeTab === 'overview' && (
-        <DailyPanel
-          appointments={appointments}
-          allPatients={allPatients}
-          usingFallbackData={usingFallbackData}
-          onOpenPatientRecord={handleOpenPatientRecord}
-          currentClinic={currentClinic}
-        />
+        <ViewLayout>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
+            <h3 className="text-xl font-bold text-slate-900">Agenda</h3>
+            <p className="text-sm text-slate-600 mt-2">Placeholder da nova Agenda do nível 0. Em breve com visão diária, filtros e próximos atendimentos.</p>
+          </div>
+        </ViewLayout>
       )}
 
       {activeTab === 'patients' && (

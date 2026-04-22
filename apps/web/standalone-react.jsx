@@ -73,14 +73,14 @@ const createAccountService = (supabaseClient) => {
 };
 
 const tabs = [
-  { id: 'overview', label: 'Painel', icon: 'home' },
+  { id: 'overview', label: 'Agenda', icon: 'calendar' },
   { id: 'patients', label: 'Pacientes', icon: 'users' },
   { id: 'financial', label: 'Financeiro', icon: 'plan' },
   { id: 'profile', label: 'Perfil', icon: 'settings' }
 ];
 
 const MOBILE_NAV_SHORTCUTS = [
-  { id: 'overview', label: 'Painel diário', tab: 'overview', icon: 'home', group: 'Atendimento' },
+  { id: 'overview', label: 'Agenda', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
   { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'overview', icon: 'calendar', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', tab: 'patients', icon: 'users', group: 'Cadastros' },
   { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' },
@@ -1953,10 +1953,10 @@ function DashboardApp({
     const quickLinksCatalog = {
       overview: {
         key: 'overview',
-        icon: 'home',
+        icon: 'calendar',
         tone: 'overview',
-        label: 'Painel',
-        ariaLabel: 'Ir para painel inicial',
+        label: 'Agenda',
+        ariaLabel: 'Ir para agenda',
         onClick: () => setActiveTab('overview')
       },
       'agenda-hoje': {
@@ -2108,91 +2108,23 @@ function DashboardApp({
       return (
         <div className="space-y-6">
           {renderN1Header({
-            icon: 'home',
-            title: 'Painel Diário',
-            subtitle: 'Atendimento e indicadores da clínica',
+            icon: 'calendar',
+            title: 'Agenda',
+            subtitle: 'Planejamento de atendimentos e compromissos',
             actions: []
           })}
-          {!isMobileViewport && <h2 className="page-title">Painel Diário</h2>}
-          {usingFallbackData && (
-            <p className="ui-alert text-xs">
-              Dados de fallback ativos. Quando os arquivos em backend/supabase/sample-data estiverem disponíveis no servidor, os dados reais serão usados automaticamente.
+          {!isMobileViewport && <h2 className="page-title">Agenda</h2>}
+          <div className="ui-card data-card data-card--g space-y-3">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Agenda (placeholder)</p>
+            <p className="text-sm text-slate-600">
+              Este destino de nível 0 foi reservado para a nova agenda operacional. Em breve: visão diária,
+              filtros por cadeira/profissional e expansão para detalhes em tela secundária.
             </p>
-          )}
-          <div className="data-grid">
-            <div className="ui-card data-card data-card--p"><p className="kpi-label">Atendimentos</p><p className="kpi-value">12</p></div>
-            <div className="ui-card data-card data-card--p"><p className="kpi-label">Faturamento</p><p className="kpi-value">R$ 8.4k</p></div>
-            <div className="ui-card data-card data-card--p"><p className="kpi-label">Ocupação</p><p className="kpi-value">92%</p></div>
-          </div>
-
-          <div className="ui-card space-y-3">
-            <div className="ui-section-header">
-              <h3 className="ui-section-header__title">Agenda de Hoje (N2 ao clicar)</h3>
-              <span className="ui-badge">{filteredAppointments.length} registros</span>
-            </div>
-            <div className="search-row">
-              <input
-                className="search-input ui-search"
-                placeholder="Pesquisar agendamentos (nome, horário, procedimento...)"
-                value={appointmentsQuery}
-                onChange={(e) => setAppointmentsQuery(e.target.value)}
-              />
-              <span className="search-count">{filteredAppointments.length} registro(s)</span>
-            </div>
-
-            <div className="agenda-list">
-              {visibleAppointments.length === 0 ? (
-                <div className="ui-empty-state">
-                  <strong>Nenhum agendamento encontrado</strong>
-                  <span>Ajuste os filtros de busca para continuar.</span>
-                </div>
-              ) : (
-                visibleAppointments.map((item) => {
-                  const patient = patients.find((p) => p.name === item.name);
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => openPatientN2(patient)}
-                      className="list-button data-card data-card--m ui-list-item"
-                    >
-                      <p className="text-sm text-slate-500">{item.time} · {item.procedure}</p>
-                      <p className="font-bold text-slate-900">{item.name}</p>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-            {isMobileViewport ? (
-              <div ref={appointmentsInfiniteTriggerRef} className="infinite-trigger">
-                {appointmentsPagination.page < appointmentsPagination.totalPages
-                  ? 'Role para carregar mais agendamentos'
-                  : 'Todos os agendamentos carregados'}
-              </div>
-            ) : (
-            <div className="pagination-row ui-action-bar">
-              <button
-                className="btn btn--pager"
-                onClick={() => setAppointmentsPage((prev) => Math.max(1, prev - 1))}
-                disabled={appointmentsPagination.page === 1}
-              >
-                  ← Anterior
-                </button>
-                <span className="pagination-label">
-                  Página {appointmentsPagination.page} de {appointmentsPagination.totalPages}
-                </span>
-                <button
-                  className="btn btn--pager"
-                  onClick={() => setAppointmentsPage((prev) => Math.min(appointmentsPagination.totalPages, prev + 1))}
-                  disabled={appointmentsPagination.page === appointmentsPagination.totalPages}
-                >
-                  Próxima →
-                </button>
-              </div>
-            )}
           </div>
         </div>
       );
     }
+
 
     if (activeTab === 'patients') {
       return (
@@ -2582,7 +2514,7 @@ function DashboardApp({
   const mobileNavActionConfigByTab = {
     overview: {
       left: [
-        { key: 'overview-home', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
+        { key: 'overview-home', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
         { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
@@ -2614,7 +2546,7 @@ function DashboardApp({
     },
     financial: {
       left: [
-        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') }
+        { key: 'financial-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => setActiveTab('overview') }
       ],
       right: [
         { key: 'financial-profile', icon: 'settings', tone: 'account', label: 'Perfil', onClick: () => setActiveTab('profile') }
@@ -2622,7 +2554,7 @@ function DashboardApp({
     },
     profile: {
       left: [
-        { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview') },
+        { key: 'account-overview', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => setActiveTab('overview') },
         { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [

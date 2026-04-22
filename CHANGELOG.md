@@ -12,6 +12,7 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Tela de Perfil mobile refinada com header de identidade e lista em padrão de navegação de sistema (separadores leves, chevrons, badge numérico), alinhada à referência visual enviada sem copiar branding de terceiros.
 - Evolução da tela de Perfil com suporte a **4 modelos de cadastro** (MD3, Notion, Serviço e SaaS), permitindo alternância de padrão e replicação futura para múltiplos perfis.
 - Em mobile, widgets de perfil agora funcionam como lista expandível por linha (accordion); em tablet/desktop, a mesma base usa grade responsiva com widgets P/M/G e ações de expansão/abertura.
+- Primeiro item da navegação nível 0 foi convertido de **Painel** para **Agenda** (ícone + rótulo), com tela placeholder inicial para evolução do módulo de agenda.
 
 ## v1.1.17 - 2026-04-21
 
