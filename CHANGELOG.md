@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.23 - 2026-04-22
+
+### Changed
+- Barra de navegação contextual do **Painel (nível 0)** ajustada: o primeiro botão deixou de ser **Painel** e passou a ser **Pacientes**.
+- Ação do novo botão **Pacientes** no Painel agora redireciona diretamente para a tela correta de **nível 1 / Pacientes**.
+
 ## v1.1.22 - 2026-04-22
 
 ### Changed
