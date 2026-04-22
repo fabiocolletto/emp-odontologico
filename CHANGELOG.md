@@ -15,6 +15,7 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Primeiro item da navegação nível 0 foi convertido de **Painel** para **Agenda** (ícone + rótulo), com tela placeholder inicial para evolução do módulo de agenda.
 - Barras de navegação de **nível 1** foram ajustadas para iniciar com atalho de retorno ao **Painel (nível 0)** como primeira ação contextual.
 - Corrigido comportamento do botão **Navegação** em tablet com barra inferior ativa: ao abrir a navegação inteligente, o drawer agora é exibido corretamente (sem sumir barra e ficar tela vazia).
+- Barra de navegação da **Agenda** e da tela de **Formulário** padronizada para sempre exibir **Painel** como primeiro item de ação.
 
 ## v1.1.17 - 2026-04-21
 

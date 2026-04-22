@@ -2515,7 +2515,7 @@ function DashboardApp({
   const mobileNavActionConfigByTab = {
     overview: {
       left: [
-        { key: 'overview-home', icon: 'calendar', tone: 'overview', label: 'Agenda', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
+        { key: 'overview-home', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
         { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => setActiveTab('patients') }
       ],
       right: [
@@ -2583,7 +2583,7 @@ function DashboardApp({
     if (showPatientN2) {
       return {
         left: [
-          { key: 'patient-cancel', icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: () => setShowPatientN2(false) },
+          { key: 'patient-overview', icon: 'home', tone: 'overview', label: 'Painel', onClick: () => { setShowPatientN2(false); setActiveTab('overview'); } },
           { key: 'patient-prev', icon: 'chevron-left', tone: 'overview', label: 'Anterior', onClick: () => moveFormTab(-1) }
         ],
         center: {
