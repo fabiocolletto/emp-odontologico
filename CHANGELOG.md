@@ -2,6 +2,17 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.19 - 2026-04-22
+
+### Fixed
+- Corrigida nova causa de **tela branca** ao sair da landing (`Acessar Unidade`): um `useEffect` do runtime standalone foi reposicionado para manter ordem estável de hooks entre os estados `landing` e `dashboard`.
+- Adicionada proteção de compatibilidade para ambientes sem `IntersectionObserver`, evitando erro em runtime na abertura dos fluxos com carregamento incremental (Pacientes/Agenda).
+
+### Changed
+- Navegação de **nível 1** consolidada em fonte única (`LEVEL1_TABS`) no runtime standalone, com roteamento padronizado por helper central (`goToLevel1`).
+- Botão/atalhos **Painel** passaram a usar destino unificado de nível 1 em todas as superfícies (sidebar, quick links, barra mobile fixa e barra embutida de janelas N2), removendo desvios para Agenda.
+- Identidade visual/textual do destino `overview` alinhada para **Painel** (ícone `home`, rótulo e título), mantendo `Agenda de hoje` como atalho contextual.
+
 ## v1.1.18 - 2026-04-21
 
 ### Changed
