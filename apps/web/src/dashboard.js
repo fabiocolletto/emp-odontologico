@@ -348,6 +348,14 @@ const Dashboard = () => {
   const profileSectionsSchema = profileWorkspaceState.sections;
   const profileModels = profileWorkspaceState.models || [];
   const isMobileProfile = viewportWidth < 768;
+  const mobileProfileItems = useMemo(() => (
+    profileSectionsSchema
+      .flatMap((section) => (
+        [...section.items]
+          .filter((item) => item.visibility)
+          .sort((a, b) => a.order - b.order)
+      ))
+  ), [profileSectionsSchema]);
 
   const profileItemsById = useMemo(() => (
     profileSectionsSchema.flatMap((section) => section.items).reduce((accumulator, item) => {
@@ -1071,43 +1079,41 @@ const Dashboard = () => {
                     )}
 
                     <div className="profile-settings-list">
-                      {[...profileSectionsSchema]
-                        .sort((a, b) => a.order - b.order)
-                        .map((section) => (
-                          <section key={section.id} className="profile-settings-section" aria-label={section.title}>
-                            {section.title ? <p className="profile-settings-section__title">{section.title}</p> : null}
-                            {isMobileProfile ? (
-                              <div className="profile-settings-section__items">
-                                {[...section.items]
-                                  .filter((item) => item.visibility)
-                                  .sort((a, b) => a.order - b.order)
-                                  .map((item) => (
-                                    <div key={item.id} className="profile-settings-row-wrap">
-                                      <button
-                                        type="button"
-                                        className="profile-settings-item"
-                                        onClick={() => handleToggleProfileWidget(item.id)}
-                                      >
-                                        <span className="profile-settings-item__leading" aria-hidden="true">
-                                          <item.icon size={18} />
-                                        </span>
-                                        <span className="profile-settings-item__content">
-                                          <span>{item.label}</span>
-                                          {item.description ? <small>{item.description}</small> : null}
-                                        </span>
-                                        {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
-                                        <ChevronRight size={18} className={`profile-settings-item__chevron ${expandedProfileWidgets[item.id] ? 'is-open' : ''}`} aria-hidden="true" />
-                                      </button>
-                                      {expandedProfileWidgets[item.id] && (
-                                        <div className="profile-settings-item__expand">
-                                          <p>{item.description || 'Dados básicos do widget de perfil.'}</p>
-                                          <UiButton label="Abrir detalhe" size="sm" tone="info" onClick={() => handleOpenProfileScreen(item.id)} />
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
+                      {isMobileProfile ? (
+                        <section className="profile-settings-section" aria-label="Atalhos de perfil">
+                          <div className="profile-settings-section__items profile-settings-section__items--mobile">
+                            {mobileProfileItems.map((item) => (
+                              <div key={item.id} className="profile-settings-row-wrap">
+                                <button
+                                  type="button"
+                                  className="profile-settings-item"
+                                  onClick={() => handleToggleProfileWidget(item.id)}
+                                >
+                                  <span className="profile-settings-item__leading" aria-hidden="true">
+                                    <item.icon size={18} />
+                                  </span>
+                                  <span className="profile-settings-item__content">
+                                    <span>{item.label}</span>
+                                  </span>
+                                  {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
+                                  <ChevronRight size={18} className={`profile-settings-item__chevron ${expandedProfileWidgets[item.id] ? 'is-open' : ''}`} aria-hidden="true" />
+                                </button>
+                                {expandedProfileWidgets[item.id] && (
+                                  <div className="profile-settings-item__expand">
+                                    <p>{item.description || 'Dados básicos do widget de perfil.'}</p>
+                                    <UiButton label="Abrir detalhe" size="sm" tone="info" onClick={() => handleOpenProfileScreen(item.id)} />
+                                  </div>
+                                )}
                               </div>
-                            ) : (
+                            ))}
+                          </div>
+                        </section>
+                      ) : (
+                        [...profileSectionsSchema]
+                          .sort((a, b) => a.order - b.order)
+                          .map((section) => (
+                            <section key={section.id} className="profile-settings-section" aria-label={section.title}>
+                              {section.title ? <p className="profile-settings-section__title">{section.title}</p> : null}
                               <div className="profile-widget-grid">
                                 {[...section.items]
                                   .filter((item) => item.visibility)
@@ -1134,9 +1140,9 @@ const Dashboard = () => {
                                     </article>
                                   ))}
                               </div>
-                            )}
-                          </section>
-                        ))}
+                            </section>
+                          ))
+                      )}
                     </div>
                   </>
                 )}
