@@ -1902,6 +1902,13 @@ function DashboardApp({
     }
   }, []);
 
+  const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
+
+  useEffect(() => {
+    if (!isWideNavigation && !isFloatingWindowOpen) return;
+    setShowMobileNavDrawer(false);
+  }, [isFloatingWindowOpen, isWideNavigation]);
+
   if (view === 'loader') {
     return (
       <div className="app-viewport flex flex-col items-center justify-center space-y-4">
@@ -2624,13 +2631,6 @@ function DashboardApp({
 
     return mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
   })();
-  const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
-
-  useEffect(() => {
-    if (!isWideNavigation && !isFloatingWindowOpen) return;
-    setShowMobileNavDrawer(false);
-  }, [isFloatingWindowOpen, isWideNavigation]);
-
   const embeddedWindowNav = (
     <MobileMd3Nav
       visible
