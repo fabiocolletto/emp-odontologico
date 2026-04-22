@@ -132,6 +132,7 @@ body {
 }
 
 .bottom-tabbar__item {
+  --tab-theme: var(--nav-active);
   height: var(--tab-item-height);
   min-width: 0;
   display: flex;
@@ -143,7 +144,7 @@ body {
   border: 0;
   background: transparent;
   text-decoration: none;
-  color: var(--nav-inactive);
+  color: color-mix(in srgb, var(--tab-theme) 72%, #64748b);
   -webkit-tap-highlight-color: transparent;
   transition: transform 160ms ease, color 160ms ease, opacity 160ms ease;
 }
@@ -177,12 +178,32 @@ body {
 
 .bottom-tabbar__item.is-active,
 .bottom-tabbar__item[aria-current="page"] {
-  color: var(--nav-active);
+  color: var(--tab-theme);
 }
 
 .bottom-tabbar__item.is-active .bottom-tabbar__icon,
 .bottom-tabbar__item[aria-current="page"] .bottom-tabbar__icon {
   transform: scale(1.04);
+}
+
+.bottom-tabbar__item--overview,
+.app-sidebar__item--overview {
+  --tab-theme: #0b6aa7;
+}
+
+.bottom-tabbar__item--patients,
+.app-sidebar__item--patients {
+  --tab-theme: #2563eb;
+}
+
+.bottom-tabbar__item--financial,
+.app-sidebar__item--financial {
+  --tab-theme: #d97706;
+}
+
+.bottom-tabbar__item--profile,
+.app-sidebar__item--profile {
+  --tab-theme: #7c3aed;
 }
 
 .bottom-tabbar__fab {
@@ -307,7 +328,7 @@ body {
     justify-content: center;
   }
 
-  .app-sidebar__footer {
+.app-sidebar__footer {
     color: var(--text-secondary);
     font-size: 12px;
     font-weight: 500;
@@ -424,6 +445,16 @@ body {
   .app-body {
     padding-bottom: 20px;
   }
+}
+
+.app-sidebar__item {
+  --tab-theme: var(--nav-active);
+  color: color-mix(in srgb, var(--tab-theme) 78%, #64748b);
+}
+
+.app-sidebar__item.is-active {
+  background: color-mix(in srgb, var(--tab-theme) 14%, #ffffff);
+  color: var(--tab-theme);
 }
 
 /* ---------- Framework Levels & Structural primitives ---------- */
