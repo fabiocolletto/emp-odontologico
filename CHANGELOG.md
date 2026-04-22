@@ -2,6 +2,21 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.18 - 2026-04-21
+
+### Changed
+- Navegação de nível 0 consolidada com os destinos **Financeiro** e **Perfil** nas barras principais (shell modular e runtime standalone), removendo redundância de nomenclaturas anteriores.
+- Workspace de perfil passou a ser carregado sob demanda (lazy-load) apenas quando o usuário abre a aba **Perfil**, reduzindo carga inicial de abertura do app.
+- Extraída leitura leve de sessão para saudação inicial (`session-light`), desacoplando dados mínimos de identificação da carga completa de preferências/conta.
+- Estrutura de dados do Perfil separada em módulo dedicado (`profile-workspace`) para evolução independente de schema de seções/itens.
+- Tela de Perfil mobile refinada com header de identidade e lista em padrão de navegação de sistema (separadores leves, chevrons, badge numérico), alinhada à referência visual enviada sem copiar branding de terceiros.
+- Evolução da tela de Perfil com suporte a **4 modelos de cadastro** (MD3, Notion, Serviço e SaaS), permitindo alternância de padrão e replicação futura para múltiplos perfis.
+- Em mobile, widgets de perfil agora funcionam como lista expandível por linha (accordion); em tablet/desktop, a mesma base usa grade responsiva com widgets P/M/G e ações de expansão/abertura.
+- Primeiro item da navegação nível 0 foi convertido de **Painel** para **Agenda** (ícone + rótulo), com tela placeholder inicial para evolução do módulo de agenda.
+- Barras de navegação de **nível 1** foram ajustadas para iniciar com atalho de retorno ao **Painel (nível 0)** como primeira ação contextual.
+- Corrigido comportamento do botão **Navegação** em tablet com barra inferior ativa: ao abrir a navegação inteligente, o drawer agora é exibido corretamente (sem sumir barra e ficar tela vazia).
+- Barra de navegação da **Agenda** e da tela de **Formulário** padronizada para sempre exibir **Painel** como primeiro item de ação.
+
 ## v1.1.17 - 2026-04-21
 
 ### Changed

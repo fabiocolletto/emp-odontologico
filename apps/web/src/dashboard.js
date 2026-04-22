@@ -2,9 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Archive,
+  BadgeDollarSign,
+  CalendarDays,
   Check,
   CheckSquare,
   ChevronsUpDown,
+  ChevronRight,
   Globe,
   Layers,
   ListChecks,
@@ -19,8 +22,7 @@ import {
   User,
   UserPlus,
   Users,
-  X,
-  Home
+  X
 } from 'lucide-react';
 import { APPOINTMENTS, AVAILABLE_CLINICS_FALLBACK, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
 import {
@@ -35,6 +37,7 @@ import {
   saveProcedureRecord,
   setActiveClinicRpc
 } from './data-gateway.js';
+import { loadLightSessionSnapshot } from './session-light.js';
 import {
   AdaptiveHeader,
   AdaptiveModal,
@@ -47,7 +50,6 @@ import {
   UiButton,
   ViewLayout
 } from './components.js';
-import DailyPanel from './daily-panel.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -107,6 +109,19 @@ const Dashboard = () => {
   const [isAuxDrawerOpen, setIsAuxDrawerOpen] = useState(false);
   const [isAuxSheetOpen, setIsAuxSheetOpen] = useState(false);
   const [isWideViewport, setIsWideViewport] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
+  const [profileStack, setProfileStack] = useState(['root']);
+  const [expandedProfileWidgets, setExpandedProfileWidgets] = useState({});
+  const [activeProfileModel, setActiveProfileModel] = useState('md3');
+  const [lightSessionUser, setLightSessionUser] = useState(() => loadLightSessionSnapshot());
+  const [profileWorkspaceState, setProfileWorkspaceState] = useState({
+    status: 'idle',
+    userProfile: null,
+    sections: [],
+    models: [],
+    errorMessage: '',
+    loadedClinicName: ''
+  });
 
   const fiscalRequiredFields = [
     { key: 'legalName', label: 'razão social' },
@@ -126,6 +141,10 @@ const Dashboard = () => {
     if (savedSearchVisibility !== null) {
       setIsPatientSearchVisible(savedSearchVisibility === 'true');
     }
+  }, []);
+
+  useEffect(() => {
+    setLightSessionUser(loadLightSessionSnapshot());
   }, []);
 
   useEffect(() => {
@@ -314,6 +333,7 @@ const Dashboard = () => {
   useEffect(() => {
     const evaluateWideViewport = () => {
       const width = window.innerWidth;
+      setViewportWidth(width);
       const isLandscapeTablet = width >= 600 && width <= 1023 && window.innerWidth > window.innerHeight;
       setIsWideViewport(width >= 1024 || isLandscapeTablet);
     };
@@ -324,11 +344,72 @@ const Dashboard = () => {
   }, []);
 
   const navItems = [
-    { id: 'overview', icon: Home, label: 'Painel' },
+    { id: 'overview', icon: CalendarDays, label: 'Agenda' },
     { id: 'patients', icon: Users, label: 'Pacientes' },
-    { id: 'settings', icon: UserPlus, label: 'Cadastro' },
-    { id: 'account', icon: User, label: 'Conta' }
+    { id: 'financial', icon: BadgeDollarSign, label: 'Financeiro' },
+    { id: 'profile', icon: User, label: 'Perfil' }
   ];
+
+  const profileSectionsSchema = profileWorkspaceState.sections;
+  const profileModels = profileWorkspaceState.models || [];
+  const isMobileProfile = viewportWidth < 768;
+
+  const profileItemsById = useMemo(() => (
+    profileSectionsSchema.flatMap((section) => section.items).reduce((accumulator, item) => {
+      accumulator[item.id] = item;
+      return accumulator;
+    }, {})
+  ), [profileSectionsSchema]);
+
+  const profileActiveScreen = profileStack[profileStack.length - 1];
+  const activeProfileItem = profileActiveScreen === 'root' ? null : profileItemsById[profileActiveScreen];
+
+  const handleOpenProfileScreen = (itemId) => {
+    if (!profileItemsById[itemId]) return;
+    setProfileStack((current) => [...current, itemId]);
+  };
+
+  const handleBackProfileScreen = () => {
+    setProfileStack((current) => (current.length > 1 ? current.slice(0, -1) : current));
+  };
+
+  const handleToggleProfileWidget = (itemId) => {
+    setExpandedProfileWidgets((current) => ({ ...current, [itemId]: !current[itemId] }));
+  };
+
+  useEffect(() => {
+    if (profileWorkspaceState.loadedClinicName === (currentClinic?.name || '')) return;
+    setProfileWorkspaceState((current) => ({
+      ...current,
+      status: 'idle',
+      loadedClinicName: currentClinic?.name || ''
+    }));
+  }, [currentClinic?.name, profileWorkspaceState.loadedClinicName]);
+
+  useEffect(() => {
+    if (activeTab !== 'profile' || profileWorkspaceState.status === 'ready' || profileWorkspaceState.status === 'loading') return;
+    setProfileWorkspaceState((current) => ({ ...current, status: 'loading', errorMessage: '' }));
+
+    import('./profile-workspace.js')
+      .then(({ loadProfileWorkspaceData }) => loadProfileWorkspaceData({ clinicName: currentClinic?.name }))
+      .then((payload) => {
+        setProfileWorkspaceState({
+          status: 'ready',
+          userProfile: payload.userProfile,
+          sections: payload.sections,
+          models: payload.models || [],
+          errorMessage: '',
+          loadedClinicName: currentClinic?.name || ''
+        });
+      })
+      .catch(() => {
+        setProfileWorkspaceState((current) => ({
+          ...current,
+          status: 'error',
+          errorMessage: 'Não foi possível carregar o workspace de perfil.'
+        }));
+      });
+  }, [activeTab, currentClinic?.name, profileWorkspaceState.status]);
 
   const handleSwitchClinic = async (clinicId) => {
     if (!clinicId || clinicId === currentClinic?.id) return;
@@ -495,13 +576,15 @@ const Dashboard = () => {
   };
 
   const activeSectionTitle = useMemo(() => ({
-    overview: 'Painel Diário',
+    overview: 'Agenda',
     patients: 'Base de Pacientes',
-    settings: 'Cadastro da Clínica',
-    account: 'Conta'
-  }[activeTab] || 'OdontoFlow'), [activeTab]);
+    financial: 'Financeiro',
+    profile: activeProfileItem?.label || 'Perfil'
+  }[activeTab] || 'OdontoFlow'), [activeProfileItem?.label, activeTab]);
 
-  const activeSectionSubtitle = currentClinic?.name || 'Clínica não definida';
+  const activeSectionSubtitle = activeTab === 'profile'
+    ? `Olá, ${lightSessionUser.firstName}`
+    : (currentClinic?.name || 'Clínica não definida');
 
   return (
     <AppShell
@@ -560,7 +643,10 @@ const Dashboard = () => {
                 key={item.id}
                 type="button"
                 className={`app-sidebar__item ${activeTab === item.id ? 'is-active' : ''}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (item.id === 'profile') setProfileStack(['root']);
+                }}
               >
                 <span className="app-sidebar__item-icon" aria-hidden="true"><item.icon size={18} /></span>
                 <span>{item.label}</span>
@@ -579,11 +665,12 @@ const Dashboard = () => {
               key={item.id}
               className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
               href="#"
-              data-route={item.id === 'overview' ? 'painel' : 'pacientes'}
+              data-route={item.id === 'overview' ? 'agenda' : 'pacientes'}
               aria-current={activeTab === item.id ? 'page' : undefined}
               onClick={(event) => {
                 event.preventDefault();
                 setActiveTab(item.id);
+                if (item.id === 'profile') setProfileStack(['root']);
               }}
             >
               <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
@@ -598,11 +685,12 @@ const Dashboard = () => {
               key={item.id}
               className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
               href="#"
-              data-route={item.id === 'settings' ? 'cadastro' : 'conta'}
+              data-route={item.id === 'financial' ? 'financeiro' : 'perfil'}
               aria-current={activeTab === item.id ? 'page' : undefined}
               onClick={(event) => {
                 event.preventDefault();
                 setActiveTab(item.id);
+                if (item.id === 'profile') setProfileStack(['root']);
               }}
             >
               <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
@@ -614,13 +702,12 @@ const Dashboard = () => {
     >
 
       {activeTab === 'overview' && (
-        <DailyPanel
-          appointments={appointments}
-          allPatients={allPatients}
-          usingFallbackData={usingFallbackData}
-          onOpenPatientRecord={handleOpenPatientRecord}
-          currentClinic={currentClinic}
-        />
+        <ViewLayout>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
+            <h3 className="text-xl font-bold text-slate-900">Agenda</h3>
+            <p className="text-sm text-slate-600 mt-2">Placeholder da nova Agenda do nível 0. Em breve com visão diária, filtros e próximos atendimentos.</p>
+          </div>
+        </ViewLayout>
       )}
 
       {activeTab === 'patients' && (
@@ -755,12 +842,12 @@ const Dashboard = () => {
         </ViewLayout>
       )}
 
-      {activeTab === 'settings' && (
-        <ViewLayout title="Cadastro da Clínica" badge="Tela de Cadastro">
+      {activeTab === 'financial' && (
+        <ViewLayout>
           <div className="space-y-8">
             <RegistrationWorkspace
-              title="Cadastro da Clínica"
-              subtitle="Ferramenta Reutilizável de Cadastro"
+              title="Financeiro e cobrança"
+              subtitle="Gestão de assinatura, cobrança e dados fiscais"
               icon={UserPlus}
               actions={isClinicEditing ? (
                 <div className="flex items-center gap-2 animate-in fade-in zoom-in-95">
@@ -972,19 +1059,158 @@ const Dashboard = () => {
           </div>
         </ViewLayout>
       )}
-      {activeTab === 'account' && (
+      {activeTab === 'profile' && (
         <ViewLayout>
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
-            <h3 className="text-xl font-bold text-slate-900">Conta</h3>
-            <p className="text-sm text-slate-600 mt-2">Área de conta em estrutura base padronizada.</p>
-            <UiButton
-              onClick={() => setIsAuxSheetOpen(true)}
-              icon={ListChecks}
-              label="Abrir seleção auxiliar"
-              tone="info"
-              size="sm"
-              className="mt-4"
-            />
+          <div className="profile-screen">
+            {profileActiveScreen !== 'root' && (
+              <div className="profile-screen__subheader">
+                <button type="button" className="profile-screen__back" onClick={handleBackProfileScreen} aria-label="Voltar para perfil">
+                  <ArrowRight size={18} style={{ transform: 'rotate(180deg)' }} />
+                  Voltar
+                </button>
+                <h3>{activeProfileItem?.label || 'Perfil'}</h3>
+              </div>
+            )}
+
+            {profileActiveScreen === 'root' ? (
+              <>
+                {profileWorkspaceState.status === 'loading' && (
+                  <div className="profile-screen__detail">
+                    <h4>Carregando Perfil</h4>
+                    <p>Preparando preferências, dados da conta e configurações do workspace.</p>
+                  </div>
+                )}
+
+                {profileWorkspaceState.status === 'error' && (
+                  <div className="profile-screen__detail">
+                    <h4>Falha ao carregar</h4>
+                    <p>{profileWorkspaceState.errorMessage}</p>
+                  </div>
+                )}
+
+                {profileWorkspaceState.status === 'ready' && profileWorkspaceState.userProfile && (
+                  <>
+                    <header className="profile-identity-card">
+                      <div className="profile-identity-card__avatar" aria-hidden="true">
+                        {profileWorkspaceState.userProfile.name.charAt(0)}
+                      </div>
+                      <div className="profile-identity-card__content">
+                        <h3>{profileWorkspaceState.userProfile.name}</h3>
+                        <p>{profileWorkspaceState.userProfile.subtitle}</p>
+                        <span>{profileWorkspaceState.userProfile.email}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="profile-identity-card__cta"
+                        onClick={() => handleOpenProfileScreen('account-data')}
+                      >
+                        Ver minha conta <ChevronRight size={16} />
+                      </button>
+                    </header>
+
+                    <div className="profile-model-picker" role="tablist" aria-label="Modelos de cadastro de perfil">
+                      {profileModels.map((model) => (
+                        <button
+                          key={model.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={activeProfileModel === model.id}
+                          className={`profile-model-chip ${activeProfileModel === model.id ? 'is-active' : ''}`}
+                          onClick={() => setActiveProfileModel(model.id)}
+                        >
+                          {model.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {!isMobileProfile && (
+                      <div className="profile-model-summary">
+                        {profileModels.find((model) => model.id === activeProfileModel)?.inspiration}
+                        {' · '}
+                        {profileModels.find((model) => model.id === activeProfileModel)?.description}
+                      </div>
+                    )}
+
+                    <div className="profile-settings-list">
+                      {[...profileSectionsSchema]
+                        .sort((a, b) => a.order - b.order)
+                        .map((section) => (
+                          <section key={section.id} className="profile-settings-section" aria-label={section.title}>
+                            {section.title ? <p className="profile-settings-section__title">{section.title}</p> : null}
+                            {isMobileProfile ? (
+                              <div className="profile-settings-section__items">
+                                {[...section.items]
+                                  .filter((item) => item.visibility)
+                                  .sort((a, b) => a.order - b.order)
+                                  .map((item) => (
+                                    <div key={item.id} className="profile-settings-row-wrap">
+                                      <button
+                                        type="button"
+                                        className="profile-settings-item"
+                                        onClick={() => handleToggleProfileWidget(item.id)}
+                                      >
+                                        <span className="profile-settings-item__leading" aria-hidden="true">
+                                          <item.icon size={18} />
+                                        </span>
+                                        <span className="profile-settings-item__content">
+                                          <span>{item.label}</span>
+                                          {item.description ? <small>{item.description}</small> : null}
+                                        </span>
+                                        {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
+                                        <ChevronRight size={18} className={`profile-settings-item__chevron ${expandedProfileWidgets[item.id] ? 'is-open' : ''}`} aria-hidden="true" />
+                                      </button>
+                                      {expandedProfileWidgets[item.id] && (
+                                        <div className="profile-settings-item__expand">
+                                          <p>{item.description || 'Dados básicos do widget de perfil.'}</p>
+                                          <UiButton label="Abrir detalhe" size="sm" tone="info" onClick={() => handleOpenProfileScreen(item.id)} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              <div className="profile-widget-grid">
+                                {[...section.items]
+                                  .filter((item) => item.visibility)
+                                  .sort((a, b) => a.order - b.order)
+                                  .map((item) => (
+                                    <article key={item.id} className={`profile-widget profile-widget--${item.widgetSize || 'sm'}`}>
+                                      <header>
+                                        <span className="profile-settings-item__leading" aria-hidden="true"><item.icon size={18} /></span>
+                                        <h4>{item.label}</h4>
+                                        {item.badge ? <span className="profile-settings-item__badge">{item.badge}</span> : null}
+                                      </header>
+                                      <p>{item.description || 'Widget de cadastro de perfil replicável.'}</p>
+                                      <div className="profile-widget__actions">
+                                        <button type="button" onClick={() => handleToggleProfileWidget(item.id)}>
+                                          {expandedProfileWidgets[item.id] ? 'Ocultar' : 'Expandir'}
+                                        </button>
+                                        <button type="button" onClick={() => handleOpenProfileScreen(item.id)}>Abrir</button>
+                                      </div>
+                                      {expandedProfileWidgets[item.id] && (
+                                        <div className="profile-widget__expanded">
+                                          Rota preparada: <strong>{item.route}</strong>
+                                        </div>
+                                      )}
+                                    </article>
+                                  ))}
+                              </div>
+                            )}
+                          </section>
+                        ))}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <section className="profile-screen__detail">
+                <h4>{activeProfileItem?.label}</h4>
+                <p>
+                  Tela de nível 1 preparada para rota <strong>{activeProfileItem?.route}</strong>.
+                  Conecte este espaço aos dados reais de sessão/perfil sem alterar o shell principal.
+                </p>
+              </section>
+            )}
           </div>
         </ViewLayout>
       )}
