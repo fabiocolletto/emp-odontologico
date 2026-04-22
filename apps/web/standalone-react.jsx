@@ -2507,8 +2507,9 @@ function DashboardApp({
   };
 
   const openSmartNavigation = () => {
+    if (isWideNavigation || isFloatingWindowOpen) return;
     setShowPatientN2(false);
-    setShowMobileNavDrawer(true);
+    setShowMobileNavDrawer((current) => !current);
   };
 
   const mobileNavActionConfigByTab = {
@@ -2624,6 +2625,12 @@ function DashboardApp({
     return mobileNavActionConfigByTab[activeTab] || mobileNavActionConfigByTab.overview;
   })();
   const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
+
+  useEffect(() => {
+    if (!isWideNavigation && !isFloatingWindowOpen) return;
+    setShowMobileNavDrawer(false);
+  }, [isFloatingWindowOpen, isWideNavigation]);
+
   const embeddedWindowNav = (
     <MobileMd3Nav
       visible
@@ -2670,7 +2677,7 @@ function DashboardApp({
       </div>
 
       {showMobileNavDrawer && (
-        <div className="mobile-drawer-wrap md:hidden">
+        <div className="mobile-drawer-wrap">
           <button className="mobile-drawer-backdrop" onClick={() => setShowMobileNavDrawer(false)} aria-label="Fechar mapa de navegação"></button>
           <aside id="mobile-navigation-drawer" className="mobile-drawer-panel">
             <div className="mobile-drawer-header">

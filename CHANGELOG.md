@@ -14,6 +14,7 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Em mobile, widgets de perfil agora funcionam como lista expandível por linha (accordion); em tablet/desktop, a mesma base usa grade responsiva com widgets P/M/G e ações de expansão/abertura.
 - Primeiro item da navegação nível 0 foi convertido de **Painel** para **Agenda** (ícone + rótulo), com tela placeholder inicial para evolução do módulo de agenda.
 - Barras de navegação de **nível 1** foram ajustadas para iniciar com atalho de retorno ao **Painel (nível 0)** como primeira ação contextual.
+- Corrigido comportamento do botão **Navegação** em tablet com barra inferior ativa: ao abrir a navegação inteligente, o drawer agora é exibido corretamente (sem sumir barra e ficar tela vazia).
 
 ## v1.1.17 - 2026-04-21
 
