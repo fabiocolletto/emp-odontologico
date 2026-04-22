@@ -114,6 +114,7 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
+    clear: <><path d="M4 20h10" /><path d="m8 20 6.7-11.6a1.6 1.6 0 0 0-1.4-2.4H7.7a1.6 1.6 0 0 0-1.4 2.4L8.8 13" /><path d="m14 14 3.5 3.5M17.5 14 14 17.5" /></>,
     'chevron-down': <path d="m6 9 6 6 6-6" />,
     'chevron-up': <path d="m18 15-6-6-6 6" />,
     'chevron-left': <path d="m14.5 6-6 6 6 6" />,
@@ -1019,7 +1020,8 @@ const MobileMd3Nav = ({
       key={action.key}
       type="button"
       className={`mobile-md3-nav__action mobile-md3-nav__action--${action.tone || 'neutral'} ${action.active ? 'is-active' : ''}`}
-      onClick={action.onClick}
+      onClick={action.disabled ? undefined : action.onClick}
+      disabled={Boolean(action.disabled)}
       aria-label={action.ariaLabel || action.label}
       aria-current={action.active ? 'page' : undefined}
       title={action.label}
@@ -2629,6 +2631,74 @@ function DashboardApp({
   };
 
   const mobileNavActionConfig = (() => {
+    const createRecordNavPattern = ({
+      prefix,
+      onPrevious,
+      onNext,
+      onSave,
+      onCancel,
+      onClear,
+      disablePrevious = false,
+      disableNext = false
+    }) => ({
+      left: [
+        { key: `${prefix}-clear`, icon: 'clear', tone: 'info', label: 'Limpar', onClick: onClear },
+        { key: `${prefix}-prev`, icon: 'chevron-left', tone: 'overview', label: 'Anterior', onClick: onPrevious, disabled: disablePrevious }
+      ],
+      center: { key: `${prefix}-save`, icon: 'check', tone: 'success', label: 'Salvar', onClick: onSave },
+      right: [
+        { key: `${prefix}-cancel`, icon: 'close', tone: 'neutral', label: 'Cancelar', onClick: onCancel },
+        { key: `${prefix}-next`, icon: 'chevron-right', tone: 'patients', label: 'Próxima', onClick: onNext, disabled: disableNext }
+      ]
+    });
+
+    const currentPatientTabIndex = PATIENT_FORM_TABS.findIndex((tab) => tab.id === patientFormTab);
+    const isFirstPatientTab = currentPatientTabIndex <= 0;
+    const isLastPatientTab = currentPatientTabIndex >= PATIENT_FORM_TABS.length - 1;
+
+    if (showPatientN2 && patientModalMode === 'create') {
+      return createRecordNavPattern({
+        prefix: 'patient-create',
+        onPrevious: () => moveFormTab(-1),
+        onNext: () => moveFormTab(1),
+        onSave: handleCreatePatientSubmit,
+        onCancel: () => {
+          setShowPatientN2(false);
+          setPatientFormTab(PATIENT_FORM_TABS[0].id);
+          setFormFeedback('');
+        },
+        onClear: () => {
+          setNewPatientForm(createEmptyPatientForm());
+          setPatientFormTab(PATIENT_FORM_TABS[0].id);
+          setFormFeedback('');
+        },
+        disablePrevious: isFirstPatientTab,
+        disableNext: isLastPatientTab
+      });
+    }
+
+    if (isClinicN2Open && !selectedClinicId) {
+      return createRecordNavPattern({
+        prefix: 'clinic-create',
+        onPrevious: () => {},
+        onNext: () => {},
+        onSave: handleSaveClinic,
+        onCancel: () => {
+          setIsClinicN2Open(false);
+          setClinicActionStatus('idle');
+          setClinicActionMessage('');
+        },
+        onClear: () => {
+          setSelectedClinicId('');
+          setClinicDraft(toClinicDraft(null));
+          setClinicActionStatus('idle');
+          setClinicActionMessage('');
+        },
+        disablePrevious: true,
+        disableNext: true
+      });
+    }
+
     if (isClinicN2Open) {
       return {
         left: [

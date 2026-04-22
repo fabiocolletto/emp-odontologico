@@ -535,6 +535,12 @@ select {
   transform: translateY(-0.5px);
 }
 
+.mobile-md3-nav__action:disabled {
+  opacity: 0.38;
+  transform: none;
+  cursor: not-allowed;
+}
+
 .mobile-md3-nav__action--overview.is-active { color: #0f5f7f; }
 .mobile-md3-nav__action--patients.is-active { color: #1d4ed8; }
 .mobile-md3-nav__action--settings.is-active,
