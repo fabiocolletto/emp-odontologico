@@ -7,12 +7,14 @@ import {
   Users
 } from 'lucide-react';
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { id: 'overview', icon: CalendarDays, label: 'Agenda', route: 'agenda' },
   { id: 'patients', icon: Users, label: 'Pacientes', route: 'pacientes' },
   { id: 'financial', icon: BadgeDollarSign, label: 'Financeiro', route: 'financeiro' },
   { id: 'profile', icon: IdCard, label: 'Perfil', route: 'perfil' }
 ];
+
+export const getNavItemById = (tabId) => NAV_ITEMS.find((item) => item.id === tabId) || null;
 
 export const DashboardSidebarNav = ({ activeTab, onSelectTab, clinicName }) => (
   <div className="app-sidebar__inner">

@@ -46,7 +46,7 @@ import {
   UiButton,
   ViewLayout
 } from './components.js';
-import { DashboardBottomTabbar, DashboardSidebarNav } from './dashboard-navigation.js';
+import { DashboardBottomTabbar, DashboardSidebarNav, getNavItemById } from './dashboard-navigation.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -342,14 +342,20 @@ const Dashboard = () => {
 
   const handleSelectNavigationTab = (tabId) => {
     setActiveTab(tabId);
-    if (tabId === 'profile') setProfileStack(['root']);
+    if (tabId === 'profile') {
+      setProfileStack(['root']);
+      setExpandedProfileWidgets({});
+    }
   };
 
   const profileSectionsSchema = profileWorkspaceState.sections;
   const profileModels = profileWorkspaceState.models || [];
   const isMobileProfile = viewportWidth < 768;
+  const activeNavItem = getNavItemById(activeTab);
+  const HeaderLeadingIcon = activeNavItem?.icon || Stethoscope;
   const mobileProfileItems = useMemo(() => (
-    profileSectionsSchema
+    [...profileSectionsSchema]
+      .sort((a, b) => a.order - b.order)
       .flatMap((section) => (
         [...section.items]
           .filter((item) => item.visibility)
@@ -591,7 +597,7 @@ const Dashboard = () => {
 
   return (
     <AppShell
-      headerLeading={<div className="app-header__brand"><Stethoscope size={18} /> OdontoFlow</div>}
+      headerLeading={<div className="app-header__brand"><HeaderLeadingIcon size={18} /> OdontoFlow</div>}
       headerCenter={(
         <div>
           <h1 className="app-header__title">{activeSectionTitle}</h1>
@@ -1055,20 +1061,22 @@ const Dashboard = () => {
                       </button>
                     </header>
 
-                    <div className="profile-model-picker" role="tablist" aria-label="Modelos de cadastro de perfil">
-                      {profileModels.map((model) => (
-                        <button
-                          key={model.id}
-                          type="button"
-                          role="tab"
-                          aria-selected={activeProfileModel === model.id}
-                          className={`profile-model-chip ${activeProfileModel === model.id ? 'is-active' : ''}`}
-                          onClick={() => setActiveProfileModel(model.id)}
-                        >
-                          {model.label}
-                        </button>
-                      ))}
-                    </div>
+                    {!isMobileProfile && (
+                      <div className="profile-model-picker" role="tablist" aria-label="Modelos de cadastro de perfil">
+                        {profileModels.map((model) => (
+                          <button
+                            key={model.id}
+                            type="button"
+                            role="tab"
+                            aria-selected={activeProfileModel === model.id}
+                            className={`profile-model-chip ${activeProfileModel === model.id ? 'is-active' : ''}`}
+                            onClick={() => setActiveProfileModel(model.id)}
+                          >
+                            {model.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
                     {!isMobileProfile && (
                       <div className="profile-model-summary">
