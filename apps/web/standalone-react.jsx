@@ -5,7 +5,6 @@ const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
 const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
-const MOBILE_NAV_STATE_KEY = 'odontoflow-mobile-nav-state-v1';
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
 const APP_VERSION_FALLBACK = '1.0.0';
 const CHANGELOG_PATH = './CHANGELOG.md';
@@ -76,18 +75,13 @@ const NAV_PRIMARY = [
   { id: 'overview', label: 'Início', icon: 'home', tone: 'overview', group: 'Atendimento' },
   { id: 'agenda', label: 'Agenda', icon: 'calendar', tone: 'agenda', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', icon: 'users', tone: 'patients', group: 'Cadastros' },
+  { id: 'clinic', label: 'Clínica', icon: 'id-card', tone: 'account', group: 'Gestão' },
   { id: 'financial', label: 'Financeiro', icon: 'plan', tone: 'settings', group: 'Gestão' },
   { id: 'profile', label: 'Perfil', icon: 'id-card', tone: 'account', group: 'Gestão' }
 ];
 
 const LEVEL1_TABS = NAV_PRIMARY.map(({ id, label, icon }) => ({ id, label, icon }));
 const TAB_META = NAV_PRIMARY.reduce((acc, tab) => ({ ...acc, [tab.id]: tab }), {});
-
-const MOBILE_NAV_SHORTCUTS = [
-  ...NAV_PRIMARY.map((tab) => ({ id: tab.id, label: tab.label, tab: tab.id, icon: tab.icon, group: tab.group })),
-  { id: 'agenda-hoje', label: 'Agenda de hoje', tab: 'agenda', icon: 'calendar', group: 'Atendimento' },
-  { id: 'new-patient', label: 'Novo paciente', tab: 'patients', icon: 'users', group: 'Cadastros', action: 'create-patient' }
-];
 
 const AppIcon = ({ name, size = 14, className = '' }) => {
   const icons = {
@@ -546,7 +540,6 @@ const MobileScreenHeader = ({
 const DataManagementModalFrame = ({
   onClose,
   mobileHeader,
-  desktopHeader,
   bodyClassName = 'modal-body',
   footerNav,
   footerHintMessage,
@@ -556,7 +549,6 @@ const DataManagementModalFrame = ({
     <div className="modal-backdrop" onClick={onClose}></div>
     <div className="modal-card modal-card--wide cadastro-shell">
       <MobileScreenHeader {...mobileHeader} />
-      {desktopHeader}
       <div className={bodyClassName}>
         {children}
       </div>
@@ -1008,7 +1000,6 @@ const MobileMd3Nav = ({
   leftActions = [],
   rightActions = [],
   centerAction,
-  onOpenSmartNavigation,
   embedded = false
 }) => {
   if (!visible) return null;
@@ -1045,18 +1036,7 @@ const MobileMd3Nav = ({
           <AppIcon name={centerAction.icon || 'menu'} size={18} />
           <span className="mobile-md3-nav__label">{centerAction.label}</span>
         </button>
-      ) : (
-        <button
-          type="button"
-          className="mobile-md3-nav__fab"
-          onClick={onOpenSmartNavigation}
-          aria-label="Abrir navegação inteligente"
-          title="Navegação"
-        >
-          <AppIcon name="menu" size={18} />
-          <span className="mobile-md3-nav__label">Navegação</span>
-        </button>
-      )}
+      ) : null}
       {rightPrimary.map(renderAction)}
     </nav>
   );
@@ -1073,14 +1053,6 @@ const readStoredUiState = () => {
 const readStoredNotesDraft = () => {
   try {
     return JSON.parse(localStorage.getItem(NOTES_DRAFT_KEY) || '{}');
-  } catch {
-    return {};
-  }
-};
-
-const readStoredMobileNavState = () => {
-  try {
-    return JSON.parse(localStorage.getItem(MOBILE_NAV_STATE_KEY) || '{}');
   } catch {
     return {};
   }
@@ -1170,15 +1142,6 @@ function DashboardApp({
     const isLandscape = window.innerWidth > window.innerHeight;
     return isDesktop || (isTablet && isLandscape);
   });
-  const [showMobileNavDrawer, setShowMobileNavDrawer] = useState(false);
-  const [mobileNavState, setMobileNavState] = useState(() => {
-    const stored = readStoredMobileNavState();
-    return {
-      favorites: Array.isArray(stored.favorites) ? stored.favorites : [],
-      recents: Array.isArray(stored.recents) ? stored.recents : []
-    };
-  });
-  const [dragShortcutId, setDragShortcutId] = useState(null);
   const [releaseInfo, setReleaseInfo] = useState({
     version: APP_VERSION_FALLBACK,
     date: '',
@@ -1195,12 +1158,6 @@ function DashboardApp({
     if (Number.isNaN(parsed.getTime())) return '-';
     return parsed.toLocaleString('pt-BR');
   };
-
-  const groupedMobileShortcuts = MOBILE_NAV_SHORTCUTS.reduce((acc, shortcut) => {
-    if (!acc[shortcut.group]) acc[shortcut.group] = [];
-    acc[shortcut.group].push(shortcut);
-    return acc;
-  }, {});
 
   const openPatientN2 = (patient) => {
     setPatientModalMode('view');
@@ -1247,7 +1204,6 @@ function DashboardApp({
   const goToLevel1 = (tabId) => {
     if (!LEVEL1_TABS.some((tab) => tab.id === tabId)) return;
     setActiveTab(tabId);
-    setShowMobileNavDrawer(false);
   };
 
   const handlePatientFormChange = (field, value) => {
@@ -1288,45 +1244,6 @@ function DashboardApp({
     setNewPatientForm(createEmptyPatientForm());
     setFormFeedback('');
     setShowPatientHint(true);
-  };
-
-  const registerMobileRecent = (shortcutId) => {
-    setMobileNavState((prev) => {
-      const recents = [shortcutId, ...prev.recents.filter((item) => item !== shortcutId)].slice(0, 5);
-      return { ...prev, recents };
-    });
-  };
-
-  const handleMobileShortcut = (shortcut) => {
-    if (!shortcut) return;
-    registerMobileRecent(shortcut.id);
-    setShowMobileNavDrawer(false);
-
-    if (shortcut.action === 'create-patient') {
-      goToLevel1('patients');
-      openCreatePatientN2();
-      return;
-    }
-
-    setActiveTab(shortcut.tab);
-  };
-
-  const toggleMobileFavorite = (shortcutId) => {
-    setMobileNavState((prev) => {
-      const exists = prev.favorites.includes(shortcutId);
-      const favorites = exists
-        ? prev.favorites.filter((item) => item !== shortcutId)
-        : [...prev.favorites, shortcutId].slice(-6);
-      return { ...prev, favorites };
-    });
-  };
-
-  const addMobileFavorite = (shortcutId) => {
-    if (!shortcutId) return;
-    setMobileNavState((prev) => {
-      if (prev.favorites.includes(shortcutId)) return prev;
-      return { ...prev, favorites: [...prev.favorites, shortcutId].slice(-6) };
-    });
   };
 
   const handleQuickLinksSnapScroll = () => {
@@ -1760,10 +1677,6 @@ function DashboardApp({
   }, [notesDraft]);
 
   useEffect(() => {
-    localStorage.setItem(MOBILE_NAV_STATE_KEY, JSON.stringify(mobileNavState));
-  }, [mobileNavState]);
-
-  useEffect(() => {
     setPatientsPage(1);
   }, [patientsQuery, patientsSort]);
 
@@ -1858,12 +1771,6 @@ function DashboardApp({
   }, [accountService]);
 
   useEffect(() => {
-    const tabShortcutId = MOBILE_NAV_SHORTCUTS.find((item) => item.id === activeTab)?.id || activeTab;
-    if (!isMobileViewport) return;
-    registerMobileRecent(tabShortcutId);
-  }, [activeTab, isMobileViewport]);
-
-  useEffect(() => {
     if (!isMobileViewport || activeTab !== 'patients') return;
     if (typeof window.IntersectionObserver !== 'function') return;
     const target = patientsInfiniteTriggerRef.current;
@@ -1935,11 +1842,6 @@ function DashboardApp({
   }, []);
 
   const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
-
-  useEffect(() => {
-    if (!isWideNavigation && !isFloatingWindowOpen) return;
-    setShowMobileNavDrawer(false);
-  }, [isFloatingWindowOpen, isWideNavigation]);
 
   if (view === 'loader') {
     return (
@@ -2073,6 +1975,14 @@ function DashboardApp({
         ariaLabel: 'Abrir financeiro',
         onClick: () => goToLevel1('financial')
       },
+      clinic: {
+        key: 'clinic',
+        icon: 'id-card',
+        tone: 'account',
+        label: 'Clínica',
+        ariaLabel: 'Abrir clínica',
+        onClick: () => goToLevel1('clinic')
+      },
       profile: {
         key: 'profile',
         icon: TAB_META.profile.icon,
@@ -2087,7 +1997,7 @@ function DashboardApp({
       overview: {
         level: 0,
         previous: null,
-        next: ['agenda', 'patients', 'financial', 'profile']
+        next: ['agenda', 'patients', 'clinic', 'financial', 'profile']
       },
       agenda: {
         level: 1,
@@ -2098,6 +2008,11 @@ function DashboardApp({
         level: 1,
         previous: 'overview',
         next: ['new-patient', 'patients-search', 'patients-sort', 'patients-multi']
+      },
+      clinic: {
+        level: 1,
+        previous: 'overview',
+        next: []
       },
       financial: {
         level: 1,
@@ -2145,15 +2060,13 @@ function DashboardApp({
     );
 
     const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
-      isMobileViewport ? (
-        <BioHeader
-          icon={icon}
-          title={title}
-          subtitle={subtitle}
-          actions={actions}
-          navigation={null}
-        />
-      ) : null
+      <BioHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        actions={actions}
+        navigation={null}
+      />
     );
 
     if (activeTab === 'overview') {
@@ -2165,7 +2078,6 @@ function DashboardApp({
             subtitle: 'Dashboard principal e visão consolidada',
             actions: []
           })}
-          {!isMobileViewport && <h2 className="page-title">Início</h2>}
           <div className="ui-card data-card data-card--g space-y-3">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Início (nível 0)</p>
             <p className="text-sm text-slate-600">
@@ -2186,7 +2098,6 @@ function DashboardApp({
             subtitle: 'Planejamento de atendimentos e compromissos',
             actions: []
           })}
-          {!isMobileViewport && <h2 className="page-title">Agenda</h2>}
           <div className="ui-card data-card data-card--g space-y-3">
             <p className="text-xs font-black uppercase tracking-widest text-slate-500">Agenda (nível 1)</p>
             <p className="text-sm text-slate-600">
@@ -2203,12 +2114,11 @@ function DashboardApp({
         <div className="space-y-6 patients-sections">
           {renderN1Header({
             icon: 'users',
-            title: 'Base de Pacientes',
-            subtitle: 'Cadastro, busca e acesso ao Nível 2',
+            title: 'Cadastro de Paciente',
+            subtitle: 'Gerencie cadastros e encontre informações rapidamente',
             actions: []
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
-            <h2 className="page-title">Base de Pacientes</h2>
             <div className="flex gap-2 flex-wrap justify-end ui-action-bar page-header__actions">
               <AddRecordButton
                 label="Novo paciente"
@@ -2353,7 +2263,7 @@ function DashboardApp({
                   >
                     {isPatientsMultiMode
                       ? (selectedPatientIds.includes(p.id) ? '✓' : '○')
-                      : <AppIcon name="expand" size={14} />}
+                      : <AppIcon name="expand" size={16} />}
                   </button>
                   <div className="patient-card__header">
                     <div className="patient-avatar">{getInitials(p.name)}</div>
@@ -2423,7 +2333,6 @@ function DashboardApp({
       return (
         <div className="space-y-6">
           {renderN1Header({ icon: 'settings', title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
-          {!isMobileViewport && <h2 className="page-title">Perfil</h2>}
 
           <div className="ui-card data-card data-card--g space-y-4">
             <div className="flex flex-wrap gap-3 items-center justify-between">
@@ -2561,10 +2470,24 @@ function DashboardApp({
       );
     }
 
+    if (activeTab === 'clinic') {
+      return (
+        <div className="space-y-6">
+          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais' })}
+          <div className="ui-card data-card data-card--g space-y-3">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínica (nível 1)</p>
+            <p className="text-sm text-slate-600">
+              Placeholder da nova tela de Clínica no nível 1. Em breve com visão operacional da unidade,
+              dados institucionais e controles administrativos.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Cobrança, assinaturas e faturamento' })}
-        {!isMobileViewport && <h2 className="page-title">Financeiro</h2>}
         <div className="ui-card data-card data-card--g">
           <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
           <ul className="list-disc pl-5 space-y-1 text-slate-800">
@@ -2578,18 +2501,13 @@ function DashboardApp({
     );
   };
 
-  const openSmartNavigation = () => {
-    if (isWideNavigation || isFloatingWindowOpen) return;
-    setShowPatientN2(false);
-    setShowMobileNavDrawer((current) => !current);
-  };
-
   const mobileNavActionConfigByTab = {
     overview: {
       left: [
         { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') },
         { key: 'overview-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') }
       ],
+      center: { key: 'overview-clinic', icon: 'id-card', tone: 'account', label: 'Clínica', onClick: () => goToLevel1('clinic') },
       right: [
         { key: 'overview-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') },
         { key: 'overview-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
@@ -2597,7 +2515,7 @@ function DashboardApp({
     },
     agenda: {
       left: [
-        { key: 'agenda-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
+        { key: 'agenda-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') }
       ],
       right: [
         { key: 'agenda-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setAppointmentsQuery('') }
@@ -2605,9 +2523,10 @@ function DashboardApp({
     },
     patients: {
       left: [
-        { key: 'patients-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') },
-        { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
+        { key: 'patients-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
+        { key: 'patients-filter', icon: 'filter', tone: 'settings', label: 'Filtrar', onClick: () => setIsPatientsSortLevelOpen(true) }
       ],
+      center: { key: 'patients-add', icon: 'plus', tone: 'success', label: 'Adicionar', onClick: openCreatePatientN2 },
       right: [
         { key: 'patients-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setIsPatientsSearchVisible((prev) => !prev), active: isPatientsSearchVisible },
         { key: 'patients-edit', icon: 'edit', tone: 'info', label: 'Editar', onClick: handleOpenPatientEdit }
@@ -2615,15 +2534,26 @@ function DashboardApp({
     },
     financial: {
       left: [
+        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
         { key: 'financial-clinic', icon: 'id-card', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
       ],
       right: [
         { key: 'financial-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
       ]
     },
+    clinic: {
+      left: [
+        { key: 'clinic-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
+        { key: 'clinic-new', icon: 'plus', tone: 'account', label: 'Nova', onClick: handleOpenClinicCreateN2 }
+      ],
+      center: { key: 'clinic-add', icon: 'plus', tone: 'account', label: 'Adicionar', onClick: handleOpenClinicCreateN2 },
+      right: [
+        { key: 'clinic-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+      ]
+    },
     profile: {
       left: [
-        { key: 'account-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') },
+        { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
         { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
       ],
       right: [
@@ -2767,7 +2697,6 @@ function DashboardApp({
       leftActions={mobileNavActionConfig.left}
       centerAction={mobileNavActionConfig.center}
       rightActions={mobileNavActionConfig.right}
-      onOpenSmartNavigation={openSmartNavigation}
     />
   );
 
@@ -2804,89 +2733,6 @@ function DashboardApp({
           {renderContent()}
         </main>
       </div>
-
-      {showMobileNavDrawer && (
-        <div className="mobile-drawer-wrap">
-          <button className="mobile-drawer-backdrop" onClick={() => setShowMobileNavDrawer(false)} aria-label="Fechar mapa de navegação"></button>
-          <aside id="mobile-navigation-drawer" className="mobile-drawer-panel">
-            <div className="mobile-drawer-header">
-              <div>
-                <p className="mobile-drawer-kicker">Navegação inteligente</p>
-                <h3>Mapa rápido</h3>
-              </div>
-              <button className="btn btn--ghost" onClick={() => setShowMobileNavDrawer(false)}>Fechar</button>
-            </div>
-
-            <section className="mobile-drawer-section">
-              <p className="mobile-drawer-section__title"><AppIcon name="star" size={12} /> Favoritos</p>
-              <div
-                className={`mobile-drawer-grid mobile-drawer-grid--dropzone ${dragShortcutId ? 'is-dragging' : ''}`}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  addMobileFavorite(dragShortcutId);
-                  setDragShortcutId(null);
-                }}
-              >
-                {MOBILE_NAV_SHORTCUTS
-                  .filter((item) => mobileNavState.favorites.includes(item.id))
-                  .map((shortcut) => (
-                    <button key={shortcut.id} className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
-                      <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
-                    </button>
-                  ))}
-                {mobileNavState.favorites.length === 0 && (
-                  <p className="mobile-drawer-empty">
-                    Arraste um atalho para cá para criar seus favoritos.
-                  </p>
-                )}
-              </div>
-            </section>
-
-            <section className="mobile-drawer-section">
-              <p className="mobile-drawer-section__title"><AppIcon name="clock" size={12} /> Últimos acessos</p>
-              <div className="mobile-drawer-grid">
-                {mobileNavState.recents
-                  .map((id) => MOBILE_NAV_SHORTCUTS.find((shortcut) => shortcut.id === id))
-                  .filter(Boolean)
-                  .map((shortcut) => (
-                    <button key={`recent-${shortcut.id}`} className="mobile-shortcut" onClick={() => handleMobileShortcut(shortcut)}>
-                      <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
-                    </button>
-                  ))}
-              </div>
-            </section>
-
-            {Object.entries(groupedMobileShortcuts).map(([group, shortcuts]) => (
-              <section className="mobile-drawer-section" key={group}>
-                <p className="mobile-drawer-section__title"><AppIcon name="menu" size={12} /> {group}</p>
-                <div className="mobile-drawer-grid">
-                  {shortcuts.map((shortcut) => (
-                    <div key={`group-${shortcut.id}`} className="mobile-shortcut-shell">
-                      <button
-                        className="mobile-shortcut"
-                        onClick={() => handleMobileShortcut(shortcut)}
-                        draggable
-                        onDragStart={() => setDragShortcutId(shortcut.id)}
-                        onDragEnd={() => setDragShortcutId(null)}
-                      >
-                        <span><AppIcon name={shortcut.icon} size={13} /> {shortcut.label}</span>
-                      </button>
-                      <button
-                        className={`mobile-shortcut-fav ${mobileNavState.favorites.includes(shortcut.id) ? 'is-active' : ''}`}
-                        onClick={() => toggleMobileFavorite(shortcut.id)}
-                        aria-label={`Favoritar ${shortcut.label}`}
-                      >
-                        <AppIcon name="star" size={11} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </aside>
-        </div>
-      )}
 
       <AccountN2Modal
         isOpen={isAccountEditN2Open}
@@ -2966,11 +2812,10 @@ function DashboardApp({
       />
 
       <MobileMd3Nav
-        visible={!isWideNavigation && !showMobileNavDrawer && !isFloatingWindowOpen}
+        visible={!isWideNavigation && !isFloatingWindowOpen}
         leftActions={mobileNavActionConfig.left}
         centerAction={mobileNavActionConfig.center}
         rightActions={mobileNavActionConfig.right}
-        onOpenSmartNavigation={openSmartNavigation}
       />
     </div>
   );
