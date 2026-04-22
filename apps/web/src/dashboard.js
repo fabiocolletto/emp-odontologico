@@ -585,6 +585,56 @@ const Dashboard = () => {
   const activeSectionSubtitle = activeTab === 'profile'
     ? `Olá, ${lightSessionUser.firstName}`
     : (currentClinic?.name || 'Clínica não definida');
+  const shouldShowLevel1ActionBar = !isWideViewport && activeTab !== 'overview';
+  const isPatientsLevel1 = activeTab === 'patients';
+
+  const handleBackToPanel = () => {
+    setActiveTab('overview');
+    setProfileStack(['root']);
+    setIsAuxSheetOpen(false);
+  };
+
+  const handleLevel1Insert = () => {
+    if (activeTab === 'patients') {
+      setSelectedPatient(null);
+      setModalPatient(true);
+      setIsEditing(true);
+      return;
+    }
+
+    if (activeTab === 'financial') {
+      setIsClinicEditing(true);
+      return;
+    }
+
+    if (activeTab === 'profile') {
+      setIsAuxDrawerOpen(true);
+    }
+  };
+
+  const handleLevel1Search = () => {
+    if (activeTab === 'patients') {
+      setIsPatientSearchVisible((current) => !current);
+      return;
+    }
+    setIsAuxSheetOpen(true);
+  };
+
+  const handleLevel1Edit = () => {
+    if (activeTab === 'patients') {
+      handleToggleMultiSelectMode();
+      return;
+    }
+
+    if (activeTab === 'financial') {
+      setIsClinicEditing(true);
+      return;
+    }
+
+    if (activeTab === 'profile' && profileActiveScreen !== 'root') {
+      handleBackProfileScreen();
+    }
+  };
 
   return (
     <AppShell
@@ -700,6 +750,50 @@ const Dashboard = () => {
         </nav>
       )}
     >
+      {shouldShowLevel1ActionBar && (
+        <section className="level1-actionbar" aria-label="Ações do nível 1" data-level="1-actions">
+          <UiButton
+            onClick={handleBackToPanel}
+            icon={ArrowRight}
+            label="Painel"
+            tone="neutral"
+            size="sm"
+            className="level1-actionbar__btn level1-actionbar__btn--back"
+          />
+          <UiButton
+            onClick={handleLevel1Insert}
+            icon={Plus}
+            label="Inserir"
+            tone="primary"
+            size="sm"
+            className="level1-actionbar__btn"
+          />
+          <UiButton
+            onClick={() => setIsAuxSheetOpen(true)}
+            icon={ListChecks}
+            label="Navegação"
+            tone="neutral"
+            size="sm"
+            className="level1-actionbar__btn"
+          />
+          <UiButton
+            onClick={handleLevel1Search}
+            icon={Search}
+            label="Pesquisar"
+            tone={isPatientsLevel1 && isPatientSearchVisible ? 'info' : 'neutral'}
+            size="sm"
+            className="level1-actionbar__btn"
+          />
+          <UiButton
+            onClick={handleLevel1Edit}
+            icon={isPatientsLevel1 && isMultiSelectMode ? CheckSquare : Pencil}
+            label="Editar"
+            tone={isPatientsLevel1 && isMultiSelectMode ? 'info' : 'neutral'}
+            size="sm"
+            className="level1-actionbar__btn"
+          />
+        </section>
+      )}
 
       {activeTab === 'overview' && (
         <ViewLayout>
@@ -714,7 +808,7 @@ const Dashboard = () => {
         <ViewLayout>
           <div className={`app-level2-layout ${isWideViewport ? 'is-wide' : ''}`} data-level="2-container">
             <div className="app-level2-layout__main">
-              <div className="flex items-center gap-3 mb-4">
+              <div className={`flex items-center gap-3 mb-4 ${!isWideViewport ? 'hidden' : ''}`.trim()}>
               <UiButton
                 onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
                 icon={UserPlus}
@@ -1221,10 +1315,28 @@ const Dashboard = () => {
         </p>
       </AppDrawer>
 
-      <AppSheet isOpen={isAuxSheetOpen} onClose={() => setIsAuxSheetOpen(false)} title="Seleção contextual">
-        <p className="text-sm text-slate-600">
-          Base de sheet para subescolhas e tarefas subordinadas de nível 3.
-        </p>
+      <AppSheet isOpen={isAuxSheetOpen} onClose={() => setIsAuxSheetOpen(false)} title="Navegação rápida">
+        <div className="space-y-3">
+          <p className="text-sm text-slate-600">
+            Selecione para navegar entre as seções de nível 0.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {navItems.map((item) => (
+              <UiButton
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (item.id === 'profile') setProfileStack(['root']);
+                  setIsAuxSheetOpen(false);
+                }}
+                icon={item.icon}
+                label={item.label}
+                tone={activeTab === item.id ? 'info' : 'neutral'}
+                size="sm"
+              />
+            ))}
+          </div>
+        </div>
       </AppSheet>
 
       <AdaptiveModal isOpen={modalSettingsProc} onClose={() => setModalSettingsProc(false)}>
