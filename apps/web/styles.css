@@ -294,6 +294,7 @@ select {
 .btn--nav--overview .app-icon { color: color-mix(in srgb, #0ea5b7 80%, #0f172a); }
 .btn--nav--patients .app-icon { color: color-mix(in srgb, #2563eb 80%, #0f172a); }
 .btn--nav--settings .app-icon,
+.btn--nav--clinic .app-icon,
 .btn--nav--account .app-icon { color: color-mix(in srgb, #7c3aed 78%, #0f172a); }
 
 .btn--nav:hover {

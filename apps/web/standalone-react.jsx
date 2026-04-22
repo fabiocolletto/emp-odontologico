@@ -76,6 +76,7 @@ const NAV_PRIMARY = [
   { id: 'overview', label: 'Início', icon: 'home', tone: 'overview', group: 'Atendimento' },
   { id: 'agenda', label: 'Agenda', icon: 'calendar', tone: 'agenda', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', icon: 'users', tone: 'patients', group: 'Cadastros' },
+  { id: 'clinic', label: 'Clínica', icon: 'id-card', tone: 'account', group: 'Gestão' },
   { id: 'financial', label: 'Financeiro', icon: 'plan', tone: 'settings', group: 'Gestão' },
   { id: 'profile', label: 'Perfil', icon: 'id-card', tone: 'account', group: 'Gestão' }
 ];
@@ -2073,6 +2074,14 @@ function DashboardApp({
         ariaLabel: 'Abrir financeiro',
         onClick: () => goToLevel1('financial')
       },
+      clinic: {
+        key: 'clinic',
+        icon: 'id-card',
+        tone: 'account',
+        label: 'Clínica',
+        ariaLabel: 'Abrir clínica',
+        onClick: () => goToLevel1('clinic')
+      },
       profile: {
         key: 'profile',
         icon: TAB_META.profile.icon,
@@ -2087,7 +2096,7 @@ function DashboardApp({
       overview: {
         level: 0,
         previous: null,
-        next: ['agenda', 'patients', 'financial', 'profile']
+        next: ['agenda', 'patients', 'clinic', 'financial', 'profile']
       },
       agenda: {
         level: 1,
@@ -2098,6 +2107,11 @@ function DashboardApp({
         level: 1,
         previous: 'overview',
         next: ['new-patient', 'patients-search', 'patients-sort', 'patients-multi']
+      },
+      clinic: {
+        level: 1,
+        previous: 'overview',
+        next: []
       },
       financial: {
         level: 1,
@@ -2561,6 +2575,22 @@ function DashboardApp({
       );
     }
 
+    if (activeTab === 'clinic') {
+      return (
+        <div className="space-y-6">
+          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais' })}
+          {!isMobileViewport && <h2 className="page-title">Clínica</h2>}
+          <div className="ui-card data-card data-card--g space-y-3">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínica (nível 1)</p>
+            <p className="text-sm text-slate-600">
+              Placeholder da nova tela de Clínica no nível 1. Em breve com visão operacional da unidade,
+              dados institucionais e controles administrativos.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Cobrança, assinaturas e faturamento' })}
@@ -2590,6 +2620,7 @@ function DashboardApp({
         { key: 'overview-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') },
         { key: 'overview-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') }
       ],
+      center: { key: 'overview-clinic', icon: 'id-card', tone: 'account', label: 'Clínica', onClick: () => goToLevel1('clinic') },
       right: [
         { key: 'overview-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') },
         { key: 'overview-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
@@ -2620,6 +2651,15 @@ function DashboardApp({
       ],
       right: [
         { key: 'financial-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+      ]
+    },
+    clinic: {
+      left: [
+        { key: 'clinic-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
+        { key: 'clinic-new', icon: 'plus', tone: 'account', label: 'Nova', onClick: handleOpenClinicCreateN2 }
+      ],
+      right: [
+        { key: 'clinic-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
       ]
     },
     profile: {
