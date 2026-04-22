@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.20 - 2026-04-22
+
+### Changed
+- Primeiro botão da barra de navegação de nível 0 voltou para **Agenda** (substituindo o rótulo **Painel**) em todas as superfícies de navegação do runtime standalone.
+- Destino `overview` foi realinhado visualmente para **Agenda** (ícone `calendar`, rótulos e título da tela), mantendo o roteamento unificado via helper central de nível 1.
+
 ## v1.1.19 - 2026-04-22
 
 ### Fixed
