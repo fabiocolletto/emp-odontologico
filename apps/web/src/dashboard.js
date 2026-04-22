@@ -2,8 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Archive,
-  BadgeDollarSign,
-  CalendarDays,
   Check,
   CheckSquare,
   ChevronsUpDown,
@@ -19,9 +17,7 @@ import {
   Stethoscope,
   Square,
   Trash2,
-  User,
   UserPlus,
-  Users,
   X
 } from 'lucide-react';
 import { APPOINTMENTS, AVAILABLE_CLINICS_FALLBACK, INITIAL_PATIENTS, INITIAL_PROCEDURES } from './constants.js';
@@ -50,6 +46,7 @@ import {
   UiButton,
   ViewLayout
 } from './components.js';
+import { DashboardBottomTabbar, DashboardSidebarNav } from './dashboard-navigation.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -343,12 +340,10 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', evaluateWideViewport);
   }, []);
 
-  const navItems = [
-    { id: 'overview', icon: CalendarDays, label: 'Agenda' },
-    { id: 'patients', icon: Users, label: 'Pacientes' },
-    { id: 'financial', icon: BadgeDollarSign, label: 'Financeiro' },
-    { id: 'profile', icon: User, label: 'Perfil' }
-  ];
+  const handleSelectNavigationTab = (tabId) => {
+    setActiveTab(tabId);
+    if (tabId === 'profile') setProfileStack(['root']);
+  };
 
   const profileSectionsSchema = profileWorkspaceState.sections;
   const profileModels = profileWorkspaceState.models || [];
@@ -630,74 +625,18 @@ const Dashboard = () => {
         </div>
       )}
       sidebar={(
-        <div className="app-sidebar__inner">
-          <div className="app-sidebar__header">
-            <div className="app-sidebar__brand">
-              <Stethoscope size={18} />
-              <span>OdontoFlow</span>
-            </div>
-          </div>
-          <nav className="app-sidebar__nav" aria-label="Navegação principal" data-level="0">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`app-sidebar__item ${activeTab === item.id ? 'is-active' : ''}`}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  if (item.id === 'profile') setProfileStack(['root']);
-                }}
-              >
-                <span className="app-sidebar__item-icon" aria-hidden="true"><item.icon size={18} /></span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-          <div className="app-sidebar__footer">
-            <span>{currentClinic?.name || 'Clínica não definida'}</span>
-          </div>
-        </div>
+        <DashboardSidebarNav
+          activeTab={activeTab}
+          onSelectTab={handleSelectNavigationTab}
+          clinicName={currentClinic?.name}
+        />
       )}
       footer={(
-        <nav className="bottom-tabbar" aria-label="Navegação principal" data-level="0">
-          {navItems.slice(0, 2).map((item) => (
-            <a
-              key={item.id}
-              className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
-              href="#"
-              data-route={item.id === 'overview' ? 'agenda' : 'pacientes'}
-              aria-current={activeTab === item.id ? 'page' : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                setActiveTab(item.id);
-                if (item.id === 'profile') setProfileStack(['root']);
-              }}
-            >
-              <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
-              <span className="bottom-tabbar__label">{item.label}</span>
-            </a>
-          ))}
-          <button className="bottom-tabbar__fab" type="button" aria-label="Novo paciente" onClick={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}>
-            <span className="bottom-tabbar__fab-icon" aria-hidden="true"><Plus size={28} /></span>
-          </button>
-          {navItems.slice(2).map((item) => (
-            <a
-              key={item.id}
-              className={`bottom-tabbar__item ${activeTab === item.id ? 'is-active' : ''}`}
-              href="#"
-              data-route={item.id === 'financial' ? 'financeiro' : 'perfil'}
-              aria-current={activeTab === item.id ? 'page' : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                setActiveTab(item.id);
-                if (item.id === 'profile') setProfileStack(['root']);
-              }}
-            >
-              <span className="bottom-tabbar__icon" aria-hidden="true"><item.icon size={22} /></span>
-              <span className="bottom-tabbar__label">{item.label}</span>
-            </a>
-          ))}
-        </nav>
+        <DashboardBottomTabbar
+          activeTab={activeTab}
+          onSelectTab={handleSelectNavigationTab}
+          onCreatePatient={() => { setSelectedPatient(null); setModalPatient(true); setIsEditing(true); }}
+        />
       )}
     >
 

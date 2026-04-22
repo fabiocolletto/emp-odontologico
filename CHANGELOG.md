@@ -2,6 +2,42 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.23 - 2026-04-22
+
+### Changed
+- Barra de navegação contextual do **Painel (nível 0)** ajustada: o primeiro botão deixou de ser **Painel** e passou a ser **Pacientes**.
+- Ação do novo botão **Pacientes** no Painel agora redireciona diretamente para a tela correta de **nível 1 / Pacientes**.
+
+## v1.1.22 - 2026-04-22
+
+### Changed
+- Formalizado no runtime standalone que a tela de **nível 0** é o **Painel** (`overview`), carregada como destino inicial de abertura.
+- A **Agenda** foi promovida para **nível 1** (`agenda`), alinhada com os demais módulos de nível 1: **Pacientes**, **Financeiro** e **Perfil**.
+- Barras contextuais de nível 1 passaram a usar **Painel** como botão de retorno ao nível 0, mantendo consistência do fluxo hierárquico entre telas.
+
+## v1.1.21 - 2026-04-22
+
+### Changed
+- Navegação de nível 1 revisada para reforçar padrão operacional: primeiro botão contextual mantém retorno para **Agenda (nível 0)** em todos os fluxos.
+- Na tela de **Pacientes (nível 1)**, a barra contextual mobile foi reorganizada para priorizar ações solicitadas: **Agenda**, **Novo**, **Buscar** e **Editar** (mantendo o botão central para **Navegação inteligente**).
+
+## v1.1.20 - 2026-04-22
+
+### Changed
+- Primeiro botão da barra de navegação de nível 0 voltou para **Agenda** (substituindo o rótulo **Painel**) em todas as superfícies de navegação do runtime standalone.
+- Destino `overview` foi realinhado visualmente para **Agenda** (ícone `calendar`, rótulos e título da tela), mantendo o roteamento unificado via helper central de nível 1.
+
+## v1.1.19 - 2026-04-22
+
+### Fixed
+- Corrigida nova causa de **tela branca** ao sair da landing (`Acessar Unidade`): um `useEffect` do runtime standalone foi reposicionado para manter ordem estável de hooks entre os estados `landing` e `dashboard`.
+- Adicionada proteção de compatibilidade para ambientes sem `IntersectionObserver`, evitando erro em runtime na abertura dos fluxos com carregamento incremental (Pacientes/Agenda).
+
+### Changed
+- Navegação de **nível 1** consolidada em fonte única (`LEVEL1_TABS`) no runtime standalone, com roteamento padronizado por helper central (`goToLevel1`).
+- Botão/atalhos **Painel** passaram a usar destino unificado de nível 1 em todas as superfícies (sidebar, quick links, barra mobile fixa e barra embutida de janelas N2), removendo desvios para Agenda.
+- Identidade visual/textual do destino `overview` alinhada para **Painel** (ícone `home`, rótulo e título), mantendo `Agenda de hoje` como atalho contextual.
+
 ## v1.1.18 - 2026-04-21
 
 ### Changed
