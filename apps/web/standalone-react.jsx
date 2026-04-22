@@ -2597,7 +2597,7 @@ function DashboardApp({
     },
     agenda: {
       left: [
-        { key: 'agenda-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
+        { key: 'agenda-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') }
       ],
       right: [
         { key: 'agenda-search', icon: 'search', tone: 'search', label: 'Buscar', onClick: () => setAppointmentsQuery('') }
@@ -2605,7 +2605,7 @@ function DashboardApp({
     },
     patients: {
       left: [
-        { key: 'patients-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') },
+        { key: 'patients-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
         { key: 'patients-new', icon: 'edit', tone: 'success', label: 'Novo', onClick: openCreatePatientN2 }
       ],
       right: [
@@ -2615,6 +2615,7 @@ function DashboardApp({
     },
     financial: {
       left: [
+        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
         { key: 'financial-clinic', icon: 'id-card', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
       ],
       right: [
@@ -2623,7 +2624,7 @@ function DashboardApp({
     },
     profile: {
       left: [
-        { key: 'account-agenda', icon: 'calendar', tone: 'agenda', label: 'Agenda', onClick: () => goToLevel1('agenda') },
+        { key: 'account-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
         { key: 'account-patients', icon: 'users', tone: 'patients', label: 'Pacientes', onClick: () => goToLevel1('patients') }
       ],
       right: [
