@@ -2,6 +2,45 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.28 - 2026-04-23
+
+### Changed
+- Contraste das linhas das tabelas financeiras ajustado para melhor visibilidade, com separadores mais perceptíveis entre registros.
+- Padronização tipográfica nas linhas de dados: colunas passaram a seguir tom/peso único alinhado ao padrão visual de **Vencimento**.
+- Diferenciação visual foi mantida apenas para colunas de **Status** e **Ações**, reduzindo ruído visual entre múltiplos estilos de texto.
+
+## v1.1.27 - 2026-04-23
+
+### Changed
+- Botões de ação do topo do Financeiro foram simplificados: removidos **Novo recebimento** e **Nova despesa** da barra principal, mantendo criação via fluxos de edição internos.
+- Barra de ações abaixo do título foi alinhada à direita em desktop para aliviar concentração visual no lado esquerdo.
+- Botão de período passou a usar rótulo textual fixo (**Período**) em vez de exibir datas no título.
+- Ações **Período** e **Exportar relatório** foram migradas para janelas sobrepostas (overlay) com comportamento consistente entre desktop e mobile.
+
+## v1.1.26 - 2026-04-23
+
+### Changed
+- Padrão de janela flutuante financeira reforçado: removido espaçamento extra entre borda externa e conteúdo interno para melhorar leitura de blocos `header/body/footer`.
+- Ações de **Fechar** e **Adicionar** dos fluxos de gestão financeira foram movidas para o footer das janelas de edição/adicionar, consolidando o padrão operacional da janela.
+- Janela de **Editar categorias financeiras** atualizada com campo de filtro centralizado e chips de categoria com ação visual de remoção sobreposta.
+- Remoção de categoria passou a exigir confirmação explícita antes da exclusão efetiva.
+
+## v1.1.25 - 2026-04-23
+
+### Changed
+- Nas seções financeiras com dupla ação no header (ex.: recorrências, previsões, contas e categorias), os botões **Adicionar + Editar** foram unificados para um único botão **Editar**.
+- A ação de **Adicionar** foi movida para dentro das janelas de edição desses módulos, preparando a evolução para um modal único de gestão (adicionar/editar) por seção.
+- Em **Contas a receber** e **Contas a pagar**, o totalizador saiu do header e foi reposicionado no rodapé do card; o header passou a priorizar ação de edição.
+- Na tabela de **Lançamentos**, as ações da coluna foram simplificadas para botões de ícone puro (sem fundo/borda), mantendo cor diretamente no ícone para leitura mais limpa.
+
+## v1.1.24 - 2026-04-23
+
+### Changed
+- Fluxo de **Lançamentos financeiros** migrou definitivamente para padrão de janela sobreposta (`overlay`) no Financeiro, removendo exibição inline e mantendo títulos contextuais para receita/despesa/edição.
+- Na tela **Financeiro mobile**, ações rápidas foram reposicionadas para a barra de navegação contextual (5 ações), com botão central **Painel** e atalhos de **Período**, **Receita**, **Despesa** e **Exportar**, eliminando duplicidade visual logo abaixo do header.
+- Janelas de cadastro/adição do Financeiro foram padronizadas no modelo de 3 seções (**header / body / footer**) com fundo consistente em header/footer, conteúdo central mais claro e redução de “caixa dentro de caixa” por ajuste de padding interno.
+- Botões de ação do modal de lançamento passaram a usar o componente padrão do sistema (`ActionButton`), alinhando estilo e comportamento com o design system vigente.
+
 ## v1.1.23 - 2026-04-22
 
 ### Changed

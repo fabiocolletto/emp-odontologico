@@ -11,6 +11,11 @@ const CHANGELOG_PATH = './CHANGELOG.md';
 const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
 const AUTH_NOTICE_TIMEOUT_MS = 5000;
 const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
+const FINANCIAL_STORAGE_KEY = 'odontoflow-financial-launches-v1';
+const FINANCIAL_ACCOUNTS_STORAGE_KEY = 'odontoflow-financial-accounts-v1';
+const FINANCIAL_CATEGORIES_STORAGE_KEY = 'odontoflow-financial-categories-v1';
+const FINANCIAL_RECURRING_STORAGE_KEY = 'odontoflow-financial-recurring-v1';
+const FINANCIAL_FORECAST_STORAGE_KEY = 'odontoflow-financial-forecast-v1';
 
 const getSupabaseConfig = () => {
   const injected = globalThis.__APP_ENV__ || {};
@@ -109,6 +114,8 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
     clear: <><path d="M4 20h10" /><path d="m8 20 6.7-11.6a1.6 1.6 0 0 0-1.4-2.4H7.7a1.6 1.6 0 0 0-1.4 2.4L8.8 13" /><path d="m14 14 3.5 3.5M17.5 14 14 17.5" /></>,
+    download: <><path d="M12 4v10" /><path d="m8.5 10.5 3.5 3.5 3.5-3.5" /><path d="M4 19.5h16" /></>,
+    wallet: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M16 12h5" /><circle cx="16.5" cy="12" r="0.8" /></>,
     'chevron-down': <path d="m6 9 6 6 6-6" />,
     'chevron-up': <path d="m18 15-6-6-6 6" />,
     'chevron-left': <path d="m14.5 6-6 6 6 6" />,
@@ -265,6 +272,208 @@ const SortToggleButton = ({ onClick }) => (
     onClick={onClick}
   />
 );
+
+const AppShell = ({ sidebar, header, children }) => (
+  <div className="app-shell">
+    <div className="app-frame">
+      {sidebar}
+      <main className="app-content">
+        {header}
+        {children}
+      </main>
+    </div>
+  </div>
+);
+
+const AppSidebar = ({
+  isVisible,
+  authEmail,
+  tabs,
+  activeTab,
+  onTabChange
+}) => {
+  if (!isVisible) return null;
+
+  return (
+    <aside className="app-sidebar">
+      <div className="app-brand">Odonto<span>Flow</span></div>
+      {authEmail ? (
+        <div className="text-[11px] leading-snug text-slate-300 mb-3">
+          <p className="font-semibold text-slate-200">Conectado</p>
+          <p className="truncate">{authEmail}</p>
+        </div>
+      ) : null}
+      <nav className="app-nav">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
+            title={tab.label}
+          >
+            <AppIcon name={tab.icon} size={14} />
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+    </aside>
+  );
+};
+
+const AppHeader = ({ children }) => (
+  <header className="app-header-flat mb-3">
+    {children}
+  </header>
+);
+
+const PageHeader = ({ icon, title, subtitle, actions = null }) => (
+  <div className="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <BioHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        actions={[]}
+        navigation={null}
+      />
+    </div>
+    {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+  </div>
+);
+
+const ContentGrid = ({ columns = '2', children, className = '' }) => (
+  <section className={`grid gap-4 ${columns === '4' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4' : columns === '3' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1 xl:grid-cols-2'} ${className}`.trim()}>
+    {children}
+  </section>
+);
+
+const BaseCard = ({ className = '', children }) => (
+  <article className={`ui-card data-card data-card--g p-4 ${className}`.trim()}>{children}</article>
+);
+
+const SparkMiniChart = ({ points = [], tone = '#2563eb', variant = 'line' }) => {
+  if (!points.length) return null;
+  if (variant === 'donut') {
+    const value = Math.max(0, Math.min(100, points[points.length - 1]));
+    const radius = 14;
+    const c = 2 * Math.PI * radius;
+    const offset = c - (value / 100) * c;
+    return (
+      <svg className="stat-sparkline stat-sparkline--donut" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r={radius} fill="none" stroke="#e2e8f0" strokeWidth="5" />
+        <circle cx="20" cy="20" r={radius} fill="none" stroke={tone} strokeWidth="5" strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 20 20)" />
+      </svg>
+    );
+  }
+  if (variant === 'bar') {
+    const max = Math.max(...points, 1);
+    return (
+      <div className="stat-sparkline stat-sparkline--bar" aria-hidden="true">
+        {points.map((point, index) => (
+          <span key={`bar-${index}`} style={{ height: `${Math.max(14, (point / max) * 100)}%`, background: tone }} />
+        ))}
+      </div>
+    );
+  }
+  const width = 92;
+  const height = 34;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const span = Math.max(max - min, 1);
+  const d = points.map((point, index) => {
+    const x = (index / Math.max(points.length - 1, 1)) * width;
+    const y = height - ((point - min) / span) * height;
+    return `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(' ');
+
+  return (
+    <svg className="stat-sparkline" viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+      <path d={d} fill="none" stroke={tone} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+};
+
+const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb', sparkVariant = 'line' }) => (
+  <BaseCard className="stat-card-flat">
+    <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
+    <div className="stat-card-flat__main">
+      <p className="text-2xl font-black text-slate-900 mt-1 whitespace-nowrap">{value}</p>
+      <SparkMiniChart points={sparkPoints} tone={sparkColor} variant={sparkVariant} />
+    </div>
+    {trend ? <p className={`text-xs font-bold mt-2 ${trendTone}`}>{trend}</p> : null}
+  </BaseCard>
+);
+
+const PanelCard = ({ title, extra = null, children, className = '', titleClassName = '', contentClassName = '' }) => (
+  <BaseCard className={className}>
+    <div className="panel-card__header flex items-center justify-between gap-3 mb-3">
+      <h3 className={`panel-card__title text-base font-black text-slate-900 ${titleClassName}`.trim()}>{title}</h3>
+      {extra}
+    </div>
+    <div className={`panel-card__content ${contentClassName}`.trim()}>{children}</div>
+  </BaseCard>
+);
+
+const SectionCard = ({ title, actions = null, children }) => (
+  <BaseCard>
+    <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+      <h3 className="text-base font-black text-slate-900">{title}</h3>
+      {actions}
+    </div>
+    {children}
+  </BaseCard>
+);
+
+const StatusBadge = ({ status }) => {
+  const tone = status === 'vencido'
+    ? 'text-rose-600 bg-rose-50'
+    : (['pago', 'recebido'].includes(status) ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50');
+  return <span className={`inline-flex px-2 py-1 rounded-full text-[11px] font-black uppercase ${tone}`}>{status}</span>;
+};
+
+const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
+  <div className="py-6 text-center text-sm text-slate-500">{message}</div>
+);
+
+const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.' }) => (
+  <div className="overflow-x-auto">
+    <table className="data-table min-w-full text-sm">
+      <thead>
+        <tr className="text-slate-400">
+          {columns.map((column) => (
+            <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">{column.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.length === 0 ? (
+          <tr>
+            <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
+          </tr>
+        ) : rows.map((row) => (
+          <tr key={row.key} className="data-table__row">
+            {columns.map((column) => (
+              <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button', ariaLabel }) => (
+  <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick} aria-label={ariaLabel || label}>
+    {icon}
+    {label ? <span>{label}</span> : null}
+  </button>
+);
+
+const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
+const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
+const AlertCard = ({ text }) => <BaseCard className="border-amber-100 bg-amber-50/40"><p className="text-sm text-amber-700 font-semibold">{text}</p></BaseCard>;
+const InsightCard = ({ text }) => <BaseCard className="border-sky-100 bg-sky-50/40"><p className="text-sm text-sky-700 font-semibold">{text}</p></BaseCard>;
 
 const BioHeader = ({
   icon,
@@ -456,6 +665,141 @@ const FALLBACK_PATIENTS = [
     notes: 'Avaliação ortodôntica solicitada.'
   }
 ];
+
+const FINANCIAL_DEFAULT_LANCAMENTOS = [
+  {
+    id: 1,
+    tipo: 'entrada',
+    descricao: 'Consulta clínica',
+    categoria: 'Atendimento',
+    subcategoria: 'Consulta',
+    valor: 250,
+    status: 'recebido',
+    data_competencia: '2026-04-10',
+    data_vencimento: '2026-04-10',
+    data_pagamento: '2026-04-10',
+    origem: 'Paciente João',
+    paciente_id: 1,
+    profissional_id: 2,
+    observacoes: 'Pagamento no cartão'
+  },
+  {
+    id: 2,
+    tipo: 'entrada',
+    descricao: 'Implante unitário',
+    categoria: 'Procedimento',
+    subcategoria: 'Implantodontia',
+    valor: 2850,
+    status: 'recebido',
+    data_competencia: '2026-04-11',
+    data_vencimento: '2026-04-11',
+    data_pagamento: '2026-04-11',
+    origem: 'Paciente Maria',
+    paciente_id: 3,
+    profissional_id: 5,
+    observacoes: 'Pacote com retorno'
+  },
+  {
+    id: 3,
+    tipo: 'entrada',
+    descricao: 'Convênio OdontoPrev',
+    categoria: 'Convênio',
+    subcategoria: 'Repasse',
+    valor: 4300,
+    status: 'previsto',
+    data_competencia: '2026-04-15',
+    data_vencimento: '2026-04-20',
+    data_pagamento: '',
+    origem: 'Convênio',
+    paciente_id: null,
+    profissional_id: null,
+    observacoes: 'Lote abril'
+  },
+  {
+    id: 4,
+    tipo: 'saida',
+    descricao: 'Aluguel da clínica',
+    categoria: 'Estrutura',
+    subcategoria: 'Aluguel',
+    valor: 5300,
+    status: 'pago',
+    data_competencia: '2026-04-01',
+    data_vencimento: '2026-04-05',
+    data_pagamento: '2026-04-05',
+    origem: 'Imobiliária Centro',
+    paciente_id: null,
+    profissional_id: null,
+    observacoes: 'Mensal'
+  },
+  {
+    id: 5,
+    tipo: 'saida',
+    descricao: 'Laboratório de prótese',
+    categoria: 'Laboratório',
+    subcategoria: 'Prótese',
+    valor: 1980,
+    status: 'vencido',
+    data_competencia: '2026-04-12',
+    data_vencimento: '2026-04-17',
+    data_pagamento: '',
+    origem: 'Lab Sorriso',
+    paciente_id: null,
+    profissional_id: null,
+    observacoes: '3 casos'
+  }
+];
+
+const FINANCIAL_DEFAULT_ACCOUNTS = [
+  {
+    id: 1,
+    nome: 'Conta Principal Clínica',
+    banco: 'Odonto Bank',
+    tipo: 'corrente',
+    saldo_inicial: 15000
+  }
+];
+
+const FINANCIAL_DEFAULT_CATEGORIES = {
+  entradas: ['Consulta', 'Procedimento', 'Convênio', 'Ortodontia', 'Implantodontia'],
+  saidas: ['Aluguel', 'Laboratório', 'Insumos', 'Marketing', 'Pessoal']
+};
+
+const FINANCIAL_DEFAULT_RECURRING = [
+  { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', categoria: 'Aluguel' },
+  { id: 2, descricao: 'Folha de pagamento', valor: 13190, periodicidade: 'mensal', categoria: 'Pessoal' }
+];
+
+const FINANCIAL_DEFAULT_FORECASTS = [
+  { id: 1, descricao: 'Previsão de insumos', valor: 4200, periodo: 'Próximos 30 dias' },
+  { id: 2, descricao: 'Previsão de laboratório', valor: 3600, periodo: 'Próximos 30 dias' }
+];
+
+const summarizeFinancialData = (items = []) => {
+  const receitaRecebida = items
+    .filter((item) => item.tipo === 'entrada' && ['recebido', 'pago'].includes(item.status))
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const despesasPagas = items
+    .filter((item) => item.tipo === 'saida' && item.status === 'pago')
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const aReceber = items
+    .filter((item) => item.tipo === 'entrada' && !['recebido', 'pago'].includes(item.status))
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+
+  const entradas = items.filter((item) => item.tipo === 'entrada');
+  const ticketMedio = receitaRecebida / Math.max(entradas.length, 1);
+  const inadimplencia = entradas.length
+    ? (entradas.filter((item) => item.status === 'vencido').length / entradas.length) * 100
+    : 0;
+
+  return {
+    receitaRecebida,
+    despesasPagas,
+    resultadoLiquido: receitaRecebida - despesasPagas,
+    aReceber,
+    ticketMedio,
+    inadimplencia
+  };
+};
 
 const getInitials = (name) =>
   String(name || '')
@@ -1066,6 +1410,64 @@ const readStoredPatientsSearchVisibility = () => {
   }
 };
 
+const readStoredFinancialLaunches = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_LANCAMENTOS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_LANCAMENTOS;
+  } catch {
+    return FINANCIAL_DEFAULT_LANCAMENTOS;
+  }
+};
+
+const readStoredFinancialAccounts = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_ACCOUNTS_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_ACCOUNTS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_ACCOUNTS;
+  } catch {
+    return FINANCIAL_DEFAULT_ACCOUNTS;
+  }
+};
+
+const readStoredFinancialCategories = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_CATEGORIES_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_CATEGORIES;
+    const parsed = JSON.parse(raw);
+    return {
+      entradas: Array.isArray(parsed?.entradas) && parsed.entradas.length ? parsed.entradas : FINANCIAL_DEFAULT_CATEGORIES.entradas,
+      saidas: Array.isArray(parsed?.saidas) && parsed.saidas.length ? parsed.saidas : FINANCIAL_DEFAULT_CATEGORIES.saidas
+    };
+  } catch {
+    return FINANCIAL_DEFAULT_CATEGORIES;
+  }
+};
+
+const readStoredFinancialRecurring = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_RECURRING_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_RECURRING;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_RECURRING;
+  } catch {
+    return FINANCIAL_DEFAULT_RECURRING;
+  }
+};
+
+const readStoredFinancialForecasts = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_FORECAST_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_FORECASTS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_FORECASTS;
+  } catch {
+    return FINANCIAL_DEFAULT_FORECASTS;
+  }
+};
+
 function DashboardApp({
   authEmail = '',
   authUser = null,
@@ -1092,6 +1494,48 @@ function DashboardApp({
   const [patientsPage, setPatientsPage] = useState(1);
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const [financialLaunches, setFinancialLaunches] = useState(() => readStoredFinancialLaunches());
+  const [financialAccounts, setFinancialAccounts] = useState(() => readStoredFinancialAccounts());
+  const [financialCategories, setFinancialCategories] = useState(() => readStoredFinancialCategories());
+  const [financialRecurring, setFinancialRecurring] = useState(() => readStoredFinancialRecurring());
+  const [financialForecasts, setFinancialForecasts] = useState(() => readStoredFinancialForecasts());
+  const [isFinancialFormOpen, setIsFinancialFormOpen] = useState(false);
+  const [isPeriodPickerOpen, setIsPeriodPickerOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedPeriodLabel, setSelectedPeriodLabel] = useState('01/04/2026 - 30/04/2026');
+  const [periodDraft, setPeriodDraft] = useState({ from: '2026-04-01', to: '2026-04-30' });
+  const [newCategoryDraft, setNewCategoryDraft] = useState({ tipo: 'entradas', nome: '' });
+  const [newAccountDraft, setNewAccountDraft] = useState({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
+  const [newRecurringDraft, setNewRecurringDraft] = useState({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
+  const [newForecastDraft, setNewForecastDraft] = useState({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+  const [isForecastModalOpen, setIsForecastModalOpen] = useState(false);
+  const [isAccountsEditMode, setIsAccountsEditMode] = useState(false);
+  const [isCategoriesEditMode, setIsCategoriesEditMode] = useState(false);
+  const [isRecurringEditMode, setIsRecurringEditMode] = useState(false);
+  const [isForecastEditMode, setIsForecastEditMode] = useState(false);
+  const [accountFilter, setAccountFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [recurringFilter, setRecurringFilter] = useState('');
+  const [forecastFilter, setForecastFilter] = useState('');
+  const [financialDraft, setFinancialDraft] = useState(() => ({
+    id: '',
+    tipo: 'entrada',
+    descricao: '',
+    categoria: '',
+    subcategoria: '',
+    valor: '',
+    status: 'previsto',
+    data_competencia: '',
+    data_vencimento: '',
+    data_pagamento: '',
+    origem: '',
+    paciente_id: '',
+    profissional_id: '',
+    observacoes: ''
+  }));
   const [showPatientHint, setShowPatientHint] = useState(false);
   const [patientModalMode, setPatientModalMode] = useState('view');
   const [patientFormTab, setPatientFormTab] = useState(PATIENT_FORM_TABS[0].id);
@@ -1159,6 +1603,170 @@ function DashboardApp({
     if (Number.isNaN(parsed.getTime())) return '-';
     return parsed.toLocaleString('pt-BR');
   };
+
+  const formatMoney = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const emptyFinancialDraft = () => ({
+    id: '',
+    tipo: 'entrada',
+    descricao: '',
+    categoria: '',
+    subcategoria: '',
+    valor: '',
+    status: 'previsto',
+    data_competencia: '',
+    data_vencimento: '',
+    data_pagamento: '',
+    origem: '',
+    paciente_id: '',
+    profissional_id: '',
+    observacoes: ''
+  });
+
+  const openFinancialCreate = (tipo = 'entrada') => {
+    setFinancialDraft({
+      ...emptyFinancialDraft(),
+      tipo
+    });
+    setIsFinancialFormOpen(true);
+  };
+
+  const openFinancialEdit = (launch) => {
+    setFinancialDraft({
+      ...launch,
+      valor: launch.valor ?? '',
+      paciente_id: launch.paciente_id ?? '',
+      profissional_id: launch.profissional_id ?? ''
+    });
+    setIsFinancialFormOpen(true);
+  };
+
+  const closeFinancialForm = () => {
+    setFinancialDraft(emptyFinancialDraft());
+    setIsFinancialFormOpen(false);
+  };
+
+  const handleFinancialDraftChange = (field, value) => {
+    setFinancialDraft((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleFinancialSave = () => {
+    if (!financialDraft.descricao || !financialDraft.categoria || !financialDraft.data_vencimento || !financialDraft.origem) return;
+
+    const payload = {
+      ...financialDraft,
+      id: financialDraft.id || Date.now(),
+      valor: Number(financialDraft.valor || 0),
+      paciente_id: financialDraft.paciente_id === '' ? null : Number(financialDraft.paciente_id),
+      profissional_id: financialDraft.profissional_id === '' ? null : Number(financialDraft.profissional_id)
+    };
+
+    setFinancialLaunches((current) => (
+      financialDraft.id
+        ? current.map((item) => (item.id === financialDraft.id ? payload : item))
+        : [payload, ...current]
+    ));
+    closeFinancialForm();
+  };
+
+  const handleFinancialDelete = (id) => {
+    setFinancialLaunches((current) => current.filter((item) => item.id !== id));
+  };
+
+  const applyQuickPeriod = (period) => {
+    const today = new Date('2026-04-23');
+    if (period === 'today') {
+      const date = today.toISOString().slice(0, 10);
+      setPeriodDraft({ from: date, to: date });
+      setSelectedPeriodLabel('Hoje');
+      return;
+    }
+    if (period === 'week') {
+      const from = new Date(today);
+      from.setDate(today.getDate() - 6);
+      setPeriodDraft({ from: from.toISOString().slice(0, 10), to: today.toISOString().slice(0, 10) });
+      setSelectedPeriodLabel('Últimos 7 dias');
+      return;
+    }
+    setPeriodDraft({ from: '2026-04-01', to: '2026-04-30' });
+    setSelectedPeriodLabel('Mês atual');
+  };
+
+  const applyCustomPeriod = () => {
+    if (!periodDraft.from || !periodDraft.to) return;
+    const formatted = `${periodDraft.from.split('-').reverse().join('/')} - ${periodDraft.to.split('-').reverse().join('/')}`;
+    setSelectedPeriodLabel(formatted);
+    setIsPeriodPickerOpen(false);
+  };
+
+  const addFinancialCategory = () => {
+    const name = newCategoryDraft.nome.trim();
+    if (!name) return;
+    setFinancialCategories((current) => ({
+      ...current,
+      [newCategoryDraft.tipo]: [...current[newCategoryDraft.tipo], name]
+    }));
+    setNewCategoryDraft((current) => ({ ...current, nome: '' }));
+    setIsCategoryModalOpen(false);
+  };
+
+  const handleCategoryDelete = (tipo, nome) => {
+    const confirmed = typeof window !== 'undefined'
+      ? window.confirm(`Excluir a categoria "${nome}"?`)
+      : true;
+    if (!confirmed) return;
+    setFinancialCategories((current) => ({
+      ...current,
+      [tipo]: current[tipo].filter((cat) => cat !== nome)
+    }));
+  };
+
+  const addFinancialAccount = () => {
+    if (!newAccountDraft.nome.trim()) return;
+    setFinancialAccounts((current) => [
+      ...current,
+      { id: Date.now(), ...newAccountDraft, saldo_inicial: Number(newAccountDraft.saldo_inicial || 0) }
+    ]);
+    setNewAccountDraft({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
+    setIsAccountModalOpen(false);
+  };
+
+  const editFinancialAccount = (id) => {
+    const current = financialAccounts.find((item) => item.id === id);
+    if (!current) return;
+    const nome = window.prompt('Nome da conta', current.nome);
+    if (!nome) return;
+    const banco = window.prompt('Banco', current.banco || '');
+    setFinancialAccounts((items) => items.map((item) => (item.id === id ? { ...item, nome, banco: banco ?? item.banco } : item)));
+  };
+
+  const deleteFinancialAccount = (id) => {
+    setFinancialAccounts((items) => items.filter((item) => item.id !== id));
+  };
+
+  const addRecurring = () => {
+    if (!newRecurringDraft.descricao.trim()) return;
+    setFinancialRecurring((current) => [
+      ...current,
+      { id: Date.now(), ...newRecurringDraft, valor: Number(newRecurringDraft.valor || 0) }
+    ]);
+    setNewRecurringDraft({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
+    setIsRecurringModalOpen(false);
+  };
+
+  const deleteRecurring = (id) => setFinancialRecurring((items) => items.filter((item) => item.id !== id));
+
+  const addForecast = () => {
+    if (!newForecastDraft.descricao.trim()) return;
+    setFinancialForecasts((current) => [
+      ...current,
+      { id: Date.now(), ...newForecastDraft, valor: Number(newForecastDraft.valor || 0) }
+    ]);
+    setNewForecastDraft({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+    setIsForecastModalOpen(false);
+  };
+
+  const deleteForecast = (id) => setFinancialForecasts((items) => items.filter((item) => item.id !== id));
 
   const openPatientN2 = (patient) => {
     setPatientModalMode('view');
@@ -1678,6 +2286,26 @@ function DashboardApp({
   }, [notesDraft]);
 
   useEffect(() => {
+    localStorage.setItem(FINANCIAL_STORAGE_KEY, JSON.stringify(financialLaunches));
+  }, [financialLaunches]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_ACCOUNTS_STORAGE_KEY, JSON.stringify(financialAccounts));
+  }, [financialAccounts]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_CATEGORIES_STORAGE_KEY, JSON.stringify(financialCategories));
+  }, [financialCategories]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_RECURRING_STORAGE_KEY, JSON.stringify(financialRecurring));
+  }, [financialRecurring]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_FORECAST_STORAGE_KEY, JSON.stringify(financialForecasts));
+  }, [financialForecasts]);
+
+  useEffect(() => {
     setPatientsPage(1);
   }, [patientsQuery, patientsSort]);
 
@@ -2061,13 +2689,10 @@ function DashboardApp({
     );
 
     const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
-      <BioHeader
-        icon={icon}
-        title={title}
-        subtitle={subtitle}
-        actions={actions}
-        navigation={null}
-      />
+      <AppHeader>
+        <PageHeader icon={icon} title={title} subtitle={subtitle} actions={actions} />
+        {navigation}
+      </AppHeader>
     );
 
     if (activeTab === 'overview') {
@@ -2079,13 +2704,12 @@ function DashboardApp({
             subtitle: 'Dashboard principal e visão consolidada',
             actions: []
           })}
-          <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Início (nível 0)</p>
-            <p className="text-sm text-slate-600">
-              Esta é a tela de nível 0 do sistema: o dashboard principal de abertura com visão consolidada
-              dos módulos operacionais.
-            </p>
-          </div>
+          <ContentGrid columns="3">
+            <StatCard label="Pacientes ativos" value={String(sortedPatients.length)} trend="+6,2% no mês" trendTone="text-emerald-600" />
+            <StatCard label="Atendimentos do dia" value={String(filteredAppointments.length)} trend="Agenda atualizada" trendTone="text-sky-600" />
+            <StatCard label="Módulos monitorados" value="5" trend="Shell unificado" trendTone="text-indigo-600" />
+          </ContentGrid>
+          <InsightCard text="Esta é a tela de nível 0 consolidada com o novo design system global do OdontoFlow." />
         </div>
       );
     }
@@ -2099,12 +2723,25 @@ function DashboardApp({
             subtitle: 'Planejamento de atendimentos e compromissos',
             actions: []
           })}
-          <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Agenda (nível 1)</p>
+          <PanelCard title="Agenda (nível 1)">
             <p className="text-sm text-slate-600">
-              Esta tela representa a Agenda no nível 1, ao lado de Pacientes, Financeiro e Perfil.
+              Esta tela representa a Agenda no nível 1, ao lado de Pacientes, Financeiro e Perfil, já usando a mesma base visual global.
             </p>
-          </div>
+          </PanelCard>
+          <ContentGrid columns="2">
+            <PanelCard title="Próximos atendimentos">
+              <DataTable
+                columns={[
+                  { key: 'paciente', label: 'Paciente', render: (row) => <span className="text-slate-700 font-semibold">{row.name}</span> },
+                  { key: 'hora', label: 'Hora', render: (row) => <span className="text-slate-500">{row.time}</span> },
+                  { key: 'procedimento', label: 'Procedimento', render: (row) => <span className="text-slate-500">{row.procedure}</span> }
+                ]}
+                rows={visibleAppointments.map((item) => ({ key: `appt-${item.id}`, ...item }))}
+                emptyMessage="Sem atendimentos para o período."
+              />
+            </PanelCard>
+            <AlertCard text="Use o módulo Agenda para organizar horários, encaixes e confirmações de consulta." />
+          </ContentGrid>
         </div>
       );
     }
@@ -2120,7 +2757,7 @@ function DashboardApp({
             actions: []
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
-            <div className="flex gap-2 flex-wrap justify-end ui-action-bar page-header__actions">
+            <Toolbar>
               <AddRecordButton
                 label="Novo paciente"
                 ariaLabel="Cadastrar novo paciente"
@@ -2140,7 +2777,7 @@ function DashboardApp({
                   });
                 }}
               />
-            </div>
+            </Toolbar>
           </div>
           <TransientNotice
             visible={showPatientHint && !formFeedback}
@@ -2549,18 +3186,528 @@ function DashboardApp({
       );
     }
 
+    const summary = summarizeFinancialData(financialLaunches);
+    const kpis = [
+      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [62], sparkVariant: 'donut' },
+      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [44], sparkVariant: 'donut' },
+      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [71], sparkVariant: 'donut' },
+      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [35], sparkVariant: 'donut' },
+      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2], sparkVariant: 'bar' },
+      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7], sparkVariant: 'bar' }
+    ];
+    const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
+    const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+    const isCompactFinanceActions = !isWideNavigation;
+    const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
+    const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
+    const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
+    const filteredInCategories = financialCategories.entradas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
+    const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
+    const despesasPorCategoriaResumo = Object.entries(
+      financialLaunches
+        .filter((item) => item.tipo === 'saida')
+        .reduce((acc, item) => {
+          const key = item.categoria || 'Sem categoria';
+          acc[key] = (acc[key] || 0) + Number(item.valor || 0);
+          return acc;
+        }, {})
+    ).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const receitasPorCategoriaResumo = Object.entries(
+      financialLaunches
+        .filter((item) => item.tipo === 'entrada')
+        .reduce((acc, item) => {
+          const key = item.categoria || 'Sem categoria';
+          acc[key] = (acc[key] || 0) + Number(item.valor || 0);
+          return acc;
+        }, {})
+    ).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
     return (
       <div className="space-y-6">
-        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Cobrança, assinaturas e faturamento' })}
-        <div className="ui-card data-card data-card--g">
-          <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
-          <ul className="list-disc pl-5 space-y-1 text-slate-800">
-            <li>Limpeza Profilática</li>
-            <li>Restauração em Resina</li>
-            <li>Tratamento de Canal</li>
-            <li>Avaliação Ortodôntica</li>
-          </ul>
-        </div>
+        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
+
+        {!isMobileViewport ? (
+          <div className="flex justify-end">
+            <Toolbar>
+              <ActionButton label="Período" className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen(true)} />
+              <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => setIsExportModalOpen(true)} />
+            </Toolbar>
+          </div>
+        ) : null}
+
+        {isPeriodPickerOpen ? (
+          <div className="finance-overlay" onClick={() => setIsPeriodPickerOpen(false)}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title="Selecionar período">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <ActionButton label="Hoje" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('today')} />
+                  <ActionButton label="Semana" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('week')} />
+                  <ActionButton label="Mês" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('month')} />
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Início
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.from} onChange={(event) => setPeriodDraft((current) => ({ ...current, from: event.target.value }))} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Fim
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.to} onChange={(event) => setPeriodDraft((current) => ({ ...current, to: event.target.value }))} />
+                  </label>
+                </div>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsPeriodPickerOpen(false)} />
+                  <ActionButton label="Aplicar período" className="btn--header btn--header-new" onClick={applyCustomPeriod} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        {isExportModalOpen ? (
+          <div className="finance-overlay" onClick={() => setIsExportModalOpen(false)}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title="Exportar relatório financeiro">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <ActionButton label="Exportar PDF" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => setIsExportModalOpen(false)} />
+                  <ActionButton label="Exportar CSV" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => setIsExportModalOpen(false)} />
+                </div>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsExportModalOpen(false)} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        <ContentGrid columns="4">
+          {kpis.slice(0, 4).map((kpi) => (
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
+          ))}
+        </ContentGrid>
+
+        <ContentGrid columns="2">
+          {kpis.slice(4).map((kpi) => (
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
+          ))}
+        </ContentGrid>
+
+        <ContentGrid columns="2">
+          <SectionCard
+            title="Contas financeiras"
+            actions={(
+              <ActionButton
+                label={isCompactFinanceActions ? '' : 'Editar'}
+                ariaLabel="Editar contas financeiras"
+                className="btn--header btn--header-muted btn--icon-compact"
+                icon={<AppIcon name="edit" size={14} />}
+                onClick={() => setIsAccountsEditMode(true)}
+              />
+            )}
+          >
+            <DataTable
+              columns={[
+                { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+                { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
+              ]}
+              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma conta cadastrada."
+            />
+          </SectionCard>
+
+          <SectionCard
+            title="Categorias financeiras"
+            actions={(
+              <ActionButton
+                label={isCompactFinanceActions ? '' : 'Editar'}
+                ariaLabel="Editar categorias"
+                className="btn--header btn--header-muted btn--icon-compact"
+                icon={<AppIcon name="edit" size={14} />}
+                onClick={() => setIsCategoriesEditMode(true)}
+              />
+            )}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
+                <div className="space-y-2">
+                  {receitasPorCategoriaResumo.map(([categoria, total]) => (
+                    <div key={`cat-income-${categoria}`}>
+                      <div className="flex justify-between text-xs text-slate-600 mb-1">
+                        <span>{categoria}</span><span>{formatMoney(total)}</span>
+                      </div>
+                      <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                        <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
+                <div className="space-y-2">
+                  {despesasPorCategoriaResumo.map(([categoria, total]) => (
+                    <div key={`cat-expense-${categoria}`}>
+                      <div className="flex justify-between text-xs text-slate-600 mb-1">
+                        <span>{categoria}</span><span>{formatMoney(total)}</span>
+                      </div>
+                      <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                        <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
+          </SectionCard>
+        </ContentGrid>
+
+        <ContentGrid columns="2">
+          <SectionCard
+            title="Despesas recorrentes"
+            actions={(
+              <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode(true)} />
+            )}
+          >
+            <DataTable
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+              ]}
+              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma despesa recorrente cadastrada."
+            />
+          </SectionCard>
+
+          <SectionCard
+            title="Previsões de custos"
+            actions={(
+              <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode(true)} />
+            )}
+          >
+            <DataTable
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+              ]}
+              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma previsão cadastrada."
+            />
+          </SectionCard>
+        </ContentGrid>
+
+        {isAccountModalOpen || isAccountsEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title={isAccountModalOpen ? 'Adicionar conta financeira' : 'Editar contas financeiras'}>
+                {isAccountModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Nome da conta" value={newAccountDraft.nome} onChange={(event) => setNewAccountDraft((current) => ({ ...current, nome: event.target.value }))} />
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Banco" value={newAccountDraft.banco} onChange={(event) => setNewAccountDraft((current) => ({ ...current, banco: event.target.value }))} />
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newAccountDraft.tipo} onChange={(event) => setNewAccountDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                        <option value="corrente">corrente</option>
+                        <option value="poupanca">poupança</option>
+                      </select>
+                      <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Saldo inicial" value={newAccountDraft.saldo_inicial} onChange={(event) => setNewAccountDraft((current) => ({ ...current, saldo_inicial: event.target.value }))} />
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
+                      <ActionButton label="Salvar conta" className="btn--header btn--header-new" onClick={addFinancialAccount} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar contas" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} />
+                      <ActionButton label="Adicionar conta" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
+                    </div>
+                    <DataTable
+                      columns={[
+                        { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+                        { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                        { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                        { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
+                        { key: 'acoes', label: 'Ações', render: (row) => <ActionGroup><ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} /><ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} /></ActionGroup> }
+                      ]}
+                      rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
+                    />
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
+                      <ActionButton label="Adicionar conta" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
+                    </div>
+                  </>
+                )}
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        {isCategoryModalOpen || isCategoriesEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title={isCategoryModalOpen ? 'Adicionar categoria financeira' : 'Editar categorias financeiras'}>
+                {isCategoryModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newCategoryDraft.tipo} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                        <option value="entradas">Receitas</option>
+                        <option value="saidas">Despesas</option>
+                      </select>
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Nome da categoria" value={newCategoryDraft.nome} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, nome: event.target.value }))} />
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />
+                      <ActionButton label="Salvar categoria" className="btn--header btn--header-new" onClick={addFinancialCategory} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-3 flex justify-center">
+                      <input className="financial-category-filter rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar categorias" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="font-black text-slate-600 mb-2">Receitas</p>
+                        <div className="flex flex-wrap gap-2">{filteredInCategories.map((item) => <button type="button" key={`cat-edit-in-${item}`} className="financial-category-chip financial-category-chip--in px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => handleCategoryDelete('entradas', item)}>{item}<span className="financial-category-chip__remove"><AppIcon name="close" size={10} /></span></button>)}</div>
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-600 mb-2">Despesas</p>
+                        <div className="flex flex-wrap gap-2">{filteredOutCategories.map((item) => <button type="button" key={`cat-edit-out-${item}`} className="financial-category-chip financial-category-chip--out px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => handleCategoryDelete('saidas', item)}>{item}<span className="financial-category-chip__remove"><AppIcon name="close" size={10} /></span></button>)}</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />
+                      <ActionButton label="Adicionar categoria" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }} />
+                    </div>
+                  </>
+                )}
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        {isRecurringModalOpen || isRecurringEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title={isRecurringModalOpen ? 'Adicionar despesa recorrente' : 'Editar despesas recorrentes'}>
+                {isRecurringModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Descrição" value={newRecurringDraft.descricao} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, descricao: event.target.value }))} />
+                      <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newRecurringDraft.valor} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, valor: event.target.value }))} />
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newRecurringDraft.periodicidade} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, periodicidade: event.target.value }))}>
+                        <option value="mensal">mensal</option>
+                        <option value="semanal">semanal</option>
+                      </select>
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2"><ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} /><ActionButton label="Salvar recorrência" className="btn--header btn--header-new" onClick={addRecurring} /></div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar recorrências" value={recurringFilter} onChange={(event) => setRecurringFilter(event.target.value)} />
+                      <ActionButton label="Adicionar recorrência" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
+                    </div>
+                    <DataTable
+                      columns={[
+                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                        { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                        { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                        { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
+                      ]}
+                      rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
+                    />
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />
+                      <ActionButton label="Adicionar recorrência" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
+                    </div>
+                  </>
+                )}
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        {isForecastModalOpen || isForecastEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title={isForecastModalOpen ? 'Adicionar previsão de custo' : 'Editar previsões de custo'}>
+                {isForecastModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Descrição" value={newForecastDraft.descricao} onChange={(event) => setNewForecastDraft((current) => ({ ...current, descricao: event.target.value }))} />
+                      <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newForecastDraft.valor} onChange={(event) => setNewForecastDraft((current) => ({ ...current, valor: event.target.value }))} />
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newForecastDraft.periodo} onChange={(event) => setNewForecastDraft((current) => ({ ...current, periodo: event.target.value }))}>
+                        <option value="Próximos 15 dias">Próximos 15 dias</option>
+                        <option value="Próximos 30 dias">Próximos 30 dias</option>
+                        <option value="Próximos 90 dias">Próximos 90 dias</option>
+                      </select>
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2"><ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} /><ActionButton label="Salvar previsão" className="btn--header btn--header-new" onClick={addForecast} /></div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar previsões" value={forecastFilter} onChange={(event) => setForecastFilter(event.target.value)} />
+                      <ActionButton label="Adicionar previsão" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
+                    </div>
+                    <DataTable
+                      columns={[
+                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                        { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                        { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
+                      ]}
+                      rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
+                    />
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />
+                      <ActionButton label="Adicionar previsão" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
+                    </div>
+                  </>
+                )}
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        <ContentGrid columns="2">
+          <PanelCard title="Contas a receber" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('entrada')} />}>
+            <DataTable
+              columns={[
+                { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+              ]}
+              rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+            />
+            <div className="mt-3 text-right text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
+          </PanelCard>
+          <PanelCard title="Contas a pagar" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('saida')} />}>
+            <DataTable
+              columns={[
+                { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+              ]}
+              rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+            />
+            <div className="mt-3 text-right text-sm font-black text-rose-700">{formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
+          </PanelCard>
+        </ContentGrid>
+
+        <SectionCard
+          title="Lançamentos"
+          actions={<ActionButton label="Novo lançamento" tone="primary" className="btn--header btn--header-new" onClick={() => openFinancialCreate('entrada')} />}
+        >
+          <DataTable
+            columns={[
+              { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
+              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria}</span> },
+              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'pagamento', label: 'Pagamento', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
+              {
+                key: 'acoes',
+                label: 'Ações',
+                render: (row) => (
+                  <div className="financial-row-actions">
+                    <button type="button" className="financial-row-actions__icon text-sky-600" aria-label="Editar lançamento" onClick={() => openFinancialEdit(row)}>
+                      <AppIcon name="edit" size={16} />
+                    </button>
+                    <button type="button" className="financial-row-actions__icon text-rose-600" aria-label="Excluir lançamento" onClick={() => handleFinancialDelete(row.id)}>
+                      <AppIcon name="close" size={16} />
+                    </button>
+                  </div>
+                )
+              }
+            ]}
+            rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
+            emptyMessage="Nenhum lançamento financeiro cadastrado."
+          />
+        </SectionCard>
+
+        {isFinancialFormOpen ? (
+          <div className="finance-overlay" onClick={closeFinancialForm}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard
+                className="financial-modal-card financial-launch-modal-card"
+                titleClassName="financial-launch-modal-card__title"
+                title={
+                  financialDraft.id
+                    ? 'Editar lançamento'
+                    : financialDraft.tipo === 'saida'
+                      ? 'Adicionar despesa'
+                      : 'Adicionar receita'
+                }
+                extra={null}
+              >
+                <div className="financial-launch-modal-card__body">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Tipo
+                    <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.tipo} onChange={(event) => handleFinancialDraftChange('tipo', event.target.value)}>
+                      <option value="entrada">entrada</option>
+                      <option value="saida">saida</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Descrição
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.descricao} onChange={(event) => handleFinancialDraftChange('descricao', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Categoria
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.categoria} onChange={(event) => handleFinancialDraftChange('categoria', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Subcategoria
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.subcategoria} onChange={(event) => handleFinancialDraftChange('subcategoria', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Valor
+                    <input type="number" min="0" step="0.01" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.valor} onChange={(event) => handleFinancialDraftChange('valor', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Status
+                    <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.status} onChange={(event) => handleFinancialDraftChange('status', event.target.value)}>
+                      <option value="previsto">previsto</option>
+                      <option value="pago">pago</option>
+                      <option value="recebido">recebido</option>
+                      <option value="vencido">vencido</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Competência
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_competencia} onChange={(event) => handleFinancialDraftChange('data_competencia', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Vencimento
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_vencimento} onChange={(event) => handleFinancialDraftChange('data_vencimento', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Pagamento
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_pagamento} onChange={(event) => handleFinancialDraftChange('data_pagamento', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Origem
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.origem} onChange={(event) => handleFinancialDraftChange('origem', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Paciente ID
+                    <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.paciente_id} onChange={(event) => handleFinancialDraftChange('paciente_id', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Profissional ID
+                    <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.profissional_id} onChange={(event) => handleFinancialDraftChange('profissional_id', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400 md:col-span-2 xl:col-span-3">Observações
+                    <textarea className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[96px]" value={financialDraft.observacoes} onChange={(event) => handleFinancialDraftChange('observacoes', event.target.value)} />
+                  </label>
+                </div>
+                </div>
+                <div className="financial-launch-modal-card__footer mt-4 flex justify-end gap-2">
+                  <ActionButton label="Cancelar" className="btn--header btn--header-muted financial-launch-modal-card__cancel" onClick={closeFinancialForm} />
+                  <ActionButton label="Salvar lançamento" className="btn--header btn--header-new financial-launch-modal-card__save" onClick={handleFinancialSave} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -2598,11 +3745,13 @@ function DashboardApp({
     },
     financial: {
       left: [
-        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
-        { key: 'financial-clinic', icon: 'id-card', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
+        { key: 'financial-period', icon: 'calendar', tone: 'settings', label: 'Período', onClick: () => setIsPeriodPickerOpen(true) },
+        { key: 'financial-receita', icon: 'plus', tone: 'success', label: 'Receita', onClick: () => openFinancialCreate('entrada') }
       ],
+      center: { key: 'financial-panel', icon: 'plan', tone: 'settings', label: 'Painel', onClick: () => goToLevel1('financial') },
       right: [
-        { key: 'financial-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+        { key: 'financial-despesa', icon: 'plus', tone: 'info', label: 'Despesa', onClick: () => openFinancialCreate('saida') },
+        { key: 'financial-export', icon: 'download', tone: 'overview', label: 'Exportar', onClick: () => setIsExportModalOpen(true) }
       ]
     },
     clinic: {
@@ -2765,38 +3914,18 @@ function DashboardApp({
   );
 
   return (
-    <div className="app-shell">
-      <div className="app-frame">
-        {isWideNavigation ? (
-          <aside className="app-sidebar">
-            <div className="app-brand">Odonto<span>Flow</span></div>
-            {authEmail ? (
-              <div className="text-[11px] leading-snug text-slate-300 mb-3">
-                <p className="font-semibold text-slate-200">Conectado</p>
-                <p className="truncate">{authEmail}</p>
-              </div>
-            ) : null}
-            <nav className="app-nav">
-              {LEVEL1_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => goToLevel1(tab.id)}
-                  className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
-                  aria-current={activeTab === tab.id ? 'page' : undefined}
-                  title={tab.label}
-                >
-                  <AppIcon name={tab.icon} size={14} />
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </aside>
-        ) : null}
-
-        <main className="app-content">
-          {renderContent()}
-        </main>
-      </div>
+    <AppShell
+      sidebar={(
+        <AppSidebar
+          isVisible={isWideNavigation}
+          authEmail={authEmail}
+          tabs={LEVEL1_TABS}
+          activeTab={activeTab}
+          onTabChange={goToLevel1}
+        />
+      )}
+    >
+      {renderContent()}
 
       <AccountN2Modal
         isOpen={isAccountEditN2Open}
@@ -2881,7 +4010,7 @@ function DashboardApp({
         centerAction={mobileNavActionConfig.center}
         rightActions={mobileNavActionConfig.right}
       />
-    </div>
+    </AppShell>
   );
 }
 
