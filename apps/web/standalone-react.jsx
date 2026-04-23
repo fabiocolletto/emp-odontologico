@@ -1622,8 +1622,11 @@ function DashboardApp({
     observacoes: ''
   });
 
-  const openFinancialCreate = () => {
-    setFinancialDraft(emptyFinancialDraft());
+  const openFinancialCreate = (tipo = 'entrada') => {
+    setFinancialDraft({
+      ...emptyFinancialDraft(),
+      tipo
+    });
     setIsFinancialFormOpen(true);
   };
 
@@ -3213,8 +3216,8 @@ function DashboardApp({
 
         <Toolbar>
           <ActionButton label={selectedPeriodLabel} className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen((current) => !current)} />
-          <ActionButton label="Novo recebimento" className="btn--header btn--header-success" icon={<AppIcon name="plus" size={14} />} onClick={openFinancialCreate} />
-          <ActionButton label="Nova despesa" className="btn--header btn--header-danger" icon={<AppIcon name="plus" size={14} />} onClick={openFinancialCreate} />
+          <ActionButton label="Novo recebimento" className="btn--header btn--header-success" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('entrada')} />
+          <ActionButton label="Nova despesa" className="btn--header btn--header-danger" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('saida')} />
           <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => {}} />
         </Toolbar>
 
@@ -3556,7 +3559,7 @@ function DashboardApp({
 
         <SectionCard
           title="Lançamentos"
-          actions={<ActionButton label="Novo lançamento" tone="primary" className="btn--header btn--header-new" onClick={openFinancialCreate} />}
+          actions={<ActionButton label="Novo lançamento" tone="primary" className="btn--header btn--header-new" onClick={() => openFinancialCreate('entrada')} />}
         >
           <DataTable
             columns={[
@@ -3584,60 +3587,72 @@ function DashboardApp({
         </SectionCard>
 
         {isFinancialFormOpen ? (
-          <div className="ui-card data-card data-card--g p-4 space-y-4">
-            <h3 className="text-base font-black text-slate-900">{financialDraft.id ? 'Editar lançamento' : 'Novo lançamento'}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Tipo
-                <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.tipo} onChange={(event) => handleFinancialDraftChange('tipo', event.target.value)}>
-                  <option value="entrada">entrada</option>
-                  <option value="saida">saida</option>
-                </select>
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Descrição
-                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.descricao} onChange={(event) => handleFinancialDraftChange('descricao', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Categoria
-                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.categoria} onChange={(event) => handleFinancialDraftChange('categoria', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Subcategoria
-                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.subcategoria} onChange={(event) => handleFinancialDraftChange('subcategoria', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Valor
-                <input type="number" min="0" step="0.01" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.valor} onChange={(event) => handleFinancialDraftChange('valor', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Status
-                <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.status} onChange={(event) => handleFinancialDraftChange('status', event.target.value)}>
-                  <option value="previsto">previsto</option>
-                  <option value="pago">pago</option>
-                  <option value="recebido">recebido</option>
-                  <option value="vencido">vencido</option>
-                </select>
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Competência
-                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_competencia} onChange={(event) => handleFinancialDraftChange('data_competencia', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Vencimento
-                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_vencimento} onChange={(event) => handleFinancialDraftChange('data_vencimento', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Pagamento
-                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_pagamento} onChange={(event) => handleFinancialDraftChange('data_pagamento', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Origem
-                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.origem} onChange={(event) => handleFinancialDraftChange('origem', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Paciente ID
-                <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.paciente_id} onChange={(event) => handleFinancialDraftChange('paciente_id', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Profissional ID
-                <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.profissional_id} onChange={(event) => handleFinancialDraftChange('profissional_id', event.target.value)} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400 md:col-span-2 xl:col-span-3">Observações
-                <textarea className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[96px]" value={financialDraft.observacoes} onChange={(event) => handleFinancialDraftChange('observacoes', event.target.value)} />
-              </label>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button type="button" className="btn btn--ghost" onClick={closeFinancialForm}>Cancelar</button>
-              <button type="button" className="btn btn--primary btn--header btn--header-new" onClick={handleFinancialSave}>Salvar lançamento</button>
+          <div className="finance-overlay" onClick={closeFinancialForm}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard
+                title={
+                  financialDraft.id
+                    ? 'Editar lançamento'
+                    : financialDraft.tipo === 'saida'
+                      ? 'Adicionar despesa'
+                      : 'Adicionar receita'
+                }
+                extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={closeFinancialForm} />}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Tipo
+                    <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.tipo} onChange={(event) => handleFinancialDraftChange('tipo', event.target.value)}>
+                      <option value="entrada">entrada</option>
+                      <option value="saida">saida</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Descrição
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.descricao} onChange={(event) => handleFinancialDraftChange('descricao', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Categoria
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.categoria} onChange={(event) => handleFinancialDraftChange('categoria', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Subcategoria
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.subcategoria} onChange={(event) => handleFinancialDraftChange('subcategoria', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Valor
+                    <input type="number" min="0" step="0.01" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.valor} onChange={(event) => handleFinancialDraftChange('valor', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Status
+                    <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.status} onChange={(event) => handleFinancialDraftChange('status', event.target.value)}>
+                      <option value="previsto">previsto</option>
+                      <option value="pago">pago</option>
+                      <option value="recebido">recebido</option>
+                      <option value="vencido">vencido</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Competência
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_competencia} onChange={(event) => handleFinancialDraftChange('data_competencia', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Vencimento
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_vencimento} onChange={(event) => handleFinancialDraftChange('data_vencimento', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Pagamento
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_pagamento} onChange={(event) => handleFinancialDraftChange('data_pagamento', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Origem
+                    <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.origem} onChange={(event) => handleFinancialDraftChange('origem', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Paciente ID
+                    <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.paciente_id} onChange={(event) => handleFinancialDraftChange('paciente_id', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Profissional ID
+                    <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.profissional_id} onChange={(event) => handleFinancialDraftChange('profissional_id', event.target.value)} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400 md:col-span-2 xl:col-span-3">Observações
+                    <textarea className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[96px]" value={financialDraft.observacoes} onChange={(event) => handleFinancialDraftChange('observacoes', event.target.value)} />
+                  </label>
+                </div>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button type="button" className="btn btn--ghost" onClick={closeFinancialForm}>Cancelar</button>
+                  <button type="button" className="btn btn--primary btn--header btn--header-new" onClick={handleFinancialSave}>Salvar lançamento</button>
+                </div>
+              </PanelCard>
             </div>
           </div>
         ) : null}
