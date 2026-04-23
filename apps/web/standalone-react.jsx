@@ -267,6 +267,163 @@ const SortToggleButton = ({ onClick }) => (
   />
 );
 
+const AppShell = ({ sidebar, header, children }) => (
+  <div className="app-shell">
+    <div className="app-frame">
+      {sidebar}
+      <main className="app-content">
+        {header}
+        {children}
+      </main>
+    </div>
+  </div>
+);
+
+const AppSidebar = ({
+  isVisible,
+  authEmail,
+  tabs,
+  activeTab,
+  onTabChange
+}) => {
+  if (!isVisible) return null;
+
+  return (
+    <aside className="app-sidebar">
+      <div className="app-brand">Odonto<span>Flow</span></div>
+      {authEmail ? (
+        <div className="text-[11px] leading-snug text-slate-300 mb-3">
+          <p className="font-semibold text-slate-200">Conectado</p>
+          <p className="truncate">{authEmail}</p>
+        </div>
+      ) : null}
+      <nav className="app-nav">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
+            title={tab.label}
+          >
+            <AppIcon name={tab.icon} size={14} />
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+    </aside>
+  );
+};
+
+const AppHeader = ({ children }) => (
+  <header className="ui-card data-card data-card--g p-4 mb-4">
+    {children}
+  </header>
+);
+
+const PageHeader = ({ icon, title, subtitle, actions = null }) => (
+  <div className="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <BioHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        actions={[]}
+        navigation={null}
+      />
+    </div>
+    {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+  </div>
+);
+
+const ContentGrid = ({ columns = '2', children, className = '' }) => (
+  <section className={`grid gap-4 ${columns === '4' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4' : columns === '3' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1 xl:grid-cols-2'} ${className}`.trim()}>
+    {children}
+  </section>
+);
+
+const BaseCard = ({ className = '', children }) => (
+  <article className={`ui-card data-card data-card--g p-4 ${className}`.trim()}>{children}</article>
+);
+
+const StatCard = ({ label, value, trend, trendTone = 'text-slate-500' }) => (
+  <BaseCard>
+    <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
+    <p className="text-2xl font-black text-slate-900 mt-2 whitespace-nowrap">{value}</p>
+    {trend ? <p className={`text-xs font-bold mt-2 ${trendTone}`}>{trend}</p> : null}
+  </BaseCard>
+);
+
+const PanelCard = ({ title, extra = null, children }) => (
+  <BaseCard>
+    <div className="flex items-center justify-between gap-3 mb-3">
+      <h3 className="text-base font-black text-slate-900">{title}</h3>
+      {extra}
+    </div>
+    {children}
+  </BaseCard>
+);
+
+const SectionCard = ({ title, actions = null, children }) => (
+  <BaseCard>
+    <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+      <h3 className="text-base font-black text-slate-900">{title}</h3>
+      {actions}
+    </div>
+    {children}
+  </BaseCard>
+);
+
+const StatusBadge = ({ status }) => {
+  const tone = status === 'vencido'
+    ? 'text-rose-600 bg-rose-50'
+    : (['pago', 'recebido'].includes(status) ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50');
+  return <span className={`inline-flex px-2 py-1 rounded-full text-[11px] font-black uppercase ${tone}`}>{status}</span>;
+};
+
+const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
+  <div className="py-6 text-center text-sm text-slate-500">{message}</div>
+);
+
+const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.' }) => (
+  <div className="overflow-x-auto">
+    <table className="min-w-full text-sm">
+      <thead>
+        <tr className="text-slate-400">
+          {columns.map((column) => (
+            <th key={column.key} className="text-left py-2 pr-3">{column.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.length === 0 ? (
+          <tr>
+            <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
+          </tr>
+        ) : rows.map((row) => (
+          <tr key={row.key} className="border-t border-slate-100">
+            {columns.map((column) => (
+              <td key={`${row.key}-${column.key}`} className="py-2 pr-3">{column.render(row)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button' }) => (
+  <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick}>
+    {icon}
+    {label}
+  </button>
+);
+
+const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
+const Toolbar = ({ children }) => <BaseCard><ActionGroup>{children}</ActionGroup></BaseCard>;
+const AlertCard = ({ text }) => <BaseCard className="border-amber-100 bg-amber-50/40"><p className="text-sm text-amber-700 font-semibold">{text}</p></BaseCard>;
+const InsightCard = ({ text }) => <BaseCard className="border-sky-100 bg-sky-50/40"><p className="text-sm text-sky-700 font-semibold">{text}</p></BaseCard>;
+
 const BioHeader = ({
   icon,
   title,
@@ -2271,13 +2428,10 @@ function DashboardApp({
     );
 
     const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
-      <BioHeader
-        icon={icon}
-        title={title}
-        subtitle={subtitle}
-        actions={actions}
-        navigation={null}
-      />
+      <AppHeader>
+        <PageHeader icon={icon} title={title} subtitle={subtitle} actions={actions} />
+        {navigation}
+      </AppHeader>
     );
 
     if (activeTab === 'overview') {
@@ -2289,13 +2443,12 @@ function DashboardApp({
             subtitle: 'Dashboard principal e visão consolidada',
             actions: []
           })}
-          <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Início (nível 0)</p>
-            <p className="text-sm text-slate-600">
-              Esta é a tela de nível 0 do sistema: o dashboard principal de abertura com visão consolidada
-              dos módulos operacionais.
-            </p>
-          </div>
+          <ContentGrid columns="3">
+            <StatCard label="Pacientes ativos" value={String(sortedPatients.length)} trend="+6,2% no mês" trendTone="text-emerald-600" />
+            <StatCard label="Atendimentos do dia" value={String(filteredAppointments.length)} trend="Agenda atualizada" trendTone="text-sky-600" />
+            <StatCard label="Módulos monitorados" value="5" trend="Shell unificado" trendTone="text-indigo-600" />
+          </ContentGrid>
+          <InsightCard text="Esta é a tela de nível 0 consolidada com o novo design system global do OdontoFlow." />
         </div>
       );
     }
@@ -2309,12 +2462,25 @@ function DashboardApp({
             subtitle: 'Planejamento de atendimentos e compromissos',
             actions: []
           })}
-          <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Agenda (nível 1)</p>
+          <PanelCard title="Agenda (nível 1)">
             <p className="text-sm text-slate-600">
-              Esta tela representa a Agenda no nível 1, ao lado de Pacientes, Financeiro e Perfil.
+              Esta tela representa a Agenda no nível 1, ao lado de Pacientes, Financeiro e Perfil, já usando a mesma base visual global.
             </p>
-          </div>
+          </PanelCard>
+          <ContentGrid columns="2">
+            <PanelCard title="Próximos atendimentos">
+              <DataTable
+                columns={[
+                  { key: 'paciente', label: 'Paciente', render: (row) => <span className="text-slate-700 font-semibold">{row.name}</span> },
+                  { key: 'hora', label: 'Hora', render: (row) => <span className="text-slate-500">{row.time}</span> },
+                  { key: 'procedimento', label: 'Procedimento', render: (row) => <span className="text-slate-500">{row.procedure}</span> }
+                ]}
+                rows={visibleAppointments.map((item) => ({ key: `appt-${item.id}`, ...item }))}
+                emptyMessage="Sem atendimentos para o período."
+              />
+            </PanelCard>
+            <AlertCard text="Use o módulo Agenda para organizar horários, encaixes e confirmações de consulta." />
+          </ContentGrid>
         </div>
       );
     }
@@ -2330,7 +2496,7 @@ function DashboardApp({
             actions: []
           })}
           <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
-            <div className="flex gap-2 flex-wrap justify-end ui-action-bar page-header__actions">
+            <Toolbar>
               <AddRecordButton
                 label="Novo paciente"
                 ariaLabel="Cadastrar novo paciente"
@@ -2350,7 +2516,7 @@ function DashboardApp({
                   });
                 }}
               />
-            </div>
+            </Toolbar>
           </div>
           <TransientNotice
             visible={showPatientHint && !formFeedback}
@@ -2775,141 +2941,79 @@ function DashboardApp({
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica' })}
 
-        <div className="ui-card data-card data-card--g">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="chip chip--soft">Período</span>
-              <span className="text-sm font-semibold text-slate-700">01/04/2026 - 30/04/2026</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button type="button" className="btn btn--primary btn--header btn--header-success" onClick={openFinancialCreate}>Novo recebimento</button>
-              <button type="button" className="btn btn--primary btn--header btn--header-danger" onClick={openFinancialCreate}>Nova despesa</button>
-              <button type="button" className="btn btn--ghost">Exportar relatório</button>
-            </div>
-          </div>
-        </div>
+        <Toolbar>
+          <span className="chip chip--soft">Período</span>
+          <span className="text-sm font-semibold text-slate-700">01/04/2026 - 30/04/2026</span>
+          <ActionButton label="Novo recebimento" tone="primary" className="btn--header btn--header-success" onClick={openFinancialCreate} />
+          <ActionButton label="Nova despesa" tone="primary" className="btn--header btn--header-danger" onClick={openFinancialCreate} />
+          <ActionButton label="Exportar relatório" onClick={() => {}} />
+        </Toolbar>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <ContentGrid columns="4">
           {kpis.slice(0, 4).map((kpi) => (
-            <div key={kpi.label} className="ui-card data-card data-card--g p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{kpi.label}</p>
-              <p className="text-2xl font-black text-slate-900 mt-2 whitespace-nowrap">{kpi.value}</p>
-              <p className={`text-xs font-bold mt-2 ${kpi.tone}`}>{kpi.trend} vs mês anterior</p>
-            </div>
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} />
           ))}
-        </div>
+        </ContentGrid>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ContentGrid columns="2">
           {kpis.slice(4).map((kpi) => (
-            <div key={kpi.label} className="ui-card data-card data-card--g p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{kpi.label}</p>
-              <p className="text-xl font-black text-slate-900 mt-2">{kpi.value}</p>
-              <p className={`text-xs font-bold mt-2 ${kpi.tone}`}>{kpi.trend} vs mês anterior</p>
-            </div>
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} />
           ))}
-        </div>
+        </ContentGrid>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div className="ui-card data-card data-card--g p-4">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h3 className="text-base font-black text-slate-900">Contas a receber</h3>
-              <span className="text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-slate-400">
-                    <th className="text-left py-2 pr-3">Paciente/Origem</th>
-                    <th className="text-left py-2 pr-3">Vencimento</th>
-                    <th className="text-left py-2 pr-3">Valor</th>
-                    <th className="text-left py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contasReceber.map((item) => (
-                    <tr key={`receber-${item.id}`} className="border-t border-slate-100">
-                      <td className="py-2 pr-3 text-slate-700">{item.origem}</td>
-                      <td className="py-2 pr-3 text-slate-500">{item.data_vencimento || '-'}</td>
-                      <td className="py-2 pr-3 text-slate-700 font-bold">{formatMoney(item.valor)}</td>
-                      <td className="py-2 text-xs font-black uppercase text-amber-600">{item.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <ContentGrid columns="2">
+          <PanelCard title="Contas a receber" extra={<span className="text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</span>}>
+            <DataTable
+              columns={[
+                { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-700">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-500">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-bold">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+              ]}
+              rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+            />
+          </PanelCard>
+          <PanelCard title="Contas a pagar" extra={<span className="text-sm font-black text-rose-700">{formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</span>}>
+            <DataTable
+              columns={[
+                { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-700">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-500">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-bold">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+              ]}
+              rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+            />
+          </PanelCard>
+        </ContentGrid>
 
-          <div className="ui-card data-card data-card--g p-4">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h3 className="text-base font-black text-slate-900">Contas a pagar</h3>
-              <span className="text-sm font-black text-rose-700">{formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-slate-400">
-                    <th className="text-left py-2 pr-3">Fornecedor</th>
-                    <th className="text-left py-2 pr-3">Vencimento</th>
-                    <th className="text-left py-2 pr-3">Valor</th>
-                    <th className="text-left py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contasPagar.map((item) => (
-                    <tr key={`pagar-${item.id}`} className="border-t border-slate-100">
-                      <td className="py-2 pr-3 text-slate-700">{item.origem}</td>
-                      <td className="py-2 pr-3 text-slate-500">{item.data_vencimento || '-'}</td>
-                      <td className="py-2 pr-3 text-slate-700 font-bold">{formatMoney(item.valor)}</td>
-                      <td className={`py-2 text-xs font-black uppercase ${item.status === 'vencido' ? 'text-rose-600' : 'text-emerald-600'}`}>{item.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div className="ui-card data-card data-card--g p-4">
-          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-            <h3 className="text-base font-black text-slate-900">Lançamentos</h3>
-            <button type="button" className="btn btn--primary btn--header btn--header-new" onClick={openFinancialCreate}>Novo lançamento</button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-[960px] w-full text-sm">
-              <thead>
-                <tr className="text-slate-400">
-                  <th className="text-left py-2 pr-3">Tipo</th>
-                  <th className="text-left py-2 pr-3">Descrição</th>
-                  <th className="text-left py-2 pr-3">Categoria</th>
-                  <th className="text-left py-2 pr-3">Valor</th>
-                  <th className="text-left py-2 pr-3">Status</th>
-                  <th className="text-left py-2 pr-3">Vencimento</th>
-                  <th className="text-left py-2 pr-3">Pagamento</th>
-                  <th className="text-left py-2">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {financialLaunches.map((item) => (
-                  <tr key={`launch-${item.id}`} className="border-t border-slate-100">
-                    <td className={`py-2 pr-3 font-black uppercase text-xs ${item.tipo === 'entrada' ? 'text-emerald-600' : 'text-rose-600'}`}>{item.tipo}</td>
-                    <td className="py-2 pr-3 text-slate-700">{item.descricao}</td>
-                    <td className="py-2 pr-3 text-slate-500">{item.categoria}</td>
-                    <td className="py-2 pr-3 text-slate-700 font-bold">{formatMoney(item.valor)}</td>
-                    <td className="py-2 pr-3 text-xs uppercase font-black text-slate-500">{item.status}</td>
-                    <td className="py-2 pr-3 text-slate-500">{item.data_vencimento || '-'}</td>
-                    <td className="py-2 pr-3 text-slate-500">{item.data_pagamento || '-'}</td>
-                    <td className="py-2">
-                      <div className="flex items-center gap-2">
-                        <button type="button" className="btn btn--ghost" onClick={() => openFinancialEdit(item)}>Editar</button>
-                        <button type="button" className="btn btn--ghost text-rose-600" onClick={() => handleFinancialDelete(item.id)}>Excluir</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <SectionCard
+          title="Lançamentos"
+          actions={<ActionButton label="Novo lançamento" tone="primary" className="btn--header btn--header-new" onClick={openFinancialCreate} />}
+        >
+          <DataTable
+            columns={[
+              { key: 'tipo', label: 'Tipo', render: (row) => <span className={`font-black uppercase text-xs ${row.tipo === 'entrada' ? 'text-emerald-600' : 'text-rose-600'}`}>{row.tipo}</span> },
+              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
+              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria}</span> },
+              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-bold">{formatMoney(row.valor)}</span> },
+              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-500">{row.data_vencimento || '-'}</span> },
+              { key: 'pagamento', label: 'Pagamento', render: (row) => <span className="text-slate-500">{row.data_pagamento || '-'}</span> },
+              {
+                key: 'acoes',
+                label: 'Ações',
+                render: (row) => (
+                  <ActionGroup>
+                    <ActionButton label="Editar" onClick={() => openFinancialEdit(row)} />
+                    <ActionButton label="Excluir" onClick={() => handleFinancialDelete(row.id)} className="text-rose-600" />
+                  </ActionGroup>
+                )
+              }
+            ]}
+            rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
+            emptyMessage="Nenhum lançamento financeiro cadastrado."
+          />
+        </SectionCard>
 
         {isFinancialFormOpen ? (
           <div className="ui-card data-card data-card--g p-4 space-y-4">
@@ -3173,38 +3277,18 @@ function DashboardApp({
   );
 
   return (
-    <div className="app-shell">
-      <div className="app-frame">
-        {isWideNavigation ? (
-          <aside className="app-sidebar">
-            <div className="app-brand">Odonto<span>Flow</span></div>
-            {authEmail ? (
-              <div className="text-[11px] leading-snug text-slate-300 mb-3">
-                <p className="font-semibold text-slate-200">Conectado</p>
-                <p className="truncate">{authEmail}</p>
-              </div>
-            ) : null}
-            <nav className="app-nav">
-              {LEVEL1_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => goToLevel1(tab.id)}
-                  className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
-                  aria-current={activeTab === tab.id ? 'page' : undefined}
-                  title={tab.label}
-                >
-                  <AppIcon name={tab.icon} size={14} />
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </aside>
-        ) : null}
-
-        <main className="app-content">
-          {renderContent()}
-        </main>
-      </div>
+    <AppShell
+      sidebar={(
+        <AppSidebar
+          isVisible={isWideNavigation}
+          authEmail={authEmail}
+          tabs={LEVEL1_TABS}
+          activeTab={activeTab}
+          onTabChange={goToLevel1}
+        />
+      )}
+    >
+      {renderContent()}
 
       <AccountN2Modal
         isOpen={isAccountEditN2Open}
@@ -3289,7 +3373,7 @@ function DashboardApp({
         centerAction={mobileNavActionConfig.center}
         rightActions={mobileNavActionConfig.right}
       />
-    </div>
+    </AppShell>
   );
 }
 
