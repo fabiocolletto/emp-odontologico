@@ -849,17 +849,20 @@ const FINANCIAL_DEFAULT_FORECASTS = [
 ];
 
 const summarizeFinancialData = (items = []) => {
-  const receitaRecebida = items
+  const safeItems = Array.isArray(items)
+    ? items.filter((item) => item && typeof item === 'object')
+    : [];
+  const receitaRecebida = safeItems
     .filter((item) => item.tipo === 'entrada' && ['recebido', 'pago'].includes(item.status))
     .reduce((acc, item) => acc + Number(item.valor || 0), 0);
-  const despesasPagas = items
+  const despesasPagas = safeItems
     .filter((item) => item.tipo === 'saida' && item.status === 'pago')
     .reduce((acc, item) => acc + Number(item.valor || 0), 0);
-  const aReceber = items
+  const aReceber = safeItems
     .filter((item) => item.tipo === 'entrada' && !['recebido', 'pago'].includes(item.status))
     .reduce((acc, item) => acc + Number(item.valor || 0), 0);
 
-  const entradas = items.filter((item) => item.tipo === 'entrada');
+  const entradas = safeItems.filter((item) => item.tipo === 'entrada');
   const ticketMedio = receitaRecebida / Math.max(entradas.length, 1);
   const inadimplencia = entradas.length
     ? (entradas.filter((item) => item.status === 'vencido').length / entradas.length) * 100
@@ -3260,7 +3263,22 @@ function DashboardApp({
       );
     }
 
-    const launches = Array.isArray(financialLaunches) ? financialLaunches : [];
+    const launches = Array.isArray(financialLaunches)
+      ? financialLaunches.filter((item) => item && typeof item === 'object')
+      : [];
+    const accounts = Array.isArray(financialAccounts)
+      ? financialAccounts.filter((item) => item && typeof item === 'object')
+      : [];
+    const recurring = Array.isArray(financialRecurring)
+      ? financialRecurring.filter((item) => item && typeof item === 'object')
+      : [];
+    const forecasts = Array.isArray(financialForecasts)
+      ? financialForecasts.filter((item) => item && typeof item === 'object')
+      : [];
+    const categories = {
+      entradas: Array.isArray(financialCategories?.entradas) ? financialCategories.entradas.filter(Boolean) : [],
+      saidas: Array.isArray(financialCategories?.saidas) ? financialCategories.saidas.filter(Boolean) : []
+    };
     const summary = summarizeFinancialData(launches);
     const coverageRatio = summary.despesasPagas > 0
       ? summary.receitaRecebida / summary.despesasPagas
@@ -3291,11 +3309,11 @@ function DashboardApp({
     const contasReceber = launches.filter((item) => item.tipo === 'entrada');
     const contasPagar = launches.filter((item) => item.tipo === 'saida');
     const isCompactFinanceActions = !isWideNavigation;
-    const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
-    const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
-    const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
-    const filteredInCategories = financialCategories.entradas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
-    const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
+    const filteredAccounts = accounts.filter((item) => `${item?.nome || ''} ${item?.banco || ''} ${item?.tipo || ''}`.toLowerCase().includes(accountFilter.toLowerCase()));
+    const filteredRecurring = recurring.filter((item) => `${item?.descricao || ''} ${item?.periodicidade || ''} ${item?.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
+    const filteredForecasts = forecasts.filter((item) => `${item?.descricao || ''} ${item?.periodo || ''}`.toLowerCase().includes(forecastFilter.toLowerCase()));
+    const filteredInCategories = categories.entradas.filter((item) => String(item).toLowerCase().includes(categoryFilter.toLowerCase()));
+    const filteredOutCategories = categories.saidas.filter((item) => String(item).toLowerCase().includes(categoryFilter.toLowerCase()));
     const despesasPorCategoriaResumo = Object.entries(
       launches
         .filter((item) => item.tipo === 'saida')
@@ -3402,7 +3420,7 @@ function DashboardApp({
                 { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
                 { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
               ]}
-              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              rows={accounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
               pagination
               internalScroll
@@ -3474,7 +3492,7 @@ function DashboardApp({
                 { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
                 { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
               ]}
-              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              rows={recurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
               pagination
               internalScroll
@@ -3496,7 +3514,7 @@ function DashboardApp({
                 { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
                 { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
               ]}
-              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              rows={forecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
               pagination
               internalScroll

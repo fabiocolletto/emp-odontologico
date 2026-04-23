@@ -2,6 +2,12 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.31 - 2026-04-23
+
+### Fixed
+- Correção adicional para a tela branca do **Financeiro**: dados persistidos com itens inválidos (`null`/formato inesperado) agora são saneados antes de qualquer `filter/map/reduce`.
+- Resumos e filtros financeiros passaram a operar somente sobre coleções normalizadas, evitando exceções em runtime ao abrir a aba Financeiro.
+
 ## v1.1.30 - 2026-04-23
 
 ### Fixed
