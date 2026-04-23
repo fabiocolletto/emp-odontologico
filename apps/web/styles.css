@@ -29,12 +29,12 @@
   --color-info-500: #0b6aa7;
 
   /* Superfícies */
-  --surface-page: #eef2f6;
+  --surface-page: #f1f4f8;
   --surface-base: rgba(255, 255, 255, 0.92);
   --surface-solid: #ffffff;
   --surface-soft: #f7f9fc;
   --surface-elevated: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
-  --surface-sidebar: #ffffff;
+  --surface-sidebar: #dfe5ec;
   --surface-overlay: rgba(8, 15, 33, 0.52);
 
   /* Texto */
@@ -45,8 +45,8 @@
   --text-on-brand: #f8fbff;
 
   /* Bordas */
-  --border-subtle: #e2e8f0;
-  --border-soft: #edf2f7;
+  --border-subtle: #c1ccd8;
+  --border-soft: #c1ccd8;
   --border-strong: rgba(15, 23, 42, 0.16);
 
   /* Raios */
