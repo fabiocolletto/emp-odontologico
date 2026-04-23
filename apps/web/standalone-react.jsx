@@ -405,10 +405,10 @@ const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoin
   </BaseCard>
 );
 
-const PanelCard = ({ title, extra = null, children }) => (
-  <BaseCard>
-    <div className="flex items-center justify-between gap-3 mb-3">
-      <h3 className="text-base font-black text-slate-900">{title}</h3>
+const PanelCard = ({ title, extra = null, children, className = '', titleClassName = '' }) => (
+  <BaseCard className={className}>
+    <div className="panel-card__header flex items-center justify-between gap-3 mb-3">
+      <h3 className={`panel-card__title text-base font-black text-slate-900 ${titleClassName}`.trim()}>{title}</h3>
       {extra}
     </div>
     {children}
@@ -3590,6 +3590,8 @@ function DashboardApp({
           <div className="finance-overlay" onClick={closeFinancialForm}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <PanelCard
+                className="financial-launch-modal-card"
+                titleClassName="financial-launch-modal-card__title"
                 title={
                   financialDraft.id
                     ? 'Editar lançamento'
@@ -3599,7 +3601,8 @@ function DashboardApp({
                 }
                 extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={closeFinancialForm} />}
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                <div className="financial-launch-modal-card__body">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Tipo
                     <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.tipo} onChange={(event) => handleFinancialDraftChange('tipo', event.target.value)}>
                       <option value="entrada">entrada</option>
@@ -3648,9 +3651,10 @@ function DashboardApp({
                     <textarea className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[96px]" value={financialDraft.observacoes} onChange={(event) => handleFinancialDraftChange('observacoes', event.target.value)} />
                   </label>
                 </div>
-                <div className="mt-4 flex justify-end gap-2">
-                  <button type="button" className="btn btn--ghost" onClick={closeFinancialForm}>Cancelar</button>
-                  <button type="button" className="btn btn--primary btn--header btn--header-new" onClick={handleFinancialSave}>Salvar lançamento</button>
+                </div>
+                <div className="financial-launch-modal-card__footer mt-4 flex justify-end gap-2">
+                  <button type="button" className="btn btn--ghost financial-launch-modal-card__cancel" onClick={closeFinancialForm}>Cancelar</button>
+                  <button type="button" className="btn btn--primary btn--header btn--header-new financial-launch-modal-card__save" onClick={handleFinancialSave}>Salvar lançamento</button>
                 </div>
               </PanelCard>
             </div>
