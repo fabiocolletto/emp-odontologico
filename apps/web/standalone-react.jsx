@@ -316,7 +316,7 @@ const AppSidebar = ({
 };
 
 const AppHeader = ({ children }) => (
-  <header className="ui-card data-card data-card--g p-4 mb-4">
+  <header className="app-header-flat mb-3">
     {children}
   </header>
 );
@@ -346,10 +346,33 @@ const BaseCard = ({ className = '', children }) => (
   <article className={`ui-card data-card data-card--g p-4 ${className}`.trim()}>{children}</article>
 );
 
-const StatCard = ({ label, value, trend, trendTone = 'text-slate-500' }) => (
-  <BaseCard>
+const SparkMiniChart = ({ points = [], tone = '#2563eb' }) => {
+  if (!points.length) return null;
+  const width = 92;
+  const height = 34;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const span = Math.max(max - min, 1);
+  const d = points.map((point, index) => {
+    const x = (index / Math.max(points.length - 1, 1)) * width;
+    const y = height - ((point - min) / span) * height;
+    return `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(' ');
+
+  return (
+    <svg className="stat-sparkline" viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+      <path d={d} fill="none" stroke={tone} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+};
+
+const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb' }) => (
+  <BaseCard className="stat-card-flat">
     <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
-    <p className="text-2xl font-black text-slate-900 mt-2 whitespace-nowrap">{value}</p>
+    <div className="stat-card-flat__main">
+      <p className="text-2xl font-black text-slate-900 mt-1 whitespace-nowrap">{value}</p>
+      <SparkMiniChart points={sparkPoints} tone={sparkColor} />
+    </div>
     {trend ? <p className={`text-xs font-bold mt-2 ${trendTone}`}>{trend}</p> : null}
   </BaseCard>
 );
@@ -420,7 +443,7 @@ const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = n
 );
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
-const Toolbar = ({ children }) => <BaseCard><ActionGroup>{children}</ActionGroup></BaseCard>;
+const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
 const AlertCard = ({ text }) => <BaseCard className="border-amber-100 bg-amber-50/40"><p className="text-sm text-amber-700 font-semibold">{text}</p></BaseCard>;
 const InsightCard = ({ text }) => <BaseCard className="border-sky-100 bg-sky-50/40"><p className="text-sm text-sky-700 font-semibold">{text}</p></BaseCard>;
 
@@ -2927,19 +2950,19 @@ function DashboardApp({
 
     const summary = summarizeFinancialData(financialLaunches);
     const kpis = [
-      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600' },
-      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600' },
-      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600' },
-      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600' },
-      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600' },
-      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600' }
+      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [18, 22, 21, 26, 24, 28, 31, 33] },
+      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [10, 12, 11, 14, 13, 15, 14, 16] },
+      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [6, 8, 7, 9, 10, 12, 14, 13] },
+      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [15, 14, 13, 12, 11, 10, 10, 9] },
+      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2] },
+      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7] }
     ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
 
     return (
       <div className="space-y-6">
-        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica' })}
+        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
 
         <Toolbar>
           <span className="chip chip--soft">Período</span>
@@ -2951,7 +2974,7 @@ function DashboardApp({
 
         <ContentGrid columns="4">
           {kpis.slice(0, 4).map((kpi) => (
-            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} />
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} />
           ))}
         </ContentGrid>
 
