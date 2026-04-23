@@ -2217,7 +2217,7 @@ select {
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-  padding: 0.35rem;
+  padding: 0;
 }
 
 .financial-launch-modal-card {
@@ -2300,7 +2300,7 @@ select {
     max-height: 82vh;
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
-    padding: 0.6rem;
+    padding: 0;
     background: var(--surface-solid);
     border-top: 1px solid var(--border-subtle);
   }
@@ -2365,6 +2365,22 @@ select {
   padding: 0;
   line-height: 0;
   cursor: pointer;
+}
+
+.financial-category-filter {
+  text-align: center;
+}
+
+.financial-category-chip {
+  position: relative;
+  padding-right: 1.45rem;
+}
+
+.financial-category-chip__remove {
+  position: absolute;
+  right: 0.35rem;
+  top: 0.2rem;
+  opacity: 0.75;
 }
 
 .stat-sparkline--donut {

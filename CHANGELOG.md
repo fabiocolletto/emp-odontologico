@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.26 - 2026-04-23
+
+### Changed
+- Padrão de janela flutuante financeira reforçado: removido espaçamento extra entre borda externa e conteúdo interno para melhorar leitura de blocos `header/body/footer`.
+- Ações de **Fechar** e **Adicionar** dos fluxos de gestão financeira foram movidas para o footer das janelas de edição/adicionar, consolidando o padrão operacional da janela.
+- Janela de **Editar categorias financeiras** atualizada com campo de filtro centralizado e chips de categoria com ação visual de remoção sobreposta.
+- Remoção de categoria passou a exigir confirmação explícita antes da exclusão efetiva.
+
 ## v1.1.25 - 2026-04-23
 
 ### Changed

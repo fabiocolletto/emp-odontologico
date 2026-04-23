@@ -1709,6 +1709,17 @@ function DashboardApp({
     setIsCategoryModalOpen(false);
   };
 
+  const handleCategoryDelete = (tipo, nome) => {
+    const confirmed = typeof window !== 'undefined'
+      ? window.confirm(`Excluir a categoria "${nome}"?`)
+      : true;
+    if (!confirmed) return;
+    setFinancialCategories((current) => ({
+      ...current,
+      [tipo]: current[tipo].filter((cat) => cat !== nome)
+    }));
+  };
+
   const addFinancialAccount = () => {
     if (!newAccountDraft.nome.trim()) return;
     setFinancialAccounts((current) => [
@@ -3367,7 +3378,7 @@ function DashboardApp({
         {isAccountModalOpen || isAccountsEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard className="financial-modal-card" title={isAccountModalOpen ? 'Adicionar conta financeira' : 'Editar contas financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isAccountModalOpen ? 'Adicionar conta financeira' : 'Editar contas financeiras'}>
                 {isAccountModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -3379,7 +3390,8 @@ function DashboardApp({
                       </select>
                       <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Saldo inicial" value={newAccountDraft.saldo_inicial} onChange={(event) => setNewAccountDraft((current) => ({ ...current, saldo_inicial: event.target.value }))} />
                     </div>
-                    <div className="mt-3 flex justify-end">
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
                       <ActionButton label="Salvar conta" className="btn--header btn--header-new" onClick={addFinancialAccount} />
                     </div>
                   </>
@@ -3399,6 +3411,10 @@ function DashboardApp({
                       ]}
                       rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
                     />
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
+                      <ActionButton label="Adicionar conta" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
+                    </div>
                   </>
                 )}
               </PanelCard>
@@ -3409,7 +3425,7 @@ function DashboardApp({
         {isCategoryModalOpen || isCategoriesEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard className="financial-modal-card" title={isCategoryModalOpen ? 'Adicionar categoria financeira' : 'Editar categorias financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isCategoryModalOpen ? 'Adicionar categoria financeira' : 'Editar categorias financeiras'}>
                 {isCategoryModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -3419,23 +3435,29 @@ function DashboardApp({
                       </select>
                       <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Nome da categoria" value={newCategoryDraft.nome} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, nome: event.target.value }))} />
                     </div>
-                    <div className="mt-3 flex justify-end"><ActionButton label="Salvar categoria" className="btn--header btn--header-new" onClick={addFinancialCategory} /></div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />
+                      <ActionButton label="Salvar categoria" className="btn--header btn--header-new" onClick={addFinancialCategory} />
+                    </div>
                   </>
                 ) : (
                   <>
-                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar categorias" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} />
-                      <ActionButton label="Adicionar categoria" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }} />
+                    <div className="mb-3 flex justify-center">
+                      <input className="financial-category-filter rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar categorias" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                       <div>
                         <p className="font-black text-slate-600 mb-2">Receitas</p>
-                        <div className="flex flex-wrap gap-2">{filteredInCategories.map((item) => <button type="button" key={`cat-edit-in-${item}`} className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => setFinancialCategories((current) => ({ ...current, entradas: current.entradas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+                        <div className="flex flex-wrap gap-2">{filteredInCategories.map((item) => <button type="button" key={`cat-edit-in-${item}`} className="financial-category-chip financial-category-chip--in px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => handleCategoryDelete('entradas', item)}>{item}<span className="financial-category-chip__remove"><AppIcon name="close" size={10} /></span></button>)}</div>
                       </div>
                       <div>
                         <p className="font-black text-slate-600 mb-2">Despesas</p>
-                        <div className="flex flex-wrap gap-2">{filteredOutCategories.map((item) => <button type="button" key={`cat-edit-out-${item}`} className="px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => setFinancialCategories((current) => ({ ...current, saidas: current.saidas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+                        <div className="flex flex-wrap gap-2">{filteredOutCategories.map((item) => <button type="button" key={`cat-edit-out-${item}`} className="financial-category-chip financial-category-chip--out px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => handleCategoryDelete('saidas', item)}>{item}<span className="financial-category-chip__remove"><AppIcon name="close" size={10} /></span></button>)}</div>
                       </div>
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />
+                      <ActionButton label="Adicionar categoria" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3447,7 +3469,7 @@ function DashboardApp({
         {isRecurringModalOpen || isRecurringEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard className="financial-modal-card" title={isRecurringModalOpen ? 'Adicionar despesa recorrente' : 'Editar despesas recorrentes'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isRecurringModalOpen ? 'Adicionar despesa recorrente' : 'Editar despesas recorrentes'}>
                 {isRecurringModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -3458,7 +3480,7 @@ function DashboardApp({
                         <option value="semanal">semanal</option>
                       </select>
                     </div>
-                    <div className="mt-3 flex justify-end"><ActionButton label="Salvar recorrência" className="btn--header btn--header-new" onClick={addRecurring} /></div>
+                    <div className="mt-3 flex justify-end gap-2"><ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} /><ActionButton label="Salvar recorrência" className="btn--header btn--header-new" onClick={addRecurring} /></div>
                   </>
                 ) : (
                   <>
@@ -3476,6 +3498,10 @@ function DashboardApp({
                       ]}
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
                     />
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />
+                      <ActionButton label="Adicionar recorrência" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
+                    </div>
                   </>
                 )}
               </PanelCard>
@@ -3486,7 +3512,7 @@ function DashboardApp({
         {isForecastModalOpen || isForecastEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard className="financial-modal-card" title={isForecastModalOpen ? 'Adicionar previsão de custo' : 'Editar previsões de custo'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isForecastModalOpen ? 'Adicionar previsão de custo' : 'Editar previsões de custo'}>
                 {isForecastModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -3498,7 +3524,7 @@ function DashboardApp({
                         <option value="Próximos 90 dias">Próximos 90 dias</option>
                       </select>
                     </div>
-                    <div className="mt-3 flex justify-end"><ActionButton label="Salvar previsão" className="btn--header btn--header-new" onClick={addForecast} /></div>
+                    <div className="mt-3 flex justify-end gap-2"><ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} /><ActionButton label="Salvar previsão" className="btn--header btn--header-new" onClick={addForecast} /></div>
                   </>
                 ) : (
                   <>
@@ -3515,6 +3541,10 @@ function DashboardApp({
                       ]}
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
                     />
+                    <div className="mt-3 flex justify-end gap-2">
+                      <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />
+                      <ActionButton label="Adicionar previsão" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
+                    </div>
                   </>
                 )}
               </PanelCard>
@@ -3595,7 +3625,7 @@ function DashboardApp({
                       ? 'Adicionar despesa'
                       : 'Adicionar receita'
                 }
-                extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={closeFinancialForm} />}
+                extra={null}
               >
                 <div className="financial-launch-modal-card__body">
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
