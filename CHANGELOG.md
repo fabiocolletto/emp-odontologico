@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.28 - 2026-04-23
+
+### Changed
+- Contraste das linhas das tabelas financeiras ajustado para melhor visibilidade, com separadores mais perceptíveis entre registros.
+- Padronização tipográfica nas linhas de dados: colunas passaram a seguir tom/peso único alinhado ao padrão visual de **Vencimento**.
+- Diferenciação visual foi mantida apenas para colunas de **Status** e **Ações**, reduzindo ruído visual entre múltiplos estilos de texto.
+
 ## v1.1.27 - 2026-04-23
 
 ### Changed

@@ -2367,6 +2367,20 @@ select {
   cursor: pointer;
 }
 
+.data-table__head-cell {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.data-table__row {
+  border-top: 1px solid #d7e1ee;
+}
+
+.data-table__cell {
+  color: #64748b;
+  font-weight: 500;
+}
+
 .financial-category-filter {
   text-align: center;
 }

@@ -438,11 +438,11 @@ const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
 
 const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.' }) => (
   <div className="overflow-x-auto">
-    <table className="min-w-full text-sm">
+    <table className="data-table min-w-full text-sm">
       <thead>
         <tr className="text-slate-400">
           {columns.map((column) => (
-            <th key={column.key} className="text-left py-2 pr-3">{column.label}</th>
+            <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">{column.label}</th>
           ))}
         </tr>
       </thead>
@@ -452,9 +452,9 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.' }) =
             <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
           </tr>
         ) : rows.map((row) => (
-          <tr key={row.key} className="border-t border-slate-100">
+          <tr key={row.key} className="data-table__row">
             {columns.map((column) => (
-              <td key={`${row.key}-${column.key}`} className="py-2 pr-3">{column.render(row)}</td>
+              <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
             ))}
           </tr>
         ))}
@@ -3369,10 +3369,10 @@ function DashboardApp({
           >
             <DataTable
               columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
-                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-500">{row.periodicidade}</span> },
-                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> }
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
               ]}
               rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
@@ -3387,9 +3387,9 @@ function DashboardApp({
           >
             <DataTable
               columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
-                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-500">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> }
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
               ]}
               rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
@@ -3512,10 +3512,10 @@ function DashboardApp({
                     </div>
                     <DataTable
                       columns={[
-                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
-                        { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-500">{row.periodicidade}</span> },
-                        { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria || '-'}</span> },
-                        { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                        { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                        { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                        { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
                         { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
                       ]}
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
@@ -3556,9 +3556,9 @@ function DashboardApp({
                     </div>
                     <DataTable
                       columns={[
-                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
-                        { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-500">{row.periodo}</span> },
-                        { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                        { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                        { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
                         { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
                       ]}
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
@@ -3578,9 +3578,9 @@ function DashboardApp({
           <PanelCard title="Contas a receber" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('entrada')} />}>
             <DataTable
               columns={[
-                { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-700">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-500">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-bold">{formatMoney(row.valor)}</span> },
+                { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
@@ -3590,9 +3590,9 @@ function DashboardApp({
           <PanelCard title="Contas a pagar" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('saida')} />}>
             <DataTable
               columns={[
-                { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-700">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-500">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-bold">{formatMoney(row.valor)}</span> },
+                { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
@@ -3607,13 +3607,13 @@ function DashboardApp({
         >
           <DataTable
             columns={[
-              { key: 'tipo', label: 'Tipo', render: (row) => <span className={`font-black uppercase text-xs ${row.tipo === 'entrada' ? 'text-emerald-600' : 'text-rose-600'}`}>{row.tipo}</span> },
-              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
-              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria}</span> },
-              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-bold">{formatMoney(row.valor)}</span> },
+              { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
+              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria}</span> },
+              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
               { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-500">{row.data_vencimento || '-'}</span> },
-              { key: 'pagamento', label: 'Pagamento', render: (row) => <span className="text-slate-500">{row.data_pagamento || '-'}</span> },
+              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'pagamento', label: 'Pagamento', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
               {
                 key: 'acoes',
                 label: 'Ações',
