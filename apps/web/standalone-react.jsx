@@ -1501,6 +1501,7 @@ function DashboardApp({
   const [financialForecasts, setFinancialForecasts] = useState(() => readStoredFinancialForecasts());
   const [isFinancialFormOpen, setIsFinancialFormOpen] = useState(false);
   const [isPeriodPickerOpen, setIsPeriodPickerOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedPeriodLabel, setSelectedPeriodLabel] = useState('01/04/2026 - 30/04/2026');
   const [periodDraft, setPeriodDraft] = useState({ from: '2026-04-01', to: '2026-04-30' });
   const [newCategoryDraft, setNewCategoryDraft] = useState({ tipo: 'entradas', nome: '' });
@@ -3226,31 +3227,52 @@ function DashboardApp({
         {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
 
         {!isMobileViewport ? (
-          <Toolbar>
-            <ActionButton label={selectedPeriodLabel} className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen((current) => !current)} />
-            <ActionButton label="Novo recebimento" className="btn--header btn--header-success" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('entrada')} />
-            <ActionButton label="Nova despesa" className="btn--header btn--header-danger" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('saida')} />
-            <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => {}} />
-          </Toolbar>
+          <div className="flex justify-end">
+            <Toolbar>
+              <ActionButton label="Período" className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen(true)} />
+              <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => setIsExportModalOpen(true)} />
+            </Toolbar>
+          </div>
         ) : null}
 
         {isPeriodPickerOpen ? (
-          <PanelCard title="Selecionar período" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsPeriodPickerOpen(false)} />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <ActionButton label="Hoje" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('today')} />
-              <ActionButton label="Semana" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('week')} />
-              <ActionButton label="Mês" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('month')} />
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Início
-                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.from} onChange={(event) => setPeriodDraft((current) => ({ ...current, from: event.target.value }))} />
-              </label>
-              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Fim
-                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.to} onChange={(event) => setPeriodDraft((current) => ({ ...current, to: event.target.value }))} />
-              </label>
-              <div className="flex items-end">
-                <ActionButton label="Aplicar período" className="btn--header btn--header-new w-full" onClick={applyCustomPeriod} />
-              </div>
+          <div className="finance-overlay" onClick={() => setIsPeriodPickerOpen(false)}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title="Selecionar período">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <ActionButton label="Hoje" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('today')} />
+                  <ActionButton label="Semana" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('week')} />
+                  <ActionButton label="Mês" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('month')} />
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Início
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.from} onChange={(event) => setPeriodDraft((current) => ({ ...current, from: event.target.value }))} />
+                  </label>
+                  <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Fim
+                    <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.to} onChange={(event) => setPeriodDraft((current) => ({ ...current, to: event.target.value }))} />
+                  </label>
+                </div>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsPeriodPickerOpen(false)} />
+                  <ActionButton label="Aplicar período" className="btn--header btn--header-new" onClick={applyCustomPeriod} />
+                </div>
+              </PanelCard>
             </div>
-          </PanelCard>
+          </div>
+        ) : null}
+
+        {isExportModalOpen ? (
+          <div className="finance-overlay" onClick={() => setIsExportModalOpen(false)}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title="Exportar relatório financeiro">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <ActionButton label="Exportar PDF" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => setIsExportModalOpen(false)} />
+                  <ActionButton label="Exportar CSV" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => setIsExportModalOpen(false)} />
+                </div>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsExportModalOpen(false)} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
         ) : null}
 
         <ContentGrid columns="4">
@@ -3723,13 +3745,13 @@ function DashboardApp({
     },
     financial: {
       left: [
-        { key: 'financial-period', icon: 'calendar', tone: 'settings', label: 'Período', onClick: () => setIsPeriodPickerOpen((current) => !current) },
+        { key: 'financial-period', icon: 'calendar', tone: 'settings', label: 'Período', onClick: () => setIsPeriodPickerOpen(true) },
         { key: 'financial-receita', icon: 'plus', tone: 'success', label: 'Receita', onClick: () => openFinancialCreate('entrada') }
       ],
       center: { key: 'financial-panel', icon: 'plan', tone: 'settings', label: 'Painel', onClick: () => goToLevel1('financial') },
       right: [
         { key: 'financial-despesa', icon: 'plus', tone: 'info', label: 'Despesa', onClick: () => openFinancialCreate('saida') },
-        { key: 'financial-export', icon: 'download', tone: 'overview', label: 'Exportar', onClick: () => {} }
+        { key: 'financial-export', icon: 'download', tone: 'overview', label: 'Exportar', onClick: () => setIsExportModalOpen(true) }
       ]
     },
     clinic: {

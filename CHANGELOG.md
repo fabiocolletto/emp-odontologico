@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.27 - 2026-04-23
+
+### Changed
+- Botões de ação do topo do Financeiro foram simplificados: removidos **Novo recebimento** e **Nova despesa** da barra principal, mantendo criação via fluxos de edição internos.
+- Barra de ações abaixo do título foi alinhada à direita em desktop para aliviar concentração visual no lado esquerdo.
+- Botão de período passou a usar rótulo textual fixo (**Período**) em vez de exibir datas no título.
+- Ações **Período** e **Exportar relatório** foram migradas para janelas sobrepostas (overlay) com comportamento consistente entre desktop e mobile.
+
 ## v1.1.26 - 2026-04-23
 
 ### Changed
