@@ -12,6 +12,10 @@ const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
 const AUTH_NOTICE_TIMEOUT_MS = 5000;
 const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
 const FINANCIAL_STORAGE_KEY = 'odontoflow-financial-launches-v1';
+const FINANCIAL_ACCOUNTS_STORAGE_KEY = 'odontoflow-financial-accounts-v1';
+const FINANCIAL_CATEGORIES_STORAGE_KEY = 'odontoflow-financial-categories-v1';
+const FINANCIAL_RECURRING_STORAGE_KEY = 'odontoflow-financial-recurring-v1';
+const FINANCIAL_FORECAST_STORAGE_KEY = 'odontoflow-financial-forecast-v1';
 
 const getSupabaseConfig = () => {
   const injected = globalThis.__APP_ENV__ || {};
@@ -110,6 +114,8 @@ const AppIcon = ({ name, size = 14, className = '' }) => {
     check: <path d="m5 12 4.2 4.2L19 6.8" />,
     close: <path d="M6 6l12 12M18 6 6 18" />,
     clear: <><path d="M4 20h10" /><path d="m8 20 6.7-11.6a1.6 1.6 0 0 0-1.4-2.4H7.7a1.6 1.6 0 0 0-1.4 2.4L8.8 13" /><path d="m14 14 3.5 3.5M17.5 14 14 17.5" /></>,
+    download: <><path d="M12 4v10" /><path d="m8.5 10.5 3.5 3.5 3.5-3.5" /><path d="M4 19.5h16" /></>,
+    wallet: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M16 12h5" /><circle cx="16.5" cy="12" r="0.8" /></>,
     'chevron-down': <path d="m6 9 6 6 6-6" />,
     'chevron-up': <path d="m18 15-6-6-6 6" />,
     'chevron-left': <path d="m14.5 6-6 6 6 6" />,
@@ -346,8 +352,30 @@ const BaseCard = ({ className = '', children }) => (
   <article className={`ui-card data-card data-card--g p-4 ${className}`.trim()}>{children}</article>
 );
 
-const SparkMiniChart = ({ points = [], tone = '#2563eb' }) => {
+const SparkMiniChart = ({ points = [], tone = '#2563eb', variant = 'line' }) => {
   if (!points.length) return null;
+  if (variant === 'donut') {
+    const value = Math.max(0, Math.min(100, points[points.length - 1]));
+    const radius = 14;
+    const c = 2 * Math.PI * radius;
+    const offset = c - (value / 100) * c;
+    return (
+      <svg className="stat-sparkline stat-sparkline--donut" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r={radius} fill="none" stroke="#e2e8f0" strokeWidth="5" />
+        <circle cx="20" cy="20" r={radius} fill="none" stroke={tone} strokeWidth="5" strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" transform="rotate(-90 20 20)" />
+      </svg>
+    );
+  }
+  if (variant === 'bar') {
+    const max = Math.max(...points, 1);
+    return (
+      <div className="stat-sparkline stat-sparkline--bar" aria-hidden="true">
+        {points.map((point, index) => (
+          <span key={`bar-${index}`} style={{ height: `${Math.max(14, (point / max) * 100)}%`, background: tone }} />
+        ))}
+      </div>
+    );
+  }
   const width = 92;
   const height = 34;
   const min = Math.min(...points);
@@ -366,12 +394,12 @@ const SparkMiniChart = ({ points = [], tone = '#2563eb' }) => {
   );
 };
 
-const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb' }) => (
+const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb', sparkVariant = 'line' }) => (
   <BaseCard className="stat-card-flat">
     <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
     <div className="stat-card-flat__main">
       <p className="text-2xl font-black text-slate-900 mt-1 whitespace-nowrap">{value}</p>
-      <SparkMiniChart points={sparkPoints} tone={sparkColor} />
+      <SparkMiniChart points={sparkPoints} tone={sparkColor} variant={sparkVariant} />
     </div>
     {trend ? <p className={`text-xs font-bold mt-2 ${trendTone}`}>{trend}</p> : null}
   </BaseCard>
@@ -719,6 +747,31 @@ const FINANCIAL_DEFAULT_LANCAMENTOS = [
     profissional_id: null,
     observacoes: '3 casos'
   }
+];
+
+const FINANCIAL_DEFAULT_ACCOUNTS = [
+  {
+    id: 1,
+    nome: 'Conta Principal Clínica',
+    banco: 'Odonto Bank',
+    tipo: 'corrente',
+    saldo_inicial: 15000
+  }
+];
+
+const FINANCIAL_DEFAULT_CATEGORIES = {
+  entradas: ['Consulta', 'Procedimento', 'Convênio', 'Ortodontia', 'Implantodontia'],
+  saidas: ['Aluguel', 'Laboratório', 'Insumos', 'Marketing', 'Pessoal']
+};
+
+const FINANCIAL_DEFAULT_RECURRING = [
+  { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', categoria: 'Aluguel' },
+  { id: 2, descricao: 'Folha de pagamento', valor: 13190, periodicidade: 'mensal', categoria: 'Pessoal' }
+];
+
+const FINANCIAL_DEFAULT_FORECASTS = [
+  { id: 1, descricao: 'Previsão de insumos', valor: 4200, periodo: 'Próximos 30 dias' },
+  { id: 2, descricao: 'Previsão de laboratório', valor: 3600, periodo: 'Próximos 30 dias' }
 ];
 
 const summarizeFinancialData = (items = []) => {
@@ -1368,6 +1421,53 @@ const readStoredFinancialLaunches = () => {
   }
 };
 
+const readStoredFinancialAccounts = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_ACCOUNTS_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_ACCOUNTS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_ACCOUNTS;
+  } catch {
+    return FINANCIAL_DEFAULT_ACCOUNTS;
+  }
+};
+
+const readStoredFinancialCategories = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_CATEGORIES_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_CATEGORIES;
+    const parsed = JSON.parse(raw);
+    return {
+      entradas: Array.isArray(parsed?.entradas) && parsed.entradas.length ? parsed.entradas : FINANCIAL_DEFAULT_CATEGORIES.entradas,
+      saidas: Array.isArray(parsed?.saidas) && parsed.saidas.length ? parsed.saidas : FINANCIAL_DEFAULT_CATEGORIES.saidas
+    };
+  } catch {
+    return FINANCIAL_DEFAULT_CATEGORIES;
+  }
+};
+
+const readStoredFinancialRecurring = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_RECURRING_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_RECURRING;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_RECURRING;
+  } catch {
+    return FINANCIAL_DEFAULT_RECURRING;
+  }
+};
+
+const readStoredFinancialForecasts = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_FORECAST_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_FORECASTS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_FORECASTS;
+  } catch {
+    return FINANCIAL_DEFAULT_FORECASTS;
+  }
+};
+
 function DashboardApp({
   authEmail = '',
   authUser = null,
@@ -1395,7 +1495,18 @@ function DashboardApp({
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
   const [financialLaunches, setFinancialLaunches] = useState(() => readStoredFinancialLaunches());
+  const [financialAccounts, setFinancialAccounts] = useState(() => readStoredFinancialAccounts());
+  const [financialCategories, setFinancialCategories] = useState(() => readStoredFinancialCategories());
+  const [financialRecurring, setFinancialRecurring] = useState(() => readStoredFinancialRecurring());
+  const [financialForecasts, setFinancialForecasts] = useState(() => readStoredFinancialForecasts());
   const [isFinancialFormOpen, setIsFinancialFormOpen] = useState(false);
+  const [isPeriodPickerOpen, setIsPeriodPickerOpen] = useState(false);
+  const [selectedPeriodLabel, setSelectedPeriodLabel] = useState('01/04/2026 - 30/04/2026');
+  const [periodDraft, setPeriodDraft] = useState({ from: '2026-04-01', to: '2026-04-30' });
+  const [newCategoryDraft, setNewCategoryDraft] = useState({ tipo: 'entradas', nome: '' });
+  const [newAccountDraft, setNewAccountDraft] = useState({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
+  const [newRecurringDraft, setNewRecurringDraft] = useState({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
+  const [newForecastDraft, setNewForecastDraft] = useState({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
   const [financialDraft, setFinancialDraft] = useState(() => ({
     id: '',
     tipo: 'entrada',
@@ -1545,6 +1656,86 @@ function DashboardApp({
   const handleFinancialDelete = (id) => {
     setFinancialLaunches((current) => current.filter((item) => item.id !== id));
   };
+
+  const applyQuickPeriod = (period) => {
+    const today = new Date('2026-04-23');
+    if (period === 'today') {
+      const date = today.toISOString().slice(0, 10);
+      setPeriodDraft({ from: date, to: date });
+      setSelectedPeriodLabel('Hoje');
+      return;
+    }
+    if (period === 'week') {
+      const from = new Date(today);
+      from.setDate(today.getDate() - 6);
+      setPeriodDraft({ from: from.toISOString().slice(0, 10), to: today.toISOString().slice(0, 10) });
+      setSelectedPeriodLabel('Últimos 7 dias');
+      return;
+    }
+    setPeriodDraft({ from: '2026-04-01', to: '2026-04-30' });
+    setSelectedPeriodLabel('Mês atual');
+  };
+
+  const applyCustomPeriod = () => {
+    if (!periodDraft.from || !periodDraft.to) return;
+    const formatted = `${periodDraft.from.split('-').reverse().join('/')} - ${periodDraft.to.split('-').reverse().join('/')}`;
+    setSelectedPeriodLabel(formatted);
+    setIsPeriodPickerOpen(false);
+  };
+
+  const addFinancialCategory = () => {
+    const name = newCategoryDraft.nome.trim();
+    if (!name) return;
+    setFinancialCategories((current) => ({
+      ...current,
+      [newCategoryDraft.tipo]: [...current[newCategoryDraft.tipo], name]
+    }));
+    setNewCategoryDraft((current) => ({ ...current, nome: '' }));
+  };
+
+  const addFinancialAccount = () => {
+    if (!newAccountDraft.nome.trim()) return;
+    setFinancialAccounts((current) => [
+      ...current,
+      { id: Date.now(), ...newAccountDraft, saldo_inicial: Number(newAccountDraft.saldo_inicial || 0) }
+    ]);
+    setNewAccountDraft({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
+  };
+
+  const editFinancialAccount = (id) => {
+    const current = financialAccounts.find((item) => item.id === id);
+    if (!current) return;
+    const nome = window.prompt('Nome da conta', current.nome);
+    if (!nome) return;
+    const banco = window.prompt('Banco', current.banco || '');
+    setFinancialAccounts((items) => items.map((item) => (item.id === id ? { ...item, nome, banco: banco ?? item.banco } : item)));
+  };
+
+  const deleteFinancialAccount = (id) => {
+    setFinancialAccounts((items) => items.filter((item) => item.id !== id));
+  };
+
+  const addRecurring = () => {
+    if (!newRecurringDraft.descricao.trim()) return;
+    setFinancialRecurring((current) => [
+      ...current,
+      { id: Date.now(), ...newRecurringDraft, valor: Number(newRecurringDraft.valor || 0) }
+    ]);
+    setNewRecurringDraft({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
+  };
+
+  const deleteRecurring = (id) => setFinancialRecurring((items) => items.filter((item) => item.id !== id));
+
+  const addForecast = () => {
+    if (!newForecastDraft.descricao.trim()) return;
+    setFinancialForecasts((current) => [
+      ...current,
+      { id: Date.now(), ...newForecastDraft, valor: Number(newForecastDraft.valor || 0) }
+    ]);
+    setNewForecastDraft({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+  };
+
+  const deleteForecast = (id) => setFinancialForecasts((items) => items.filter((item) => item.id !== id));
 
   const openPatientN2 = (patient) => {
     setPatientModalMode('view');
@@ -2066,6 +2257,22 @@ function DashboardApp({
   useEffect(() => {
     localStorage.setItem(FINANCIAL_STORAGE_KEY, JSON.stringify(financialLaunches));
   }, [financialLaunches]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_ACCOUNTS_STORAGE_KEY, JSON.stringify(financialAccounts));
+  }, [financialAccounts]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_CATEGORIES_STORAGE_KEY, JSON.stringify(financialCategories));
+  }, [financialCategories]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_RECURRING_STORAGE_KEY, JSON.stringify(financialRecurring));
+  }, [financialRecurring]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_FORECAST_STORAGE_KEY, JSON.stringify(financialForecasts));
+  }, [financialForecasts]);
 
   useEffect(() => {
     setPatientsPage(1);
@@ -2950,12 +3157,12 @@ function DashboardApp({
 
     const summary = summarizeFinancialData(financialLaunches);
     const kpis = [
-      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [18, 22, 21, 26, 24, 28, 31, 33] },
-      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [10, 12, 11, 14, 13, 15, 14, 16] },
-      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [6, 8, 7, 9, 10, 12, 14, 13] },
-      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [15, 14, 13, 12, 11, 10, 10, 9] },
-      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2] },
-      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7] }
+      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [62], sparkVariant: 'donut' },
+      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [44], sparkVariant: 'donut' },
+      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [71], sparkVariant: 'donut' },
+      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [35], sparkVariant: 'donut' },
+      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2], sparkVariant: 'bar' },
+      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7], sparkVariant: 'bar' }
     ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
@@ -2965,23 +3172,141 @@ function DashboardApp({
         {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
 
         <Toolbar>
-          <span className="chip chip--soft">Período</span>
-          <span className="text-sm font-semibold text-slate-700">01/04/2026 - 30/04/2026</span>
-          <ActionButton label="Novo recebimento" tone="primary" className="btn--header btn--header-success" onClick={openFinancialCreate} />
-          <ActionButton label="Nova despesa" tone="primary" className="btn--header btn--header-danger" onClick={openFinancialCreate} />
-          <ActionButton label="Exportar relatório" onClick={() => {}} />
+          <ActionButton label={selectedPeriodLabel} className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen((current) => !current)} />
+          <ActionButton label="Novo recebimento" className="btn--header btn--header-success" icon={<AppIcon name="plus" size={14} />} onClick={openFinancialCreate} />
+          <ActionButton label="Nova despesa" className="btn--header btn--header-danger" icon={<AppIcon name="plus" size={14} />} onClick={openFinancialCreate} />
+          <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => {}} />
         </Toolbar>
+
+        {isPeriodPickerOpen ? (
+          <PanelCard title="Selecionar período" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsPeriodPickerOpen(false)} />}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <ActionButton label="Hoje" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('today')} />
+              <ActionButton label="Semana" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('week')} />
+              <ActionButton label="Mês" className="btn--header btn--header-muted" onClick={() => applyQuickPeriod('month')} />
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Início
+                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.from} onChange={(event) => setPeriodDraft((current) => ({ ...current, from: event.target.value }))} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Fim
+                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={periodDraft.to} onChange={(event) => setPeriodDraft((current) => ({ ...current, to: event.target.value }))} />
+              </label>
+              <div className="flex items-end">
+                <ActionButton label="Aplicar período" className="btn--header btn--header-new w-full" onClick={applyCustomPeriod} />
+              </div>
+            </div>
+          </PanelCard>
+        ) : null}
 
         <ContentGrid columns="4">
           {kpis.slice(0, 4).map((kpi) => (
-            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} />
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
           ))}
         </ContentGrid>
 
         <ContentGrid columns="2">
           {kpis.slice(4).map((kpi) => (
-            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} />
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
           ))}
+        </ContentGrid>
+
+        <ContentGrid columns="2">
+          <SectionCard title="Contas financeiras" actions={<ActionButton label="Adicionar conta" className="btn--header btn--header-muted" icon={<AppIcon name="wallet" size={14} />} onClick={addFinancialAccount} />}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Nome da conta" value={newAccountDraft.nome} onChange={(event) => setNewAccountDraft((current) => ({ ...current, nome: event.target.value }))} />
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Banco" value={newAccountDraft.banco} onChange={(event) => setNewAccountDraft((current) => ({ ...current, banco: event.target.value }))} />
+              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newAccountDraft.tipo} onChange={(event) => setNewAccountDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                <option value="corrente">corrente</option>
+                <option value="poupanca">poupança</option>
+              </select>
+              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Saldo inicial" value={newAccountDraft.saldo_inicial} onChange={(event) => setNewAccountDraft((current) => ({ ...current, saldo_inicial: event.target.value }))} />
+            </div>
+            <DataTable
+              columns={[
+                { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+                { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  render: (row) => (
+                    <ActionGroup>
+                      <ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} />
+                      <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} />
+                    </ActionGroup>
+                  )
+                }
+              ]}
+              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma conta cadastrada."
+            />
+          </SectionCard>
+
+          <SectionCard title="Categorias financeiras" actions={<ActionButton label="Adicionar categoria" className="btn--header btn--header-muted" onClick={addFinancialCategory} />}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newCategoryDraft.tipo} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                <option value="entradas">Receitas</option>
+                <option value="saidas">Despesas</option>
+              </select>
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Nome da categoria" value={newCategoryDraft.nome} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, nome: event.target.value }))} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="font-black text-slate-600 mb-2">Receitas</p>
+                <div className="flex flex-wrap gap-2">{financialCategories.entradas.map((item) => <button type="button" key={`cat-in-${item}`} className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => setFinancialCategories((current) => ({ ...current, entradas: current.entradas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+              </div>
+              <div>
+                <p className="font-black text-slate-600 mb-2">Despesas</p>
+                <div className="flex flex-wrap gap-2">{financialCategories.saidas.map((item) => <button type="button" key={`cat-out-${item}`} className="px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => setFinancialCategories((current) => ({ ...current, saidas: current.saidas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+              </div>
+            </div>
+          </SectionCard>
+        </ContentGrid>
+
+        <ContentGrid columns="2">
+          <SectionCard title="Despesas recorrentes" actions={<ActionButton label="Adicionar recorrência" className="btn--header btn--header-muted" onClick={addRecurring} />}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Descrição" value={newRecurringDraft.descricao} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, descricao: event.target.value }))} />
+              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newRecurringDraft.valor} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, valor: event.target.value }))} />
+              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newRecurringDraft.periodicidade} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, periodicidade: event.target.value }))}>
+                <option value="mensal">mensal</option>
+                <option value="semanal">semanal</option>
+              </select>
+            </div>
+            <DataTable
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
+                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-500">{row.periodicidade}</span> },
+                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
+              ]}
+              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma despesa recorrente cadastrada."
+            />
+          </SectionCard>
+
+          <SectionCard title="Previsões de custos" actions={<ActionButton label="Adicionar previsão" className="btn--header btn--header-muted" onClick={addForecast} />}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Descrição" value={newForecastDraft.descricao} onChange={(event) => setNewForecastDraft((current) => ({ ...current, descricao: event.target.value }))} />
+              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newForecastDraft.valor} onChange={(event) => setNewForecastDraft((current) => ({ ...current, valor: event.target.value }))} />
+              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newForecastDraft.periodo} onChange={(event) => setNewForecastDraft((current) => ({ ...current, periodo: event.target.value }))}>
+                <option value="Próximos 15 dias">Próximos 15 dias</option>
+                <option value="Próximos 30 dias">Próximos 30 dias</option>
+                <option value="Próximos 90 dias">Próximos 90 dias</option>
+              </select>
+            </div>
+            <DataTable
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
+                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-500">{row.periodo}</span> },
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
+              ]}
+              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma previsão cadastrada."
+            />
+          </SectionCard>
         </ContentGrid>
 
         <ContentGrid columns="2">

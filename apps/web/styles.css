@@ -986,6 +986,9 @@ select {
   background: #f8fafc;
   color: var(--text-base);
   border-color: var(--border-subtle);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .btn--header-new {
@@ -1016,6 +1019,12 @@ select {
   background: #fef2f2;
   border-color: #fecaca;
   color: #b91c1c;
+}
+
+.btn--header-muted {
+  background: rgba(248, 250, 252, 0.8);
+  border-color: #dbe4ef;
+  color: #475569;
 }
 
 .single-select {
@@ -2189,6 +2198,25 @@ select {
   height: 34px;
   flex: 0 0 auto;
   opacity: 0.9;
+}
+
+.stat-sparkline--bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 34px;
+  width: 104px;
+}
+
+.stat-sparkline--bar span {
+  width: 8px;
+  border-radius: 3px 3px 0 0;
+  opacity: 0.9;
+}
+
+.stat-sparkline--donut {
+  width: 44px;
+  height: 44px;
 }
 
 @media (max-width: 640px) {
