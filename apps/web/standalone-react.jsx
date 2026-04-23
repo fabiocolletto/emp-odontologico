@@ -405,9 +405,17 @@ const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoin
   </BaseCard>
 );
 
-const PanelCard = ({ title, extra = null, children, className = '', titleClassName = '', contentClassName = '' }) => (
+const PanelCard = ({
+  title,
+  extra = null,
+  children,
+  className = '',
+  titleClassName = '',
+  contentClassName = '',
+  compactHeader = false
+}) => (
   <BaseCard className={className}>
-    <div className="panel-card__header flex items-center justify-between gap-3 mb-3">
+    <div className={`panel-card__header flex items-center justify-between gap-3 mb-3 ${compactHeader ? 'panel-card__header--compact' : ''}`.trim()}>
       <h3 className={`panel-card__title text-base font-black text-slate-900 ${titleClassName}`.trim()}>{title}</h3>
       {extra}
     </div>
@@ -415,9 +423,9 @@ const PanelCard = ({ title, extra = null, children, className = '', titleClassNa
   </BaseCard>
 );
 
-const SectionCard = ({ title, actions = null, children }) => (
-  <BaseCard>
-    <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+const SectionCard = ({ title, actions = null, children, className = '', compactHeader = false }) => (
+  <BaseCard className={className}>
+    <div className={`section-card__header flex items-center justify-between gap-3 mb-4 flex-wrap ${compactHeader ? 'section-card__header--compact' : ''}`.trim()}>
       <h3 className="text-base font-black text-slate-900">{title}</h3>
       {actions}
     </div>
@@ -436,32 +444,81 @@ const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
   <div className="py-6 text-center text-sm text-slate-500">{message}</div>
 );
 
-const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.' }) => (
-  <div className="overflow-x-auto">
-    <table className="data-table min-w-full text-sm">
-      <thead>
-        <tr className="text-slate-400">
-          {columns.map((column) => (
-            <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">{column.label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 ? (
-          <tr>
-            <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
-          </tr>
-        ) : rows.map((row) => (
-          <tr key={row.key} className="data-table__row">
-            {columns.map((column) => (
-              <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
+const DataTable = ({
+  columns,
+  rows,
+  emptyMessage = 'Sem dados para exibir.',
+  pagination = false,
+  rowsPerPageConfig = { mobile: 4, tablet: 6, desktop: 8 },
+  internalScroll = false
+}) => {
+  const [page, setPage] = useState(1);
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const rowsPerPage = useMemo(() => {
+    if (viewportWidth < 768) return rowsPerPageConfig.mobile || 4;
+    if (viewportWidth < 1280) return rowsPerPageConfig.tablet || rowsPerPageConfig.desktop || 6;
+    return rowsPerPageConfig.desktop || 8;
+  }, [rowsPerPageConfig, viewportWidth]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / rowsPerPage));
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const visibleRows = useMemo(() => {
+    if (!pagination) return rows;
+    const start = (page - 1) * rowsPerPage;
+    return rows.slice(start, start + rowsPerPage);
+  }, [pagination, page, rows, rowsPerPage]);
+
+  return (
+    <>
+      <div className={`overflow-x-auto data-table__viewport ${internalScroll ? 'data-table__viewport--scroll' : ''}`.trim()} style={internalScroll ? { maxHeight: `${Math.max(176, (rowsPerPage * 41) + 40)}px` } : undefined}>
+        <table className="data-table min-w-full text-sm">
+          <thead>
+            <tr className="text-slate-400">
+              {columns.map((column) => (
+                <th key={column.key} className="data-table__head-cell text-left py-1.5 pr-3">{column.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
+              </tr>
+            ) : visibleRows.map((row) => (
+              <tr key={row.key} className="data-table__row">
+                {columns.map((column) => (
+                  <td key={`${row.key}-${column.key}`} className="data-table__cell py-1.5 pr-3">{column.render(row)}</td>
+                ))}
+              </tr>
             ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+          </tbody>
+        </table>
+      </div>
+      {pagination && rows.length > 0 ? (
+        <div className="data-table__pagination">
+          <span className="data-table__pagination-label">Página {page} de {totalPages}</span>
+          <div className="data-table__pagination-actions">
+            <button type="button" className="btn btn--ghost btn--header btn--header-muted" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1}>Anterior</button>
+            <button type="button" className="btn btn--ghost btn--header btn--header-muted" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages}>Próxima</button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+};
 
 const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button', ariaLabel }) => (
   <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick} aria-label={ariaLabel || label}>
@@ -3290,6 +3347,8 @@ function DashboardApp({
         <ContentGrid columns="2">
           <SectionCard
             title="Contas financeiras"
+            className="finance-table-card"
+            compactHeader
             actions={(
               <ActionButton
                 label={isCompactFinanceActions ? '' : 'Editar'}
@@ -3309,6 +3368,9 @@ function DashboardApp({
               ]}
               rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
+              pagination
+              internalScroll
+              rowsPerPageConfig={{ mobile: 4, tablet: 5, desktop: 6 }}
             />
           </SectionCard>
 
@@ -3363,6 +3425,8 @@ function DashboardApp({
         <ContentGrid columns="2">
           <SectionCard
             title="Despesas recorrentes"
+            className="finance-table-card"
+            compactHeader
             actions={(
               <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode(true)} />
             )}
@@ -3376,11 +3440,16 @@ function DashboardApp({
               ]}
               rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
+              pagination
+              internalScroll
+              rowsPerPageConfig={{ mobile: 4, tablet: 6, desktop: 7 }}
             />
           </SectionCard>
 
           <SectionCard
             title="Previsões de custos"
+            className="finance-table-card"
+            compactHeader
             actions={(
               <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode(true)} />
             )}
@@ -3393,6 +3462,9 @@ function DashboardApp({
               ]}
               rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
+              pagination
+              internalScroll
+              rowsPerPageConfig={{ mobile: 4, tablet: 6, desktop: 7 }}
             />
           </SectionCard>
         </ContentGrid>
@@ -3575,7 +3647,7 @@ function DashboardApp({
         ) : null}
 
         <ContentGrid columns="2">
-          <PanelCard title="Contas a receber" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('entrada')} />}>
+          <PanelCard title="Contas a receber" compactHeader className="finance-table-card" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('entrada')} />}>
             <DataTable
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
@@ -3584,10 +3656,13 @@ function DashboardApp({
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+              pagination
+              internalScroll
+              rowsPerPageConfig={{ mobile: 4, tablet: 6, desktop: 8 }}
             />
             <div className="mt-3 text-right text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
           </PanelCard>
-          <PanelCard title="Contas a pagar" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('saida')} />}>
+          <PanelCard title="Contas a pagar" compactHeader className="finance-table-card" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('saida')} />}>
             <DataTable
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
@@ -3596,6 +3671,9 @@ function DashboardApp({
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+              pagination
+              internalScroll
+              rowsPerPageConfig={{ mobile: 4, tablet: 6, desktop: 8 }}
             />
             <div className="mt-3 text-right text-sm font-black text-rose-700">{formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
           </PanelCard>
@@ -3603,6 +3681,8 @@ function DashboardApp({
 
         <SectionCard
           title="Lançamentos"
+          className="finance-table-card"
+          compactHeader
           actions={<ActionButton label="Novo lançamento" tone="primary" className="btn--header btn--header-new" onClick={() => openFinancialCreate('entrada')} />}
         >
           <DataTable
@@ -3631,6 +3711,9 @@ function DashboardApp({
             ]}
             rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
             emptyMessage="Nenhum lançamento financeiro cadastrado."
+            pagination
+            internalScroll
+            rowsPerPageConfig={{ mobile: 4, tablet: 7, desktop: 10 }}
           />
         </SectionCard>
 

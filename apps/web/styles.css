@@ -2228,6 +2228,21 @@ select {
   position: relative;
 }
 
+.section-card__header--compact,
+.panel-card__header--compact {
+  margin-bottom: 0.55rem !important;
+}
+
+.section-card__header--compact h3,
+.panel-card__header--compact h3 {
+  line-height: 1.15;
+}
+
+.finance-table-card {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
 .financial-modal-card {
   padding: 0;
   overflow: hidden;
@@ -2370,6 +2385,7 @@ select {
 .data-table__head-cell {
   color: #94a3b8;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .data-table__row {
@@ -2379,6 +2395,39 @@ select {
 .data-table__cell {
   color: #64748b;
   font-weight: 500;
+  line-height: 1.2;
+}
+
+.data-table__viewport--scroll {
+  overflow-y: auto;
+}
+
+.data-table__viewport--scroll .data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+}
+
+.data-table__pagination {
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.data-table__pagination-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.data-table__pagination-actions {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
 }
 
 .financial-category-filter {
