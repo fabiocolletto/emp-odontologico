@@ -3244,38 +3244,23 @@ function DashboardApp({
                   onClick={() => setIsAccountModalOpen(true)}
                 />
                 <ActionButton
-                  label={isCompactFinanceActions ? '' : (isAccountsEditMode ? 'Fechar edição' : 'Editar')}
+                  label={isCompactFinanceActions ? '' : 'Editar'}
                   ariaLabel="Editar contas financeiras"
                   className="btn--header btn--header-muted btn--icon-compact"
                   icon={<AppIcon name="edit" size={14} />}
-                  onClick={() => setIsAccountsEditMode((current) => !current)}
+                  onClick={() => setIsAccountsEditMode(true)}
                 />
               </ActionGroup>
             )}
           >
-            {isAccountsEditMode ? (
-              <div className="mb-3">
-                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar contas" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} />
-              </div>
-            ) : null}
             <DataTable
               columns={[
                 { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                 { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
                 { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
-                ...(isAccountsEditMode ? [{
-                  key: 'acoes',
-                  label: 'Ações',
-                  render: (row) => (
-                    <ActionGroup>
-                      <ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} />
-                      <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} />
-                    </ActionGroup>
-                  )
-                }] : [])
+                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
               ]}
-              rows={filteredAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
             />
           </SectionCard>
@@ -3292,28 +3277,23 @@ function DashboardApp({
                   onClick={() => setIsCategoryModalOpen(true)}
                 />
                 <ActionButton
-                  label={isCompactFinanceActions ? '' : (isCategoriesEditMode ? 'Fechar edição' : 'Editar')}
+                  label={isCompactFinanceActions ? '' : 'Editar'}
                   ariaLabel="Editar categorias"
                   className="btn--header btn--header-muted btn--icon-compact"
                   icon={<AppIcon name="edit" size={14} />}
-                  onClick={() => setIsCategoriesEditMode((current) => !current)}
+                  onClick={() => setIsCategoriesEditMode(true)}
                 />
               </ActionGroup>
             )}
           >
-            {isCategoriesEditMode ? (
-              <div className="mb-3">
-                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar categorias" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} />
-              </div>
-            ) : null}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div>
                 <p className="font-black text-slate-600 mb-2">Receitas</p>
-                <div className="flex flex-wrap gap-2">{filteredInCategories.map((item) => <button type="button" key={`cat-in-${item}`} className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => isCategoriesEditMode ? setFinancialCategories((current) => ({ ...current, entradas: current.entradas.filter((cat) => cat !== item) })) : null}>{item}</button>)}</div>
+                <div className="flex flex-wrap gap-2">{financialCategories.entradas.map((item) => <span key={`cat-in-${item}`} className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50">{item}</span>)}</div>
               </div>
               <div>
                 <p className="font-black text-slate-600 mb-2">Despesas</p>
-                <div className="flex flex-wrap gap-2">{filteredOutCategories.map((item) => <button type="button" key={`cat-out-${item}`} className="px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => isCategoriesEditMode ? setFinancialCategories((current) => ({ ...current, saidas: current.saidas.filter((cat) => cat !== item) })) : null}>{item}</button>)}</div>
+                <div className="flex flex-wrap gap-2">{financialCategories.saidas.map((item) => <span key={`cat-out-${item}`} className="px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50">{item}</span>)}</div>
               </div>
             </div>
           </SectionCard>
@@ -3325,24 +3305,18 @@ function DashboardApp({
             actions={(
               <ActionGroup>
                 <ActionButton label={isCompactFinanceActions ? '' : 'Adicionar recorrência'} ariaLabel="Adicionar recorrência" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="plus" size={14} />} onClick={() => setIsRecurringModalOpen(true)} />
-                <ActionButton label={isCompactFinanceActions ? '' : (isRecurringEditMode ? 'Fechar edição' : 'Editar')} ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode((current) => !current)} />
+                <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode(true)} />
               </ActionGroup>
             )}
           >
-            {isRecurringEditMode ? (
-              <div className="mb-3">
-                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar recorrências" value={recurringFilter} onChange={(event) => setRecurringFilter(event.target.value)} />
-              </div>
-            ) : null}
             <DataTable
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
                 { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-500">{row.periodicidade}</span> },
                 { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
-                ...(isRecurringEditMode ? [{ key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }] : [])
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> }
               ]}
-              rows={filteredRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
             />
           </SectionCard>
@@ -3352,91 +3326,166 @@ function DashboardApp({
             actions={(
               <ActionGroup>
                 <ActionButton label={isCompactFinanceActions ? '' : 'Adicionar previsão'} ariaLabel="Adicionar previsão" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="plus" size={14} />} onClick={() => setIsForecastModalOpen(true)} />
-                <ActionButton label={isCompactFinanceActions ? '' : (isForecastEditMode ? 'Fechar edição' : 'Editar')} ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode((current) => !current)} />
+                <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode(true)} />
               </ActionGroup>
             )}
           >
-            {isForecastEditMode ? (
-              <div className="mb-3">
-                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar previsões" value={forecastFilter} onChange={(event) => setForecastFilter(event.target.value)} />
-              </div>
-            ) : null}
             <DataTable
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
                 { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-500">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
-                ...(isForecastEditMode ? [{ key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }] : [])
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> }
               ]}
-              rows={filteredForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
             />
           </SectionCard>
         </ContentGrid>
 
-        {isAccountModalOpen ? (
-          <PanelCard title="Adicionar conta financeira" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsAccountModalOpen(false)} />}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Nome da conta" value={newAccountDraft.nome} onChange={(event) => setNewAccountDraft((current) => ({ ...current, nome: event.target.value }))} />
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Banco" value={newAccountDraft.banco} onChange={(event) => setNewAccountDraft((current) => ({ ...current, banco: event.target.value }))} />
-              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newAccountDraft.tipo} onChange={(event) => setNewAccountDraft((current) => ({ ...current, tipo: event.target.value }))}>
-                <option value="corrente">corrente</option>
-                <option value="poupanca">poupança</option>
-              </select>
-              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Saldo inicial" value={newAccountDraft.saldo_inicial} onChange={(event) => setNewAccountDraft((current) => ({ ...current, saldo_inicial: event.target.value }))} />
+        {isAccountModalOpen || isAccountsEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard title={isAccountModalOpen ? 'Adicionar conta financeira' : 'Editar contas financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />}>
+                {isAccountModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Nome da conta" value={newAccountDraft.nome} onChange={(event) => setNewAccountDraft((current) => ({ ...current, nome: event.target.value }))} />
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Banco" value={newAccountDraft.banco} onChange={(event) => setNewAccountDraft((current) => ({ ...current, banco: event.target.value }))} />
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newAccountDraft.tipo} onChange={(event) => setNewAccountDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                        <option value="corrente">corrente</option>
+                        <option value="poupanca">poupança</option>
+                      </select>
+                      <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Saldo inicial" value={newAccountDraft.saldo_inicial} onChange={(event) => setNewAccountDraft((current) => ({ ...current, saldo_inicial: event.target.value }))} />
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                      <ActionButton label="Salvar conta" className="btn--header btn--header-new" onClick={addFinancialAccount} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs mb-3" placeholder="Filtrar contas" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} />
+                    <DataTable
+                      columns={[
+                        { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+                        { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                        { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                        { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
+                        { key: 'acoes', label: 'Ações', render: (row) => <ActionGroup><ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} /><ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} /></ActionGroup> }
+                      ]}
+                      rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
+                    />
+                  </>
+                )}
+              </PanelCard>
             </div>
-            <div className="mt-3 flex justify-end">
-              <ActionButton label="Salvar conta" className="btn--header btn--header-new" onClick={addFinancialAccount} />
-            </div>
-          </PanelCard>
+          </div>
         ) : null}
 
-        {isCategoryModalOpen ? (
-          <PanelCard title="Adicionar categoria financeira" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsCategoryModalOpen(false)} />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newCategoryDraft.tipo} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, tipo: event.target.value }))}>
-                <option value="entradas">Receitas</option>
-                <option value="saidas">Despesas</option>
-              </select>
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Nome da categoria" value={newCategoryDraft.nome} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, nome: event.target.value }))} />
+        {isCategoryModalOpen || isCategoriesEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard title={isCategoryModalOpen ? 'Adicionar categoria financeira' : 'Editar categorias financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />}>
+                {isCategoryModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newCategoryDraft.tipo} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                        <option value="entradas">Receitas</option>
+                        <option value="saidas">Despesas</option>
+                      </select>
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Nome da categoria" value={newCategoryDraft.nome} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, nome: event.target.value }))} />
+                    </div>
+                    <div className="mt-3 flex justify-end"><ActionButton label="Salvar categoria" className="btn--header btn--header-new" onClick={addFinancialCategory} /></div>
+                  </>
+                ) : (
+                  <>
+                    <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs mb-3" placeholder="Filtrar categorias" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="font-black text-slate-600 mb-2">Receitas</p>
+                        <div className="flex flex-wrap gap-2">{filteredInCategories.map((item) => <button type="button" key={`cat-edit-in-${item}`} className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => setFinancialCategories((current) => ({ ...current, entradas: current.entradas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-600 mb-2">Despesas</p>
+                        <div className="flex flex-wrap gap-2">{filteredOutCategories.map((item) => <button type="button" key={`cat-edit-out-${item}`} className="px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => setFinancialCategories((current) => ({ ...current, saidas: current.saidas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </PanelCard>
             </div>
-            <div className="mt-3 flex justify-end">
-              <ActionButton label="Salvar categoria" className="btn--header btn--header-new" onClick={addFinancialCategory} />
-            </div>
-          </PanelCard>
+          </div>
         ) : null}
 
-        {isRecurringModalOpen ? (
-          <PanelCard title="Adicionar despesa recorrente" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsRecurringModalOpen(false)} />}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Descrição" value={newRecurringDraft.descricao} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, descricao: event.target.value }))} />
-              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newRecurringDraft.valor} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, valor: event.target.value }))} />
-              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newRecurringDraft.periodicidade} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, periodicidade: event.target.value }))}>
-                <option value="mensal">mensal</option>
-                <option value="semanal">semanal</option>
-              </select>
+        {isRecurringModalOpen || isRecurringEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard title={isRecurringModalOpen ? 'Adicionar despesa recorrente' : 'Editar despesas recorrentes'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />}>
+                {isRecurringModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Descrição" value={newRecurringDraft.descricao} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, descricao: event.target.value }))} />
+                      <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newRecurringDraft.valor} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, valor: event.target.value }))} />
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newRecurringDraft.periodicidade} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, periodicidade: event.target.value }))}>
+                        <option value="mensal">mensal</option>
+                        <option value="semanal">semanal</option>
+                      </select>
+                    </div>
+                    <div className="mt-3 flex justify-end"><ActionButton label="Salvar recorrência" className="btn--header btn--header-new" onClick={addRecurring} /></div>
+                  </>
+                ) : (
+                  <>
+                    <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs mb-3" placeholder="Filtrar recorrências" value={recurringFilter} onChange={(event) => setRecurringFilter(event.target.value)} />
+                    <DataTable
+                      columns={[
+                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
+                        { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-500">{row.periodicidade}</span> },
+                        { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria || '-'}</span> },
+                        { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
+                      ]}
+                      rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
+                    />
+                  </>
+                )}
+              </PanelCard>
             </div>
-            <div className="mt-3 flex justify-end">
-              <ActionButton label="Salvar recorrência" className="btn--header btn--header-new" onClick={addRecurring} />
-            </div>
-          </PanelCard>
+          </div>
         ) : null}
 
-        {isForecastModalOpen ? (
-          <PanelCard title="Adicionar previsão de custo" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsForecastModalOpen(false)} />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Descrição" value={newForecastDraft.descricao} onChange={(event) => setNewForecastDraft((current) => ({ ...current, descricao: event.target.value }))} />
-              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newForecastDraft.valor} onChange={(event) => setNewForecastDraft((current) => ({ ...current, valor: event.target.value }))} />
-              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newForecastDraft.periodo} onChange={(event) => setNewForecastDraft((current) => ({ ...current, periodo: event.target.value }))}>
-                <option value="Próximos 15 dias">Próximos 15 dias</option>
-                <option value="Próximos 30 dias">Próximos 30 dias</option>
-                <option value="Próximos 90 dias">Próximos 90 dias</option>
-              </select>
+        {isForecastModalOpen || isForecastEditMode ? (
+          <div className="finance-overlay" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard title={isForecastModalOpen ? 'Adicionar previsão de custo' : 'Editar previsões de custo'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />}>
+                {isForecastModalOpen ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Descrição" value={newForecastDraft.descricao} onChange={(event) => setNewForecastDraft((current) => ({ ...current, descricao: event.target.value }))} />
+                      <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newForecastDraft.valor} onChange={(event) => setNewForecastDraft((current) => ({ ...current, valor: event.target.value }))} />
+                      <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newForecastDraft.periodo} onChange={(event) => setNewForecastDraft((current) => ({ ...current, periodo: event.target.value }))}>
+                        <option value="Próximos 15 dias">Próximos 15 dias</option>
+                        <option value="Próximos 30 dias">Próximos 30 dias</option>
+                        <option value="Próximos 90 dias">Próximos 90 dias</option>
+                      </select>
+                    </div>
+                    <div className="mt-3 flex justify-end"><ActionButton label="Salvar previsão" className="btn--header btn--header-new" onClick={addForecast} /></div>
+                  </>
+                ) : (
+                  <>
+                    <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs mb-3" placeholder="Filtrar previsões" value={forecastFilter} onChange={(event) => setForecastFilter(event.target.value)} />
+                    <DataTable
+                      columns={[
+                        { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
+                        { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-500">{row.periodo}</span> },
+                        { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
+                      ]}
+                      rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
+                    />
+                  </>
+                )}
+              </PanelCard>
             </div>
-            <div className="mt-3 flex justify-end">
-              <ActionButton label="Salvar previsão" className="btn--header btn--header-new" onClick={addForecast} />
-            </div>
-          </PanelCard>
+          </div>
         ) : null}
 
         <ContentGrid columns="2">
