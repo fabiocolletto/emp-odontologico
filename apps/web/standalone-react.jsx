@@ -11,6 +11,7 @@ const CHANGELOG_PATH = './CHANGELOG.md';
 const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
 const AUTH_NOTICE_TIMEOUT_MS = 5000;
 const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
+const FINANCIAL_STORAGE_KEY = 'odontoflow-financial-launches-v1';
 
 const getSupabaseConfig = () => {
   const injected = globalThis.__APP_ENV__ || {};
@@ -456,6 +457,116 @@ const FALLBACK_PATIENTS = [
     notes: 'Avaliação ortodôntica solicitada.'
   }
 ];
+
+const FINANCIAL_DEFAULT_LANCAMENTOS = [
+  {
+    id: 1,
+    tipo: 'entrada',
+    descricao: 'Consulta clínica',
+    categoria: 'Atendimento',
+    subcategoria: 'Consulta',
+    valor: 250,
+    status: 'recebido',
+    data_competencia: '2026-04-10',
+    data_vencimento: '2026-04-10',
+    data_pagamento: '2026-04-10',
+    origem: 'Paciente João',
+    paciente_id: 1,
+    profissional_id: 2,
+    observacoes: 'Pagamento no cartão'
+  },
+  {
+    id: 2,
+    tipo: 'entrada',
+    descricao: 'Implante unitário',
+    categoria: 'Procedimento',
+    subcategoria: 'Implantodontia',
+    valor: 2850,
+    status: 'recebido',
+    data_competencia: '2026-04-11',
+    data_vencimento: '2026-04-11',
+    data_pagamento: '2026-04-11',
+    origem: 'Paciente Maria',
+    paciente_id: 3,
+    profissional_id: 5,
+    observacoes: 'Pacote com retorno'
+  },
+  {
+    id: 3,
+    tipo: 'entrada',
+    descricao: 'Convênio OdontoPrev',
+    categoria: 'Convênio',
+    subcategoria: 'Repasse',
+    valor: 4300,
+    status: 'previsto',
+    data_competencia: '2026-04-15',
+    data_vencimento: '2026-04-20',
+    data_pagamento: '',
+    origem: 'Convênio',
+    paciente_id: null,
+    profissional_id: null,
+    observacoes: 'Lote abril'
+  },
+  {
+    id: 4,
+    tipo: 'saida',
+    descricao: 'Aluguel da clínica',
+    categoria: 'Estrutura',
+    subcategoria: 'Aluguel',
+    valor: 5300,
+    status: 'pago',
+    data_competencia: '2026-04-01',
+    data_vencimento: '2026-04-05',
+    data_pagamento: '2026-04-05',
+    origem: 'Imobiliária Centro',
+    paciente_id: null,
+    profissional_id: null,
+    observacoes: 'Mensal'
+  },
+  {
+    id: 5,
+    tipo: 'saida',
+    descricao: 'Laboratório de prótese',
+    categoria: 'Laboratório',
+    subcategoria: 'Prótese',
+    valor: 1980,
+    status: 'vencido',
+    data_competencia: '2026-04-12',
+    data_vencimento: '2026-04-17',
+    data_pagamento: '',
+    origem: 'Lab Sorriso',
+    paciente_id: null,
+    profissional_id: null,
+    observacoes: '3 casos'
+  }
+];
+
+const summarizeFinancialData = (items = []) => {
+  const receitaRecebida = items
+    .filter((item) => item.tipo === 'entrada' && ['recebido', 'pago'].includes(item.status))
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const despesasPagas = items
+    .filter((item) => item.tipo === 'saida' && item.status === 'pago')
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const aReceber = items
+    .filter((item) => item.tipo === 'entrada' && !['recebido', 'pago'].includes(item.status))
+    .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+
+  const entradas = items.filter((item) => item.tipo === 'entrada');
+  const ticketMedio = receitaRecebida / Math.max(entradas.length, 1);
+  const inadimplencia = entradas.length
+    ? (entradas.filter((item) => item.status === 'vencido').length / entradas.length) * 100
+    : 0;
+
+  return {
+    receitaRecebida,
+    despesasPagas,
+    resultadoLiquido: receitaRecebida - despesasPagas,
+    aReceber,
+    ticketMedio,
+    inadimplencia
+  };
+};
 
 const getInitials = (name) =>
   String(name || '')
@@ -1066,6 +1177,17 @@ const readStoredPatientsSearchVisibility = () => {
   }
 };
 
+const readStoredFinancialLaunches = () => {
+  try {
+    const raw = localStorage.getItem(FINANCIAL_STORAGE_KEY);
+    if (!raw) return FINANCIAL_DEFAULT_LANCAMENTOS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_LANCAMENTOS;
+  } catch {
+    return FINANCIAL_DEFAULT_LANCAMENTOS;
+  }
+};
+
 function DashboardApp({
   authEmail = '',
   authUser = null,
@@ -1092,6 +1214,24 @@ function DashboardApp({
   const [patientsPage, setPatientsPage] = useState(1);
   const [appointmentsQuery, setAppointmentsQuery] = useState('');
   const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const [financialLaunches, setFinancialLaunches] = useState(() => readStoredFinancialLaunches());
+  const [isFinancialFormOpen, setIsFinancialFormOpen] = useState(false);
+  const [financialDraft, setFinancialDraft] = useState(() => ({
+    id: '',
+    tipo: 'entrada',
+    descricao: '',
+    categoria: '',
+    subcategoria: '',
+    valor: '',
+    status: 'previsto',
+    data_competencia: '',
+    data_vencimento: '',
+    data_pagamento: '',
+    origem: '',
+    paciente_id: '',
+    profissional_id: '',
+    observacoes: ''
+  }));
   const [showPatientHint, setShowPatientHint] = useState(false);
   const [patientModalMode, setPatientModalMode] = useState('view');
   const [patientFormTab, setPatientFormTab] = useState(PATIENT_FORM_TABS[0].id);
@@ -1158,6 +1298,72 @@ function DashboardApp({
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return '-';
     return parsed.toLocaleString('pt-BR');
+  };
+
+  const formatMoney = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const emptyFinancialDraft = () => ({
+    id: '',
+    tipo: 'entrada',
+    descricao: '',
+    categoria: '',
+    subcategoria: '',
+    valor: '',
+    status: 'previsto',
+    data_competencia: '',
+    data_vencimento: '',
+    data_pagamento: '',
+    origem: '',
+    paciente_id: '',
+    profissional_id: '',
+    observacoes: ''
+  });
+
+  const openFinancialCreate = () => {
+    setFinancialDraft(emptyFinancialDraft());
+    setIsFinancialFormOpen(true);
+  };
+
+  const openFinancialEdit = (launch) => {
+    setFinancialDraft({
+      ...launch,
+      valor: launch.valor ?? '',
+      paciente_id: launch.paciente_id ?? '',
+      profissional_id: launch.profissional_id ?? ''
+    });
+    setIsFinancialFormOpen(true);
+  };
+
+  const closeFinancialForm = () => {
+    setFinancialDraft(emptyFinancialDraft());
+    setIsFinancialFormOpen(false);
+  };
+
+  const handleFinancialDraftChange = (field, value) => {
+    setFinancialDraft((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleFinancialSave = () => {
+    if (!financialDraft.descricao || !financialDraft.categoria || !financialDraft.data_vencimento || !financialDraft.origem) return;
+
+    const payload = {
+      ...financialDraft,
+      id: financialDraft.id || Date.now(),
+      valor: Number(financialDraft.valor || 0),
+      paciente_id: financialDraft.paciente_id === '' ? null : Number(financialDraft.paciente_id),
+      profissional_id: financialDraft.profissional_id === '' ? null : Number(financialDraft.profissional_id)
+    };
+
+    setFinancialLaunches((current) => (
+      financialDraft.id
+        ? current.map((item) => (item.id === financialDraft.id ? payload : item))
+        : [payload, ...current]
+    ));
+    closeFinancialForm();
+  };
+
+  const handleFinancialDelete = (id) => {
+    setFinancialLaunches((current) => current.filter((item) => item.id !== id));
   };
 
   const openPatientN2 = (patient) => {
@@ -1676,6 +1882,10 @@ function DashboardApp({
   useEffect(() => {
     localStorage.setItem(NOTES_DRAFT_KEY, JSON.stringify(notesDraft));
   }, [notesDraft]);
+
+  useEffect(() => {
+    localStorage.setItem(FINANCIAL_STORAGE_KEY, JSON.stringify(financialLaunches));
+  }, [financialLaunches]);
 
   useEffect(() => {
     setPatientsPage(1);
@@ -2549,18 +2759,216 @@ function DashboardApp({
       );
     }
 
+    const summary = summarizeFinancialData(financialLaunches);
+    const kpis = [
+      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600' },
+      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600' },
+      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600' },
+      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600' },
+      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600' },
+      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600' }
+    ];
+    const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
+    const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+
     return (
       <div className="space-y-6">
-        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Cobrança, assinaturas e faturamento' })}
+        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica' })}
+
         <div className="ui-card data-card data-card--g">
-          <p className="text-sm text-slate-500 mb-3">Procedimentos ativos</p>
-          <ul className="list-disc pl-5 space-y-1 text-slate-800">
-            <li>Limpeza Profilática</li>
-            <li>Restauração em Resina</li>
-            <li>Tratamento de Canal</li>
-            <li>Avaliação Ortodôntica</li>
-          </ul>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="chip chip--soft">Período</span>
+              <span className="text-sm font-semibold text-slate-700">01/04/2026 - 30/04/2026</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className="btn btn--primary btn--header btn--header-success" onClick={openFinancialCreate}>Novo recebimento</button>
+              <button type="button" className="btn btn--primary btn--header btn--header-danger" onClick={openFinancialCreate}>Nova despesa</button>
+              <button type="button" className="btn btn--ghost">Exportar relatório</button>
+            </div>
+          </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {kpis.slice(0, 4).map((kpi) => (
+            <div key={kpi.label} className="ui-card data-card data-card--g p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{kpi.label}</p>
+              <p className="text-2xl font-black text-slate-900 mt-2 whitespace-nowrap">{kpi.value}</p>
+              <p className={`text-xs font-bold mt-2 ${kpi.tone}`}>{kpi.trend} vs mês anterior</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {kpis.slice(4).map((kpi) => (
+            <div key={kpi.label} className="ui-card data-card data-card--g p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{kpi.label}</p>
+              <p className="text-xl font-black text-slate-900 mt-2">{kpi.value}</p>
+              <p className={`text-xs font-bold mt-2 ${kpi.tone}`}>{kpi.trend} vs mês anterior</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="ui-card data-card data-card--g p-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h3 className="text-base font-black text-slate-900">Contas a receber</h3>
+              <span className="text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-slate-400">
+                    <th className="text-left py-2 pr-3">Paciente/Origem</th>
+                    <th className="text-left py-2 pr-3">Vencimento</th>
+                    <th className="text-left py-2 pr-3">Valor</th>
+                    <th className="text-left py-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contasReceber.map((item) => (
+                    <tr key={`receber-${item.id}`} className="border-t border-slate-100">
+                      <td className="py-2 pr-3 text-slate-700">{item.origem}</td>
+                      <td className="py-2 pr-3 text-slate-500">{item.data_vencimento || '-'}</td>
+                      <td className="py-2 pr-3 text-slate-700 font-bold">{formatMoney(item.valor)}</td>
+                      <td className="py-2 text-xs font-black uppercase text-amber-600">{item.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="ui-card data-card data-card--g p-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h3 className="text-base font-black text-slate-900">Contas a pagar</h3>
+              <span className="text-sm font-black text-rose-700">{formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-slate-400">
+                    <th className="text-left py-2 pr-3">Fornecedor</th>
+                    <th className="text-left py-2 pr-3">Vencimento</th>
+                    <th className="text-left py-2 pr-3">Valor</th>
+                    <th className="text-left py-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contasPagar.map((item) => (
+                    <tr key={`pagar-${item.id}`} className="border-t border-slate-100">
+                      <td className="py-2 pr-3 text-slate-700">{item.origem}</td>
+                      <td className="py-2 pr-3 text-slate-500">{item.data_vencimento || '-'}</td>
+                      <td className="py-2 pr-3 text-slate-700 font-bold">{formatMoney(item.valor)}</td>
+                      <td className={`py-2 text-xs font-black uppercase ${item.status === 'vencido' ? 'text-rose-600' : 'text-emerald-600'}`}>{item.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="ui-card data-card data-card--g p-4">
+          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+            <h3 className="text-base font-black text-slate-900">Lançamentos</h3>
+            <button type="button" className="btn btn--primary btn--header btn--header-new" onClick={openFinancialCreate}>Novo lançamento</button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-[960px] w-full text-sm">
+              <thead>
+                <tr className="text-slate-400">
+                  <th className="text-left py-2 pr-3">Tipo</th>
+                  <th className="text-left py-2 pr-3">Descrição</th>
+                  <th className="text-left py-2 pr-3">Categoria</th>
+                  <th className="text-left py-2 pr-3">Valor</th>
+                  <th className="text-left py-2 pr-3">Status</th>
+                  <th className="text-left py-2 pr-3">Vencimento</th>
+                  <th className="text-left py-2 pr-3">Pagamento</th>
+                  <th className="text-left py-2">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {financialLaunches.map((item) => (
+                  <tr key={`launch-${item.id}`} className="border-t border-slate-100">
+                    <td className={`py-2 pr-3 font-black uppercase text-xs ${item.tipo === 'entrada' ? 'text-emerald-600' : 'text-rose-600'}`}>{item.tipo}</td>
+                    <td className="py-2 pr-3 text-slate-700">{item.descricao}</td>
+                    <td className="py-2 pr-3 text-slate-500">{item.categoria}</td>
+                    <td className="py-2 pr-3 text-slate-700 font-bold">{formatMoney(item.valor)}</td>
+                    <td className="py-2 pr-3 text-xs uppercase font-black text-slate-500">{item.status}</td>
+                    <td className="py-2 pr-3 text-slate-500">{item.data_vencimento || '-'}</td>
+                    <td className="py-2 pr-3 text-slate-500">{item.data_pagamento || '-'}</td>
+                    <td className="py-2">
+                      <div className="flex items-center gap-2">
+                        <button type="button" className="btn btn--ghost" onClick={() => openFinancialEdit(item)}>Editar</button>
+                        <button type="button" className="btn btn--ghost text-rose-600" onClick={() => handleFinancialDelete(item.id)}>Excluir</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {isFinancialFormOpen ? (
+          <div className="ui-card data-card data-card--g p-4 space-y-4">
+            <h3 className="text-base font-black text-slate-900">{financialDraft.id ? 'Editar lançamento' : 'Novo lançamento'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Tipo
+                <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.tipo} onChange={(event) => handleFinancialDraftChange('tipo', event.target.value)}>
+                  <option value="entrada">entrada</option>
+                  <option value="saida">saida</option>
+                </select>
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Descrição
+                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.descricao} onChange={(event) => handleFinancialDraftChange('descricao', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Categoria
+                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.categoria} onChange={(event) => handleFinancialDraftChange('categoria', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Subcategoria
+                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.subcategoria} onChange={(event) => handleFinancialDraftChange('subcategoria', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Valor
+                <input type="number" min="0" step="0.01" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.valor} onChange={(event) => handleFinancialDraftChange('valor', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Status
+                <select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.status} onChange={(event) => handleFinancialDraftChange('status', event.target.value)}>
+                  <option value="previsto">previsto</option>
+                  <option value="pago">pago</option>
+                  <option value="recebido">recebido</option>
+                  <option value="vencido">vencido</option>
+                </select>
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Competência
+                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_competencia} onChange={(event) => handleFinancialDraftChange('data_competencia', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Vencimento
+                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_vencimento} onChange={(event) => handleFinancialDraftChange('data_vencimento', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Pagamento
+                <input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.data_pagamento} onChange={(event) => handleFinancialDraftChange('data_pagamento', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Origem
+                <input className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.origem} onChange={(event) => handleFinancialDraftChange('origem', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Paciente ID
+                <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.paciente_id} onChange={(event) => handleFinancialDraftChange('paciente_id', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">Profissional ID
+                <input type="number" min="1" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={financialDraft.profissional_id} onChange={(event) => handleFinancialDraftChange('profissional_id', event.target.value)} />
+              </label>
+              <label className="text-xs font-black uppercase tracking-[0.12em] text-slate-400 md:col-span-2 xl:col-span-3">Observações
+                <textarea className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm min-h-[96px]" value={financialDraft.observacoes} onChange={(event) => handleFinancialDraftChange('observacoes', event.target.value)} />
+              </label>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button type="button" className="btn btn--ghost" onClick={closeFinancialForm}>Cancelar</button>
+              <button type="button" className="btn btn--primary btn--header btn--header-new" onClick={handleFinancialSave}>Salvar lançamento</button>
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   };
