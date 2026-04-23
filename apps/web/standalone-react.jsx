@@ -405,13 +405,13 @@ const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoin
   </BaseCard>
 );
 
-const PanelCard = ({ title, extra = null, children, className = '', titleClassName = '' }) => (
+const PanelCard = ({ title, extra = null, children, className = '', titleClassName = '', contentClassName = '' }) => (
   <BaseCard className={className}>
     <div className="panel-card__header flex items-center justify-between gap-3 mb-3">
       <h3 className={`panel-card__title text-base font-black text-slate-900 ${titleClassName}`.trim()}>{title}</h3>
       {extra}
     </div>
-    {children}
+    <div className={`panel-card__content ${contentClassName}`.trim()}>{children}</div>
   </BaseCard>
 );
 
@@ -3391,7 +3391,7 @@ function DashboardApp({
         {isAccountModalOpen || isAccountsEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard title={isAccountModalOpen ? 'Adicionar conta financeira' : 'Editar contas financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isAccountModalOpen ? 'Adicionar conta financeira' : 'Editar contas financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />}>
                 {isAccountModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -3430,7 +3430,7 @@ function DashboardApp({
         {isCategoryModalOpen || isCategoriesEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard title={isCategoryModalOpen ? 'Adicionar categoria financeira' : 'Editar categorias financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isCategoryModalOpen ? 'Adicionar categoria financeira' : 'Editar categorias financeiras'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />}>
                 {isCategoryModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -3465,7 +3465,7 @@ function DashboardApp({
         {isRecurringModalOpen || isRecurringEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard title={isRecurringModalOpen ? 'Adicionar despesa recorrente' : 'Editar despesas recorrentes'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isRecurringModalOpen ? 'Adicionar despesa recorrente' : 'Editar despesas recorrentes'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />}>
                 {isRecurringModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
@@ -3501,7 +3501,7 @@ function DashboardApp({
         {isForecastModalOpen || isForecastEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <PanelCard title={isForecastModalOpen ? 'Adicionar previsão de custo' : 'Editar previsões de custo'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />}>
+              <PanelCard className="financial-modal-card" title={isForecastModalOpen ? 'Adicionar previsão de custo' : 'Editar previsões de custo'} extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />}>
                 {isForecastModalOpen ? (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -3592,7 +3592,7 @@ function DashboardApp({
           <div className="finance-overlay" onClick={closeFinancialForm}>
             <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <PanelCard
-                className="financial-launch-modal-card"
+                className="financial-modal-card financial-launch-modal-card"
                 titleClassName="financial-launch-modal-card__title"
                 title={
                   financialDraft.id
@@ -3655,8 +3655,8 @@ function DashboardApp({
                 </div>
                 </div>
                 <div className="financial-launch-modal-card__footer mt-4 flex justify-end gap-2">
-                  <button type="button" className="btn btn--ghost financial-launch-modal-card__cancel" onClick={closeFinancialForm}>Cancelar</button>
-                  <button type="button" className="btn btn--primary btn--header btn--header-new financial-launch-modal-card__save" onClick={handleFinancialSave}>Salvar lançamento</button>
+                  <ActionButton label="Cancelar" className="btn--header btn--header-muted financial-launch-modal-card__cancel" onClick={closeFinancialForm} />
+                  <ActionButton label="Salvar lançamento" className="btn--header btn--header-new financial-launch-modal-card__save" onClick={handleFinancialSave} />
                 </div>
               </PanelCard>
             </div>
