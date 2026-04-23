@@ -463,10 +463,10 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.' }) =
   </div>
 );
 
-const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button' }) => (
-  <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick}>
+const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button', ariaLabel }) => (
+  <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick} aria-label={ariaLabel || label}>
     {icon}
-    {label}
+    {label ? <span>{label}</span> : null}
   </button>
 );
 
@@ -1507,6 +1507,18 @@ function DashboardApp({
   const [newAccountDraft, setNewAccountDraft] = useState({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
   const [newRecurringDraft, setNewRecurringDraft] = useState({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
   const [newForecastDraft, setNewForecastDraft] = useState({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+  const [isForecastModalOpen, setIsForecastModalOpen] = useState(false);
+  const [isAccountsEditMode, setIsAccountsEditMode] = useState(false);
+  const [isCategoriesEditMode, setIsCategoriesEditMode] = useState(false);
+  const [isRecurringEditMode, setIsRecurringEditMode] = useState(false);
+  const [isForecastEditMode, setIsForecastEditMode] = useState(false);
+  const [accountFilter, setAccountFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [recurringFilter, setRecurringFilter] = useState('');
+  const [forecastFilter, setForecastFilter] = useState('');
   const [financialDraft, setFinancialDraft] = useState(() => ({
     id: '',
     tipo: 'entrada',
@@ -1691,6 +1703,7 @@ function DashboardApp({
       [newCategoryDraft.tipo]: [...current[newCategoryDraft.tipo], name]
     }));
     setNewCategoryDraft((current) => ({ ...current, nome: '' }));
+    setIsCategoryModalOpen(false);
   };
 
   const addFinancialAccount = () => {
@@ -1700,6 +1713,7 @@ function DashboardApp({
       { id: Date.now(), ...newAccountDraft, saldo_inicial: Number(newAccountDraft.saldo_inicial || 0) }
     ]);
     setNewAccountDraft({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
+    setIsAccountModalOpen(false);
   };
 
   const editFinancialAccount = (id) => {
@@ -1722,6 +1736,7 @@ function DashboardApp({
       { id: Date.now(), ...newRecurringDraft, valor: Number(newRecurringDraft.valor || 0) }
     ]);
     setNewRecurringDraft({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
+    setIsRecurringModalOpen(false);
   };
 
   const deleteRecurring = (id) => setFinancialRecurring((items) => items.filter((item) => item.id !== id));
@@ -1733,6 +1748,7 @@ function DashboardApp({
       { id: Date.now(), ...newForecastDraft, valor: Number(newForecastDraft.valor || 0) }
     ]);
     setNewForecastDraft({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+    setIsForecastModalOpen(false);
   };
 
   const deleteForecast = (id) => setFinancialForecasts((items) => items.filter((item) => item.id !== id));
@@ -3166,6 +3182,12 @@ function DashboardApp({
     ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+    const isCompactFinanceActions = !isWideNavigation;
+    const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
+    const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
+    const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
+    const filteredInCategories = financialCategories.entradas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
+    const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
 
     return (
       <div className="space-y-6">
@@ -3210,23 +3232,39 @@ function DashboardApp({
         </ContentGrid>
 
         <ContentGrid columns="2">
-          <SectionCard title="Contas financeiras" actions={<ActionButton label="Adicionar conta" className="btn--header btn--header-muted" icon={<AppIcon name="wallet" size={14} />} onClick={addFinancialAccount} />}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Nome da conta" value={newAccountDraft.nome} onChange={(event) => setNewAccountDraft((current) => ({ ...current, nome: event.target.value }))} />
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Banco" value={newAccountDraft.banco} onChange={(event) => setNewAccountDraft((current) => ({ ...current, banco: event.target.value }))} />
-              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newAccountDraft.tipo} onChange={(event) => setNewAccountDraft((current) => ({ ...current, tipo: event.target.value }))}>
-                <option value="corrente">corrente</option>
-                <option value="poupanca">poupança</option>
-              </select>
-              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Saldo inicial" value={newAccountDraft.saldo_inicial} onChange={(event) => setNewAccountDraft((current) => ({ ...current, saldo_inicial: event.target.value }))} />
-            </div>
+          <SectionCard
+            title="Contas financeiras"
+            actions={(
+              <ActionGroup>
+                <ActionButton
+                  label={isCompactFinanceActions ? '' : 'Adicionar conta'}
+                  ariaLabel="Adicionar conta"
+                  className="btn--header btn--header-muted btn--icon-compact"
+                  icon={<AppIcon name="wallet" size={14} />}
+                  onClick={() => setIsAccountModalOpen(true)}
+                />
+                <ActionButton
+                  label={isCompactFinanceActions ? '' : (isAccountsEditMode ? 'Fechar edição' : 'Editar')}
+                  ariaLabel="Editar contas financeiras"
+                  className="btn--header btn--header-muted btn--icon-compact"
+                  icon={<AppIcon name="edit" size={14} />}
+                  onClick={() => setIsAccountsEditMode((current) => !current)}
+                />
+              </ActionGroup>
+            )}
+          >
+            {isAccountsEditMode ? (
+              <div className="mb-3">
+                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar contas" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} />
+              </div>
+            ) : null}
             <DataTable
               columns={[
                 { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                 { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
                 { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
                 { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
-                {
+                ...(isAccountsEditMode ? [{
                   key: 'acoes',
                   label: 'Ações',
                   render: (row) => (
@@ -3235,37 +3273,142 @@ function DashboardApp({
                       <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} />
                     </ActionGroup>
                   )
-                }
+                }] : [])
               ]}
-              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              rows={filteredAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
             />
           </SectionCard>
 
-          <SectionCard title="Categorias financeiras" actions={<ActionButton label="Adicionar categoria" className="btn--header btn--header-muted" onClick={addFinancialCategory} />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
-              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newCategoryDraft.tipo} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, tipo: event.target.value }))}>
-                <option value="entradas">Receitas</option>
-                <option value="saidas">Despesas</option>
-              </select>
-              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Nome da categoria" value={newCategoryDraft.nome} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, nome: event.target.value }))} />
-            </div>
+          <SectionCard
+            title="Categorias financeiras"
+            actions={(
+              <ActionGroup>
+                <ActionButton
+                  label={isCompactFinanceActions ? '' : 'Adicionar categoria'}
+                  ariaLabel="Adicionar categoria"
+                  className="btn--header btn--header-muted btn--icon-compact"
+                  icon={<AppIcon name="plus" size={14} />}
+                  onClick={() => setIsCategoryModalOpen(true)}
+                />
+                <ActionButton
+                  label={isCompactFinanceActions ? '' : (isCategoriesEditMode ? 'Fechar edição' : 'Editar')}
+                  ariaLabel="Editar categorias"
+                  className="btn--header btn--header-muted btn--icon-compact"
+                  icon={<AppIcon name="edit" size={14} />}
+                  onClick={() => setIsCategoriesEditMode((current) => !current)}
+                />
+              </ActionGroup>
+            )}
+          >
+            {isCategoriesEditMode ? (
+              <div className="mb-3">
+                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar categorias" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} />
+              </div>
+            ) : null}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div>
                 <p className="font-black text-slate-600 mb-2">Receitas</p>
-                <div className="flex flex-wrap gap-2">{financialCategories.entradas.map((item) => <button type="button" key={`cat-in-${item}`} className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => setFinancialCategories((current) => ({ ...current, entradas: current.entradas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+                <div className="flex flex-wrap gap-2">{filteredInCategories.map((item) => <button type="button" key={`cat-in-${item}`} className="px-2 py-1 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50" onClick={() => isCategoriesEditMode ? setFinancialCategories((current) => ({ ...current, entradas: current.entradas.filter((cat) => cat !== item) })) : null}>{item}</button>)}</div>
               </div>
               <div>
                 <p className="font-black text-slate-600 mb-2">Despesas</p>
-                <div className="flex flex-wrap gap-2">{financialCategories.saidas.map((item) => <button type="button" key={`cat-out-${item}`} className="px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => setFinancialCategories((current) => ({ ...current, saidas: current.saidas.filter((cat) => cat !== item) }))}>{item}</button>)}</div>
+                <div className="flex flex-wrap gap-2">{filteredOutCategories.map((item) => <button type="button" key={`cat-out-${item}`} className="px-2 py-1 rounded-full border border-rose-200 text-rose-700 bg-rose-50" onClick={() => isCategoriesEditMode ? setFinancialCategories((current) => ({ ...current, saidas: current.saidas.filter((cat) => cat !== item) })) : null}>{item}</button>)}</div>
               </div>
             </div>
           </SectionCard>
         </ContentGrid>
 
         <ContentGrid columns="2">
-          <SectionCard title="Despesas recorrentes" actions={<ActionButton label="Adicionar recorrência" className="btn--header btn--header-muted" onClick={addRecurring} />}>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+          <SectionCard
+            title="Despesas recorrentes"
+            actions={(
+              <ActionGroup>
+                <ActionButton label={isCompactFinanceActions ? '' : 'Adicionar recorrência'} ariaLabel="Adicionar recorrência" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="plus" size={14} />} onClick={() => setIsRecurringModalOpen(true)} />
+                <ActionButton label={isCompactFinanceActions ? '' : (isRecurringEditMode ? 'Fechar edição' : 'Editar')} ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode((current) => !current)} />
+              </ActionGroup>
+            )}
+          >
+            {isRecurringEditMode ? (
+              <div className="mb-3">
+                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar recorrências" value={recurringFilter} onChange={(event) => setRecurringFilter(event.target.value)} />
+              </div>
+            ) : null}
+            <DataTable
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
+                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-500">{row.periodicidade}</span> },
+                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                ...(isRecurringEditMode ? [{ key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }] : [])
+              ]}
+              rows={filteredRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma despesa recorrente cadastrada."
+            />
+          </SectionCard>
+
+          <SectionCard
+            title="Previsões de custos"
+            actions={(
+              <ActionGroup>
+                <ActionButton label={isCompactFinanceActions ? '' : 'Adicionar previsão'} ariaLabel="Adicionar previsão" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="plus" size={14} />} onClick={() => setIsForecastModalOpen(true)} />
+                <ActionButton label={isCompactFinanceActions ? '' : (isForecastEditMode ? 'Fechar edição' : 'Editar')} ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode((current) => !current)} />
+              </ActionGroup>
+            )}
+          >
+            {isForecastEditMode ? (
+              <div className="mb-3">
+                <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar previsões" value={forecastFilter} onChange={(event) => setForecastFilter(event.target.value)} />
+              </div>
+            ) : null}
+            <DataTable
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
+                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-500">{row.periodo}</span> },
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
+                ...(isForecastEditMode ? [{ key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }] : [])
+              ]}
+              rows={filteredForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma previsão cadastrada."
+            />
+          </SectionCard>
+        </ContentGrid>
+
+        {isAccountModalOpen ? (
+          <PanelCard title="Adicionar conta financeira" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsAccountModalOpen(false)} />}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Nome da conta" value={newAccountDraft.nome} onChange={(event) => setNewAccountDraft((current) => ({ ...current, nome: event.target.value }))} />
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Banco" value={newAccountDraft.banco} onChange={(event) => setNewAccountDraft((current) => ({ ...current, banco: event.target.value }))} />
+              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newAccountDraft.tipo} onChange={(event) => setNewAccountDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                <option value="corrente">corrente</option>
+                <option value="poupanca">poupança</option>
+              </select>
+              <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Saldo inicial" value={newAccountDraft.saldo_inicial} onChange={(event) => setNewAccountDraft((current) => ({ ...current, saldo_inicial: event.target.value }))} />
+            </div>
+            <div className="mt-3 flex justify-end">
+              <ActionButton label="Salvar conta" className="btn--header btn--header-new" onClick={addFinancialAccount} />
+            </div>
+          </PanelCard>
+        ) : null}
+
+        {isCategoryModalOpen ? (
+          <PanelCard title="Adicionar categoria financeira" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsCategoryModalOpen(false)} />}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newCategoryDraft.tipo} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, tipo: event.target.value }))}>
+                <option value="entradas">Receitas</option>
+                <option value="saidas">Despesas</option>
+              </select>
+              <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Nome da categoria" value={newCategoryDraft.nome} onChange={(event) => setNewCategoryDraft((current) => ({ ...current, nome: event.target.value }))} />
+            </div>
+            <div className="mt-3 flex justify-end">
+              <ActionButton label="Salvar categoria" className="btn--header btn--header-new" onClick={addFinancialCategory} />
+            </div>
+          </PanelCard>
+        ) : null}
+
+        {isRecurringModalOpen ? (
+          <PanelCard title="Adicionar despesa recorrente" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsRecurringModalOpen(false)} />}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
               <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm md:col-span-2" placeholder="Descrição" value={newRecurringDraft.descricao} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, descricao: event.target.value }))} />
               <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newRecurringDraft.valor} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, valor: event.target.value }))} />
               <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newRecurringDraft.periodicidade} onChange={(event) => setNewRecurringDraft((current) => ({ ...current, periodicidade: event.target.value }))}>
@@ -3273,21 +3416,15 @@ function DashboardApp({
                 <option value="semanal">semanal</option>
               </select>
             </div>
-            <DataTable
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
-                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-500">{row.periodicidade}</span> },
-                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-500">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
-                { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
-              ]}
-              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma despesa recorrente cadastrada."
-            />
-          </SectionCard>
+            <div className="mt-3 flex justify-end">
+              <ActionButton label="Salvar recorrência" className="btn--header btn--header-new" onClick={addRecurring} />
+            </div>
+          </PanelCard>
+        ) : null}
 
-          <SectionCard title="Previsões de custos" actions={<ActionButton label="Adicionar previsão" className="btn--header btn--header-muted" onClick={addForecast} />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+        {isForecastModalOpen ? (
+          <PanelCard title="Adicionar previsão de custo" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsForecastModalOpen(false)} />}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Descrição" value={newForecastDraft.descricao} onChange={(event) => setNewForecastDraft((current) => ({ ...current, descricao: event.target.value }))} />
               <input type="number" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Valor" value={newForecastDraft.valor} onChange={(event) => setNewForecastDraft((current) => ({ ...current, valor: event.target.value }))} />
               <select className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={newForecastDraft.periodo} onChange={(event) => setNewForecastDraft((current) => ({ ...current, periodo: event.target.value }))}>
@@ -3296,18 +3433,11 @@ function DashboardApp({
                 <option value="Próximos 90 dias">Próximos 90 dias</option>
               </select>
             </div>
-            <DataTable
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-700">{row.descricao}</span> },
-                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-500">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-700 font-semibold">{formatMoney(row.valor)}</span> },
-                { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
-              ]}
-              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma previsão cadastrada."
-            />
-          </SectionCard>
-        </ContentGrid>
+            <div className="mt-3 flex justify-end">
+              <ActionButton label="Salvar previsão" className="btn--header btn--header-new" onClick={addForecast} />
+            </div>
+          </PanelCard>
+        ) : null}
 
         <ContentGrid columns="2">
           <PanelCard title="Contas a receber" extra={<span className="text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</span>}>

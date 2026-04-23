@@ -1027,6 +1027,20 @@ select {
   color: #475569;
 }
 
+@media (max-width: 1023px) {
+  .btn--icon-compact {
+    min-width: 40px;
+    width: 40px;
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+  }
+
+  .btn--icon-compact span {
+    display: none;
+  }
+}
+
 .single-select {
   display: grid;
   gap: 0.28rem;
