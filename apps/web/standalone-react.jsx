@@ -466,18 +466,22 @@ const DataTable = ({
   internalScroll = false
 }) => {
   const [page, setPage] = useState(1);
-  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1280));
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
     const handleResize = () => setViewportWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const rowsPerPage = useMemo(() => {
-    if (viewportWidth < 768) return rowsPerPageConfig.mobile || 4;
-    if (viewportWidth < 1280) return rowsPerPageConfig.tablet || rowsPerPageConfig.desktop || 6;
-    return rowsPerPageConfig.desktop || 8;
+    const mobile = Math.max(1, Number(rowsPerPageConfig.mobile || 4));
+    const tablet = Math.max(1, Number(rowsPerPageConfig.tablet || rowsPerPageConfig.desktop || 6));
+    const desktop = Math.max(1, Number(rowsPerPageConfig.desktop || 8));
+    if (viewportWidth < 768) return mobile;
+    if (viewportWidth < 1280) return tablet;
+    return desktop;
   }, [rowsPerPageConfig, viewportWidth]);
 
   const totalPages = Math.max(1, Math.ceil(rows.length / rowsPerPage));
@@ -3256,7 +3260,11 @@ function DashboardApp({
       );
     }
 
-    const summary = summarizeFinancialData(financialLaunches);
+    const launches = Array.isArray(financialLaunches) ? financialLaunches : [];
+    const summary = summarizeFinancialData(launches);
+    const coverageRatio = summary.despesasPagas > 0
+      ? summary.receitaRecebida / summary.despesasPagas
+      : 0;
     const kpis = [
       { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [62], sparkVariant: 'donut', icon: 'wallet' },
       { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [44], sparkVariant: 'donut', icon: 'archive' },
@@ -3270,7 +3278,7 @@ function DashboardApp({
     if (isWideNavigation) {
       secondaryKpis.push({
         label: 'Cobertura de caixa',
-        value: `${(summary.receitaRecebida / Math.max(summary.despesasPagas, 1)).toFixed(2).replace('.', ',')}x`,
+        value: `${coverageRatio.toFixed(2).replace('.', ',')}x`,
         trend: '+6,4%',
         tone: 'text-emerald-600',
         sparkColor: '#059669',
@@ -3280,8 +3288,8 @@ function DashboardApp({
         className: 'stat-card-flat--coverage'
       });
     }
-    const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
-    const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+    const contasReceber = launches.filter((item) => item.tipo === 'entrada');
+    const contasPagar = launches.filter((item) => item.tipo === 'saida');
     const isCompactFinanceActions = !isWideNavigation;
     const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
     const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
@@ -3289,7 +3297,7 @@ function DashboardApp({
     const filteredInCategories = financialCategories.entradas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
     const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
     const despesasPorCategoriaResumo = Object.entries(
-      financialLaunches
+      launches
         .filter((item) => item.tipo === 'saida')
         .reduce((acc, item) => {
           const key = item.categoria || 'Sem categoria';
@@ -3298,7 +3306,7 @@ function DashboardApp({
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
     const receitasPorCategoriaResumo = Object.entries(
-      financialLaunches
+      launches
         .filter((item) => item.tipo === 'entrada')
         .reduce((acc, item) => {
           const key = item.categoria || 'Sem categoria';
@@ -3737,7 +3745,7 @@ function DashboardApp({
                 )
               }
             ]}
-            rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
+            rows={launches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
             emptyMessage="Nenhum lançamento financeiro cadastrado."
             pagination
             internalScroll

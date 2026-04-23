@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.30 - 2026-04-23
+
+### Fixed
+- Corrigida causa de tela branca ao abrir o módulo **Financeiro** em cenários com dados/estado inconsistentes: o render agora usa fallback seguro para listas financeiras e evita operações sobre valores inválidos.
+- `DataTable` recebeu proteção para ambientes sem `window` e normalização de `rowsPerPage`, impedindo falhas de paginação em tempo de execução.
+- KPI **Cobertura de caixa** passou a usar cálculo defensivo (sem risco de divisão inválida), mantendo exibição estável do dashboard financeiro.
+
 ## v1.1.29 - 2026-04-23
 
 ### Changed
