@@ -3214,12 +3214,14 @@ function DashboardApp({
       <div className="space-y-6">
         {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
 
-        <Toolbar>
-          <ActionButton label={selectedPeriodLabel} className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen((current) => !current)} />
-          <ActionButton label="Novo recebimento" className="btn--header btn--header-success" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('entrada')} />
-          <ActionButton label="Nova despesa" className="btn--header btn--header-danger" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('saida')} />
-          <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => {}} />
-        </Toolbar>
+        {!isMobileViewport ? (
+          <Toolbar>
+            <ActionButton label={selectedPeriodLabel} className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen((current) => !current)} />
+            <ActionButton label="Novo recebimento" className="btn--header btn--header-success" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('entrada')} />
+            <ActionButton label="Nova despesa" className="btn--header btn--header-danger" icon={<AppIcon name="plus" size={14} />} onClick={() => openFinancialCreate('saida')} />
+            <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => {}} />
+          </Toolbar>
+        ) : null}
 
         {isPeriodPickerOpen ? (
           <PanelCard title="Selecionar período" extra={<ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setIsPeriodPickerOpen(false)} />}>
@@ -3697,11 +3699,13 @@ function DashboardApp({
     },
     financial: {
       left: [
-        { key: 'financial-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
-        { key: 'financial-clinic', icon: 'id-card', tone: 'account', label: 'Clínicas', onClick: handleOpenClinicN2 }
+        { key: 'financial-period', icon: 'calendar', tone: 'settings', label: 'Período', onClick: () => setIsPeriodPickerOpen((current) => !current) },
+        { key: 'financial-receita', icon: 'plus', tone: 'success', label: 'Receita', onClick: () => openFinancialCreate('entrada') }
       ],
+      center: { key: 'financial-panel', icon: 'plan', tone: 'settings', label: 'Painel', onClick: () => goToLevel1('financial') },
       right: [
-        { key: 'financial-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+        { key: 'financial-despesa', icon: 'plus', tone: 'info', label: 'Despesa', onClick: () => openFinancialCreate('saida') },
+        { key: 'financial-export', icon: 'download', tone: 'overview', label: 'Exportar', onClick: () => {} }
       ]
     },
     clinic: {
