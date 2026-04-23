@@ -2,6 +2,14 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.29 - 2026-04-23
+
+### Changed
+- Refino visual dos cards de KPI na tela **Financeiro**: títulos com peso tipográfico reduzido e inclusão de ícones contextuais no cabeçalho dos indicadores.
+- **Ticket médio** e **Inadimplência** receberam tema visual dedicado (ícone + cor + borda temática), reforçando leitura rápida por contexto.
+- Nova estratégia de aproveitamento de espaço na segunda linha de KPIs: em telas amplas, a linha agora exibe um terceiro indicador (**Cobertura de caixa**), mantendo 2 cards em telas menores.
+- Card **Contas financeiras** recebeu ícone no título e borda temática para facilitar identificação do bloco.
+
 ## v1.1.28 - 2026-04-23
 
 ### Changed

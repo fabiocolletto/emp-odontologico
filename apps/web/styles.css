@@ -2243,6 +2243,22 @@ select {
   padding-bottom: 0.75rem;
 }
 
+.finance-table-card--accounts {
+  border-color: #7dd3fc !important;
+}
+
+.finance-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #0284c7;
+  font-weight: 700;
+}
+
+.finance-title .app-icon {
+  color: #0284c7;
+}
+
 .financial-modal-card {
   padding: 0;
   overflow: hidden;
@@ -2338,6 +2354,59 @@ select {
 
 .stat-card-flat {
   min-height: 112px;
+  border-width: 1px !important;
+}
+
+.stat-card-flat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.stat-card-flat__label {
+  font-weight: 700 !important;
+}
+
+.stat-card-flat__icon {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  color: #64748b;
+}
+
+.stat-card-flat--ticket {
+  border-color: #7dd3fc !important;
+  background: linear-gradient(180deg, rgba(14, 165, 233, 0.06), rgba(14, 165, 233, 0.015));
+}
+
+.stat-card-flat--ticket .stat-card-flat__icon,
+.stat-card-flat--ticket .stat-card-flat__label {
+  color: #0284c7;
+}
+
+.stat-card-flat--delinquency {
+  border-color: #fda4af !important;
+  background: linear-gradient(180deg, rgba(225, 29, 72, 0.06), rgba(225, 29, 72, 0.015));
+}
+
+.stat-card-flat--delinquency .stat-card-flat__icon,
+.stat-card-flat--delinquency .stat-card-flat__label {
+  color: #e11d48;
+}
+
+.stat-card-flat--coverage {
+  border-color: #86efac !important;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0.015));
+}
+
+.stat-card-flat--coverage .stat-card-flat__icon,
+.stat-card-flat--coverage .stat-card-flat__label {
+  color: #059669;
 }
 
 .stat-card-flat__main {

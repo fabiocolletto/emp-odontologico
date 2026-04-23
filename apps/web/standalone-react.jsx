@@ -394,9 +394,22 @@ const SparkMiniChart = ({ points = [], tone = '#2563eb', variant = 'line' }) => 
   );
 };
 
-const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb', sparkVariant = 'line' }) => (
-  <BaseCard className="stat-card-flat">
-    <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
+const StatCard = ({
+  label,
+  value,
+  trend,
+  trendTone = 'text-slate-500',
+  sparkPoints = [],
+  sparkColor = '#2563eb',
+  sparkVariant = 'line',
+  icon = null,
+  className = ''
+}) => (
+  <BaseCard className={`stat-card-flat ${className}`.trim()}>
+    <div className="stat-card-flat__header">
+      <p className="stat-card-flat__label text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
+      {icon ? <span className="stat-card-flat__icon" aria-hidden="true"><AppIcon name={icon} size={14} /></span> : null}
+    </div>
     <div className="stat-card-flat__main">
       <p className="text-2xl font-black text-slate-900 mt-1 whitespace-nowrap">{value}</p>
       <SparkMiniChart points={sparkPoints} tone={sparkColor} variant={sparkVariant} />
@@ -3245,13 +3258,28 @@ function DashboardApp({
 
     const summary = summarizeFinancialData(financialLaunches);
     const kpis = [
-      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [62], sparkVariant: 'donut' },
-      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [44], sparkVariant: 'donut' },
-      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [71], sparkVariant: 'donut' },
-      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [35], sparkVariant: 'donut' },
-      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2], sparkVariant: 'bar' },
-      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7], sparkVariant: 'bar' }
+      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [62], sparkVariant: 'donut', icon: 'wallet' },
+      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [44], sparkVariant: 'donut', icon: 'archive' },
+      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [71], sparkVariant: 'donut', icon: 'check' },
+      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [35], sparkVariant: 'donut', icon: 'clock' }
     ];
+    const secondaryKpis = [
+      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2], sparkVariant: 'bar', icon: 'star', className: 'stat-card-flat--ticket' },
+      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7], sparkVariant: 'bar', icon: 'info', className: 'stat-card-flat--delinquency' }
+    ];
+    if (isWideNavigation) {
+      secondaryKpis.push({
+        label: 'Cobertura de caixa',
+        value: `${(summary.receitaRecebida / Math.max(summary.despesasPagas, 1)).toFixed(2).replace('.', ',')}x`,
+        trend: '+6,4%',
+        tone: 'text-emerald-600',
+        sparkColor: '#059669',
+        sparkPoints: [1.2, 1.25, 1.31, 1.28, 1.34, 1.39, 1.44, 1.5],
+        sparkVariant: 'bar',
+        icon: 'check',
+        className: 'stat-card-flat--coverage'
+      });
+    }
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
     const isCompactFinanceActions = !isWideNavigation;
@@ -3334,20 +3362,20 @@ function DashboardApp({
 
         <ContentGrid columns="4">
           {kpis.slice(0, 4).map((kpi) => (
-            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} icon={kpi.icon} />
           ))}
         </ContentGrid>
 
-        <ContentGrid columns="2">
-          {kpis.slice(4).map((kpi) => (
-            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
+        <ContentGrid columns={secondaryKpis.length === 3 ? '3' : '2'}>
+          {secondaryKpis.map((kpi) => (
+            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} icon={kpi.icon} className={kpi.className} />
           ))}
         </ContentGrid>
 
         <ContentGrid columns="2">
           <SectionCard
-            title="Contas financeiras"
-            className="finance-table-card"
+            title={<span className="finance-title"><AppIcon name="wallet" size={15} /> <span>Contas financeiras</span></span>}
+            className="finance-table-card finance-table-card--accounts"
             compactHeader
             actions={(
               <ActionButton
