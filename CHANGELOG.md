@@ -2,6 +2,17 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.29 - 2026-04-24
+
+### Changed
+- Modularização da tela **Financeiro** com extração dos elementos padrão para arquivos dedicados globais em `apps/web/src/financial/`:
+  - `financial-edit-action.js`
+  - `financial-table-section-card.js`
+  - `financial-table-panel-card.js`
+- `index.html` atualizado para carregar explicitamente os novos módulos financeiros antes do runtime principal.
+- `standalone-react.jsx` passou a consumir os componentes globais extraídos, removendo duplicidade local e legado inline desses blocos.
+- Mantida a mesma UI/UX da tela financeira (sem alteração de comportamento visual/operacional), com foco exclusivo em organização e reutilização.
+
 ## v1.1.28 - 2026-04-23
 
 ### Changed

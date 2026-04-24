@@ -537,66 +537,13 @@ const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = n
   </button>
 );
 
-const FinancialEditAction = ({ label = 'Editar', ariaLabel, onClick }) => (
-  <ActionButton
-    label={label}
-    ariaLabel={ariaLabel}
-    className="btn--header btn--header-muted btn--icon-compact"
-    icon={<AppIcon name="edit" size={14} />}
-    onClick={onClick}
-  />
-);
-
-const FinancialTableSectionCard = ({
-  title,
-  columns,
-  rows,
-  emptyMessage,
-  onEdit,
-  editAriaLabel,
-  footer = null
-}) => (
-  <SectionCard
-    title={title}
-    actions={(
-      <FinancialEditAction
-        ariaLabel={editAriaLabel}
-        onClick={onEdit}
-      />
-    )}
-  >
-    <DataTable
-      columns={columns}
-      rows={rows}
-      emptyMessage={emptyMessage}
-      paginated
-      compact
-    />
-    {footer}
-  </SectionCard>
-);
-
-const FinancialTablePanelCard = ({
-  title,
-  columns,
-  rows,
-  onEdit,
-  footerClassName = '',
-  footerValue = ''
-}) => (
-  <PanelCard
-    title={title}
-    extra={<FinancialEditAction ariaLabel={`Editar ${title.toLowerCase()}`} onClick={onEdit} />}
-  >
-    <DataTable
-      columns={columns}
-      rows={rows}
-      paginated
-      compact
-    />
-    {footerValue ? <div className={`mt-3 text-right text-sm font-black ${footerClassName}`.trim()}>{footerValue}</div> : null}
-  </PanelCard>
-);
+const financialComponentFactories = globalThis.OdontoFlowFinancialComponents || {};
+if (!financialComponentFactories.createFinancialEditAction || !financialComponentFactories.createFinancialTableSectionCard || !financialComponentFactories.createFinancialTablePanelCard) {
+  throw new Error('Módulos financeiros globais não carregados. Verifique os scripts em index.html.');
+}
+const FinancialEditAction = financialComponentFactories.createFinancialEditAction({ ActionButton, AppIcon });
+const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
+const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
