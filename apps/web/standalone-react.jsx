@@ -1830,6 +1830,22 @@ function DashboardApp({
     setFinancialLaunches((current) => current.filter((item) => item.id !== id));
   };
 
+  const getFinancialConfirmedStatus = (tipo) => (tipo === 'entrada' ? 'recebido' : 'pago');
+  const isFinancialLaunchConfirmed = (launch) => launch.status === getFinancialConfirmedStatus(launch.tipo);
+
+  const handleFinancialConfirm = (id) => {
+    const today = new Date().toISOString().slice(0, 10);
+    setFinancialLaunches((current) => current.map((item) => (
+      item.id === id
+        ? {
+          ...item,
+          status: getFinancialConfirmedStatus(item.tipo),
+          data_pagamento: item.data_pagamento || today
+        }
+        : item
+    )));
+  };
+
   const applyQuickPeriod = (period) => {
     const today = new Date('2026-04-23');
     if (period === 'today') {
@@ -3693,11 +3709,14 @@ function DashboardApp({
               { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
               { key: 'pagamento', label: 'Pagamento', sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
               {
-                key: 'acoes',
-                label: 'Ações',
+                key: 'acoes_rapidas',
+                label: 'Ações rápidas',
                 sortable: false,
                 render: (row) => (
                   <div className="financial-row-actions">
+                    {!isFinancialLaunchConfirmed(row) ? (
+                      <FinancialWidgetIconButton ariaLabel="Confirmar lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} />
+                    ) : null}
                     <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
                     <FinancialWidgetIconButton ariaLabel="Excluir lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialDelete(row.id)} />
                   </div>
