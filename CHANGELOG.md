@@ -2,6 +2,20 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.30 - 2026-04-24
+
+### Changed
+- Criação de elementos replicáveis globais para qualquer tela em `apps/web/src/shared/`:
+  - `screen-header-block.js` (header + toolbar de ações),
+  - `kpi-grid-row.js` (linha de KPIs parametrizável por colunas),
+  - `dual-content-row.js` (linha dupla para combinar blocos/tabelas).
+- Tela Financeira atualizada para consumir os novos blocos compartilhados sem mudança de UI/UX:
+  - header do Financeiro,
+  - linha de 4 KPIs,
+  - linha de 2 KPIs,
+  - linhas com tabelas em layout de duas colunas.
+- `index.html` atualizado para carregar os módulos compartilhados antes do runtime principal.
+
 ## v1.1.29 - 2026-04-24
 
 ### Changed

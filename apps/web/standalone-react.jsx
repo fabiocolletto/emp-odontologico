@@ -547,6 +547,13 @@ const FinancialTablePanelCard = financialComponentFactories.createFinancialTable
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
+const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
+if (!screenBlockFactories.createScreenHeaderBlock || !screenBlockFactories.createKpiGridRow || !screenBlockFactories.createDualContentRow) {
+  throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
+}
+const ScreenHeaderBlock = screenBlockFactories.createScreenHeaderBlock({ Toolbar, ActionButton, AppIcon });
+const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
+const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
 const AlertCard = ({ text }) => <BaseCard className="border-amber-100 bg-amber-50/40"><p className="text-sm text-amber-700 font-semibold">{text}</p></BaseCard>;
 const InsightCard = ({ text }) => <BaseCard className="border-sky-100 bg-sky-50/40"><p className="text-sm text-sky-700 font-semibold">{text}</p></BaseCard>;
 
@@ -3298,16 +3305,14 @@ function DashboardApp({
 
     return (
       <div className="space-y-6">
-        {renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
-
-        {!isMobileViewport ? (
-          <div className="flex justify-end">
-            <Toolbar>
-              <ActionButton label="Período" className="btn--header btn--header-muted" icon={<AppIcon name="calendar" size={14} />} onClick={() => setIsPeriodPickerOpen(true)} />
-              <ActionButton label="Exportar relatório" className="btn--header btn--header-muted" icon={<AppIcon name="download" size={14} />} onClick={() => setIsExportModalOpen(true)} />
-            </Toolbar>
-          </div>
-        ) : null}
+        <ScreenHeaderBlock
+          header={renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
+          showToolbar={!isMobileViewport}
+          toolbarActions={[
+            { key: 'period', label: 'Período', icon: 'calendar', onClick: () => setIsPeriodPickerOpen(true) },
+            { key: 'export', label: 'Exportar relatório', icon: 'download', onClick: () => setIsExportModalOpen(true) }
+          ]}
+        />
 
         {isPeriodPickerOpen ? (
           <div className="finance-overlay" onClick={() => setIsPeriodPickerOpen(false)}>
@@ -3349,34 +3354,27 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <ContentGrid columns="4">
-          {kpis.slice(0, 4).map((kpi) => (
-            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
-          ))}
-        </ContentGrid>
+        <KpiGridRow columns="4" kpis={kpis.slice(0, 4)} />
+        <KpiGridRow columns="2" kpis={kpis.slice(4)} />
 
-        <ContentGrid columns="2">
-          {kpis.slice(4).map((kpi) => (
-            <StatCard key={kpi.label} label={kpi.label} value={kpi.value} trend={`${kpi.trend} vs mês anterior`} trendTone={kpi.tone} sparkPoints={kpi.sparkPoints} sparkColor={kpi.sparkColor} sparkVariant={kpi.sparkVariant} />
-          ))}
-        </ContentGrid>
-
-        <ContentGrid columns="2">
-          <FinancialTableSectionCard
-            title="Contas financeiras"
-            editAriaLabel="Editar contas financeiras"
-            onEdit={() => setIsAccountsEditMode(true)}
-            columns={[
-              { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
-              { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
-              { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-              { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
-            ]}
-            rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
-            emptyMessage="Nenhuma conta cadastrada."
-          />
-
-          <SectionCard
+        <DualContentRow
+          left={(
+            <FinancialTableSectionCard
+              title="Contas financeiras"
+              editAriaLabel="Editar contas financeiras"
+              onEdit={() => setIsAccountsEditMode(true)}
+              columns={[
+                { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+                { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
+              ]}
+              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma conta cadastrada."
+            />
+          )}
+          right={(
+            <SectionCard
             title="Categorias financeiras"
             actions={(
               <ActionButton
@@ -3422,36 +3420,40 @@ function DashboardApp({
             </div>
             <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
           </SectionCard>
-        </ContentGrid>
+          )}
+        />
 
-        <ContentGrid columns="2">
-          <FinancialTableSectionCard
-            title="Despesas recorrentes"
-            editAriaLabel="Editar recorrências"
-            onEdit={() => setIsRecurringEditMode(true)}
-            columns={[
-              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-              { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
-              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
-            ]}
-            rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
-            emptyMessage="Nenhuma despesa recorrente cadastrada."
-          />
-
-          <FinancialTableSectionCard
-            title="Previsões de custos"
-            editAriaLabel="Editar previsões"
-            onEdit={() => setIsForecastEditMode(true)}
-            columns={[
-              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-              { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-              { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
-            ]}
-            rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
-            emptyMessage="Nenhuma previsão cadastrada."
-          />
-        </ContentGrid>
+        <DualContentRow
+          left={(
+            <FinancialTableSectionCard
+              title="Despesas recorrentes"
+              editAriaLabel="Editar recorrências"
+              onEdit={() => setIsRecurringEditMode(true)}
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+              ]}
+              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma despesa recorrente cadastrada."
+            />
+          )}
+          right={(
+            <FinancialTableSectionCard
+              title="Previsões de custos"
+              editAriaLabel="Editar previsões"
+              onEdit={() => setIsForecastEditMode(true)}
+              columns={[
+                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+              ]}
+              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              emptyMessage="Nenhuma previsão cadastrada."
+            />
+          )}
+        />
 
         {isAccountModalOpen || isAccountsEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }}>
@@ -3636,34 +3638,38 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <ContentGrid columns="2">
-          <FinancialTablePanelCard
-            title="Contas a receber"
-            onEdit={() => openFinancialCreate('entrada')}
-            columns={[
-              { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
-            ]}
-            rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
-            footerClassName="text-emerald-700"
-            footerValue={formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
-          />
-          <FinancialTablePanelCard
-            title="Contas a pagar"
-            onEdit={() => openFinancialCreate('saida')}
-            columns={[
-              { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
-            ]}
-            rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
-            footerClassName="text-rose-700"
-            footerValue={formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
-          />
-        </ContentGrid>
+        <DualContentRow
+          left={(
+            <FinancialTablePanelCard
+              title="Contas a receber"
+              onEdit={() => openFinancialCreate('entrada')}
+              columns={[
+                { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+              ]}
+              rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+              footerClassName="text-emerald-700"
+              footerValue={formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+            />
+          )}
+          right={(
+            <FinancialTablePanelCard
+              title="Contas a pagar"
+              onEdit={() => openFinancialCreate('saida')}
+              columns={[
+                { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+              ]}
+              rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+              footerClassName="text-rose-700"
+              footerValue={formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+            />
+          )}
+        />
 
         <SectionCard
           title="Lançamentos"
