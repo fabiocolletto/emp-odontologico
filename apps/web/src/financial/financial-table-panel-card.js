@@ -22,8 +22,11 @@
         paginated
         compact
         keepEmptyRows
+        footerTotals={[
+          { label: 'Registros', value: rows.length },
+          ...(footerValue ? [{ label: 'Total', value: footerValue, toneClassName: footerClassName }] : [])
+        ]}
       />
-      {footerValue ? <div className={`mt-2 text-right text-sm font-black ${footerClassName}`.trim()}>{footerValue}</div> : null}
     </PanelCard>
   );
 }(globalThis));

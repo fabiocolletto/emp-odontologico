@@ -464,7 +464,7 @@ const normalizeSortValue = (value) => {
   return stringValue.toLocaleLowerCase('pt-BR');
 };
 
-const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false, keepEmptyRows = false }) => {
+const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false, keepEmptyRows = false, footerTotals = [] }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage({ compact }) : Math.max(rows.length, 1)));
@@ -568,31 +568,45 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
           </tbody>
         </table>
       </div>
-      {paginated && totalPages > 1 ? (
-        <div className="data-table__pagination">
-          <p className="data-table__pagination-label">{currentPage}/{totalPages}</p>
-          <div className="data-table__pagination-actions">
-            <button
-              type="button"
-              className="data-table__page-button"
-              onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
-              disabled={currentPage <= 1}
-              aria-label="Página anterior"
-            >
-              <AppIcon name="chevron-left" size={13} />
-              <span>Anterior</span>
-            </button>
-            <button
-              type="button"
-              className="data-table__page-button"
-              onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
-              disabled={currentPage >= totalPages}
-              aria-label="Próxima página"
-            >
-              <span>Próxima</span>
-              <AppIcon name="chevron-right" size={13} />
-            </button>
-          </div>
+      {(footerTotals.length > 0 || (paginated && totalPages > 1)) ? (
+        <div className="data-table__footer">
+          {footerTotals.length > 0 ? (
+            <div className="data-table__totals" aria-label="Totalizadores da tabela">
+              {footerTotals.map((item) => (
+                <p key={item.label} className={`data-table__total-item ${item.toneClassName || ''}`.trim()}>
+                  <span>{item.label}:</span>
+                  <strong>{item.value}</strong>
+                </p>
+              ))}
+            </div>
+          ) : <span />}
+          {paginated && totalPages > 1 ? (
+            <div className="data-table__pagination">
+              <p className="data-table__pagination-label">{currentPage}/{totalPages}</p>
+              <div className="data-table__pagination-actions">
+                <button
+                  type="button"
+                  className="data-table__page-button"
+                  onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
+                  disabled={currentPage <= 1}
+                  aria-label="Página anterior"
+                >
+                  <AppIcon name="chevron-left" size={13} />
+                  <span>Anterior</span>
+                </button>
+                <button
+                  type="button"
+                  className="data-table__page-button"
+                  onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                  aria-label="Próxima página"
+                >
+                  <span>Próxima</span>
+                  <AppIcon name="chevron-right" size={13} />
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -3530,6 +3544,10 @@ function DashboardApp({
                       paginated
                       compact
                       keepEmptyRows
+                      footerTotals={[
+                        { label: 'Registros', value: filteredAccounts.length },
+                        { label: 'Saldo inicial', value: formatMoney(filteredAccounts.reduce((acc, item) => acc + Number(item.saldo_inicial || 0), 0)) }
+                      ]}
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
@@ -3620,6 +3638,10 @@ function DashboardApp({
                       paginated
                       compact
                       keepEmptyRows
+                      footerTotals={[
+                        { label: 'Registros', value: filteredRecurring.length },
+                        { label: 'Total', value: formatMoney(filteredRecurring.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                      ]}
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />
@@ -3666,6 +3688,10 @@ function DashboardApp({
                       paginated
                       compact
                       keepEmptyRows
+                      footerTotals={[
+                        { label: 'Registros', value: filteredForecasts.length },
+                        { label: 'Total previsto', value: formatMoney(filteredForecasts.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                      ]}
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />
@@ -3745,6 +3771,10 @@ function DashboardApp({
             paginated
             compact
             keepEmptyRows
+            footerTotals={[
+              { label: 'Registros', value: financialLaunches.length },
+              { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+            ]}
           />
         </SectionCard>
 

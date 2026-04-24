@@ -2466,8 +2466,38 @@ select {
   padding-bottom: 0.85rem;
 }
 
+.data-table__footer {
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.data-table__totals {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.data-table__total-item {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.data-table__total-item strong {
+  color: #334155;
+}
+
 .data-table__pagination {
-  margin-top: 0.4rem;
+  margin-top: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -2539,6 +2569,7 @@ select {
 
   .data-table__pagination {
     justify-content: flex-end;
+    width: 100%;
   }
 
   .data-table__pagination-actions {
