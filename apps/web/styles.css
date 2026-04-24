@@ -2817,16 +2817,17 @@ select {
   .financial-layout--flat .financial-section-card,
   .financial-layout--flat .financial-panel-card {
     min-height: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
+    width: 100%;
+    padding: 0.58rem 0.62rem;
+    border: 1px solid color-mix(in srgb, var(--brand-600) 10%, #dce7f6);
+    border-radius: 14px;
+    background: color-mix(in srgb, #ffffff 96%, #eef5ff);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
   }
 
   .financial-layout--flat .financial-section-card > .flex,
   .financial-layout--flat .financial-panel-card .panel-card__header {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.4rem;
   }
 
   .financial-layout--flat .financial-panel-card .panel-card__content {

@@ -4071,9 +4071,9 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', hideBelow: 920, sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', hideBelow: 720, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status} /> },
+                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 680, render: (row) => <StatusBadge status={row.status} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -4114,9 +4114,9 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', hideBelow: 920, sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', hideBelow: 720, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status} /> },
+                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 680, render: (row) => <StatusBadge status={row.status} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -4147,9 +4147,9 @@ function DashboardApp({
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
               { key: 'categoria', label: 'Categoria', hideBelow: 1120, render: (row) => <span className="text-slate-600">{row.categoria}</span> },
-              { key: 'valor', label: 'Valor', hideBelow: 980, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-              { key: 'status', label: 'Status', hideBelow: 840, render: (row) => <StatusBadge status={row.status} /> },
-              { key: 'vencimento', label: 'Vencimento', hideBelow: 720, sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'status', label: 'Status', hideBelow: 760, render: (row) => <StatusBadge status={row.status} /> },
+              { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
               { key: 'pagamento', label: 'Pagamento', hideBelow: 620, sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
               {
                 key: 'acoes_rapidas',
