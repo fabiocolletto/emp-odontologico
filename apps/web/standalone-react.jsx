@@ -3737,21 +3737,23 @@ function DashboardApp({
               isFilterOpen={openWidgetFilter === 'previsoes'}
               filterAriaLabel="Filtrar previsões"
               filterDropdown={renderWidgetFilterDropdown(
-                <label className="financial-filter-dropdown__field">
-                  <span>Período</span>
-                  <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
-                    <option value="all">Todos</option>
-                    {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
-                  </select>
-                </label>
-                <label className="financial-filter-dropdown__field">
-                  <span>Comprometido</span>
-                  <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
-                    <option value="all">Todos</option>
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                  </select>
-                </label>
+                <>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Período</span>
+                    <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
+                      <option value="all">Todos</option>
+                      {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
+                    </select>
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Comprometido</span>
+                    <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
+                      <option value="all">Todos</option>
+                      <option value="sim">Sim</option>
+                      <option value="nao">Não</option>
+                    </select>
+                  </label>
+                </>
               )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
