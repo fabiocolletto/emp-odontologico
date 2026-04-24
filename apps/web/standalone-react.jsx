@@ -273,11 +273,12 @@ const SortToggleButton = ({ onClick }) => (
   />
 );
 
-const AppShell = ({ sidebar, header, children }) => (
+const AppShell = ({ sidebar, header, mobileHeader, children }) => (
   <div className="app-shell">
     <div className="app-frame">
       {sidebar}
       <main className="app-content">
+        {mobileHeader}
         {header}
         {children}
       </main>
@@ -1799,6 +1800,7 @@ function DashboardApp({
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
   const quickLinksSnapTimeoutRef = useRef(null);
+  const [isSidebarDrawerOpen, setIsSidebarDrawerOpen] = useState(false);
 
   const formatDateTime = (value) => {
     if (!value) return '-';
@@ -2611,6 +2613,12 @@ function DashboardApp({
   }, []);
 
   useEffect(() => {
+    if (isWideNavigation) {
+      setIsSidebarDrawerOpen(false);
+    }
+  }, [isWideNavigation]);
+
+  useEffect(() => {
     if (!selectedPatientId) return;
     const source = patients.find((p) => p.id === selectedPatientId);
     if (source) {
@@ -2826,8 +2834,6 @@ function DashboardApp({
       clearTimeout(quickLinksSnapTimeoutRef.current);
     }
   }, []);
-
-  const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
 
   if (view === 'loader') {
     return (
@@ -4431,7 +4437,46 @@ function DashboardApp({
           onTabChange={goToLevel1}
         />
       )}
+      mobileHeader={!isWideNavigation ? (
+        <header className="app-mobile-header">
+          <button
+            type="button"
+            className="btn btn--ghost app-mobile-header__menu-btn"
+            onClick={() => setIsSidebarDrawerOpen(true)}
+            aria-label="Abrir barra lateral"
+          >
+            <AppIcon name="menu" size={16} />
+          </button>
+          <div className="app-mobile-header__brand">
+            <span className="app-mobile-header__title">OdontoFlow</span>
+            <span className="app-mobile-header__subtitle">{TAB_META[activeTab]?.label || 'Início'}</span>
+          </div>
+        </header>
+      ) : null}
     >
+      {isSidebarDrawerOpen ? (
+        <div className="app-sidebar-drawer" role="dialog" aria-modal="true" aria-label="Menu lateral">
+          <button
+            type="button"
+            className="app-sidebar-drawer__backdrop"
+            aria-label="Fechar menu lateral"
+            onClick={() => setIsSidebarDrawerOpen(false)}
+          />
+          <div className="app-sidebar-drawer__panel">
+            <AppSidebar
+              isVisible
+              authEmail={authEmail}
+              tabs={LEVEL1_TABS}
+              activeTab={activeTab}
+              onTabChange={(tabId) => {
+                goToLevel1(tabId);
+                setIsSidebarDrawerOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {renderContent()}
 
       <AccountN2Modal
@@ -4530,12 +4575,6 @@ function DashboardApp({
         </div>
       ) : null}
 
-      <MobileMd3Nav
-        visible={!isWideNavigation && !isFloatingWindowOpen}
-        leftActions={mobileNavActionConfig.left}
-        centerAction={mobileNavActionConfig.center}
-        rightActions={mobileNavActionConfig.right}
-      />
     </AppShell>
   );
 }
