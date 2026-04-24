@@ -1,4 +1,4 @@
-const { useEffect, useRef, useState } = React;
+const { useEffect, useMemo, useRef, useState } = React;
 const STORAGE_KEY = 'odontoflow-ui-state-v1';
 const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
 const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
@@ -415,8 +415,8 @@ const PanelCard = ({ title, extra = null, children, className = '', titleClassNa
   </BaseCard>
 );
 
-const SectionCard = ({ title, actions = null, children }) => (
-  <BaseCard>
+const SectionCard = ({ title, actions = null, children, className = '' }) => (
+  <BaseCard className={className}>
     <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
       <h3 className="text-base font-black text-slate-900">{title}</h3>
       {actions}
@@ -436,9 +436,13 @@ const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
   <div className="py-6 text-center text-sm text-slate-500">{message}</div>
 );
 
-const getResponsiveTableRowsPerPage = () => {
+const getResponsiveTableRowsPerPage = ({ compact = false } = {}) => {
   if (typeof window === 'undefined') return 5;
   const width = window.innerWidth;
+  if (compact) {
+    if (width >= 768) return 4;
+    return 3;
+  }
   if (width >= 1536) return 8;
   if (width >= 1280) return 7;
   if (width >= 1024) return 6;
@@ -446,32 +450,75 @@ const getResponsiveTableRowsPerPage = () => {
   return 4;
 };
 
-const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false }) => {
+const normalizeSortValue = (value) => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'number') return value;
+  if (value instanceof Date) return value.getTime();
+  const stringValue = String(value).trim();
+  if (!stringValue) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(stringValue)) {
+    const date = new Date(`${stringValue}T00:00:00`);
+    const time = date.getTime();
+    if (!Number.isNaN(time)) return time;
+  }
+  return stringValue.toLocaleLowerCase('pt-BR');
+};
+
+const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false, keepEmptyRows = false, footerTotals = [] }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage() : Math.max(rows.length, 1)));
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage({ compact }) : Math.max(rows.length, 1)));
 
   useEffect(() => {
     if (!paginated) return undefined;
 
     const syncRowsPerPage = () => {
-      setRowsPerPage(getResponsiveTableRowsPerPage());
+      setRowsPerPage(getResponsiveTableRowsPerPage({ compact }));
     };
 
     syncRowsPerPage();
     window.addEventListener('resize', syncRowsPerPage);
     return () => window.removeEventListener('resize', syncRowsPerPage);
-  }, [paginated]);
+  }, [compact, paginated]);
 
-  const totalPages = paginated ? Math.max(1, Math.ceil(rows.length / rowsPerPage)) : 1;
+  const sortedRows = useMemo(() => {
+    if (!sortConfig.key) return rows;
+    const activeColumn = columns.find((column) => column.key === sortConfig.key);
+    if (!activeColumn || activeColumn.sortable === false) return rows;
+
+    return [...rows].sort((leftRow, rightRow) => {
+      const leftValue = normalizeSortValue(activeColumn.sortValue ? activeColumn.sortValue(leftRow) : leftRow[activeColumn.key]);
+      const rightValue = normalizeSortValue(activeColumn.sortValue ? activeColumn.sortValue(rightRow) : rightRow[activeColumn.key]);
+
+      if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+        return sortConfig.direction === 'asc' ? leftValue - rightValue : rightValue - leftValue;
+      }
+
+      const result = String(leftValue).localeCompare(String(rightValue), 'pt-BR', { numeric: true, sensitivity: 'base' });
+      return sortConfig.direction === 'asc' ? result : -result;
+    });
+  }, [columns, rows, sortConfig.direction, sortConfig.key]);
+
+  const totalPages = paginated ? Math.max(1, Math.ceil(sortedRows.length / rowsPerPage)) : 1;
 
   useEffect(() => {
     if (!paginated) return;
     setCurrentPage((current) => Math.min(current, totalPages));
-  }, [paginated, totalPages, rows.length]);
+  }, [paginated, totalPages, sortedRows.length]);
+
+  const toggleSort = (column) => {
+    if (column.sortable === false) return;
+    setSortConfig((current) => {
+      if (current.key !== column.key) return { key: column.key, direction: 'asc' };
+      return { key: column.key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+    });
+    setCurrentPage(1);
+  };
 
   const visibleRows = paginated
-    ? rows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-    : rows;
+    ? sortedRows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+    : sortedRows;
+  const placeholderRowsCount = keepEmptyRows && paginated ? Math.max(rowsPerPage - visibleRows.length, 0) : 0;
 
   return (
     <div className="data-table-shell">
@@ -480,7 +527,22 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
           <thead>
             <tr className="text-slate-400">
               {columns.map((column) => (
-                <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">{column.label}</th>
+                <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">
+                  <button
+                    type="button"
+                    className={`data-table__head-button ${column.sortable === false ? 'data-table__head-button--disabled' : ''}`.trim()}
+                    onClick={() => toggleSort(column)}
+                    disabled={column.sortable === false}
+                    aria-label={column.sortable === false ? `${column.label} sem ordenação` : `Ordenar por ${column.label}`}
+                  >
+                    <span>{column.label}</span>
+                    {column.sortable === false ? null : (
+                      <span className="data-table__sort-indicator" aria-hidden="true">
+                        {sortConfig.key === column.key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                      </span>
+                    )}
+                  </button>
+                </th>
               ))}
             </tr>
           </thead>
@@ -496,34 +558,55 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
                 ))}
               </tr>
             ))}
+            {Array.from({ length: placeholderRowsCount }).map((_, index) => (
+              <tr key={`placeholder-${index}`} className="data-table__row data-table__row--placeholder" aria-hidden="true">
+                {columns.map((column) => (
+                  <td key={`placeholder-${index}-${column.key}`} className="data-table__cell py-2 pr-3">&nbsp;</td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-      {paginated && totalPages > 1 ? (
-        <div className="data-table__pagination">
-          <p className="data-table__pagination-label">{currentPage}/{totalPages}</p>
-          <div className="data-table__pagination-actions">
-            <button
-              type="button"
-              className="data-table__page-button"
-              onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
-              disabled={currentPage <= 1}
-              aria-label="Página anterior"
-            >
-              <AppIcon name="chevron-left" size={13} />
-              <span>Anterior</span>
-            </button>
-            <button
-              type="button"
-              className="data-table__page-button"
-              onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
-              disabled={currentPage >= totalPages}
-              aria-label="Próxima página"
-            >
-              <span>Próxima</span>
-              <AppIcon name="chevron-right" size={13} />
-            </button>
-          </div>
+      {(footerTotals.length > 0 || (paginated && totalPages > 1)) ? (
+        <div className="data-table__footer">
+          {footerTotals.length > 0 ? (
+            <div className="data-table__totals" aria-label="Totalizadores da tabela">
+              {footerTotals.map((item) => (
+                <p key={item.label} className={`data-table__total-item ${item.toneClassName || ''}`.trim()}>
+                  <span>{item.label}:</span>
+                  <strong>{item.value}</strong>
+                </p>
+              ))}
+            </div>
+          ) : <span />}
+          {paginated && totalPages > 1 ? (
+            <div className="data-table__pagination">
+              <p className="data-table__pagination-label">Pág. {currentPage} de {totalPages}</p>
+              <div className="data-table__pagination-actions">
+                <button
+                  type="button"
+                  className="data-table__page-button"
+                  onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
+                  disabled={currentPage <= 1}
+                  aria-label="Página anterior"
+                >
+                  <AppIcon name="chevron-left" size={13} />
+                  <span>Anterior</span>
+                </button>
+                <button
+                  type="button"
+                  className="data-table__page-button"
+                  onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+                  disabled={currentPage >= totalPages}
+                  aria-label="Próxima página"
+                >
+                  <span>Próxima</span>
+                  <AppIcon name="chevron-right" size={13} />
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -535,6 +618,16 @@ const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = n
     {icon}
     {label ? <span>{label}</span> : null}
   </button>
+);
+
+const FinancialWidgetIconButton = ({ ariaLabel, onClick, icon = 'edit', tone = 'text-sky-600' }) => (
+  <button type="button" className={`financial-row-actions__icon ${tone}`.trim()} aria-label={ariaLabel} onClick={onClick}>
+    <AppIcon name={icon} size={16} />
+  </button>
+);
+
+const FinancialTableAddIconButton = ({ ariaLabel, onClick }) => (
+  <FinancialWidgetIconButton ariaLabel={ariaLabel} onClick={onClick} icon="plus" />
 );
 
 const financialComponentFactories = globalThis.OdontoFlowFinancialComponents || {};
@@ -855,13 +948,13 @@ const FINANCIAL_DEFAULT_CATEGORIES = {
 };
 
 const FINANCIAL_DEFAULT_RECURRING = [
-  { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', categoria: 'Aluguel' },
-  { id: 2, descricao: 'Folha de pagamento', valor: 13190, periodicidade: 'mensal', categoria: 'Pessoal' }
+  { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', categoria: 'Aluguel', status: 'pendente', ultima_quitacao: '' },
+  { id: 2, descricao: 'Folha de pagamento', valor: 13190, periodicidade: 'mensal', categoria: 'Pessoal', status: 'pendente', ultima_quitacao: '' }
 ];
 
 const FINANCIAL_DEFAULT_FORECASTS = [
-  { id: 1, descricao: 'Previsão de insumos', valor: 4200, periodo: 'Próximos 30 dias' },
-  { id: 2, descricao: 'Previsão de laboratório', valor: 3600, periodo: 'Próximos 30 dias' }
+  { id: 1, descricao: 'Previsão de insumos', valor: 4200, periodo: 'Próximos 30 dias', comprometido: false },
+  { id: 2, descricao: 'Previsão de laboratório', valor: 3600, periodo: 'Próximos 30 dias', comprometido: false }
 ];
 
 const summarizeFinancialData = (items = []) => {
@@ -1541,7 +1634,9 @@ const readStoredFinancialRecurring = () => {
     const raw = localStorage.getItem(FINANCIAL_RECURRING_STORAGE_KEY);
     if (!raw) return FINANCIAL_DEFAULT_RECURRING;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_RECURRING;
+    return Array.isArray(parsed) && parsed.length
+      ? parsed.map((item) => ({ ...item, status: item.status || 'pendente', ultima_quitacao: item.ultima_quitacao || '' }))
+      : FINANCIAL_DEFAULT_RECURRING;
   } catch {
     return FINANCIAL_DEFAULT_RECURRING;
   }
@@ -1552,7 +1647,9 @@ const readStoredFinancialForecasts = () => {
     const raw = localStorage.getItem(FINANCIAL_FORECAST_STORAGE_KEY);
     if (!raw) return FINANCIAL_DEFAULT_FORECASTS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_FORECASTS;
+    return Array.isArray(parsed) && parsed.length
+      ? parsed.map((item) => ({ ...item, comprometido: Boolean(item.comprometido) }))
+      : FINANCIAL_DEFAULT_FORECASTS;
   } catch {
     return FINANCIAL_DEFAULT_FORECASTS;
   }
@@ -1596,8 +1693,8 @@ function DashboardApp({
   const [periodDraft, setPeriodDraft] = useState({ from: '2026-04-01', to: '2026-04-30' });
   const [newCategoryDraft, setNewCategoryDraft] = useState({ tipo: 'entradas', nome: '' });
   const [newAccountDraft, setNewAccountDraft] = useState({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
-  const [newRecurringDraft, setNewRecurringDraft] = useState({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
-  const [newForecastDraft, setNewForecastDraft] = useState({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+  const [newRecurringDraft, setNewRecurringDraft] = useState({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '', status: 'pendente', ultima_quitacao: '' });
+  const [newForecastDraft, setNewForecastDraft] = useState({ descricao: '', valor: '', periodo: 'Próximos 30 dias', comprometido: false });
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
@@ -1610,6 +1707,22 @@ function DashboardApp({
   const [categoryFilter, setCategoryFilter] = useState('');
   const [recurringFilter, setRecurringFilter] = useState('');
   const [forecastFilter, setForecastFilter] = useState('');
+  const [openWidgetFilter, setOpenWidgetFilter] = useState('');
+  const [widgetFilters, setWidgetFilters] = useState({
+    contasFinanceiras: { tipo: 'all' },
+    recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
+    previsoes: { periodo: 'all', comprometido: 'all' },
+    contasReceber: { status: 'all' },
+    contasPagar: { status: 'all' }
+  });
+  const [confirmationDialog, setConfirmationDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirmar',
+    tone: 'danger',
+    onConfirm: null
+  });
   const [financialDraft, setFinancialDraft] = useState(() => ({
     id: '',
     tipo: 'entrada',
@@ -1759,8 +1872,167 @@ function DashboardApp({
     closeFinancialForm();
   };
 
+  const openConfirmationDialog = ({ title, message, confirmLabel = 'Confirmar', tone = 'danger', onConfirm }) => {
+    setConfirmationDialog({
+      isOpen: true,
+      title,
+      message,
+      confirmLabel,
+      tone,
+      onConfirm
+    });
+  };
+
+  const closeConfirmationDialog = () => {
+    setConfirmationDialog({
+      isOpen: false,
+      title: '',
+      message: '',
+      confirmLabel: 'Confirmar',
+      tone: 'danger',
+      onConfirm: null
+    });
+  };
+
+  const runConfirmationDialog = () => {
+    if (typeof confirmationDialog.onConfirm === 'function') {
+      confirmationDialog.onConfirm();
+    }
+    closeConfirmationDialog();
+  };
+
   const handleFinancialDelete = (id) => {
-    setFinancialLaunches((current) => current.filter((item) => item.id !== id));
+    openConfirmationDialog({
+      title: 'Excluir movimentação',
+      message: 'Deseja excluir esta movimentação financeira?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialLaunches((current) => current.filter((item) => item.id !== id))
+    });
+  };
+  const handleFinancialCancel = (id) => handleFinancialDelete(id);
+
+  const handleFinancialConfirm = (id) => {
+    openConfirmationDialog({
+      title: 'Confirmar movimentação',
+      message: 'Confirma a baixa desta movimentação?',
+      confirmLabel: 'Confirmar',
+      tone: 'success',
+      onConfirm: () => {
+        const today = new Date().toISOString().slice(0, 10);
+        setFinancialLaunches((current) => current.map((item) => (
+          item.id === id
+            ? {
+              ...item,
+              status: getFinancialConfirmedStatus(item.tipo),
+              data_pagamento: item.data_pagamento || today
+            }
+            : item
+        )));
+      }
+    });
+  };
+
+  const handleCategoryDelete = (tipo, nome) => {
+    openConfirmationDialog({
+      title: 'Excluir categoria',
+      message: `Deseja excluir a categoria "${nome}"?`,
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialCategories((current) => ({
+        ...current,
+        [tipo]: current[tipo].filter((cat) => cat !== nome)
+      }))
+    });
+  };
+
+  const deleteFinancialAccount = (id) => {
+    openConfirmationDialog({
+      title: 'Excluir conta financeira',
+      message: 'Deseja remover esta conta financeira?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialAccounts((items) => items.filter((item) => item.id !== id))
+    });
+  };
+
+  const deleteRecurring = (id) => {
+    openConfirmationDialog({
+      title: 'Excluir recorrência',
+      message: 'Deseja excluir esta despesa recorrente?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialRecurring((items) => items.filter((item) => item.id !== id))
+    });
+  };
+
+  const editRecurring = (id) => {
+    const target = financialRecurring.find((item) => item.id === id);
+    if (!target) return;
+    const descricao = window.prompt('Descrição da recorrência', target.descricao);
+    if (!descricao) return;
+    setFinancialRecurring((items) => items.map((item) => (item.id === id ? { ...item, descricao } : item)));
+  };
+
+  const confirmRecurringPayment = (id) => {
+    openConfirmationDialog({
+      title: 'Confirmar pagamento da parcela',
+      message: 'Deseja confirmar o pagamento desta despesa recorrente?',
+      confirmLabel: 'Confirmar pagamento',
+      tone: 'success',
+      onConfirm: () => {
+        const today = new Date().toISOString().slice(0, 10);
+        setFinancialRecurring((items) => items.map((item) => (
+          item.id === id ? { ...item, status: 'pago', ultima_quitacao: today } : item
+        )));
+      }
+    });
+  };
+
+  const deleteForecast = (id) => {
+    openConfirmationDialog({
+      title: 'Excluir previsão',
+      message: 'Deseja excluir esta previsão de custo?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialForecasts((items) => items.filter((item) => item.id !== id))
+    });
+  };
+
+  const editForecast = (id) => {
+    const target = financialForecasts.find((item) => item.id === id);
+    if (!target) return;
+    const descricao = window.prompt('Descrição da previsão', target.descricao);
+    if (!descricao) return;
+    setFinancialForecasts((items) => items.map((item) => (item.id === id ? { ...item, descricao } : item)));
+  };
+
+  const toggleForecastCommitted = (id) => {
+    openConfirmationDialog({
+      title: 'Atualizar comprometimento',
+      message: 'Deseja marcar esta previsão como comprometida no período?',
+      confirmLabel: 'Confirmar',
+      tone: 'success',
+      onConfirm: () => setFinancialForecasts((items) => items.map((item) => (
+        item.id === id ? { ...item, comprometido: true } : item
+      )))
+    });
+  };
+  const getFinancialConfirmedStatus = (tipo) => (tipo === 'entrada' ? 'recebido' : 'pago');
+  const isFinancialLaunchConfirmed = (launch) => launch.status === getFinancialConfirmedStatus(launch.tipo);
+
+  const toggleWidgetFilter = (key) => {
+    setOpenWidgetFilter((current) => (current === key ? '' : key));
+  };
+
+  const updateWidgetFilter = (key, field, value) => {
+    setWidgetFilters((current) => ({
+      ...current,
+      [key]: {
+        ...current[key],
+        [field]: value
+      }
+    }));
   };
 
   const applyQuickPeriod = (period) => {
@@ -1800,16 +2072,6 @@ function DashboardApp({
     setIsCategoryModalOpen(false);
   };
 
-  const handleCategoryDelete = (tipo, nome) => {
-    const confirmed = typeof window !== 'undefined'
-      ? window.confirm(`Excluir a categoria "${nome}"?`)
-      : true;
-    if (!confirmed) return;
-    setFinancialCategories((current) => ({
-      ...current,
-      [tipo]: current[tipo].filter((cat) => cat !== nome)
-    }));
-  };
 
   const addFinancialAccount = () => {
     if (!newAccountDraft.nome.trim()) return;
@@ -1830,9 +2092,6 @@ function DashboardApp({
     setFinancialAccounts((items) => items.map((item) => (item.id === id ? { ...item, nome, banco: banco ?? item.banco } : item)));
   };
 
-  const deleteFinancialAccount = (id) => {
-    setFinancialAccounts((items) => items.filter((item) => item.id !== id));
-  };
 
   const addRecurring = () => {
     if (!newRecurringDraft.descricao.trim()) return;
@@ -1840,11 +2099,10 @@ function DashboardApp({
       ...current,
       { id: Date.now(), ...newRecurringDraft, valor: Number(newRecurringDraft.valor || 0) }
     ]);
-    setNewRecurringDraft({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
+    setNewRecurringDraft({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '', status: 'pendente', ultima_quitacao: '' });
     setIsRecurringModalOpen(false);
   };
 
-  const deleteRecurring = (id) => setFinancialRecurring((items) => items.filter((item) => item.id !== id));
 
   const addForecast = () => {
     if (!newForecastDraft.descricao.trim()) return;
@@ -1852,11 +2110,10 @@ function DashboardApp({
       ...current,
       { id: Date.now(), ...newForecastDraft, valor: Number(newForecastDraft.valor || 0) }
     ]);
-    setNewForecastDraft({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+    setNewForecastDraft({ descricao: '', valor: '', periodo: 'Próximos 30 dias', comprometido: false });
     setIsForecastModalOpen(false);
   };
 
-  const deleteForecast = (id) => setFinancialForecasts((items) => items.filter((item) => item.id !== id));
 
   const openPatientN2 = (patient) => {
     setPatientModalMode('view');
@@ -2096,22 +2353,27 @@ function DashboardApp({
 
   const handleDeleteAccount = async () => {
     if (!accountService?.deleteAuthUser || !authUserWidget?.id) return;
-    const confirmed = window.confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.');
-    if (!confirmed) return;
-
-    setAuthActionStatus('loading');
-    setAuthActionMessage('Solicitando exclusão da conta no Supabase Auth...');
-    try {
-      await accountService.deleteAuthUser(authUserWidget.id);
-      if (accountService?.signOut) {
-        await accountService.signOut();
+    openConfirmationDialog({
+      title: 'Excluir conta',
+      message: 'Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir conta',
+      tone: 'danger',
+      onConfirm: async () => {
+        setAuthActionStatus('loading');
+        setAuthActionMessage('Solicitando exclusão da conta no Supabase Auth...');
+        try {
+          await accountService.deleteAuthUser(authUserWidget.id);
+          if (accountService?.signOut) {
+            await accountService.signOut();
+          }
+          setAuthActionStatus('success');
+          setAuthActionMessage('Conta excluída com sucesso.');
+        } catch (error) {
+          setAuthActionStatus('error');
+          setAuthActionMessage(error?.message || 'Não foi possível excluir a conta.');
+        }
       }
-      setAuthActionStatus('success');
-      setAuthActionMessage('Conta excluída com sucesso.');
-    } catch (error) {
-      setAuthActionStatus('error');
-      setAuthActionMessage(error?.message || 'Não foi possível excluir a conta.');
-    }
+    });
   };
 
   const refreshPublicProfile = async (userId) => {
@@ -2264,14 +2526,19 @@ function DashboardApp({
       setClinicActionMessage('Selecione uma clínica existente para excluir.');
       return;
     }
-    const canDelete = window.confirm('Excluir esta clínica da lista local?');
-    if (!canDelete) return;
-
-    setClinics((prev) => prev.filter((clinic) => clinic.id !== selectedClinicId));
-    setSelectedClinicId('');
-    setClinicDraft(toClinicDraft(null));
-    setClinicActionStatus('success');
-    setClinicActionMessage('Clínica removida da lista local. Salve se desejar persistir alterações.');
+    openConfirmationDialog({
+      title: 'Excluir clínica',
+      message: 'Excluir esta clínica da lista local?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => {
+        setClinics((prev) => prev.filter((clinic) => clinic.id !== selectedClinicId));
+        setSelectedClinicId('');
+        setClinicDraft(toClinicDraft(null));
+        setClinicActionStatus('success');
+        setClinicActionMessage('Clínica removida da lista local. Salve se desejar persistir alterações.');
+      }
+    });
   };
 
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
@@ -3216,11 +3483,45 @@ function DashboardApp({
     ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+    const contasFinanceirasWidgetRows = financialAccounts.filter((item) => (
+      widgetFilters.contasFinanceiras.tipo === 'all'
+      || item.tipo === widgetFilters.contasFinanceiras.tipo
+    ));
+    const recurringWidgetRows = financialRecurring.filter((item) => {
+      const byPeriodicidade = widgetFilters.recorrencias.periodicidade === 'all' || item.periodicidade === widgetFilters.recorrencias.periodicidade;
+      const byCategoria = widgetFilters.recorrencias.categoria === 'all' || (item.categoria || '-') === widgetFilters.recorrencias.categoria;
+      const byStatus = widgetFilters.recorrencias.status === 'all' || (item.status || 'pendente') === widgetFilters.recorrencias.status;
+      return byPeriodicidade && byCategoria && byStatus;
+    });
+    const forecastWidgetRows = financialForecasts.filter((item) => (
+      (widgetFilters.previsoes.periodo === 'all' || item.periodo === widgetFilters.previsoes.periodo)
+      && (widgetFilters.previsoes.comprometido === 'all'
+        || (widgetFilters.previsoes.comprometido === 'sim' ? Boolean(item.comprometido) : !Boolean(item.comprometido)))
+    ));
+    const contasReceberWidgetRows = contasReceber.filter((item) => {
+      if (widgetFilters.contasReceber.status === 'all') return true;
+      if (widgetFilters.contasReceber.status === 'confirmados') return isFinancialLaunchConfirmed(item);
+      if (widgetFilters.contasReceber.status === 'abertos') return !isFinancialLaunchConfirmed(item);
+      return item.status === widgetFilters.contasReceber.status;
+    });
+    const contasPagarWidgetRows = contasPagar.filter((item) => {
+      if (widgetFilters.contasPagar.status === 'all') return true;
+      if (widgetFilters.contasPagar.status === 'confirmados') return isFinancialLaunchConfirmed(item);
+      if (widgetFilters.contasPagar.status === 'abertos') return !isFinancialLaunchConfirmed(item);
+      return item.status === widgetFilters.contasPagar.status;
+    });
     const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
     const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
     const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
     const filteredInCategories = financialCategories.entradas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
     const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
+    const recurringCategories = Array.from(new Set(financialRecurring.map((item) => item.categoria || '-')));
+    const forecastPeriods = Array.from(new Set(financialForecasts.map((item) => item.periodo)));
+    const renderWidgetFilterDropdown = (content) => (
+      <div className="financial-filter-dropdown">
+        {content}
+      </div>
+    );
     const despesasPorCategoriaResumo = Object.entries(
       financialLaunches
         .filter((item) => item.tipo === 'saida')
@@ -3298,29 +3599,37 @@ function DashboardApp({
           left={(
             <FinancialTableSectionCard
               title="Contas financeiras"
-              editAriaLabel="Editar contas financeiras"
-              onEdit={() => setIsAccountsEditMode(true)}
+              addAriaLabel="Adicionar conta financeira"
+              onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
+              onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
+              isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
+              filterAriaLabel="Filtrar contas financeiras"
+              filterDropdown={renderWidgetFilterDropdown(
+                <label className="financial-filter-dropdown__field">
+                  <span>Tipo da conta</span>
+                  <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
+                    <option value="all">Todos</option>
+                    <option value="corrente">Corrente</option>
+                    <option value="poupanca">Poupança</option>
+                  </select>
+                </label>
+              )}
               columns={[
                 { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                 { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
                 { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
                 { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
               ]}
-              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
             />
           )}
           right={(
             <SectionCard
+            className="financial-section-card"
             title="Categorias financeiras"
             actions={(
-              <ActionButton
-                label="Editar"
-                ariaLabel="Editar categorias"
-                className="btn--header btn--header-muted btn--icon-compact"
-                icon={<AppIcon name="edit" size={14} />}
-                onClick={() => setIsCategoriesEditMode(true)}
-              />
+              <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
             )}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -3364,29 +3673,107 @@ function DashboardApp({
           left={(
             <FinancialTableSectionCard
               title="Despesas recorrentes"
-              editAriaLabel="Editar recorrências"
-              onEdit={() => setIsRecurringEditMode(true)}
+              addAriaLabel="Adicionar despesa recorrente"
+              onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
+              onToggleFilter={() => toggleWidgetFilter('recorrencias')}
+              isFilterOpen={openWidgetFilter === 'recorrencias'}
+              filterAriaLabel="Filtrar recorrências"
+              filterDropdown={renderWidgetFilterDropdown(
+                <>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Periodicidade</span>
+                    <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
+                      <option value="all">Todas</option>
+                      <option value="mensal">Mensal</option>
+                      <option value="semanal">Semanal</option>
+                    </select>
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Categoria</span>
+                    <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
+                      <option value="all">Todas</option>
+                      {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
+                    </select>
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Status</span>
+                    <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
+                      <option value="all">Todos</option>
+                      <option value="pendente">Pendente</option>
+                      <option value="pago">Pago</option>
+                    </select>
+                  </label>
+                </>
+              )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                 { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
                 { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
+                      <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
+                    </div>
+                  )
+                }
               ]}
-              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
             />
           )}
           right={(
             <FinancialTableSectionCard
               title="Previsões de custos"
-              editAriaLabel="Editar previsões"
-              onEdit={() => setIsForecastEditMode(true)}
+              addAriaLabel="Adicionar previsão de custo"
+              onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
+              onToggleFilter={() => toggleWidgetFilter('previsoes')}
+              isFilterOpen={openWidgetFilter === 'previsoes'}
+              filterAriaLabel="Filtrar previsões"
+              filterDropdown={renderWidgetFilterDropdown(
+                <>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Período</span>
+                    <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
+                      <option value="all">Todos</option>
+                      {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
+                    </select>
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Comprometido</span>
+                    <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
+                      <option value="all">Todos</option>
+                      <option value="sim">Sim</option>
+                      <option value="nao">Não</option>
+                    </select>
+                  </label>
+                </>
+              )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                 { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'comprometido', label: 'Comprometido no período', render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
+                      <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                    </div>
+                  )
+                }
               ]}
-              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
             />
           )}
@@ -3416,23 +3803,38 @@ function DashboardApp({
                   <>
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar contas" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} />
-                      <ActionButton label="Adicionar conta" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar conta" onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
                     </div>
                     <DataTable
                       columns={[
                         { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                         { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
                         { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                        { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
-                        { key: 'acoes', label: 'Ações', render: (row) => <ActionGroup><ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} /><ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} /></ActionGroup> }
+                        { key: 'saldo', label: 'Saldo inicial', sortValue: (row) => Number(row.saldo_inicial || 0), render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
+                        {
+                          key: 'acoes',
+                          label: 'Ações',
+                          sortable: false,
+                          render: (row) => (
+                            <div className="financial-row-actions">
+                              <FinancialWidgetIconButton ariaLabel="Editar conta financeira" onClick={() => editFinancialAccount(row.id)} />
+                              <FinancialWidgetIconButton ariaLabel="Excluir conta financeira" icon="close" tone="text-rose-600" onClick={() => deleteFinancialAccount(row.id)} />
+                            </div>
+                          )
+                        }
                       ]}
                       rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
                       paginated
                       compact
+                      keepEmptyRows
+                      footerTotals={[
+                        { label: 'Registros', value: filteredAccounts.length },
+                        { label: 'Saldo inicial', value: formatMoney(filteredAccounts.reduce((acc, item) => acc + Number(item.saldo_inicial || 0), 0)) }
+                      ]}
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
-                      <ActionButton label="Adicionar conta" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar conta" onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3476,7 +3878,7 @@ function DashboardApp({
                     </div>
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />
-                      <ActionButton label="Adicionar categoria" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar categoria" onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3505,23 +3907,40 @@ function DashboardApp({
                   <>
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar recorrências" value={recurringFilter} onChange={(event) => setRecurringFilter(event.target.value)} />
-                      <ActionButton label="Adicionar recorrência" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar recorrência" onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
                     </div>
                     <DataTable
                       columns={[
                         { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                         { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
                         { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                        { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
+                        { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                        { key: 'status', label: 'Status', sortValue: (row) => row.status || 'pendente', render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                        {
+                          key: 'acoes',
+                          label: 'Ações',
+                          sortable: false,
+                          render: (row) => (
+                            <div className="financial-row-actions">
+                              {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
+                              <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
+                              <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
+                            </div>
+                          )
+                        }
                       ]}
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
                       paginated
                       compact
+                      keepEmptyRows
+                      footerTotals={[
+                        { label: 'Registros', value: filteredRecurring.length },
+                        { label: 'Total', value: formatMoney(filteredRecurring.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                      ]}
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />
-                      <ActionButton label="Adicionar recorrência" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar recorrência" onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3551,22 +3970,39 @@ function DashboardApp({
                   <>
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar previsões" value={forecastFilter} onChange={(event) => setForecastFilter(event.target.value)} />
-                      <ActionButton label="Adicionar previsão" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar previsão" onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
                     </div>
                     <DataTable
                       columns={[
                         { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                         { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                        { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
+                        { key: 'valor', label: 'Valor previsto', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                        { key: 'comprometido', label: 'Comprometido no período', sortValue: (row) => (row.comprometido ? 1 : 0), render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                        {
+                          key: 'acoes',
+                          label: 'Ações',
+                          sortable: false,
+                          render: (row) => (
+                            <div className="financial-row-actions">
+                              {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
+                              <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
+                              <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                            </div>
+                          )
+                        }
                       ]}
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
                       paginated
                       compact
+                      keepEmptyRows
+                      footerTotals={[
+                        { label: 'Registros', value: filteredForecasts.length },
+                        { label: 'Total previsto', value: formatMoney(filteredForecasts.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                      ]}
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />
-                      <ActionButton label="Adicionar previsão" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar previsão" onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3579,59 +4015,116 @@ function DashboardApp({
           left={(
             <FinancialTablePanelCard
               title="Contas a receber"
-              onEdit={() => openFinancialCreate('entrada')}
+              onAdd={() => openFinancialCreate('entrada')}
+              addAriaLabel="Adicionar conta a receber"
+              onToggleFilter={() => toggleWidgetFilter('contasReceber')}
+              isFilterOpen={openWidgetFilter === 'contasReceber'}
+              filterAriaLabel="Filtrar contas a receber"
+              filterDropdown={renderWidgetFilterDropdown(
+                <label className="financial-filter-dropdown__field">
+                  <span>Status</span>
+                  <select value={widgetFilters.contasReceber.status} onChange={(event) => updateWidgetFilter('contasReceber', 'status', event.target.value)}>
+                    <option value="all">Todos</option>
+                    <option value="abertos">Abertos</option>
+                    <option value="confirmados">Confirmados</option>
+                    <option value="previsto">Previsto</option>
+                    <option value="vencido">Vencido</option>
+                  </select>
+                </label>
+              )}
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {!isFinancialLaunchConfirmed(row) ? <FinancialWidgetIconButton ariaLabel="Dar baixa no lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
+                      <FinancialWidgetIconButton ariaLabel="Cancelar lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialCancel(row.id)} />
+                    </div>
+                  )
+                }
               ]}
-              rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+              rows={contasReceberWidgetRows.map((item) => ({ key: `receber-${item.id}`, ...item }))}
               footerClassName="text-emerald-700"
-              footerValue={formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+              footerValue={formatMoney(contasReceberWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
           )}
           right={(
             <FinancialTablePanelCard
               title="Contas a pagar"
-              onEdit={() => openFinancialCreate('saida')}
+              onAdd={() => openFinancialCreate('saida')}
+              addAriaLabel="Adicionar conta a pagar"
+              onToggleFilter={() => toggleWidgetFilter('contasPagar')}
+              isFilterOpen={openWidgetFilter === 'contasPagar'}
+              filterAriaLabel="Filtrar contas a pagar"
+              filterDropdown={renderWidgetFilterDropdown(
+                <label className="financial-filter-dropdown__field">
+                  <span>Status</span>
+                  <select value={widgetFilters.contasPagar.status} onChange={(event) => updateWidgetFilter('contasPagar', 'status', event.target.value)}>
+                    <option value="all">Todos</option>
+                    <option value="abertos">Abertos</option>
+                    <option value="confirmados">Confirmados</option>
+                    <option value="previsto">Previsto</option>
+                    <option value="vencido">Vencido</option>
+                  </select>
+                </label>
+              )}
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {!isFinancialLaunchConfirmed(row) ? <FinancialWidgetIconButton ariaLabel="Dar baixa no lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
+                      <FinancialWidgetIconButton ariaLabel="Cancelar lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialCancel(row.id)} />
+                    </div>
+                  )
+                }
               ]}
-              rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+              rows={contasPagarWidgetRows.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
               footerClassName="text-rose-700"
-              footerValue={formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+              footerValue={formatMoney(contasPagarWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
           )}
         />
 
         <SectionCard
+          className="financial-section-card"
           title="Lançamentos"
-          actions={<ActionButton label="Novo lançamento" tone="primary" className="btn--header btn--header-new" onClick={() => openFinancialCreate('entrada')} />}
+          actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
         >
           <DataTable
             columns={[
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
               { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria}</span> },
-              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
               { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-              { key: 'pagamento', label: 'Pagamento', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
+              { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'pagamento', label: 'Pagamento', sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
               {
-                key: 'acoes',
-                label: 'Ações',
+                key: 'acoes_rapidas',
+                label: 'Ações rápidas',
+                sortable: false,
                 render: (row) => (
                   <div className="financial-row-actions">
-                    <button type="button" className="financial-row-actions__icon text-sky-600" aria-label="Editar lançamento" onClick={() => openFinancialEdit(row)}>
-                      <AppIcon name="edit" size={16} />
-                    </button>
-                    <button type="button" className="financial-row-actions__icon text-rose-600" aria-label="Excluir lançamento" onClick={() => handleFinancialDelete(row.id)}>
-                      <AppIcon name="close" size={16} />
-                    </button>
+                    {!isFinancialLaunchConfirmed(row) ? (
+                      <FinancialWidgetIconButton ariaLabel="Confirmar lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} />
+                    ) : null}
+                    <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
+                    <FinancialWidgetIconButton ariaLabel="Excluir lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialDelete(row.id)} />
                   </div>
                 )
               }
@@ -3640,6 +4133,11 @@ function DashboardApp({
             emptyMessage="Nenhum lançamento financeiro cadastrado."
             paginated
             compact
+            keepEmptyRows
+            footerTotals={[
+              { label: 'Registros', value: financialLaunches.length },
+              { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+            ]}
           />
         </SectionCard>
 
@@ -4012,6 +4510,25 @@ function DashboardApp({
         onSaveEdit={handleSavePatientEdit}
         footerNav={embeddedWindowNav}
       />
+
+      {confirmationDialog.isOpen ? (
+        <div className="confirm-overlay" onClick={closeConfirmationDialog}>
+          <div className="confirm-dialog" onClick={(event) => event.stopPropagation()}>
+            <h3 className="confirm-dialog__title">{confirmationDialog.title}</h3>
+            <p className="confirm-dialog__message">{confirmationDialog.message}</p>
+            <div className="confirm-dialog__actions">
+              <button type="button" className="confirm-dialog__btn confirm-dialog__btn--neutral" onClick={closeConfirmationDialog}>Cancelar</button>
+              <button
+                type="button"
+                className={`confirm-dialog__btn ${confirmationDialog.tone === 'success' ? 'confirm-dialog__btn--success' : 'confirm-dialog__btn--danger'}`}
+                onClick={runConfirmationDialog}
+              >
+                {confirmationDialog.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <MobileMd3Nav
         visible={!isWideNavigation && !isFloatingWindowOpen}

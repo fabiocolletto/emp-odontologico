@@ -1,15 +1,11 @@
 (function registerFinancialEditAction(global) {
   const namespace = global.OdontoFlowFinancialComponents = global.OdontoFlowFinancialComponents || {};
 
-  namespace.createFinancialEditAction = ({ ActionButton, AppIcon }) => (
-    { label = 'Editar', ariaLabel, onClick }
+  namespace.createFinancialEditAction = ({ AppIcon }) => (
+    { ariaLabel, onClick, icon = 'edit', className = '' }
   ) => (
-    <ActionButton
-      label={label}
-      ariaLabel={ariaLabel}
-      className="btn--header btn--header-muted btn--icon-compact"
-      icon={<AppIcon name="edit" size={14} />}
-      onClick={onClick}
-    />
+    <button type="button" className={`financial-row-actions__icon text-sky-600 ${className}`.trim()} aria-label={ariaLabel || 'Ação'} onClick={onClick}>
+      <AppIcon name={icon} size={16} />
+    </button>
   );
 }(globalThis));
