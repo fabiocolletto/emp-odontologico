@@ -537,6 +537,67 @@ const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = n
   </button>
 );
 
+const FinancialEditAction = ({ label = 'Editar', ariaLabel, onClick }) => (
+  <ActionButton
+    label={label}
+    ariaLabel={ariaLabel}
+    className="btn--header btn--header-muted btn--icon-compact"
+    icon={<AppIcon name="edit" size={14} />}
+    onClick={onClick}
+  />
+);
+
+const FinancialTableSectionCard = ({
+  title,
+  columns,
+  rows,
+  emptyMessage,
+  onEdit,
+  editAriaLabel,
+  footer = null
+}) => (
+  <SectionCard
+    title={title}
+    actions={(
+      <FinancialEditAction
+        ariaLabel={editAriaLabel}
+        onClick={onEdit}
+      />
+    )}
+  >
+    <DataTable
+      columns={columns}
+      rows={rows}
+      emptyMessage={emptyMessage}
+      paginated
+      compact
+    />
+    {footer}
+  </SectionCard>
+);
+
+const FinancialTablePanelCard = ({
+  title,
+  columns,
+  rows,
+  onEdit,
+  footerClassName = '',
+  footerValue = ''
+}) => (
+  <PanelCard
+    title={title}
+    extra={<FinancialEditAction ariaLabel={`Editar ${title.toLowerCase()}`} onClick={onEdit} />}
+  >
+    <DataTable
+      columns={columns}
+      rows={rows}
+      paginated
+      compact
+    />
+    {footerValue ? <div className={`mt-3 text-right text-sm font-black ${footerClassName}`.trim()}>{footerValue}</div> : null}
+  </PanelCard>
+);
+
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
 const AlertCard = ({ text }) => <BaseCard className="border-amber-100 bg-amber-50/40"><p className="text-sm text-amber-700 font-semibold">{text}</p></BaseCard>;
@@ -3354,31 +3415,19 @@ function DashboardApp({
         </ContentGrid>
 
         <ContentGrid columns="2">
-          <SectionCard
+          <FinancialTableSectionCard
             title="Contas financeiras"
-            actions={(
-              <ActionButton
-                label="Editar"
-                ariaLabel="Editar contas financeiras"
-                className="btn--header btn--header-muted btn--icon-compact"
-                icon={<AppIcon name="edit" size={14} />}
-                onClick={() => setIsAccountsEditMode(true)}
-              />
-            )}
-          >
-            <DataTable
-              columns={[
-                { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
-                { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
-                { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
-              ]}
-              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma conta cadastrada."
-              paginated
-              compact
-            />
-          </SectionCard>
+            editAriaLabel="Editar contas financeiras"
+            onEdit={() => setIsAccountsEditMode(true)}
+            columns={[
+              { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+              { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
+              { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+              { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
+            ]}
+            rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+            emptyMessage="Nenhuma conta cadastrada."
+          />
 
           <SectionCard
             title="Categorias financeiras"
@@ -3429,44 +3478,32 @@ function DashboardApp({
         </ContentGrid>
 
         <ContentGrid columns="2">
-          <SectionCard
+          <FinancialTableSectionCard
             title="Despesas recorrentes"
-            actions={(
-              <ActionButton label="Editar" ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode(true)} />
-            )}
-          >
-            <DataTable
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
-                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
-              ]}
-              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma despesa recorrente cadastrada."
-              paginated
-              compact
-            />
-          </SectionCard>
+            editAriaLabel="Editar recorrências"
+            onEdit={() => setIsRecurringEditMode(true)}
+            columns={[
+              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+              { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+            ]}
+            rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+            emptyMessage="Nenhuma despesa recorrente cadastrada."
+          />
 
-          <SectionCard
+          <FinancialTableSectionCard
             title="Previsões de custos"
-            actions={(
-              <ActionButton label="Editar" ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode(true)} />
-            )}
-          >
-            <DataTable
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
-              ]}
-              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma previsão cadastrada."
-              paginated
-              compact
-            />
-          </SectionCard>
+            editAriaLabel="Editar previsões"
+            onEdit={() => setIsForecastEditMode(true)}
+            columns={[
+              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+              { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+              { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+            ]}
+            rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+            emptyMessage="Nenhuma previsão cadastrada."
+          />
         </ContentGrid>
 
         {isAccountModalOpen || isAccountsEditMode ? (
@@ -3653,34 +3690,32 @@ function DashboardApp({
         ) : null}
 
         <ContentGrid columns="2">
-          <PanelCard title="Contas a receber" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('entrada')} />}>
-            <DataTable
-              columns={[
-                { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
-              ]}
-              rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
-              paginated
-              compact
-            />
-            <div className="mt-3 text-right text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
-          </PanelCard>
-          <PanelCard title="Contas a pagar" extra={<ActionButton label="Editar" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => openFinancialCreate('saida')} />}>
-            <DataTable
-              columns={[
-                { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
-              ]}
-              rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
-              paginated
-              compact
-            />
-            <div className="mt-3 text-right text-sm font-black text-rose-700">{formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
-          </PanelCard>
+          <FinancialTablePanelCard
+            title="Contas a receber"
+            onEdit={() => openFinancialCreate('entrada')}
+            columns={[
+              { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+            ]}
+            rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+            footerClassName="text-emerald-700"
+            footerValue={formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+          />
+          <FinancialTablePanelCard
+            title="Contas a pagar"
+            onEdit={() => openFinancialCreate('saida')}
+            columns={[
+              { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
+              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+            ]}
+            rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+            footerClassName="text-rose-700"
+            footerValue={formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+          />
         </ContentGrid>
 
         <SectionCard
