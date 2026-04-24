@@ -23,7 +23,7 @@
         compact
         keepEmptyRows
       />
-      {footerValue ? <div className={`mt-3 text-right text-sm font-black ${footerClassName}`.trim()}>{footerValue}</div> : null}
+      {footerValue ? <div className={`mt-2 text-right text-sm font-black ${footerClassName}`.trim()}>{footerValue}</div> : null}
     </PanelCard>
   );
 }(globalThis));

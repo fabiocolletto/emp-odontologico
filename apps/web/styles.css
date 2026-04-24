@@ -2394,17 +2394,17 @@ select {
 .data-table__cell {
   color: #526277;
   font-weight: 400;
-  background: #f6f9fc;
+  background: transparent;
 }
 
 .data-table__row .data-table__cell:first-child {
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .data-table__row .data-table__cell:last-child {
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .data-table__row--placeholder .data-table__cell {
@@ -2412,7 +2412,7 @@ select {
 }
 
 .data-table__row:nth-child(even):not(.data-table__row--placeholder) .data-table__cell {
-  background: #f2f6fb;
+  background: transparent;
 }
 
 .data-table__head-button {
@@ -2462,6 +2462,8 @@ select {
 .financial-panel-card,
 .financial-section-card {
   min-height: 332px;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
 }
 
 .data-table__pagination {
