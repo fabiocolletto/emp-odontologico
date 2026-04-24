@@ -2792,6 +2792,28 @@ select {
     margin-bottom: 0.5rem;
   }
 
+  .financial-layout--flat .toolbar-flat .btn,
+  .financial-layout--flat .data-table__page-button {
+    width: 2.15rem;
+    min-width: 2.15rem;
+    height: 2.15rem;
+    padding: 0.2rem;
+    border: 1px solid color-mix(in srgb, var(--brand-600) 18%, white);
+    border-radius: 8px;
+    background: color-mix(in srgb, rgba(255, 255, 255, 0.72) 84%, #eaf2ff);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
+    backdrop-filter: blur(8px) saturate(120%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .financial-layout--flat .toolbar-flat .btn span,
+  .financial-layout--flat .data-table__page-button span {
+    display: none;
+  }
+
   .financial-layout--flat .financial-section-card,
   .financial-layout--flat .financial-panel-card {
     min-height: 0;
