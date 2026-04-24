@@ -594,6 +594,12 @@ const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = n
   </button>
 );
 
+const FinancialTableAddIconButton = ({ ariaLabel, onClick }) => (
+  <button type="button" className="financial-row-actions__icon text-sky-600" aria-label={ariaLabel} onClick={onClick}>
+    <AppIcon name="plus" size={16} />
+  </button>
+);
+
 const financialComponentFactories = globalThis.OdontoFlowFinancialComponents || {};
 if (!financialComponentFactories.createFinancialEditAction || !financialComponentFactories.createFinancialTableSectionCard || !financialComponentFactories.createFinancialTablePanelCard) {
   throw new Error('Módulos financeiros globais não carregados. Verifique os scripts em index.html.');
@@ -3473,7 +3479,7 @@ function DashboardApp({
                   <>
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar contas" value={accountFilter} onChange={(event) => setAccountFilter(event.target.value)} />
-                      <ActionButton label="Adicionar conta" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar conta" onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
                     </div>
                     <DataTable
                       columns={[
@@ -3489,7 +3495,7 @@ function DashboardApp({
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
-                      <ActionButton label="Adicionar conta" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar conta" onClick={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3533,7 +3539,7 @@ function DashboardApp({
                     </div>
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsCategoryModalOpen(false); setIsCategoriesEditMode(false); }} />
-                      <ActionButton label="Adicionar categoria" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar categoria" onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3562,7 +3568,7 @@ function DashboardApp({
                   <>
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar recorrências" value={recurringFilter} onChange={(event) => setRecurringFilter(event.target.value)} />
-                      <ActionButton label="Adicionar recorrência" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar recorrência" onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
                     </div>
                     <DataTable
                       columns={[
@@ -3578,7 +3584,7 @@ function DashboardApp({
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />
-                      <ActionButton label="Adicionar recorrência" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar recorrência" onClick={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3608,7 +3614,7 @@ function DashboardApp({
                   <>
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <input className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full md:max-w-xs" placeholder="Filtrar previsões" value={forecastFilter} onChange={(event) => setForecastFilter(event.target.value)} />
-                      <ActionButton label="Adicionar previsão" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar previsão" onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
                     </div>
                     <DataTable
                       columns={[
@@ -3623,7 +3629,7 @@ function DashboardApp({
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />
-                      <ActionButton label="Adicionar previsão" className="btn--header btn--header-new" icon={<AppIcon name="plus" size={14} />} onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
+                      <FinancialTableAddIconButton ariaLabel="Adicionar previsão" onClick={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }} />
                     </div>
                   </>
                 )}
@@ -3667,7 +3673,7 @@ function DashboardApp({
 
         <SectionCard
           title="Lançamentos"
-          actions={<ActionButton label="Novo lançamento" tone="primary" className="btn--header btn--header-new" onClick={() => openFinancialCreate('entrada')} />}
+          actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
         >
           <DataTable
             columns={[
