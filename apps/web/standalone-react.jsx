@@ -499,17 +499,27 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
           </tbody>
         </table>
       </div>
-      {paginated && rows.length > 0 ? (
+      {paginated && totalPages > 1 ? (
         <div className="data-table__pagination">
-          <p className="data-table__pagination-label">Página {currentPage} de {totalPages} · {rowsPerPage} itens por tela</p>
+          <p className="data-table__pagination-label">{currentPage}/{totalPages}</p>
           <div className="data-table__pagination-actions">
-            <button type="button" className="btn btn--ghost data-table__page-button" onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))} disabled={currentPage <= 1}>
-              <AppIcon name="chevron-left" size={14} />
-              <span>Anterior</span>
+            <button
+              type="button"
+              className="data-table__page-button"
+              onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
+              disabled={currentPage <= 1}
+              aria-label="Página anterior"
+            >
+              <AppIcon name="chevron-left" size={13} />
             </button>
-            <button type="button" className="btn btn--ghost data-table__page-button" onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))} disabled={currentPage >= totalPages}>
-              <span>Próxima</span>
-              <AppIcon name="chevron-right" size={14} />
+            <button
+              type="button"
+              className="data-table__page-button"
+              onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+              disabled={currentPage >= totalPages}
+              aria-label="Próxima página"
+            >
+              <AppIcon name="chevron-right" size={13} />
             </button>
           </div>
         </div>
