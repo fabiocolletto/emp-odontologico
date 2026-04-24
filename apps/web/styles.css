@@ -2554,6 +2554,14 @@ select {
   padding: 0.35rem 0.45rem;
 }
 
+.financial-focus-overlay__panel {
+  max-width: min(1180px, 96vw);
+}
+
+.financial-focus-card {
+  width: 100%;
+}
+
 .financial-row-actions__icon.is-active {
   border-color: color-mix(in srgb, var(--brand-600) 35%, white);
   color: var(--brand-700);
