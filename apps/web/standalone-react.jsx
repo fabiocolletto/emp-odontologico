@@ -398,7 +398,7 @@ const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoin
   <BaseCard className="stat-card-flat">
     <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
     <div className="stat-card-flat__main">
-      <p className="text-2xl font-black text-slate-900 mt-1 whitespace-nowrap">{value}</p>
+      <p className="text-[1.95rem] font-semibold tracking-tight text-slate-900 mt-1 whitespace-nowrap">{value}</p>
       <SparkMiniChart points={sparkPoints} tone={sparkColor} variant={sparkVariant} />
     </div>
     {trend ? <p className={`text-xs font-bold mt-2 ${trendTone}`}>{trend}</p> : null}
@@ -436,32 +436,87 @@ const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
   <div className="py-6 text-center text-sm text-slate-500">{message}</div>
 );
 
-const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.' }) => (
-  <div className="overflow-x-auto">
-    <table className="data-table min-w-full text-sm">
-      <thead>
-        <tr className="text-slate-400">
-          {columns.map((column) => (
-            <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">{column.label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 ? (
-          <tr>
-            <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
-          </tr>
-        ) : rows.map((row) => (
-          <tr key={row.key} className="data-table__row">
-            {columns.map((column) => (
-              <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
+const getResponsiveTableRowsPerPage = () => {
+  if (typeof window === 'undefined') return 5;
+  const width = window.innerWidth;
+  if (width >= 1536) return 8;
+  if (width >= 1280) return 7;
+  if (width >= 1024) return 6;
+  if (width >= 768) return 5;
+  return 4;
+};
+
+const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage() : Math.max(rows.length, 1)));
+
+  useEffect(() => {
+    if (!paginated) return undefined;
+
+    const syncRowsPerPage = () => {
+      setRowsPerPage(getResponsiveTableRowsPerPage());
+    };
+
+    syncRowsPerPage();
+    window.addEventListener('resize', syncRowsPerPage);
+    return () => window.removeEventListener('resize', syncRowsPerPage);
+  }, [paginated]);
+
+  const totalPages = paginated ? Math.max(1, Math.ceil(rows.length / rowsPerPage)) : 1;
+
+  useEffect(() => {
+    if (!paginated) return;
+    setCurrentPage((current) => Math.min(current, totalPages));
+  }, [paginated, totalPages, rows.length]);
+
+  const visibleRows = paginated
+    ? rows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+    : rows;
+
+  return (
+    <div className="data-table-shell">
+      <div className="overflow-x-auto">
+        <table className={`data-table min-w-full text-sm ${compact ? 'data-table--compact' : ''}`.trim()}>
+          <thead>
+            <tr className="text-slate-400">
+              {columns.map((column) => (
+                <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">{column.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {visibleRows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
+              </tr>
+            ) : visibleRows.map((row) => (
+              <tr key={row.key} className="data-table__row">
+                {columns.map((column) => (
+                  <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
+                ))}
+              </tr>
             ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+          </tbody>
+        </table>
+      </div>
+      {paginated && rows.length > 0 ? (
+        <div className="data-table__pagination">
+          <p className="data-table__pagination-label">Página {currentPage} de {totalPages} · {rowsPerPage} itens por tela</p>
+          <div className="data-table__pagination-actions">
+            <button type="button" className="btn btn--ghost data-table__page-button" onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))} disabled={currentPage <= 1}>
+              <AppIcon name="chevron-left" size={14} />
+              <span>Anterior</span>
+            </button>
+            <button type="button" className="btn btn--ghost data-table__page-button" onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))} disabled={currentPage >= totalPages}>
+              <span>Próxima</span>
+              <AppIcon name="chevron-right" size={14} />
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button', ariaLabel }) => (
   <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick} aria-label={ariaLabel || label}>
@@ -3309,6 +3364,8 @@ function DashboardApp({
               ]}
               rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
+              paginated
+              compact
             />
           </SectionCard>
 
@@ -3376,6 +3433,8 @@ function DashboardApp({
               ]}
               rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
+              paginated
+              compact
             />
           </SectionCard>
 
@@ -3393,6 +3452,8 @@ function DashboardApp({
               ]}
               rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
+              paginated
+              compact
             />
           </SectionCard>
         </ContentGrid>
@@ -3432,6 +3493,8 @@ function DashboardApp({
                         { key: 'acoes', label: 'Ações', render: (row) => <ActionGroup><ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} /><ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} /></ActionGroup> }
                       ]}
                       rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
+                      paginated
+                      compact
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
@@ -3519,6 +3582,8 @@ function DashboardApp({
                         { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
                       ]}
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
+                      paginated
+                      compact
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />
@@ -3562,6 +3627,8 @@ function DashboardApp({
                         { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
                       ]}
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
+                      paginated
+                      compact
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />
@@ -3584,6 +3651,8 @@ function DashboardApp({
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+              paginated
+              compact
             />
             <div className="mt-3 text-right text-sm font-black text-emerald-700">{formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
           </PanelCard>
@@ -3596,6 +3665,8 @@ function DashboardApp({
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+              paginated
+              compact
             />
             <div className="mt-3 text-right text-sm font-black text-rose-700">{formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</div>
           </PanelCard>
@@ -3631,6 +3702,8 @@ function DashboardApp({
             ]}
             rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
             emptyMessage="Nenhum lançamento financeiro cadastrado."
+            paginated
+            compact
           />
         </SectionCard>
 

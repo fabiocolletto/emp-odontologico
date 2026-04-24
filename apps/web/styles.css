@@ -2381,6 +2381,72 @@ select {
   font-weight: 500;
 }
 
+
+.data-table--compact .data-table__head-cell {
+  font-size: 0.75rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+.data-table--compact .data-table__cell {
+  padding-top: 0.42rem;
+  padding-bottom: 0.42rem;
+  font-size: 0.86rem;
+  line-height: 1.25;
+}
+
+.data-table__pagination {
+  margin-top: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.data-table__pagination-label {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.data-table__pagination-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.data-table__page-button {
+  min-height: 30px;
+  padding: 0.32rem 0.62rem;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.data-table__page-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .data-table--compact .data-table__head-cell,
+  .data-table--compact .data-table__cell {
+    white-space: nowrap;
+  }
+
+  .data-table__pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .data-table__pagination-actions {
+    justify-content: space-between;
+  }
+}
+
 .financial-category-filter {
   text-align: center;
 }
