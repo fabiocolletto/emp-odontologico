@@ -3555,6 +3555,15 @@ function DashboardApp({
           return acc;
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const contasFinanceirasTotal = contasFinanceirasWidgetRows.reduce((acc, item) => acc + Number(item.saldo_inicial || 0), 0);
+    const recorrenciasTotal = recurringWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const previsoesTotal = forecastWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const categoriasReceitasTotal = financialLaunches
+      .filter((item) => item.tipo === 'entrada')
+      .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const categoriasDespesasTotal = financialLaunches
+      .filter((item) => item.tipo === 'saida')
+      .reduce((acc, item) => acc + Number(item.valor || 0), 0);
     const receitasPorCategoriaResumo = Object.entries(
       financialLaunches
         .filter((item) => item.tipo === 'entrada')
@@ -3659,6 +3668,12 @@ function DashboardApp({
               ]}
               rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
+              footer={(
+                <div className="financial-widget-totalizer">
+                  <p><span>Registros</span><strong>{contasFinanceirasWidgetRows.length}</strong></p>
+                  <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
+                </div>
+              )}
             />
           )}
           right={(
@@ -3702,6 +3717,10 @@ function DashboardApp({
               </div>
             </div>
             <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
+            <div className="financial-widget-totalizer mt-3">
+              <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
+              <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
+            </div>
           </SectionCard>
           )}
         />
@@ -3763,6 +3782,12 @@ function DashboardApp({
               ]}
               rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
+              footer={(
+                <div className="financial-widget-totalizer">
+                  <p><span>Registros</span><strong>{recurringWidgetRows.length}</strong></p>
+                  <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
+                </div>
+              )}
             />
           )}
           right={(
@@ -3812,6 +3837,12 @@ function DashboardApp({
               ]}
               rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
+              footer={(
+                <div className="financial-widget-totalizer">
+                  <p><span>Registros</span><strong>{forecastWidgetRows.length}</strong></p>
+                  <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
+                </div>
+              )}
             />
           )}
         />

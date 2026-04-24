@@ -2517,6 +2517,27 @@ select {
   position: relative;
 }
 
+.financial-widget-totalizer {
+  margin-top: 0.55rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.financial-widget-totalizer p {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.financial-widget-totalizer p strong {
+  color: #334155;
+}
+
 .financial-widget-actions__dropdown {
   position: absolute;
   right: 0;
