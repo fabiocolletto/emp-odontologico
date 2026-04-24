@@ -2,6 +2,43 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.31 - 2026-04-24
+
+### Changed
+- Tela **Perfil** recriada para usar exclusivamente elementos replicáveis globais.
+- Novos blocos globais adicionados em `apps/web/src/profile/`:
+  - `profile-field-grid.js` (grade padronizada de campos),
+  - `profile-action-row.js` (linha de ações com botões),
+  - `profile-feedback-message.js` (mensagens de status),
+  - `profile-responsive-panels.js` (painéis mobile/desktop responsivos).
+- `standalone-react.jsx` atualizado para consumir os factories globais de perfil e remover estrutura local duplicada do Perfil.
+- `index.html` atualizado para carregar os módulos globais de perfil antes do runtime principal.
+
+## v1.1.30 - 2026-04-24
+
+### Changed
+- Criação de elementos replicáveis globais para qualquer tela em `apps/web/src/shared/`:
+  - `screen-header-block.js` (header + toolbar de ações),
+  - `kpi-grid-row.js` (linha de KPIs parametrizável por colunas),
+  - `dual-content-row.js` (linha dupla para combinar blocos/tabelas).
+- Tela Financeira atualizada para consumir os novos blocos compartilhados sem mudança de UI/UX:
+  - header do Financeiro,
+  - linha de 4 KPIs,
+  - linha de 2 KPIs,
+  - linhas com tabelas em layout de duas colunas.
+- `index.html` atualizado para carregar os módulos compartilhados antes do runtime principal.
+
+## v1.1.29 - 2026-04-24
+
+### Changed
+- Modularização da tela **Financeiro** com extração dos elementos padrão para arquivos dedicados globais em `apps/web/src/financial/`:
+  - `financial-edit-action.js`
+  - `financial-table-section-card.js`
+  - `financial-table-panel-card.js`
+- `index.html` atualizado para carregar explicitamente os novos módulos financeiros antes do runtime principal.
+- `standalone-react.jsx` passou a consumir os componentes globais extraídos, removendo duplicidade local e legado inline desses blocos.
+- Mantida a mesma UI/UX da tela financeira (sem alteração de comportamento visual/operacional), com foco exclusivo em organização e reutilização.
+
 ## v1.1.28 - 2026-04-23
 
 ### Changed
