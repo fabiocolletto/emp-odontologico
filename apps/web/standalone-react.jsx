@@ -1711,6 +1711,14 @@ function DashboardApp({
     contasReceber: { status: 'all' },
     contasPagar: { status: 'all' }
   });
+  const [confirmationDialog, setConfirmationDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirmar',
+    tone: 'danger',
+    onConfirm: null
+  });
   const [financialDraft, setFinancialDraft] = useState(() => ({
     id: '',
     tipo: 'entrada',
@@ -1860,26 +1868,111 @@ function DashboardApp({
     closeFinancialForm();
   };
 
+  const openConfirmationDialog = ({ title, message, confirmLabel = 'Confirmar', tone = 'danger', onConfirm }) => {
+    setConfirmationDialog({
+      isOpen: true,
+      title,
+      message,
+      confirmLabel,
+      tone,
+      onConfirm
+    });
+  };
+
+  const closeConfirmationDialog = () => {
+    setConfirmationDialog({
+      isOpen: false,
+      title: '',
+      message: '',
+      confirmLabel: 'Confirmar',
+      tone: 'danger',
+      onConfirm: null
+    });
+  };
+
+  const runConfirmationDialog = () => {
+    if (typeof confirmationDialog.onConfirm === 'function') {
+      confirmationDialog.onConfirm();
+    }
+    closeConfirmationDialog();
+  };
+
   const handleFinancialDelete = (id) => {
-    setFinancialLaunches((current) => current.filter((item) => item.id !== id));
+    openConfirmationDialog({
+      title: 'Excluir movimentação',
+      message: 'Deseja excluir esta movimentação financeira?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialLaunches((current) => current.filter((item) => item.id !== id))
+    });
   };
   const handleFinancialCancel = (id) => handleFinancialDelete(id);
 
+  const handleFinancialConfirm = (id) => {
+    openConfirmationDialog({
+      title: 'Confirmar movimentação',
+      message: 'Confirma a baixa desta movimentação?',
+      confirmLabel: 'Confirmar',
+      tone: 'success',
+      onConfirm: () => {
+        const today = new Date().toISOString().slice(0, 10);
+        setFinancialLaunches((current) => current.map((item) => (
+          item.id === id
+            ? {
+              ...item,
+              status: getFinancialConfirmedStatus(item.tipo),
+              data_pagamento: item.data_pagamento || today
+            }
+            : item
+        )));
+      }
+    });
+  };
+
+  const handleCategoryDelete = (tipo, nome) => {
+    openConfirmationDialog({
+      title: 'Excluir categoria',
+      message: `Deseja excluir a categoria "${nome}"?`,
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialCategories((current) => ({
+        ...current,
+        [tipo]: current[tipo].filter((cat) => cat !== nome)
+      }))
+    });
+  };
+
+  const deleteFinancialAccount = (id) => {
+    openConfirmationDialog({
+      title: 'Excluir conta financeira',
+      message: 'Deseja remover esta conta financeira?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialAccounts((items) => items.filter((item) => item.id !== id))
+    });
+  };
+
+  const deleteRecurring = (id) => {
+    openConfirmationDialog({
+      title: 'Excluir recorrência',
+      message: 'Deseja excluir esta despesa recorrente?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialRecurring((items) => items.filter((item) => item.id !== id))
+    });
+  };
+
+  const deleteForecast = (id) => {
+    openConfirmationDialog({
+      title: 'Excluir previsão',
+      message: 'Deseja excluir esta previsão de custo?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => setFinancialForecasts((items) => items.filter((item) => item.id !== id))
+    });
+  };
   const getFinancialConfirmedStatus = (tipo) => (tipo === 'entrada' ? 'recebido' : 'pago');
   const isFinancialLaunchConfirmed = (launch) => launch.status === getFinancialConfirmedStatus(launch.tipo);
-
-  const handleFinancialConfirm = (id) => {
-    const today = new Date().toISOString().slice(0, 10);
-    setFinancialLaunches((current) => current.map((item) => (
-      item.id === id
-        ? {
-          ...item,
-          status: getFinancialConfirmedStatus(item.tipo),
-          data_pagamento: item.data_pagamento || today
-        }
-        : item
-    )));
-  };
 
   const toggleWidgetFilter = (key) => {
     setOpenWidgetFilter((current) => (current === key ? '' : key));
@@ -1932,16 +2025,6 @@ function DashboardApp({
     setIsCategoryModalOpen(false);
   };
 
-  const handleCategoryDelete = (tipo, nome) => {
-    const confirmed = typeof window !== 'undefined'
-      ? window.confirm(`Excluir a categoria "${nome}"?`)
-      : true;
-    if (!confirmed) return;
-    setFinancialCategories((current) => ({
-      ...current,
-      [tipo]: current[tipo].filter((cat) => cat !== nome)
-    }));
-  };
 
   const addFinancialAccount = () => {
     if (!newAccountDraft.nome.trim()) return;
@@ -1962,9 +2045,6 @@ function DashboardApp({
     setFinancialAccounts((items) => items.map((item) => (item.id === id ? { ...item, nome, banco: banco ?? item.banco } : item)));
   };
 
-  const deleteFinancialAccount = (id) => {
-    setFinancialAccounts((items) => items.filter((item) => item.id !== id));
-  };
 
   const addRecurring = () => {
     if (!newRecurringDraft.descricao.trim()) return;
@@ -1976,7 +2056,6 @@ function DashboardApp({
     setIsRecurringModalOpen(false);
   };
 
-  const deleteRecurring = (id) => setFinancialRecurring((items) => items.filter((item) => item.id !== id));
 
   const addForecast = () => {
     if (!newForecastDraft.descricao.trim()) return;
@@ -1988,7 +2067,6 @@ function DashboardApp({
     setIsForecastModalOpen(false);
   };
 
-  const deleteForecast = (id) => setFinancialForecasts((items) => items.filter((item) => item.id !== id));
 
   const openPatientN2 = (patient) => {
     setPatientModalMode('view');
@@ -2228,22 +2306,27 @@ function DashboardApp({
 
   const handleDeleteAccount = async () => {
     if (!accountService?.deleteAuthUser || !authUserWidget?.id) return;
-    const confirmed = window.confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.');
-    if (!confirmed) return;
-
-    setAuthActionStatus('loading');
-    setAuthActionMessage('Solicitando exclusão da conta no Supabase Auth...');
-    try {
-      await accountService.deleteAuthUser(authUserWidget.id);
-      if (accountService?.signOut) {
-        await accountService.signOut();
+    openConfirmationDialog({
+      title: 'Excluir conta',
+      message: 'Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir conta',
+      tone: 'danger',
+      onConfirm: async () => {
+        setAuthActionStatus('loading');
+        setAuthActionMessage('Solicitando exclusão da conta no Supabase Auth...');
+        try {
+          await accountService.deleteAuthUser(authUserWidget.id);
+          if (accountService?.signOut) {
+            await accountService.signOut();
+          }
+          setAuthActionStatus('success');
+          setAuthActionMessage('Conta excluída com sucesso.');
+        } catch (error) {
+          setAuthActionStatus('error');
+          setAuthActionMessage(error?.message || 'Não foi possível excluir a conta.');
+        }
       }
-      setAuthActionStatus('success');
-      setAuthActionMessage('Conta excluída com sucesso.');
-    } catch (error) {
-      setAuthActionStatus('error');
-      setAuthActionMessage(error?.message || 'Não foi possível excluir a conta.');
-    }
+    });
   };
 
   const refreshPublicProfile = async (userId) => {
@@ -2396,14 +2479,19 @@ function DashboardApp({
       setClinicActionMessage('Selecione uma clínica existente para excluir.');
       return;
     }
-    const canDelete = window.confirm('Excluir esta clínica da lista local?');
-    if (!canDelete) return;
-
-    setClinics((prev) => prev.filter((clinic) => clinic.id !== selectedClinicId));
-    setSelectedClinicId('');
-    setClinicDraft(toClinicDraft(null));
-    setClinicActionStatus('success');
-    setClinicActionMessage('Clínica removida da lista local. Salve se desejar persistir alterações.');
+    openConfirmationDialog({
+      title: 'Excluir clínica',
+      message: 'Excluir esta clínica da lista local?',
+      confirmLabel: 'Excluir',
+      tone: 'danger',
+      onConfirm: () => {
+        setClinics((prev) => prev.filter((clinic) => clinic.id !== selectedClinicId));
+        setSelectedClinicId('');
+        setClinicDraft(toClinicDraft(null));
+        setClinicActionStatus('success');
+        setClinicActionMessage('Clínica removida da lista local. Salve se desejar persistir alterações.');
+      }
+    });
   };
 
   const filteredPatients = filterBySearchTerm(patients, patientsQuery);
@@ -4304,6 +4392,25 @@ function DashboardApp({
         onSaveEdit={handleSavePatientEdit}
         footerNav={embeddedWindowNav}
       />
+
+      {confirmationDialog.isOpen ? (
+        <div className="confirm-overlay" onClick={closeConfirmationDialog}>
+          <div className="confirm-dialog" onClick={(event) => event.stopPropagation()}>
+            <h3 className="confirm-dialog__title">{confirmationDialog.title}</h3>
+            <p className="confirm-dialog__message">{confirmationDialog.message}</p>
+            <div className="confirm-dialog__actions">
+              <button type="button" className="confirm-dialog__btn confirm-dialog__btn--neutral" onClick={closeConfirmationDialog}>Cancelar</button>
+              <button
+                type="button"
+                className={`confirm-dialog__btn ${confirmationDialog.tone === 'success' ? 'confirm-dialog__btn--success' : 'confirm-dialog__btn--danger'}`}
+                onClick={runConfirmationDialog}
+              >
+                {confirmationDialog.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <MobileMd3Nav
         visible={!isWideNavigation && !isFloatingWindowOpen}
