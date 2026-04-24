@@ -2461,13 +2461,13 @@ select {
 
 .financial-panel-card,
 .financial-section-card {
-  min-height: 332px;
+  min-height: 286px;
   padding-top: 0.85rem;
   padding-bottom: 0.85rem;
 }
 
 .data-table__footer {
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;

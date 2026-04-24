@@ -440,8 +440,8 @@ const getResponsiveTableRowsPerPage = ({ compact = false } = {}) => {
   if (typeof window === 'undefined') return 5;
   const width = window.innerWidth;
   if (compact) {
-    if (width >= 768) return 5;
-    return 4;
+    if (width >= 768) return 4;
+    return 3;
   }
   if (width >= 1536) return 8;
   if (width >= 1280) return 7;
@@ -582,7 +582,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
           ) : <span />}
           {paginated && totalPages > 1 ? (
             <div className="data-table__pagination">
-              <p className="data-table__pagination-label">{currentPage}/{totalPages}</p>
+              <p className="data-table__pagination-label">Pág. {currentPage} de {totalPages}</p>
               <div className="data-table__pagination-actions">
                 <button
                   type="button"
@@ -1855,6 +1855,7 @@ function DashboardApp({
   const handleFinancialDelete = (id) => {
     setFinancialLaunches((current) => current.filter((item) => item.id !== id));
   };
+  const handleFinancialCancel = (id) => handleFinancialDelete(id);
 
   const getFinancialConfirmedStatus = (tipo) => (tipo === 'entrada' ? 'recebido' : 'pago');
   const isFinancialLaunchConfirmed = (launch) => launch.status === getFinancialConfirmedStatus(launch.tipo);
@@ -3713,7 +3714,19 @@ function DashboardApp({
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
                 { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {!isFinancialLaunchConfirmed(row) ? <FinancialWidgetIconButton ariaLabel="Dar baixa no lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
+                      <FinancialWidgetIconButton ariaLabel="Cancelar lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialCancel(row.id)} />
+                    </div>
+                  )
+                }
               ]}
               rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
               footerClassName="text-emerald-700"
@@ -3728,7 +3741,19 @@ function DashboardApp({
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
                 { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {!isFinancialLaunchConfirmed(row) ? <FinancialWidgetIconButton ariaLabel="Dar baixa no lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
+                      <FinancialWidgetIconButton ariaLabel="Cancelar lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialCancel(row.id)} />
+                    </div>
+                  )
+                }
               ]}
               rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
               footerClassName="text-rose-700"
