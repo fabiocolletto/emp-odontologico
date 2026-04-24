@@ -2,6 +2,18 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.31 - 2026-04-24
+
+### Changed
+- Tela **Perfil** recriada para usar exclusivamente elementos replicáveis globais.
+- Novos blocos globais adicionados em `apps/web/src/profile/`:
+  - `profile-field-grid.js` (grade padronizada de campos),
+  - `profile-action-row.js` (linha de ações com botões),
+  - `profile-feedback-message.js` (mensagens de status),
+  - `profile-responsive-panels.js` (painéis mobile/desktop responsivos).
+- `standalone-react.jsx` atualizado para consumir os factories globais de perfil e remover estrutura local duplicada do Perfil.
+- `index.html` atualizado para carregar os módulos globais de perfil antes do runtime principal.
+
 ## v1.1.30 - 2026-04-24
 
 ### Changed

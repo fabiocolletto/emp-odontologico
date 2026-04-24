@@ -530,8 +530,8 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
   );
 };
 
-const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button', ariaLabel }) => (
-  <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick} aria-label={ariaLabel || label}>
+const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button', ariaLabel, disabled = false }) => (
+  <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick} aria-label={ariaLabel || label} disabled={disabled}>
     {icon}
     {label ? <span>{label}</span> : null}
   </button>
@@ -554,6 +554,14 @@ if (!screenBlockFactories.createScreenHeaderBlock || !screenBlockFactories.creat
 const ScreenHeaderBlock = screenBlockFactories.createScreenHeaderBlock({ Toolbar, ActionButton, AppIcon });
 const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
 const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
+const profileBlockFactories = globalThis.OdontoFlowProfileBlocks || {};
+if (!profileBlockFactories.createProfileFieldGrid || !profileBlockFactories.createProfileActionRow || !profileBlockFactories.createProfileFeedbackMessage || !profileBlockFactories.createProfileResponsivePanels) {
+  throw new Error('Módulos globais de perfil não carregados. Verifique os scripts em index.html.');
+}
+const ProfileFieldGrid = profileBlockFactories.createProfileFieldGrid();
+const ProfileActionRow = profileBlockFactories.createProfileActionRow({ ActionButton, AppIcon });
+const ProfileFeedbackMessage = profileBlockFactories.createProfileFeedbackMessage();
+const ProfileResponsivePanels = profileBlockFactories.createProfileResponsivePanels({ AppIcon });
 const AlertCard = ({ text }) => <BaseCard className="border-amber-100 bg-amber-50/40"><p className="text-sm text-amber-700 font-semibold">{text}</p></BaseCard>;
 const InsightCard = ({ text }) => <BaseCard className="border-sky-100 bg-sky-50/40"><p className="text-sm text-sky-700 font-semibold">{text}</p></BaseCard>;
 
@@ -3050,101 +3058,82 @@ function DashboardApp({
       const provider = authUserWidget?.app_metadata?.provider || authUserWidget?.aud || '-';
       const providers = authUserWidget?.app_metadata?.providers?.join(', ') || provider;
       const profilePanels = [
-        { id: 'auth', label: 'Dados da conta', icon: 'id-card' },
-        { id: 'security', label: 'Segurança e sessão', icon: 'settings' },
-        { id: 'public-profile', label: 'Perfil público', icon: 'users' },
-        { id: 'clinics', label: 'Clínicas', icon: 'plan' }
+        {
+          id: 'auth',
+          title: 'Widget Auth (Supabase)',
+          subtitle: 'Dados carregados via supabase.auth.getUser().',
+          mobileLabel: 'Dados da conta',
+          icon: 'id-card'
+        },
+        {
+          id: 'security',
+          title: 'Editar conta (Supabase Auth API)',
+          mobileLabel: 'Segurança e sessão',
+          icon: 'settings'
+        },
+        {
+          id: 'public-profile',
+          title: 'Perfil público (tabela public.odf_users)',
+          mobileLabel: 'Perfil público',
+          icon: 'users'
+        },
+        {
+          id: 'clinics',
+          title: 'Clínicas do proprietário (tabela public.odf_clinics)',
+          mobileLabel: 'Clínicas',
+          icon: 'plan'
+        }
       ];
 
       const renderAuthSummary = () => (
-        <>
-          <div className="grid md:grid-cols-2 gap-3 text-sm">
-            <div><strong>ID:</strong> <span className="break-all">{authUserWidget?.id || '-'}</span></div>
-            <div><strong>E-mail:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
-            <div><strong>Provedor:</strong> {providers}</div>
-            <div><strong>Email confirmado:</strong> {formatDateTime(authUserWidget?.email_confirmed_at)}</div>
-            <div><strong>Criado em:</strong> {formatDateTime(authUserWidget?.created_at)}</div>
-            <div><strong>Último login:</strong> {formatDateTime(authUserWidget?.last_sign_in_at)}</div>
-          </div>
-        </>
+        <ProfileFieldGrid
+          items={[
+            { key: 'id', label: 'ID', value: authUserWidget?.id || '-', breakAll: true },
+            { key: 'email', label: 'E-mail', value: authUserWidget?.email || authEmail || '-', breakAll: true },
+            { key: 'provider', label: 'Provedor', value: providers },
+            { key: 'confirmed', label: 'Email confirmado', value: formatDateTime(authUserWidget?.email_confirmed_at) },
+            { key: 'created', label: 'Criado em', value: formatDateTime(authUserWidget?.created_at) },
+            { key: 'last-login', label: 'Último login', value: formatDateTime(authUserWidget?.last_sign_in_at) }
+          ]}
+        />
       );
 
       const renderSecurityActions = () => (
         <>
-          <div className="grid md:grid-cols-2 gap-3 text-sm">
-            <div><strong>E-mail atual:</strong> <span className="break-all">{authUserWidget?.email || authEmail || '-'}</span></div>
-            <div><strong>Senha:</strong> ********</div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
-              onClick={openAccountEditN2}
-              disabled={authActionStatus === 'loading'}
-              aria-label="Editar conta"
-            >
-              <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
-              <span className="modal-action-btn__label">Editar</span>
-            </button>
-            {accountService?.signOut ? (
-              <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first modal-action-btn--uniform"
-                onClick={accountService.signOut}
-                disabled={authActionStatus === 'loading'}
-                aria-label="Desconectar conta"
-              >
-                <AppIcon name="close" size={20} className="modal-action-btn__icon" />
-                <span className="modal-action-btn__label">Sair</span>
-              </button>
-            ) : null}
-            {accountService?.deleteAuthUser ? (
-              <button
-                className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first modal-action-btn--uniform"
-                onClick={handleDeleteAccount}
-                disabled={authActionStatus === 'loading'}
-                aria-label="Excluir conta"
-              >
-                <AppIcon name="archive" size={20} className="modal-action-btn__icon" />
-                <span className="modal-action-btn__label">Excluir</span>
-              </button>
-            ) : null}
-          </div>
-
-          {authActionMessage ? (
-            <p className={`text-xs ${authActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
-              {authActionMessage}
-            </p>
-          ) : null}
+          <ProfileFieldGrid
+            items={[
+              { key: 'current-email', label: 'E-mail atual', value: authUserWidget?.email || authEmail || '-', breakAll: true },
+              { key: 'password', label: 'Senha', value: '********' }
+            ]}
+          />
+          <ProfileActionRow
+            actions={[
+              { key: 'edit-account', label: 'Editar', icon: 'edit', onClick: openAccountEditN2, disabled: authActionStatus === 'loading', ariaLabel: 'Editar conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' },
+              ...(accountService?.signOut ? [{ key: 'sign-out', label: 'Sair', icon: 'close', onClick: accountService.signOut, disabled: authActionStatus === 'loading', ariaLabel: 'Desconectar conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first modal-action-btn--uniform' }] : []),
+              ...(accountService?.deleteAuthUser ? [{ key: 'delete-account', label: 'Excluir', icon: 'archive', onClick: handleDeleteAccount, disabled: authActionStatus === 'loading', ariaLabel: 'Excluir conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first modal-action-btn--uniform' }] : [])
+            ]}
+          />
+          <ProfileFeedbackMessage message={authActionMessage} status={authActionStatus} />
         </>
       );
 
       const renderPublicProfileSummary = () => (
         <>
-          <div className="grid md:grid-cols-2 gap-3 text-sm">
-            <div><strong>Nome:</strong> {publicProfileDraft.full_name || '-'}</div>
-            <div><strong>E-mail:</strong> {publicProfileDraft.email || '-'}</div>
-            <div><strong>Telefone:</strong> {publicProfileDraft.phone || '-'}</div>
-            <div><strong>Endereço:</strong> {publicProfileDraft.address || '-'}</div>
-            <div><strong>Data de nascimento:</strong> {publicProfileDraft.birth_date || '-'}</div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
-              onClick={openPublicProfileEditN2}
-              disabled={profileActionStatus === 'loading'}
-              aria-label="Editar perfil público"
-            >
-              <AppIcon name="edit" size={20} className="modal-action-btn__icon" />
-              <span className="modal-action-btn__label">Editar</span>
-            </button>
-          </div>
-
-          {profileActionMessage ? (
-            <p className={`text-xs ${profileActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
-              {profileActionMessage}
-            </p>
-          ) : null}
+          <ProfileFieldGrid
+            items={[
+              { key: 'full-name', label: 'Nome', value: publicProfileDraft.full_name || '-' },
+              { key: 'email', label: 'E-mail', value: publicProfileDraft.email || '-' },
+              { key: 'phone', label: 'Telefone', value: publicProfileDraft.phone || '-' },
+              { key: 'address', label: 'Endereço', value: publicProfileDraft.address || '-' },
+              { key: 'birth', label: 'Data de nascimento', value: publicProfileDraft.birth_date || '-' }
+            ]}
+          />
+          <ProfileActionRow
+            actions={[
+              { key: 'edit-profile', label: 'Editar', icon: 'edit', onClick: openPublicProfileEditN2, disabled: profileActionStatus === 'loading', ariaLabel: 'Editar perfil público', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' }
+            ]}
+          />
+          <ProfileFeedbackMessage message={profileActionMessage} status={profileActionStatus} />
         </>
       );
 
@@ -3168,87 +3157,35 @@ function DashboardApp({
               ) : null}
             </div>
           )}
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="btn btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform"
-              onClick={handleOpenClinicCreateN2}
-              disabled={clinicActionStatus === 'loading'}
-              aria-label="Adicionar clínica"
-            >
-              <AppIcon name="plus" size={22} className="modal-action-btn__icon" />
-              <span className="modal-action-btn__label">Adicionar</span>
-            </button>
-          </div>
-          {clinicActionMessage ? (
-            <p className={`text-xs ${clinicActionStatus === 'error' ? 'text-rose-600' : 'text-slate-600'}`}>
-              {clinicActionMessage}
-            </p>
-          ) : null}
+          <ProfileActionRow
+            actions={[
+              { key: 'add-clinic', label: 'Adicionar', icon: 'plus', iconSize: 22, onClick: handleOpenClinicCreateN2, disabled: clinicActionStatus === 'loading', ariaLabel: 'Adicionar clínica', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' }
+            ]}
+          />
+          <ProfileFeedbackMessage message={clinicActionMessage} status={clinicActionStatus} />
         </>
       );
 
+      const renderProfilePanelContent = (panelId) => {
+        if (panelId === 'auth') return renderAuthSummary();
+        if (panelId === 'security') return renderSecurityActions();
+        if (panelId === 'public-profile') return renderPublicProfileSummary();
+        if (panelId === 'clinics') return renderClinicsSummary();
+        return null;
+      };
+
       return (
         <div className="space-y-6">
-          {renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
-
-          {isMobileViewport ? (
-            <div className="ui-card data-card data-card--g space-y-2">
-              {profilePanels.map((panel) => {
-                const isOpen = expandedProfilePanel === panel.id;
-                return (
-                  <div key={panel.id} className="border-b border-slate-200 last:border-b-0">
-                    <button
-                      type="button"
-                      className="w-full min-h-[64px] flex items-center gap-3 text-left px-1 py-2"
-                      onClick={() => setExpandedProfilePanel((current) => (current === panel.id ? '' : panel.id))}
-                    >
-                      <span className="inline-flex items-center justify-center text-slate-700">
-                        <AppIcon name={panel.icon} size={18} />
-                      </span>
-                      <span className="flex-1 text-[16px] font-medium text-slate-900">{panel.label}</span>
-                      <AppIcon name={isOpen ? 'chevron-up' : 'chevron-right'} size={16} className="text-slate-400" />
-                    </button>
-
-                    {isOpen ? (
-                      <div className="pb-3 pl-8 pr-1 text-sm text-slate-600 space-y-3">
-                        {panel.id === 'auth' ? renderAuthSummary() : null}
-                        {panel.id === 'security' ? renderSecurityActions() : null}
-                        {panel.id === 'public-profile' ? renderPublicProfileSummary() : null}
-                        {panel.id === 'clinics' ? renderClinicsSummary() : null}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <>
-              <div className="ui-card data-card data-card--g space-y-4">
-                <div className="flex flex-wrap gap-3 items-center justify-between">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-500">Widget Auth (Supabase)</p>
-                    <p className="text-sm text-slate-500">Dados carregados via <code>supabase.auth.getUser()</code>.</p>
-                  </div>
-                </div>
-                {renderAuthSummary()}
-              </div>
-
-              <div className="ui-card data-card data-card--g space-y-4">
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Editar conta (Supabase Auth API)</p>
-                {renderSecurityActions()}
-              </div>
-
-              <div className="ui-card data-card data-card--g space-y-4">
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Perfil público (tabela <code>public.odf_users</code>)</p>
-                {renderPublicProfileSummary()}
-              </div>
-
-              <div className="ui-card data-card data-card--g space-y-4">
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínicas do proprietário (tabela <code>public.odf_clinics</code>)</p>
-                {renderClinicsSummary()}
-              </div>
-            </>
-          )}
+          <ScreenHeaderBlock
+            header={renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
+          />
+          <ProfileResponsivePanels
+            isMobileViewport={isMobileViewport}
+            panels={profilePanels}
+            expandedPanel={expandedProfilePanel}
+            onTogglePanel={(panelId) => setExpandedProfilePanel((current) => (current === panelId ? '' : panelId))}
+            renderPanelContent={renderProfilePanelContent}
+          />
         </div>
       );
     }
