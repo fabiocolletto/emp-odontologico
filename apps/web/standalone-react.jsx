@@ -1703,6 +1703,14 @@ function DashboardApp({
   const [categoryFilter, setCategoryFilter] = useState('');
   const [recurringFilter, setRecurringFilter] = useState('');
   const [forecastFilter, setForecastFilter] = useState('');
+  const [openWidgetFilter, setOpenWidgetFilter] = useState('');
+  const [widgetFilters, setWidgetFilters] = useState({
+    contasFinanceiras: { tipo: 'all' },
+    recorrencias: { periodicidade: 'all', categoria: 'all' },
+    previsoes: { periodo: 'all' },
+    contasReceber: { status: 'all' },
+    contasPagar: { status: 'all' }
+  });
   const [financialDraft, setFinancialDraft] = useState(() => ({
     id: '',
     tipo: 'entrada',
@@ -1871,6 +1879,20 @@ function DashboardApp({
         }
         : item
     )));
+  };
+
+  const toggleWidgetFilter = (key) => {
+    setOpenWidgetFilter((current) => (current === key ? '' : key));
+  };
+
+  const updateWidgetFilter = (key, field, value) => {
+    setWidgetFilters((current) => ({
+      ...current,
+      [key]: {
+        ...current[key],
+        [field]: value
+      }
+    }));
   };
 
   const applyQuickPeriod = (period) => {
@@ -3326,11 +3348,42 @@ function DashboardApp({
     ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+    const contasFinanceirasWidgetRows = financialAccounts.filter((item) => (
+      widgetFilters.contasFinanceiras.tipo === 'all'
+      || item.tipo === widgetFilters.contasFinanceiras.tipo
+    ));
+    const recurringWidgetRows = financialRecurring.filter((item) => {
+      const byPeriodicidade = widgetFilters.recorrencias.periodicidade === 'all' || item.periodicidade === widgetFilters.recorrencias.periodicidade;
+      const byCategoria = widgetFilters.recorrencias.categoria === 'all' || (item.categoria || '-') === widgetFilters.recorrencias.categoria;
+      return byPeriodicidade && byCategoria;
+    });
+    const forecastWidgetRows = financialForecasts.filter((item) => (
+      widgetFilters.previsoes.periodo === 'all' || item.periodo === widgetFilters.previsoes.periodo
+    ));
+    const contasReceberWidgetRows = contasReceber.filter((item) => {
+      if (widgetFilters.contasReceber.status === 'all') return true;
+      if (widgetFilters.contasReceber.status === 'confirmados') return isFinancialLaunchConfirmed(item);
+      if (widgetFilters.contasReceber.status === 'abertos') return !isFinancialLaunchConfirmed(item);
+      return item.status === widgetFilters.contasReceber.status;
+    });
+    const contasPagarWidgetRows = contasPagar.filter((item) => {
+      if (widgetFilters.contasPagar.status === 'all') return true;
+      if (widgetFilters.contasPagar.status === 'confirmados') return isFinancialLaunchConfirmed(item);
+      if (widgetFilters.contasPagar.status === 'abertos') return !isFinancialLaunchConfirmed(item);
+      return item.status === widgetFilters.contasPagar.status;
+    });
     const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
     const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
     const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
     const filteredInCategories = financialCategories.entradas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
     const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
+    const recurringCategories = Array.from(new Set(financialRecurring.map((item) => item.categoria || '-')));
+    const forecastPeriods = Array.from(new Set(financialForecasts.map((item) => item.periodo)));
+    const renderWidgetFilterDropdown = (content) => (
+      <div className="financial-filter-dropdown">
+        {content}
+      </div>
+    );
     const despesasPorCategoriaResumo = Object.entries(
       financialLaunches
         .filter((item) => item.tipo === 'saida')
@@ -3408,15 +3461,28 @@ function DashboardApp({
           left={(
             <FinancialTableSectionCard
               title="Contas financeiras"
-              editAriaLabel="Editar contas financeiras"
-              onEdit={() => setIsAccountsEditMode(true)}
+              addAriaLabel="Adicionar conta financeira"
+              onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
+              onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
+              isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
+              filterAriaLabel="Filtrar contas financeiras"
+              filterDropdown={renderWidgetFilterDropdown(
+                <label className="financial-filter-dropdown__field">
+                  <span>Tipo da conta</span>
+                  <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
+                    <option value="all">Todos</option>
+                    <option value="corrente">Corrente</option>
+                    <option value="poupanca">Poupança</option>
+                  </select>
+                </label>
+              )}
               columns={[
                 { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                 { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
                 { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
                 { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
               ]}
-              rows={financialAccounts.map((item) => ({ key: `account-${item.id}`, ...item }))}
+              rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
             />
           )}
@@ -3469,29 +3535,63 @@ function DashboardApp({
           left={(
             <FinancialTableSectionCard
               title="Despesas recorrentes"
-              editAriaLabel="Editar recorrências"
-              onEdit={() => setIsRecurringEditMode(true)}
+              addAriaLabel="Adicionar despesa recorrente"
+              onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
+              onToggleFilter={() => toggleWidgetFilter('recorrencias')}
+              isFilterOpen={openWidgetFilter === 'recorrencias'}
+              filterAriaLabel="Filtrar recorrências"
+              filterDropdown={renderWidgetFilterDropdown(
+                <>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Periodicidade</span>
+                    <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
+                      <option value="all">Todas</option>
+                      <option value="mensal">Mensal</option>
+                      <option value="semanal">Semanal</option>
+                    </select>
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Categoria</span>
+                    <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
+                      <option value="all">Todas</option>
+                      {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
+                    </select>
+                  </label>
+                </>
+              )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                 { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
                 { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
                 { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
               ]}
-              rows={financialRecurring.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+              rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
             />
           )}
           right={(
             <FinancialTableSectionCard
               title="Previsões de custos"
-              editAriaLabel="Editar previsões"
-              onEdit={() => setIsForecastEditMode(true)}
+              addAriaLabel="Adicionar previsão de custo"
+              onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
+              onToggleFilter={() => toggleWidgetFilter('previsoes')}
+              isFilterOpen={openWidgetFilter === 'previsoes'}
+              filterAriaLabel="Filtrar previsões"
+              filterDropdown={renderWidgetFilterDropdown(
+                <label className="financial-filter-dropdown__field">
+                  <span>Período</span>
+                  <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
+                    <option value="all">Todos</option>
+                    {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
+                  </select>
+                </label>
+              )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                 { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
                 { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
               ]}
-              rows={financialForecasts.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+              rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
             />
           )}
@@ -3709,7 +3809,23 @@ function DashboardApp({
           left={(
             <FinancialTablePanelCard
               title="Contas a receber"
-              onEdit={() => openFinancialCreate('entrada')}
+              onAdd={() => openFinancialCreate('entrada')}
+              addAriaLabel="Adicionar conta a receber"
+              onToggleFilter={() => toggleWidgetFilter('contasReceber')}
+              isFilterOpen={openWidgetFilter === 'contasReceber'}
+              filterAriaLabel="Filtrar contas a receber"
+              filterDropdown={renderWidgetFilterDropdown(
+                <label className="financial-filter-dropdown__field">
+                  <span>Status</span>
+                  <select value={widgetFilters.contasReceber.status} onChange={(event) => updateWidgetFilter('contasReceber', 'status', event.target.value)}>
+                    <option value="all">Todos</option>
+                    <option value="abertos">Abertos</option>
+                    <option value="confirmados">Confirmados</option>
+                    <option value="previsto">Previsto</option>
+                    <option value="vencido">Vencido</option>
+                  </select>
+                </label>
+              )}
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
@@ -3728,15 +3844,31 @@ function DashboardApp({
                   )
                 }
               ]}
-              rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
+              rows={contasReceberWidgetRows.map((item) => ({ key: `receber-${item.id}`, ...item }))}
               footerClassName="text-emerald-700"
-              footerValue={formatMoney(contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+              footerValue={formatMoney(contasReceberWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
           )}
           right={(
             <FinancialTablePanelCard
               title="Contas a pagar"
-              onEdit={() => openFinancialCreate('saida')}
+              onAdd={() => openFinancialCreate('saida')}
+              addAriaLabel="Adicionar conta a pagar"
+              onToggleFilter={() => toggleWidgetFilter('contasPagar')}
+              isFilterOpen={openWidgetFilter === 'contasPagar'}
+              filterAriaLabel="Filtrar contas a pagar"
+              filterDropdown={renderWidgetFilterDropdown(
+                <label className="financial-filter-dropdown__field">
+                  <span>Status</span>
+                  <select value={widgetFilters.contasPagar.status} onChange={(event) => updateWidgetFilter('contasPagar', 'status', event.target.value)}>
+                    <option value="all">Todos</option>
+                    <option value="abertos">Abertos</option>
+                    <option value="confirmados">Confirmados</option>
+                    <option value="previsto">Previsto</option>
+                    <option value="vencido">Vencido</option>
+                  </select>
+                </label>
+              )}
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
@@ -3755,9 +3887,9 @@ function DashboardApp({
                   )
                 }
               ]}
-              rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
+              rows={contasPagarWidgetRows.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
               footerClassName="text-rose-700"
-              footerValue={formatMoney(contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
+              footerValue={formatMoney(contasPagarWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
           )}
         />

@@ -2367,6 +2367,58 @@ select {
   gap: 0.45rem;
 }
 
+.financial-widget-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.financial-widget-actions__filter {
+  position: relative;
+}
+
+.financial-widget-actions__dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 20;
+}
+
+.financial-filter-dropdown {
+  min-width: 210px;
+  border: 1px solid #d7e1ee;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
+  padding: 0.65rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.financial-filter-dropdown__field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.financial-filter-dropdown__field select {
+  border: 1px solid #d1dbe8;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.79rem;
+  padding: 0.35rem 0.45rem;
+}
+
+.financial-row-actions__icon.is-active {
+  border-color: color-mix(in srgb, var(--brand-600) 35%, white);
+  color: var(--brand-700);
+}
+
 .financial-row-actions__icon {
   border: 1px solid color-mix(in srgb, var(--brand-600) 18%, white);
   background: color-mix(in srgb, rgba(255, 255, 255, 0.72) 84%, #eaf2ff);
