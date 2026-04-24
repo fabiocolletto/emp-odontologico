@@ -511,6 +511,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
               aria-label="Página anterior"
             >
               <AppIcon name="chevron-left" size={13} />
+              <span>Anterior</span>
             </button>
             <button
               type="button"
@@ -519,6 +520,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
               disabled={currentPage >= totalPages}
               aria-label="Próxima página"
             >
+              <span>Próxima</span>
               <AppIcon name="chevron-right" size={13} />
             </button>
           </div>
@@ -3262,7 +3264,6 @@ function DashboardApp({
     ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
-    const isCompactFinanceActions = !isWideNavigation;
     const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
     const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
     const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
@@ -3357,7 +3358,7 @@ function DashboardApp({
             title="Contas financeiras"
             actions={(
               <ActionButton
-                label={isCompactFinanceActions ? '' : 'Editar'}
+                label="Editar"
                 ariaLabel="Editar contas financeiras"
                 className="btn--header btn--header-muted btn--icon-compact"
                 icon={<AppIcon name="edit" size={14} />}
@@ -3383,7 +3384,7 @@ function DashboardApp({
             title="Categorias financeiras"
             actions={(
               <ActionButton
-                label={isCompactFinanceActions ? '' : 'Editar'}
+                label="Editar"
                 ariaLabel="Editar categorias"
                 className="btn--header btn--header-muted btn--icon-compact"
                 icon={<AppIcon name="edit" size={14} />}
@@ -3431,7 +3432,7 @@ function DashboardApp({
           <SectionCard
             title="Despesas recorrentes"
             actions={(
-              <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode(true)} />
+              <ActionButton label="Editar" ariaLabel="Editar recorrências" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsRecurringEditMode(true)} />
             )}
           >
             <DataTable
@@ -3451,7 +3452,7 @@ function DashboardApp({
           <SectionCard
             title="Previsões de custos"
             actions={(
-              <ActionButton label={isCompactFinanceActions ? '' : 'Editar'} ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode(true)} />
+              <ActionButton label="Editar" ariaLabel="Editar previsões" className="btn--header btn--header-muted btn--icon-compact" icon={<AppIcon name="edit" size={14} />} onClick={() => setIsForecastEditMode(true)} />
             )}
           >
             <DataTable
