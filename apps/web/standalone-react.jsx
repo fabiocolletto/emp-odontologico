@@ -594,10 +594,14 @@ const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = n
   </button>
 );
 
-const FinancialTableAddIconButton = ({ ariaLabel, onClick }) => (
-  <button type="button" className="financial-row-actions__icon text-sky-600" aria-label={ariaLabel} onClick={onClick}>
-    <AppIcon name="plus" size={16} />
+const FinancialWidgetIconButton = ({ ariaLabel, onClick, icon = 'edit', tone = 'text-sky-600' }) => (
+  <button type="button" className={`financial-row-actions__icon ${tone}`.trim()} aria-label={ariaLabel} onClick={onClick}>
+    <AppIcon name={icon} size={16} />
   </button>
+);
+
+const FinancialTableAddIconButton = ({ ariaLabel, onClick }) => (
+  <FinancialWidgetIconButton ariaLabel={ariaLabel} onClick={onClick} icon="plus" />
 );
 
 const financialComponentFactories = globalThis.OdontoFlowFinancialComponents || {};
@@ -3377,13 +3381,7 @@ function DashboardApp({
             <SectionCard
             title="Categorias financeiras"
             actions={(
-              <ActionButton
-                label="Editar"
-                ariaLabel="Editar categorias"
-                className="btn--header btn--header-muted btn--icon-compact"
-                icon={<AppIcon name="edit" size={14} />}
-                onClick={() => setIsCategoriesEditMode(true)}
-              />
+              <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
             )}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -3487,7 +3485,17 @@ function DashboardApp({
                         { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
                         { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
                         { key: 'saldo', label: 'Saldo inicial', sortValue: (row) => Number(row.saldo_inicial || 0), render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
-                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <ActionGroup><ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} /><ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} /></ActionGroup> }
+                        {
+                          key: 'acoes',
+                          label: 'Ações',
+                          sortable: false,
+                          render: (row) => (
+                            <div className="financial-row-actions">
+                              <FinancialWidgetIconButton ariaLabel="Editar conta financeira" onClick={() => editFinancialAccount(row.id)} />
+                              <FinancialWidgetIconButton ariaLabel="Excluir conta financeira" icon="close" tone="text-rose-600" onClick={() => deleteFinancialAccount(row.id)} />
+                            </div>
+                          )
+                        }
                       ]}
                       rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
                       paginated
@@ -3576,7 +3584,7 @@ function DashboardApp({
                         { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
                         { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
                         { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
+                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} /> }
                       ]}
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
                       paginated
@@ -3621,7 +3629,7 @@ function DashboardApp({
                         { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                         { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
                         { key: 'valor', label: 'Valor previsto', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
+                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} /> }
                       ]}
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
                       paginated
@@ -3690,12 +3698,8 @@ function DashboardApp({
                 sortable: false,
                 render: (row) => (
                   <div className="financial-row-actions">
-                    <button type="button" className="financial-row-actions__icon text-sky-600" aria-label="Editar lançamento" onClick={() => openFinancialEdit(row)}>
-                      <AppIcon name="edit" size={16} />
-                    </button>
-                    <button type="button" className="financial-row-actions__icon text-rose-600" aria-label="Excluir lançamento" onClick={() => handleFinancialDelete(row.id)}>
-                      <AppIcon name="close" size={16} />
-                    </button>
+                    <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
+                    <FinancialWidgetIconButton ariaLabel="Excluir lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialDelete(row.id)} />
                   </div>
                 )
               }
