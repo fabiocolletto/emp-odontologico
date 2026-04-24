@@ -948,13 +948,13 @@ const FINANCIAL_DEFAULT_CATEGORIES = {
 };
 
 const FINANCIAL_DEFAULT_RECURRING = [
-  { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', categoria: 'Aluguel' },
-  { id: 2, descricao: 'Folha de pagamento', valor: 13190, periodicidade: 'mensal', categoria: 'Pessoal' }
+  { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', categoria: 'Aluguel', status: 'pendente', ultima_quitacao: '' },
+  { id: 2, descricao: 'Folha de pagamento', valor: 13190, periodicidade: 'mensal', categoria: 'Pessoal', status: 'pendente', ultima_quitacao: '' }
 ];
 
 const FINANCIAL_DEFAULT_FORECASTS = [
-  { id: 1, descricao: 'Previsão de insumos', valor: 4200, periodo: 'Próximos 30 dias' },
-  { id: 2, descricao: 'Previsão de laboratório', valor: 3600, periodo: 'Próximos 30 dias' }
+  { id: 1, descricao: 'Previsão de insumos', valor: 4200, periodo: 'Próximos 30 dias', comprometido: false },
+  { id: 2, descricao: 'Previsão de laboratório', valor: 3600, periodo: 'Próximos 30 dias', comprometido: false }
 ];
 
 const summarizeFinancialData = (items = []) => {
@@ -1634,7 +1634,9 @@ const readStoredFinancialRecurring = () => {
     const raw = localStorage.getItem(FINANCIAL_RECURRING_STORAGE_KEY);
     if (!raw) return FINANCIAL_DEFAULT_RECURRING;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_RECURRING;
+    return Array.isArray(parsed) && parsed.length
+      ? parsed.map((item) => ({ ...item, status: item.status || 'pendente', ultima_quitacao: item.ultima_quitacao || '' }))
+      : FINANCIAL_DEFAULT_RECURRING;
   } catch {
     return FINANCIAL_DEFAULT_RECURRING;
   }
@@ -1645,7 +1647,9 @@ const readStoredFinancialForecasts = () => {
     const raw = localStorage.getItem(FINANCIAL_FORECAST_STORAGE_KEY);
     if (!raw) return FINANCIAL_DEFAULT_FORECASTS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : FINANCIAL_DEFAULT_FORECASTS;
+    return Array.isArray(parsed) && parsed.length
+      ? parsed.map((item) => ({ ...item, comprometido: Boolean(item.comprometido) }))
+      : FINANCIAL_DEFAULT_FORECASTS;
   } catch {
     return FINANCIAL_DEFAULT_FORECASTS;
   }
@@ -1689,8 +1693,8 @@ function DashboardApp({
   const [periodDraft, setPeriodDraft] = useState({ from: '2026-04-01', to: '2026-04-30' });
   const [newCategoryDraft, setNewCategoryDraft] = useState({ tipo: 'entradas', nome: '' });
   const [newAccountDraft, setNewAccountDraft] = useState({ nome: '', banco: '', tipo: 'corrente', saldo_inicial: '' });
-  const [newRecurringDraft, setNewRecurringDraft] = useState({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
-  const [newForecastDraft, setNewForecastDraft] = useState({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+  const [newRecurringDraft, setNewRecurringDraft] = useState({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '', status: 'pendente', ultima_quitacao: '' });
+  const [newForecastDraft, setNewForecastDraft] = useState({ descricao: '', valor: '', periodo: 'Próximos 30 dias', comprometido: false });
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
@@ -1706,8 +1710,8 @@ function DashboardApp({
   const [openWidgetFilter, setOpenWidgetFilter] = useState('');
   const [widgetFilters, setWidgetFilters] = useState({
     contasFinanceiras: { tipo: 'all' },
-    recorrencias: { periodicidade: 'all', categoria: 'all' },
-    previsoes: { periodo: 'all' },
+    recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
+    previsoes: { periodo: 'all', comprometido: 'all' },
     contasReceber: { status: 'all' },
     contasPagar: { status: 'all' }
   });
@@ -1962,6 +1966,29 @@ function DashboardApp({
     });
   };
 
+  const editRecurring = (id) => {
+    const target = financialRecurring.find((item) => item.id === id);
+    if (!target) return;
+    const descricao = window.prompt('Descrição da recorrência', target.descricao);
+    if (!descricao) return;
+    setFinancialRecurring((items) => items.map((item) => (item.id === id ? { ...item, descricao } : item)));
+  };
+
+  const confirmRecurringPayment = (id) => {
+    openConfirmationDialog({
+      title: 'Confirmar pagamento da parcela',
+      message: 'Deseja confirmar o pagamento desta despesa recorrente?',
+      confirmLabel: 'Confirmar pagamento',
+      tone: 'success',
+      onConfirm: () => {
+        const today = new Date().toISOString().slice(0, 10);
+        setFinancialRecurring((items) => items.map((item) => (
+          item.id === id ? { ...item, status: 'pago', ultima_quitacao: today } : item
+        )));
+      }
+    });
+  };
+
   const deleteForecast = (id) => {
     openConfirmationDialog({
       title: 'Excluir previsão',
@@ -1969,6 +1996,26 @@ function DashboardApp({
       confirmLabel: 'Excluir',
       tone: 'danger',
       onConfirm: () => setFinancialForecasts((items) => items.filter((item) => item.id !== id))
+    });
+  };
+
+  const editForecast = (id) => {
+    const target = financialForecasts.find((item) => item.id === id);
+    if (!target) return;
+    const descricao = window.prompt('Descrição da previsão', target.descricao);
+    if (!descricao) return;
+    setFinancialForecasts((items) => items.map((item) => (item.id === id ? { ...item, descricao } : item)));
+  };
+
+  const toggleForecastCommitted = (id) => {
+    openConfirmationDialog({
+      title: 'Atualizar comprometimento',
+      message: 'Deseja marcar esta previsão como comprometida no período?',
+      confirmLabel: 'Confirmar',
+      tone: 'success',
+      onConfirm: () => setFinancialForecasts((items) => items.map((item) => (
+        item.id === id ? { ...item, comprometido: true } : item
+      )))
     });
   };
   const getFinancialConfirmedStatus = (tipo) => (tipo === 'entrada' ? 'recebido' : 'pago');
@@ -2052,7 +2099,7 @@ function DashboardApp({
       ...current,
       { id: Date.now(), ...newRecurringDraft, valor: Number(newRecurringDraft.valor || 0) }
     ]);
-    setNewRecurringDraft({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '' });
+    setNewRecurringDraft({ descricao: '', valor: '', periodicidade: 'mensal', categoria: '', status: 'pendente', ultima_quitacao: '' });
     setIsRecurringModalOpen(false);
   };
 
@@ -2063,7 +2110,7 @@ function DashboardApp({
       ...current,
       { id: Date.now(), ...newForecastDraft, valor: Number(newForecastDraft.valor || 0) }
     ]);
-    setNewForecastDraft({ descricao: '', valor: '', periodo: 'Próximos 30 dias' });
+    setNewForecastDraft({ descricao: '', valor: '', periodo: 'Próximos 30 dias', comprometido: false });
     setIsForecastModalOpen(false);
   };
 
@@ -3443,10 +3490,13 @@ function DashboardApp({
     const recurringWidgetRows = financialRecurring.filter((item) => {
       const byPeriodicidade = widgetFilters.recorrencias.periodicidade === 'all' || item.periodicidade === widgetFilters.recorrencias.periodicidade;
       const byCategoria = widgetFilters.recorrencias.categoria === 'all' || (item.categoria || '-') === widgetFilters.recorrencias.categoria;
-      return byPeriodicidade && byCategoria;
+      const byStatus = widgetFilters.recorrencias.status === 'all' || (item.status || 'pendente') === widgetFilters.recorrencias.status;
+      return byPeriodicidade && byCategoria && byStatus;
     });
     const forecastWidgetRows = financialForecasts.filter((item) => (
-      widgetFilters.previsoes.periodo === 'all' || item.periodo === widgetFilters.previsoes.periodo
+      (widgetFilters.previsoes.periodo === 'all' || item.periodo === widgetFilters.previsoes.periodo)
+      && (widgetFilters.previsoes.comprometido === 'all'
+        || (widgetFilters.previsoes.comprometido === 'sim' ? Boolean(item.comprometido) : !Boolean(item.comprometido)))
     ));
     const contasReceberWidgetRows = contasReceber.filter((item) => {
       if (widgetFilters.contasReceber.status === 'all') return true;
@@ -3645,13 +3695,34 @@ function DashboardApp({
                       {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                     </select>
                   </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Status</span>
+                    <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
+                      <option value="all">Todos</option>
+                      <option value="pendente">Pendente</option>
+                      <option value="pago">Pago</option>
+                    </select>
+                  </label>
                 </>
               )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                 { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
                 { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
+                      <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
+                    </div>
+                  )
+                }
               ]}
               rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
@@ -3673,11 +3744,32 @@ function DashboardApp({
                     {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
                   </select>
                 </label>
+                <label className="financial-filter-dropdown__field">
+                  <span>Comprometido</span>
+                  <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
+                    <option value="all">Todos</option>
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </label>
               )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                 { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> }
+                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'comprometido', label: 'Comprometido no período', render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                {
+                  key: 'acoes',
+                  label: 'Ações',
+                  sortable: false,
+                  render: (row) => (
+                    <div className="financial-row-actions">
+                      {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
+                      <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
+                      <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                    </div>
+                  )
+                }
               ]}
               rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
@@ -3821,7 +3913,19 @@ function DashboardApp({
                         { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
                         { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
                         { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} /> }
+                        { key: 'status', label: 'Status', sortValue: (row) => row.status || 'pendente', render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                        {
+                          key: 'acoes',
+                          label: 'Ações',
+                          sortable: false,
+                          render: (row) => (
+                            <div className="financial-row-actions">
+                              {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
+                              <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
+                              <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
+                            </div>
+                          )
+                        }
                       ]}
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
                       paginated
@@ -3871,7 +3975,19 @@ function DashboardApp({
                         { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                         { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
                         { key: 'valor', label: 'Valor previsto', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} /> }
+                        { key: 'comprometido', label: 'Comprometido no período', sortValue: (row) => (row.comprometido ? 1 : 0), render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                        {
+                          key: 'acoes',
+                          label: 'Ações',
+                          sortable: false,
+                          render: (row) => (
+                            <div className="financial-row-actions">
+                              {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
+                              <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
+                              <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                            </div>
+                          )
+                        }
                       ]}
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
                       paginated
