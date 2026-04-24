@@ -18,6 +18,22 @@
     }
   ) => {
     const [isFocusOpen, setIsFocusOpen] = useState(false);
+    const totalColumn = columns.find((column) => /valor|saldo/i.test(column.key || ''));
+    const hasNumericValues = totalColumn
+      ? rows.some((row) => {
+        const raw = row[totalColumn.key];
+        return raw !== '' && raw !== null && raw !== undefined && !Number.isNaN(Number(raw));
+      })
+      : false;
+    const numericTotal = totalColumn
+      ? rows.reduce((acc, row) => acc + Number(row[totalColumn.key] || 0), 0)
+      : 0;
+    const focusFooterTotals = [
+      { label: 'Registros', value: rows.length },
+      ...(hasNumericValues
+        ? [{ label: 'Total', value: numericTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }]
+        : [])
+    ];
 
     return (
       <>
@@ -64,19 +80,27 @@
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <SectionCard
                 className="financial-modal-card financial-focus-card"
-                title={`${title} · visão focada`}
+                title={title}
                 actions={(
-                  <FinancialEditAction
-                    ariaLabel="Fechar visão focada"
-                    onClick={() => setIsFocusOpen(false)}
-                    icon="close"
-                  />
+                  <div className="financial-widget-actions">
+                    <FinancialEditAction
+                      ariaLabel={addAriaLabel}
+                      onClick={onAdd}
+                      icon="plus"
+                    />
+                    <FinancialEditAction
+                      ariaLabel="Fechar visão focada"
+                      onClick={() => setIsFocusOpen(false)}
+                      icon="close"
+                    />
+                  </div>
                 )}
               >
                 <DataTable
                   columns={columns}
                   rows={rows}
                   emptyMessage={emptyMessage}
+                  footerTotals={focusFooterTotals}
                 />
               </SectionCard>
             </div>

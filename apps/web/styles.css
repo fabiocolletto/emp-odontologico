@@ -2562,6 +2562,21 @@ select {
   width: 100%;
 }
 
+.financial-focus-card .panel-card__header,
+.financial-focus-card > .flex {
+  border-bottom: 1px solid #dbe5f2;
+  padding-bottom: 0.55rem;
+  margin-bottom: 0.7rem;
+}
+
+.financial-focus-card .data-table__head-cell {
+  border-bottom: 1px solid #dbe5f2;
+}
+
+.financial-focus-card .data-table__row {
+  border-top: 1px solid #e2e8f0;
+}
+
 .financial-row-actions__icon.is-active {
   border-color: color-mix(in srgb, var(--brand-600) 35%, white);
   color: var(--brand-700);

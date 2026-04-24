@@ -18,6 +18,17 @@
     }
   ) => {
     const [isFocusOpen, setIsFocusOpen] = useState(false);
+    const totalColumn = columns.find((column) => /valor|saldo/i.test(column.key || ''));
+    const hasNumericValues = totalColumn
+      ? rows.some((row) => {
+        const raw = row[totalColumn.key];
+        return raw !== '' && raw !== null && raw !== undefined && !Number.isNaN(Number(raw));
+      })
+      : false;
+    const numericTotal = totalColumn
+      ? rows.reduce((acc, row) => acc + Number(row[totalColumn.key] || 0), 0)
+      : 0;
+    const resolvedFooterValue = footerValue || (hasNumericValues ? numericTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '');
 
     return (
       <>
@@ -66,13 +77,20 @@
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <PanelCard
                 className="financial-modal-card financial-focus-card"
-                title={`${title} · visão focada`}
+                title={title}
                 extra={(
-                  <FinancialEditAction
-                    ariaLabel="Fechar visão focada"
-                    onClick={() => setIsFocusOpen(false)}
-                    icon="close"
-                  />
+                  <div className="financial-widget-actions">
+                    <FinancialEditAction
+                      ariaLabel={addAriaLabel || `Adicionar em ${title.toLowerCase()}`}
+                      onClick={onAdd}
+                      icon="plus"
+                    />
+                    <FinancialEditAction
+                      ariaLabel="Fechar visão focada"
+                      onClick={() => setIsFocusOpen(false)}
+                      icon="close"
+                    />
+                  </div>
                 )}
               >
                 <DataTable
@@ -80,7 +98,7 @@
                   rows={rows}
                   footerTotals={[
                     { label: 'Registros', value: rows.length },
-                    ...(footerValue ? [{ label: 'Total', value: footerValue, toneClassName: footerClassName }] : [])
+                    ...(resolvedFooterValue ? [{ label: 'Total', value: resolvedFooterValue, toneClassName: footerClassName }] : [])
                   ]}
                 />
               </PanelCard>
