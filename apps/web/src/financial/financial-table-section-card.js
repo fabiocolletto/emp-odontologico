@@ -13,6 +13,7 @@
     }
   ) => (
     <SectionCard
+      className="financial-section-card"
       title={title}
       actions={(
         <FinancialEditAction
@@ -27,6 +28,7 @@
         emptyMessage={emptyMessage}
         paginated
         compact
+        keepEmptyRows
       />
       {footer}
     </SectionCard>

@@ -415,8 +415,8 @@ const PanelCard = ({ title, extra = null, children, className = '', titleClassNa
   </BaseCard>
 );
 
-const SectionCard = ({ title, actions = null, children }) => (
-  <BaseCard>
+const SectionCard = ({ title, actions = null, children, className = '' }) => (
+  <BaseCard className={className}>
     <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
       <h3 className="text-base font-black text-slate-900">{title}</h3>
       {actions}
@@ -436,9 +436,13 @@ const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
   <div className="py-6 text-center text-sm text-slate-500">{message}</div>
 );
 
-const getResponsiveTableRowsPerPage = () => {
+const getResponsiveTableRowsPerPage = ({ compact = false } = {}) => {
   if (typeof window === 'undefined') return 5;
   const width = window.innerWidth;
+  if (compact) {
+    if (width >= 768) return 5;
+    return 4;
+  }
   if (width >= 1536) return 8;
   if (width >= 1280) return 7;
   if (width >= 1024) return 6;
@@ -460,22 +464,22 @@ const normalizeSortValue = (value) => {
   return stringValue.toLocaleLowerCase('pt-BR');
 };
 
-const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false }) => {
+const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false, keepEmptyRows = false }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage() : Math.max(rows.length, 1)));
+  const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage({ compact }) : Math.max(rows.length, 1)));
 
   useEffect(() => {
     if (!paginated) return undefined;
 
     const syncRowsPerPage = () => {
-      setRowsPerPage(getResponsiveTableRowsPerPage());
+      setRowsPerPage(getResponsiveTableRowsPerPage({ compact }));
     };
 
     syncRowsPerPage();
     window.addEventListener('resize', syncRowsPerPage);
     return () => window.removeEventListener('resize', syncRowsPerPage);
-  }, [paginated]);
+  }, [compact, paginated]);
 
   const sortedRows = useMemo(() => {
     if (!sortConfig.key) return rows;
@@ -514,6 +518,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
   const visibleRows = paginated
     ? sortedRows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
     : sortedRows;
+  const placeholderRowsCount = keepEmptyRows && paginated ? Math.max(rowsPerPage - visibleRows.length, 0) : 0;
 
   return (
     <div className="data-table-shell">
@@ -550,6 +555,13 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
               <tr key={row.key} className="data-table__row">
                 {columns.map((column) => (
                   <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
+                ))}
+              </tr>
+            ))}
+            {Array.from({ length: placeholderRowsCount }).map((_, index) => (
+              <tr key={`placeholder-${index}`} className="data-table__row data-table__row--placeholder" aria-hidden="true">
+                {columns.map((column) => (
+                  <td key={`placeholder-${index}-${column.key}`} className="data-table__cell py-2 pr-3">&nbsp;</td>
                 ))}
               </tr>
             ))}
@@ -3395,6 +3407,7 @@ function DashboardApp({
           )}
           right={(
             <SectionCard
+            className="financial-section-card"
             title="Categorias financeiras"
             actions={(
               <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
@@ -3516,6 +3529,7 @@ function DashboardApp({
                       rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
                       paginated
                       compact
+                      keepEmptyRows
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }} />
@@ -3605,6 +3619,7 @@ function DashboardApp({
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
                       paginated
                       compact
+                      keepEmptyRows
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsRecurringModalOpen(false); setIsRecurringEditMode(false); }} />
@@ -3650,6 +3665,7 @@ function DashboardApp({
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
                       paginated
                       compact
+                      keepEmptyRows
                     />
                     <div className="mt-3 flex justify-end gap-2">
                       <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => { setIsForecastModalOpen(false); setIsForecastEditMode(false); }} />
@@ -3696,6 +3712,7 @@ function DashboardApp({
         />
 
         <SectionCard
+          className="financial-section-card"
           title="Lançamentos"
           actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
         >
@@ -3727,6 +3744,7 @@ function DashboardApp({
             emptyMessage="Nenhum lançamento financeiro cadastrado."
             paginated
             compact
+            keepEmptyRows
           />
         </SectionCard>
 
