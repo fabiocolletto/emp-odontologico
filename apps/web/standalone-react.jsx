@@ -395,8 +395,8 @@ const SparkMiniChart = ({ points = [], tone = '#2563eb', variant = 'line' }) => 
   );
 };
 
-const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb', sparkVariant = 'line' }) => (
-  <BaseCard className="stat-card-flat">
+const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb', sparkVariant = 'line', className = '' }) => (
+  <BaseCard className={`stat-card-flat ${className}`.trim()}>
     <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
     <div className="stat-card-flat__main">
       <p className="text-[1.95rem] font-semibold tracking-tight text-slate-900 mt-1 whitespace-nowrap">{value}</p>
@@ -469,6 +469,24 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage({ compact }) : Math.max(rows.length, 1)));
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1280));
+
+  useEffect(() => {
+    const syncViewportWidth = () => setViewportWidth(window.innerWidth);
+    syncViewportWidth();
+    window.addEventListener('resize', syncViewportWidth);
+    return () => window.removeEventListener('resize', syncViewportWidth);
+  }, []);
+
+  const visibleColumns = useMemo(() => columns.filter((column) => (
+    typeof column.hideBelow !== 'number' || viewportWidth >= column.hideBelow
+  )), [columns, viewportWidth]);
+
+  useEffect(() => {
+    if (!sortConfig.key) return;
+    if (visibleColumns.some((column) => column.key === sortConfig.key)) return;
+    setSortConfig({ key: null, direction: 'asc' });
+  }, [sortConfig.key, visibleColumns]);
 
   useEffect(() => {
     if (!paginated) return undefined;
@@ -484,7 +502,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
 
   const sortedRows = useMemo(() => {
     if (!sortConfig.key) return rows;
-    const activeColumn = columns.find((column) => column.key === sortConfig.key);
+    const activeColumn = visibleColumns.find((column) => column.key === sortConfig.key);
     if (!activeColumn || activeColumn.sortable === false) return rows;
 
     return [...rows].sort((leftRow, rightRow) => {
@@ -498,7 +516,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
       const result = String(leftValue).localeCompare(String(rightValue), 'pt-BR', { numeric: true, sensitivity: 'base' });
       return sortConfig.direction === 'asc' ? result : -result;
     });
-  }, [columns, rows, sortConfig.direction, sortConfig.key]);
+  }, [rows, sortConfig.direction, sortConfig.key, visibleColumns]);
 
   const totalPages = paginated ? Math.max(1, Math.ceil(sortedRows.length / rowsPerPage)) : 1;
 
@@ -523,11 +541,11 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
 
   return (
     <div className="data-table-shell">
-      <div className="overflow-x-auto">
+      <div className="data-table__scroller">
         <table className={`data-table min-w-full text-sm ${compact ? 'data-table--compact' : ''}`.trim()}>
           <thead>
             <tr className="text-slate-400">
-              {columns.map((column) => (
+              {visibleColumns.map((column) => (
                 <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">
                   <button
                     type="button"
@@ -550,18 +568,18 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
           <tbody>
             {visibleRows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
+                <td colSpan={visibleColumns.length}><EmptyState message={emptyMessage} /></td>
               </tr>
             ) : visibleRows.map((row) => (
               <tr key={row.key} className="data-table__row">
-                {columns.map((column) => (
+                {visibleColumns.map((column) => (
                   <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
                 ))}
               </tr>
             ))}
             {Array.from({ length: placeholderRowsCount }).map((_, index) => (
               <tr key={`placeholder-${index}`} className="data-table__row data-table__row--placeholder" aria-hidden="true">
-                {columns.map((column) => (
+                {visibleColumns.map((column) => (
                   <td key={`placeholder-${index}-${column.key}`} className="data-table__cell py-2 pr-3">&nbsp;</td>
                 ))}
               </tr>
@@ -3548,10 +3566,10 @@ function DashboardApp({
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 financial-layout--flat">
         <ScreenHeaderBlock
-          header={renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
-          showToolbar={!isMobileViewport}
+          header={!isMobileViewport ? renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null }) : null}
+          showToolbar
           toolbarActions={[
             { key: 'period', label: 'Período', icon: 'calendar', onClick: () => setIsPeriodPickerOpen(true) },
             { key: 'export', label: 'Exportar relatório', icon: 'download', onClick: () => setIsExportModalOpen(true) }
@@ -3598,8 +3616,21 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <KpiGridRow columns="4" kpis={kpis.slice(0, 4)} />
-        <KpiGridRow columns="2" kpis={kpis.slice(4)} />
+        <section className="financial-kpi-row" aria-label="KPIs financeiros">
+          {kpis.map((kpi) => (
+            <StatCard
+              key={kpi.label}
+              className="financial-kpi-row__card"
+              label={kpi.label}
+              value={kpi.value}
+              trend={`${kpi.trend} vs mês anterior`}
+              trendTone={kpi.tone}
+              sparkPoints={kpi.sparkPoints}
+              sparkColor={kpi.sparkColor}
+              sparkVariant={kpi.sparkVariant}
+            />
+          ))}
+        </section>
 
         <DualContentRow
           left={(
@@ -3622,9 +3653,9 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
-                { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
-                { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
+                { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                { key: 'tipo', label: 'Tipo', hideBelow: 740, render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                { key: 'saldo', label: 'Saldo inicial', hideBelow: 620, render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
               ]}
               rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
@@ -3713,10 +3744,10 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
-                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                { key: 'categoria', label: 'Categoria', hideBelow: 840, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                { key: 'valor', label: 'Valor', hideBelow: 700, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -3763,9 +3794,9 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'comprometido', label: 'Comprometido no período', render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                { key: 'valor', label: 'Valor previsto', hideBelow: 740, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'comprometido', label: 'Comprometido no período', hideBelow: 620, render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -4040,9 +4071,9 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                { key: 'vencimento', label: 'Vencimento', hideBelow: 920, sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', hideBelow: 720, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -4083,9 +4114,9 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                { key: 'vencimento', label: 'Vencimento', hideBelow: 920, sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', hideBelow: 720, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -4115,11 +4146,11 @@ function DashboardApp({
             columns={[
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria}</span> },
-              { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-              { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-              { key: 'pagamento', label: 'Pagamento', sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
+              { key: 'categoria', label: 'Categoria', hideBelow: 1120, render: (row) => <span className="text-slate-600">{row.categoria}</span> },
+              { key: 'valor', label: 'Valor', hideBelow: 980, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'status', label: 'Status', hideBelow: 840, render: (row) => <StatusBadge status={row.status} /> },
+              { key: 'vencimento', label: 'Vencimento', hideBelow: 720, sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'pagamento', label: 'Pagamento', hideBelow: 620, sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
               {
                 key: 'acoes_rapidas',
                 label: 'Ações rápidas',
