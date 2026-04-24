@@ -1,4 +1,4 @@
-const { useEffect, useRef, useState } = React;
+const { useEffect, useMemo, useRef, useState } = React;
 const STORAGE_KEY = 'odontoflow-ui-state-v1';
 const NOTES_DRAFT_KEY = 'odontoflow-notes-draft-v1';
 const FIRST_PATIENT_HINT_KEY = 'odontoflow-first-patient-hint-seen-v1';
@@ -446,8 +446,23 @@ const getResponsiveTableRowsPerPage = () => {
   return 4;
 };
 
+const normalizeSortValue = (value) => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'number') return value;
+  if (value instanceof Date) return value.getTime();
+  const stringValue = String(value).trim();
+  if (!stringValue) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(stringValue)) {
+    const date = new Date(`${stringValue}T00:00:00`);
+    const time = date.getTime();
+    if (!Number.isNaN(time)) return time;
+  }
+  return stringValue.toLocaleLowerCase('pt-BR');
+};
+
 const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage() : Math.max(rows.length, 1)));
 
   useEffect(() => {
@@ -462,16 +477,43 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
     return () => window.removeEventListener('resize', syncRowsPerPage);
   }, [paginated]);
 
-  const totalPages = paginated ? Math.max(1, Math.ceil(rows.length / rowsPerPage)) : 1;
+  const sortedRows = useMemo(() => {
+    if (!sortConfig.key) return rows;
+    const activeColumn = columns.find((column) => column.key === sortConfig.key);
+    if (!activeColumn || activeColumn.sortable === false) return rows;
+
+    return [...rows].sort((leftRow, rightRow) => {
+      const leftValue = normalizeSortValue(activeColumn.sortValue ? activeColumn.sortValue(leftRow) : leftRow[activeColumn.key]);
+      const rightValue = normalizeSortValue(activeColumn.sortValue ? activeColumn.sortValue(rightRow) : rightRow[activeColumn.key]);
+
+      if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+        return sortConfig.direction === 'asc' ? leftValue - rightValue : rightValue - leftValue;
+      }
+
+      const result = String(leftValue).localeCompare(String(rightValue), 'pt-BR', { numeric: true, sensitivity: 'base' });
+      return sortConfig.direction === 'asc' ? result : -result;
+    });
+  }, [columns, rows, sortConfig.direction, sortConfig.key]);
+
+  const totalPages = paginated ? Math.max(1, Math.ceil(sortedRows.length / rowsPerPage)) : 1;
 
   useEffect(() => {
     if (!paginated) return;
     setCurrentPage((current) => Math.min(current, totalPages));
-  }, [paginated, totalPages, rows.length]);
+  }, [paginated, totalPages, sortedRows.length]);
+
+  const toggleSort = (column) => {
+    if (column.sortable === false) return;
+    setSortConfig((current) => {
+      if (current.key !== column.key) return { key: column.key, direction: 'asc' };
+      return { key: column.key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+    });
+    setCurrentPage(1);
+  };
 
   const visibleRows = paginated
-    ? rows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-    : rows;
+    ? sortedRows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+    : sortedRows;
 
   return (
     <div className="data-table-shell">
@@ -480,7 +522,22 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
           <thead>
             <tr className="text-slate-400">
               {columns.map((column) => (
-                <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">{column.label}</th>
+                <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">
+                  <button
+                    type="button"
+                    className={`data-table__head-button ${column.sortable === false ? 'data-table__head-button--disabled' : ''}`.trim()}
+                    onClick={() => toggleSort(column)}
+                    disabled={column.sortable === false}
+                    aria-label={column.sortable === false ? `${column.label} sem ordenação` : `Ordenar por ${column.label}`}
+                  >
+                    <span>{column.label}</span>
+                    {column.sortable === false ? null : (
+                      <span className="data-table__sort-indicator" aria-hidden="true">
+                        {sortConfig.key === column.key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                      </span>
+                    )}
+                  </button>
+                </th>
               ))}
             </tr>
           </thead>
@@ -3423,8 +3480,8 @@ function DashboardApp({
                         { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                         { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
                         { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                        { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
-                        { key: 'acoes', label: 'Ações', render: (row) => <ActionGroup><ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} /><ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} /></ActionGroup> }
+                        { key: 'saldo', label: 'Saldo inicial', sortValue: (row) => Number(row.saldo_inicial || 0), render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> },
+                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <ActionGroup><ActionButton label="Editar" className="btn--header btn--header-muted" onClick={() => editFinancialAccount(row.id)} /><ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteFinancialAccount(row.id)} /></ActionGroup> }
                       ]}
                       rows={filteredAccounts.map((item) => ({ key: `account-edit-${item.id}`, ...item }))}
                       paginated
@@ -3512,8 +3569,8 @@ function DashboardApp({
                         { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                         { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
                         { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                        { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
+                        { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteRecurring(row.id)} /> }
                       ]}
                       rows={filteredRecurring.map((item) => ({ key: `rec-edit-${item.id}`, ...item }))}
                       paginated
@@ -3557,8 +3614,8 @@ function DashboardApp({
                       columns={[
                         { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                         { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                        { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                        { key: 'acoes', label: 'Ações', render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
+                        { key: 'valor', label: 'Valor previsto', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                        { key: 'acoes', label: 'Ações', sortable: false, render: (row) => <ActionButton label="Excluir" className="btn--header btn--header-danger" onClick={() => deleteForecast(row.id)} /> }
                       ]}
                       rows={filteredForecasts.map((item) => ({ key: `forecast-edit-${item.id}`, ...item }))}
                       paginated
@@ -3582,8 +3639,8 @@ function DashboardApp({
               onEdit={() => openFinancialCreate('entrada')}
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasReceber.map((item) => ({ key: `receber-${item.id}`, ...item }))}
@@ -3597,8 +3654,8 @@ function DashboardApp({
               onEdit={() => openFinancialCreate('saida')}
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
-                { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
                 { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> }
               ]}
               rows={contasPagar.map((item) => ({ key: `pagar-${item.id}`, ...item }))}
@@ -3617,13 +3674,14 @@ function DashboardApp({
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
               { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria}</span> },
-              { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
               { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
-              { key: 'vencimento', label: 'Vencimento', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-              { key: 'pagamento', label: 'Pagamento', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
+              { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+              { key: 'pagamento', label: 'Pagamento', sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
               {
                 key: 'acoes',
                 label: 'Ações',
+                sortable: false,
                 render: (row) => (
                   <div className="financial-row-actions">
                     <button type="button" className="financial-row-actions__icon text-sky-600" aria-label="Editar lançamento" onClick={() => openFinancialEdit(row)}>

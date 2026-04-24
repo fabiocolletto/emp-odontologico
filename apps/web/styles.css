@@ -2383,8 +2383,8 @@ select {
 }
 
 .data-table__head-cell {
-  color: #94a3b8;
-  font-weight: 700;
+  color: #475569;
+  font-weight: 600;
 }
 
 .data-table__row {
@@ -2392,8 +2392,38 @@ select {
 }
 
 .data-table__cell {
+  color: #526277;
+  font-weight: 400;
+}
+
+.data-table__head-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.data-table__head-button:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.data-table__head-button--disabled {
+  cursor: default;
+}
+
+.data-table__sort-indicator {
   color: #64748b;
-  font-weight: 500;
+  font-size: 0.74rem;
+  line-height: 1;
 }
 
 
