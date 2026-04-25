@@ -3721,11 +3721,12 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <DataSection
-          title="Contas a receber e pagar"
-          description="Grade de dados detalhados parametrizada em duas colunas, reaproveitável em outros módulos."
-        >
-          <DataColumns columns={2}>
+        <FinancialSectionColumns variant="operation">
+          <DataSection
+            title="Contas a receber e pagar"
+            description="Grade de dados detalhados parametrizada em duas colunas, reaproveitável em outros módulos."
+          >
+            <DataColumns columns={2}>
             <FinancialTablePanelCard
               title="Contas a receber"
               onAdd={() => openFinancialCreate('entrada')}
@@ -3808,21 +3809,21 @@ function DashboardApp({
               footerClassName="text-rose-700"
               footerValue={formatMoney(contasPagarWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
-          </DataColumns>
-        </DataSection>
+            </DataColumns>
+          </DataSection>
 
-        <DataSection
-          title="Lançamentos financeiros"
-          description="Exemplo de seção em uma coluna para histórico completo e ações rápidas."
-        >
-          <DataColumns columns={1}>
-            <div ref={financialLaunchesSectionRef}>
-              <SectionCard
-                className="financial-section-card"
-                title="Lançamentos"
-                actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
-              >
-                <DataTable
+          <DataSection
+            title="Lançamentos financeiros"
+            description="Exemplo de seção em uma coluna para histórico completo e ações rápidas."
+          >
+            <DataColumns columns={1}>
+              <div ref={financialLaunchesSectionRef}>
+                <SectionCard
+                  className="financial-section-card financial-section-card--operation"
+                  title="Lançamentos"
+                  actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
+                >
+                  <DataTable
             columns={[
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
@@ -3855,11 +3856,12 @@ function DashboardApp({
               { label: 'Registros', value: financialLaunches.length },
               { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
             ]}
-                />
-              </SectionCard>
-            </div>
-          </DataColumns>
-        </DataSection>
+                  />
+                </SectionCard>
+              </div>
+            </DataColumns>
+          </DataSection>
+        </FinancialSectionColumns>
 
         {isFinancialFormOpen ? (
           <div className="finance-overlay" onClick={closeFinancialForm}>
