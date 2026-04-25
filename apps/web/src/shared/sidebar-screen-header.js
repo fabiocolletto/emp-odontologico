@@ -7,12 +7,25 @@
       title,
       subtitle,
       actions = [],
-      navigation = null
+      breadcrumb = []
     }
   ) => (
     <AppHeader>
+      {breadcrumb.length ? (
+        <nav className="sidebar-screen-header__breadcrumb" aria-label="Breadcrumb">
+          {breadcrumb.map((item, index) => (
+            <span key={`${item.label}-${index}`} className="sidebar-screen-header__crumb">
+              {item.onClick ? (
+                <button type="button" onClick={item.onClick}>{item.label}</button>
+              ) : (
+                <strong>{item.label}</strong>
+              )}
+              {index < breadcrumb.length - 1 ? <span>/</span> : null}
+            </span>
+          ))}
+        </nav>
+      ) : null}
       <PageHeader icon={icon} title={title} subtitle={subtitle} actions={actions} />
-      {navigation}
     </AppHeader>
   );
 }(globalThis));

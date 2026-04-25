@@ -687,14 +687,12 @@ const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup
 const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
 if (
   !screenBlockFactories.createSidebarScreenHeader
-  || !screenBlockFactories.createScreenHeaderBlock
   || !screenBlockFactories.createKpiGridRow
   || !screenBlockFactories.createDualContentRow
 ) {
   throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
 }
 const SidebarScreenHeader = screenBlockFactories.createSidebarScreenHeader({ AppHeader, PageHeader });
-const ScreenHeaderBlock = screenBlockFactories.createScreenHeaderBlock({ Toolbar, ActionButton, AppIcon });
 const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
 const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
 const profileBlockFactories = globalThis.OdontoFlowProfileBlocks || {};
@@ -2912,46 +2910,19 @@ function DashboardApp({
       }
     };
 
-    const quickLinksConfig = levelQuickLinksMap[activeTab] || levelQuickLinksMap.overview;
-    const quickLinksOrder = [
-      ...(quickLinksConfig.level > 0 && quickLinksConfig.previous ? [quickLinksConfig.previous] : []),
-      ...quickLinksConfig.next
-    ];
-    const currentQuickLinks = quickLinksOrder
-      .map((key) => quickLinksCatalog[key])
-      .filter(Boolean);
-
-    const contextHeaderActions = [];
-
-    const quickLinksNavigation = (
-      <div className="quick-links-shell">
-        <div
-          ref={quickLinksCarouselRef}
-          className="quick-links-carousel"
-          onScroll={handleQuickLinksSnapScroll}
-        >
-          {currentQuickLinks.map((link) => (
-            <button
-              key={link.key}
-              className={`quick-links-btn quick-links-btn--${link.tone}`}
-              onClick={link.onClick}
-              aria-label={link.ariaLabel}
-            >
-              <AppIcon name={link.icon} size={14} />
-              <span>{link.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+    const createHeaderBreadcrumb = (title) => (
+      title === 'Início'
+        ? [{ label: 'Início' }]
+        : [{ label: 'Início', onClick: () => goToLevel1('overview') }, { label: title }]
     );
 
-    const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
+    const renderN1Header = ({ icon, title, subtitle, actions = null }) => (
       <SidebarScreenHeader
         icon={icon}
         title={title}
         subtitle={subtitle}
         actions={actions}
-        navigation={navigation}
+        breadcrumb={createHeaderBreadcrumb(title)}
       />
     );
 
@@ -3190,14 +3161,27 @@ function DashboardApp({
 
     return (
       <div className="space-y-4 financial-layout--flat">
-        <ScreenHeaderBlock
-          header={!isMobileViewport ? renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null }) : null}
-          showToolbar
-          toolbarActions={[
-            { key: 'period', label: 'Período', icon: 'calendar', onClick: () => setIsPeriodPickerOpen(true) },
-            { key: 'export', label: 'Exportar relatório', icon: 'download', onClick: () => setIsExportModalOpen(true) }
-          ]}
-        />
+        {renderN1Header({
+          icon: 'settings',
+          title: 'Financeiro',
+          subtitle: 'Visão geral da saúde financeira da clínica',
+          actions: (
+            <>
+              <ActionButton
+                label="Período"
+                className="btn--header btn--header-muted"
+                icon={<AppIcon name="calendar" size={14} />}
+                onClick={() => setIsPeriodPickerOpen(true)}
+              />
+              <ActionButton
+                label="Exportar relatório"
+                className="btn--header btn--header-muted"
+                icon={<AppIcon name="download" size={14} />}
+                onClick={() => setIsExportModalOpen(true)}
+              />
+            </>
+          )
+        })}
 
         {isPeriodPickerOpen ? (
           <div className="finance-overlay" onClick={() => setIsPeriodPickerOpen(false)}>

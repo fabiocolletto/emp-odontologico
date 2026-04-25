@@ -2261,6 +2261,35 @@ select {
   margin: 0;
 }
 
+.sidebar-screen-header__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.32rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.68rem;
+  color: #64748b;
+}
+
+.sidebar-screen-header__crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.sidebar-screen-header__crumb button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #64748b;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.sidebar-screen-header__crumb strong {
+  color: #334155;
+  font-size: inherit;
+}
+
 .toolbar-flat {
   display: flex;
   align-items: center;
