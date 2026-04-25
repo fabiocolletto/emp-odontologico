@@ -4565,6 +4565,11 @@ function AuthGateApp() {
   const [selectedEntryClinicId, setSelectedEntryClinicId] = useState('');
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
   const ACCESS_BUTTON_BASE = 'ui-btn ui-btn--md ui-btn--label-side sidebar-nav-btn w-full';
+  const ACCESS_JOURNEY_TABS = [
+    { id: 'choice', label: '1. Tipo' },
+    { id: 'signin', label: '2. Acesso' },
+    { id: 'signup', label: '3. Cadastro' }
+  ];
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -4717,6 +4722,13 @@ function AuthGateApp() {
   }
 
   if (!session?.user) {
+    const openAccessStep = (step) => {
+      if (step === 'signin' || step === 'signup') {
+        setMode(step);
+      }
+      setAccessStep(step);
+    };
+
     return (
       <div className="app-viewport flex flex-col items-center justify-between p-10 py-24 text-center">
         <div className="space-y-8">
@@ -4736,64 +4748,94 @@ function AuthGateApp() {
             <button
               type="button"
               className={`${ACCESS_BUTTON_BASE} is-active landing-cta`}
-              onClick={() => setAccessStep('choice')}
+              onClick={() => openAccessStep('choice')}
             >
               <AppIcon name="chevron-right" size={16} className="ui-btn__icon" />
               <span className="ui-btn__label">Acessar Unidade</span>
             </button>
           ) : null}
 
-          {accessStep === 'choice' ? (
+          {accessStep !== 'idle' ? (
             <div className="ui-card w-full space-y-3">
-              <button
-                type="button"
-                className={`${ACCESS_BUTTON_BASE} is-active`}
-                onClick={() => { setMode('signin'); setAccessStep('form'); }}
-              >
-                <AppIcon name="check" size={16} className="ui-btn__icon" />
-                <span className="ui-btn__label">Acessar conta</span>
-              </button>
-              <button
-                type="button"
-                className={ACCESS_BUTTON_BASE}
-                onClick={() => { setMode('signup'); setAccessStep('form'); }}
-              >
-                <AppIcon name="plus" size={16} className="ui-btn__icon" />
-                <span className="ui-btn__label">Criar conta</span>
-              </button>
-            </div>
-          ) : null}
+              <div className="bio-steps" aria-label="Etapas da jornada de acesso e cadastro">
+                {ACCESS_JOURNEY_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`bio-step ${accessStep === tab.id ? 'is-active' : ''}`}
+                    onClick={() => openAccessStep(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
-          {accessStep === 'form' ? (
-            <div className="ui-card w-full space-y-3">
-              <form onSubmit={submitCredentials} className="space-y-3">
-                <input
-                  type="email"
-                  className="ui-input w-full"
-                  placeholder="seuemail@clinica.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-                <input
-                  type="password"
-                  className="ui-input w-full"
-                  placeholder="Sua senha"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-                <button type="submit" className={`${ACCESS_BUTTON_BASE} is-active`}>
-                  <AppIcon name={mode === 'signup' ? 'plus' : 'check'} size={16} className="ui-btn__icon" />
-                  <span className="ui-btn__label">{mode === 'signup' ? 'Criar conta e acessar' : 'Entrar com e-mail'}</span>
-                </button>
-              </form>
-              <button type="button" onClick={loginWithGoogle} className={ACCESS_BUTTON_BASE}>
-                <AppIcon name="users" size={16} className="ui-btn__icon" />
-                <span className="ui-btn__label">Continuar com Google</span>
-              </button>
-              <button type="button" className={ACCESS_BUTTON_BASE} onClick={() => setAccessStep('choice')}>
-                <AppIcon name="chevron-left" size={16} className="ui-btn__icon" />
-                <span className="ui-btn__label">Voltar</span>
-              </button>
+              <p className="modal-step-label">
+                {accessStep === 'choice' ? 'Escolha como deseja continuar.' : (
+                  accessStep === 'signup' ? 'Preencha seus dados para criar conta.' : 'Informe as credenciais para entrar.'
+                )}
+              </p>
+
+              {accessStep === 'choice' ? (
+                <>
+                  <button
+                    type="button"
+                    className={`${ACCESS_BUTTON_BASE} is-active`}
+                    onClick={() => openAccessStep('signin')}
+                  >
+                    <AppIcon name="check" size={16} className="ui-btn__icon" />
+                    <span className="ui-btn__label">Acessar conta</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={ACCESS_BUTTON_BASE}
+                    onClick={() => openAccessStep('signup')}
+                  >
+                    <AppIcon name="plus" size={16} className="ui-btn__icon" />
+                    <span className="ui-btn__label">Criar conta</span>
+                  </button>
+                </>
+              ) : null}
+
+              {accessStep === 'signin' || accessStep === 'signup' ? (
+                <>
+                  <form
+                    onSubmit={(event) => {
+                      setMode(accessStep);
+                      submitCredentials(event);
+                    }}
+                    className="space-y-3"
+                  >
+                    <input
+                      type="email"
+                      className="ui-input w-full"
+                      placeholder="seuemail@clinica.com"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                    />
+                    <input
+                      type="password"
+                      className="ui-input w-full"
+                      placeholder="Sua senha"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                    <button type="submit" className={`${ACCESS_BUTTON_BASE} is-active`}>
+                      <AppIcon name={accessStep === 'signup' ? 'plus' : 'check'} size={16} className="ui-btn__icon" />
+                      <span className="ui-btn__label">{accessStep === 'signup' ? 'Criar conta e acessar' : 'Entrar com e-mail'}</span>
+                    </button>
+                  </form>
+
+                  <button type="button" onClick={loginWithGoogle} className={ACCESS_BUTTON_BASE}>
+                    <AppIcon name="users" size={16} className="ui-btn__icon" />
+                    <span className="ui-btn__label">Continuar com Google</span>
+                  </button>
+                  <button type="button" className={ACCESS_BUTTON_BASE} onClick={() => openAccessStep('choice')}>
+                    <AppIcon name="chevron-left" size={16} className="ui-btn__icon" />
+                    <span className="ui-btn__label">Voltar</span>
+                  </button>
+                </>
+              ) : null}
             </div>
           ) : null}
 
