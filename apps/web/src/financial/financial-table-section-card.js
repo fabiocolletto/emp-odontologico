@@ -38,7 +38,7 @@
     return (
       <>
         <SectionCard
-          className="financial-section-card"
+          className="financial-section-card financial-section-card--operation"
           title={title}
           actions={(
             <div className="financial-widget-actions">

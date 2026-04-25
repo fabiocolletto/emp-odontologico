@@ -3323,6 +3323,43 @@ select {
   --financial-tone: #3b82f6;
 }
 
+.financial-section-columns--operation .financial-section-card,
+.financial-section-columns--operation .financial-panel-card {
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, #cbd5e1 72%, white);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.88));
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  min-height: 0;
+  padding: 0.9rem;
+}
+
+.financial-section-columns--operation .financial-section-card > .flex,
+.financial-section-columns--operation .financial-panel-card .panel-card__header {
+  margin-bottom: 0.7rem;
+}
+
+.financial-section-columns--operation .financial-section-card > .flex h3,
+.financial-section-columns--operation .financial-panel-card .panel-card__title {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.financial-section-columns--operation .financial-section-card .data-table {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #cbd5e1 60%, white);
+  background: color-mix(in srgb, #fff 90%, #eaf2ff);
+}
+
+.financial-section-columns--operation .financial-widget-totalizer {
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #cbd5e1 58%, white);
+  background: color-mix(in srgb, #fff 92%, #eff6ff);
+}
+
 @media (max-width: 1023px) {
   .financial-layout--flat .app-header-flat {
     margin-bottom: 0.5rem;
@@ -3372,6 +3409,11 @@ select {
 
   .financial-layout--flat .financial-panel-card .panel-card__content {
     padding: 0;
+  }
+
+  .financial-section-columns--operation .financial-section-card > .flex h3,
+  .financial-section-columns--operation .financial-panel-card .panel-card__title {
+    font-size: 0.74rem;
   }
 }
 

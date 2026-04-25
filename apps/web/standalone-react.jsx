@@ -3278,7 +3278,7 @@ function DashboardApp({
           title="Operação financeira diária"
           description="Módulos reutilizáveis por seção para contas, categorias e recorrências."
         >
-          <FinancialSectionColumns>
+          <FinancialSectionColumns variant="operation">
             <DataSection
               title="Configurações e cadastros"
               description="Elementos orientados a estrutura de dados, reutilizáveis em outras telas como Perfil."
@@ -3317,7 +3317,7 @@ function DashboardApp({
                   )}
                 />
                 <SectionCard
-                  className="financial-section-card"
+                  className="financial-section-card financial-section-card--operation"
                   title="Categorias financeiras"
                   actions={(
                     <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
