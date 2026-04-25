@@ -29,6 +29,7 @@ Usar **Atomic Design + composição por camadas (Section → Column → Widget �
 3. **Extração de componentes**
    - Preferir arquivos em `apps/web/src/financial/` ou `apps/web/src/shared/`.
    - APIs de componente devem ser orientadas a props simples e previsíveis.
+   - Cabeçalhos de telas abertas pela barra lateral devem usar o componente padrão compartilhado (sem variações locais/legadas).
 
 4. **Tokens e CSS atômico**
    - Novos valores visuais devem usar variáveis do `:root` em `apps/web/styles.css`.

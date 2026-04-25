@@ -685,9 +685,15 @@ const DataColumns = layoutPrimitiveFactories.createDataColumns();
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
 const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
-if (!screenBlockFactories.createScreenHeaderBlock || !screenBlockFactories.createKpiGridRow || !screenBlockFactories.createDualContentRow) {
+if (
+  !screenBlockFactories.createSidebarScreenHeader
+  || !screenBlockFactories.createScreenHeaderBlock
+  || !screenBlockFactories.createKpiGridRow
+  || !screenBlockFactories.createDualContentRow
+) {
   throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
 }
+const SidebarScreenHeader = screenBlockFactories.createSidebarScreenHeader({ AppHeader, PageHeader });
 const ScreenHeaderBlock = screenBlockFactories.createScreenHeaderBlock({ Toolbar, ActionButton, AppIcon });
 const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
 const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
@@ -2940,10 +2946,13 @@ function DashboardApp({
     );
 
     const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
-      <AppHeader>
-        <PageHeader icon={icon} title={title} subtitle={subtitle} actions={actions} />
-        {navigation}
-      </AppHeader>
+      <SidebarScreenHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        actions={actions}
+        navigation={navigation}
+      />
     );
 
     if (activeTab === 'overview') {
