@@ -1,5 +1,3 @@
-const { useMemo } = React;
-
 function OdontoAccessJourneyMd3({
   accessStep = 'choice',
   tabs = [],
@@ -19,7 +17,7 @@ function OdontoAccessJourneyMd3({
   onDismissError,
   renderIcon
 }) {
-  const currentHelpText = useMemo(() => {
+  const currentHelpText = React.useMemo(() => {
     if (accessStep === 'signup') return 'Preencha seus dados para criar uma nova conta.';
     if (accessStep === 'signin') return 'Informe suas credenciais para entrar no OdontoFlow.';
     return 'Escolha como deseja continuar.';
