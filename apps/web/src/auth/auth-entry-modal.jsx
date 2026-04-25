@@ -57,34 +57,36 @@
       <div className="finance-overlay auth-entry-overlay">
         <div
           ref={dialogRef}
-          className="finance-overlay__panel auth-entry-modal ui-card w-full max-w-md space-y-4"
+          className="finance-overlay__panel auth-entry-modal ui-card"
           role="dialog"
           aria-modal="true"
           aria-labelledby="auth-entry-title"
+          aria-describedby="auth-entry-subtitle"
         >
           {isAuthenticated ? (
             <>
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Primeiro acesso</p>
-                <h1 id="auth-entry-title" className="text-2xl font-black text-slate-900">Bem-vindo ao OdontoFlow</h1>
-                <p className="text-sm text-slate-600 mt-1">Seu acesso foi validado. Finalize para abrir o dashboard.</p>
+              <div className="auth-entry-header">
+                <p className="auth-entry-eyebrow">Primeiro acesso</p>
+                <h1 id="auth-entry-title" className="auth-entry-title">Bem-vindo ao OdontoFlow</h1>
+                <p id="auth-entry-subtitle" className="auth-entry-subtitle">Seu acesso foi validado. Finalize para abrir o dashboard.</p>
               </div>
-              <button type="button" className="btn btn--primary w-full" onClick={onContinueAuthenticated}>
+              <button type="button" className="auth-entry-action auth-entry-action--primary" onClick={onContinueAuthenticated}>
                 Continuar para o dashboard
               </button>
             </>
           ) : (
             <>
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
-                <h1 id="auth-entry-title" className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
-                <p className="text-sm text-slate-600 mt-1">Crie sua conta e acesse quando quiser, inclusive com Google.</p>
+              <div className="auth-entry-header">
+                <p className="auth-entry-eyebrow">Acesso seguro</p>
+                <h1 id="auth-entry-title" className="auth-entry-title">Entrar no OdontoFlow</h1>
+                <p id="auth-entry-subtitle" className="auth-entry-subtitle">Use e-mail e senha ou continue com Google para acessar sua conta.</p>
               </div>
 
               <namespace.AuthEntryForm
                 mode={mode}
                 email={email}
                 password={password}
+                authError={authError}
                 onSetMode={onSetMode}
                 onSetEmail={onSetEmail}
                 onSetPassword={onSetPassword}
