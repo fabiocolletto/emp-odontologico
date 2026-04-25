@@ -654,20 +654,45 @@ const FinancialTableAddIconButton = ({ ariaLabel, onClick }) => (
 );
 
 const financialComponentFactories = globalThis.OdontoFlowFinancialComponents || {};
-if (!financialComponentFactories.createFinancialEditAction || !financialComponentFactories.createFinancialTableSectionCard || !financialComponentFactories.createFinancialTablePanelCard) {
+if (
+  !financialComponentFactories.createFinancialEditAction
+  || !financialComponentFactories.createFinancialPageSection
+  || !financialComponentFactories.createFinancialSectionColumns
+  || !financialComponentFactories.createFinancialTableSectionCard
+  || !financialComponentFactories.createFinancialTablePanelCard
+) {
   throw new Error('Módulos financeiros globais não carregados. Verifique os scripts em index.html.');
 }
 const FinancialEditAction = financialComponentFactories.createFinancialEditAction({ ActionButton, AppIcon });
+const FinancialPageSection = financialComponentFactories.createFinancialPageSection();
+const FinancialSectionColumns = financialComponentFactories.createFinancialSectionColumns();
 const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
 const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
+const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
+if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
+  throw new Error('Catálogo de gráficos não carregado. Verifique os scripts em index.html.');
+}
+const ChartDonut = chartCatalogFactories.createChartDonut();
+const ChartSparkLine = chartCatalogFactories.createChartSparkLine();
+const ChartSparkArea = chartCatalogFactories.createChartSparkArea();
+const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
+if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
+  throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
+}
+const DataSection = layoutPrimitiveFactories.createDataSection();
+const DataColumns = layoutPrimitiveFactories.createDataColumns();
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
 const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
-if (!screenBlockFactories.createScreenHeaderBlock || !screenBlockFactories.createKpiGridRow || !screenBlockFactories.createDualContentRow) {
+if (
+  !screenBlockFactories.createSidebarScreenHeader
+  || !screenBlockFactories.createKpiGridRow
+  || !screenBlockFactories.createDualContentRow
+) {
   throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
 }
-const ScreenHeaderBlock = screenBlockFactories.createScreenHeaderBlock({ Toolbar, ActionButton, AppIcon });
+const SidebarScreenHeader = screenBlockFactories.createSidebarScreenHeader({ AppHeader, PageHeader });
 const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
 const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
 const profileBlockFactories = globalThis.OdontoFlowProfileBlocks || {};
@@ -1699,6 +1724,7 @@ function DashboardApp({
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
   const quickLinksSnapTimeoutRef = useRef(null);
+  const financialLaunchesSectionRef = useRef(null);
   const [isSidebarDrawerOpen, setIsSidebarDrawerOpen] = useState(false);
 
   const formatDateTime = (value) => {
@@ -1748,6 +1774,37 @@ function DashboardApp({
   const closeFinancialForm = () => {
     setFinancialDraft(emptyFinancialDraft());
     setIsFinancialFormOpen(false);
+  };
+
+  const focusFinancialLaunches = (tipo) => {
+    setWidgetFilters((current) => ({
+      ...current,
+      contasReceber: { ...current.contasReceber, status: 'all' },
+      contasPagar: { ...current.contasPagar, status: 'all' }
+    }));
+    requestAnimationFrame(() => {
+      financialLaunchesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    if (tipo === 'entrada') {
+      setConfirmationDialog({
+        isOpen: true,
+        title: 'Receitas em foco',
+        message: 'Use as ações da tabela para dar baixa, editar ou cancelar receitas.',
+        confirmLabel: 'OK',
+        tone: 'info',
+        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
+      });
+    }
+    if (tipo === 'saida') {
+      setConfirmationDialog({
+        isOpen: true,
+        title: 'Despesas em foco',
+        message: 'Use as ações da tabela para pagar, editar ou cancelar despesas.',
+        confirmLabel: 'OK',
+        tone: 'info',
+        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
+      });
+    }
   };
 
   const handleFinancialDraftChange = (field, value) => {
@@ -2853,61 +2910,45 @@ function DashboardApp({
       }
     };
 
-    const quickLinksConfig = levelQuickLinksMap[activeTab] || levelQuickLinksMap.overview;
-    const quickLinksOrder = [
-      ...(quickLinksConfig.level > 0 && quickLinksConfig.previous ? [quickLinksConfig.previous] : []),
-      ...quickLinksConfig.next
-    ];
-    const currentQuickLinks = quickLinksOrder
-      .map((key) => quickLinksCatalog[key])
-      .filter(Boolean);
-
-    const contextHeaderActions = [];
-
-    const quickLinksNavigation = (
-      <div className="quick-links-shell">
-        <div
-          ref={quickLinksCarouselRef}
-          className="quick-links-carousel"
-          onScroll={handleQuickLinksSnapScroll}
-        >
-          {currentQuickLinks.map((link) => (
-            <button
-              key={link.key}
-              className={`quick-links-btn quick-links-btn--${link.tone}`}
-              onClick={link.onClick}
-              aria-label={link.ariaLabel}
-            >
-              <AppIcon name={link.icon} size={14} />
-              <span>{link.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+    const createHeaderBreadcrumb = (title) => (
+      title === 'Início'
+        ? [{ label: 'Início' }]
+        : [{ label: 'Início', onClick: () => goToLevel1('overview') }, { label: title }]
     );
 
-    const renderN1Header = ({ icon, title, subtitle, actions = contextHeaderActions, navigation = quickLinksNavigation }) => (
-      <AppHeader>
-        <PageHeader icon={icon} title={title} subtitle={subtitle} actions={actions} />
-        {navigation}
-      </AppHeader>
+    const renderN1Header = ({ icon, title, subtitle, actions = null }) => (
+      <SidebarScreenHeader
+        icon={icon}
+        title={title}
+        subtitle={subtitle}
+        actions={actions}
+        breadcrumb={createHeaderBreadcrumb(title)}
+      />
+    );
+
+
+    const PlaceholderSection = ({ title, notes = [] }) => (
+      <DataSection
+        title={title}
+        description="Placeholder padronizado. A implementação detalhada será feita na sprint específica desta tela."
+      >
+        <div className="ui-card border border-slate-200 bg-white/85 rounded-2xl p-4 space-y-2">
+          {notes.map((note) => (
+            <p key={note} className="text-sm text-slate-600">• {note}</p>
+          ))}
+        </div>
+      </DataSection>
     );
 
     if (activeTab === 'overview') {
       return (
         <div className="space-y-6">
-          {renderN1Header({
-            icon: 'home',
-            title: 'Início',
-            subtitle: 'Dashboard principal e visão consolidada',
-            actions: []
-          })}
-          <ContentGrid columns="3">
-            <StatCard label="Pacientes ativos" value={String(sortedPatients.length)} trend="+6,2% no mês" trendTone="text-emerald-600" />
-            <StatCard label="Atendimentos do dia" value={String(filteredAppointments.length)} trend="Agenda atualizada" trendTone="text-sky-600" />
-            <StatCard label="Módulos monitorados" value="5" trend="Shell unificado" trendTone="text-indigo-600" />
-          </ContentGrid>
-          <InsightCard text="Esta é a tela de nível 0 consolidada com o novo design system global do OdontoFlow." />
+          {renderN1Header({ icon: 'home', title: 'Início', subtitle: 'Dashboard principal e visão consolidada', actions: [] })}
+          <DataColumns columns={3}>
+            <PlaceholderSection title="Seção 1 · Resumo operacional" notes={['Modelo padrão existente: DataSection + DataColumns + KpiGridRow.', 'Implantação posterior ao trabalhar a tela Início.']} />
+            <PlaceholderSection title="Seção 2 · Agenda e alertas" notes={['Modelo padrão existente: cards + tabelas compactas.', 'Definição de conteúdo ficará para sprint da tela Início.']} />
+            <PlaceholderSection title="Seção 3 · Atalhos estratégicos" notes={['Modelo padrão existente: actions header + widgets.', 'Conteúdo será definido na fase de detalhamento funcional.']} />
+          </DataColumns>
         </div>
       );
     }
@@ -2915,385 +2956,36 @@ function DashboardApp({
     if (activeTab === 'agenda') {
       return (
         <div className="space-y-6">
-          {renderN1Header({
-            icon: 'calendar',
-            title: 'Agenda',
-            subtitle: 'Planejamento de atendimentos e compromissos',
-            actions: []
-          })}
-          <PanelCard title="Agenda (nível 1)">
-            <p className="text-sm text-slate-600">
-              Esta tela representa a Agenda no nível 1, ao lado de Pacientes, Financeiro e Perfil, já usando a mesma base visual global.
-            </p>
-          </PanelCard>
-          <ContentGrid columns="2">
-            <PanelCard title="Próximos atendimentos">
-              <DataTable
-                columns={[
-                  { key: 'paciente', label: 'Paciente', render: (row) => <span className="text-slate-700 font-semibold">{row.name}</span> },
-                  { key: 'hora', label: 'Hora', render: (row) => <span className="text-slate-500">{row.time}</span> },
-                  { key: 'procedimento', label: 'Procedimento', render: (row) => <span className="text-slate-500">{row.procedure}</span> }
-                ]}
-                rows={visibleAppointments.map((item) => ({ key: `appt-${item.id}`, ...item }))}
-                emptyMessage="Sem atendimentos para o período."
-              />
-            </PanelCard>
-            <AlertCard text="Use o módulo Agenda para organizar horários, encaixes e confirmações de consulta." />
-          </ContentGrid>
+          {renderN1Header({ icon: 'calendar', title: 'Agenda', subtitle: 'Planejamento de atendimentos e compromissos', actions: [] })}
+          <DataColumns columns={2}>
+            <PlaceholderSection title="Seção 1 · Grade de horários" notes={['Modelo padrão existente: DataSection + DataColumns(2).', 'Implantação posterior para regras de bloqueio, encaixe e conflito.']} />
+            <PlaceholderSection title="Seção 2 · Filtros e status" notes={['Modelo padrão existente: filtros por coluna e badges.', 'Conteúdo e colunas serão definidos na sprint da Agenda.']} />
+          </DataColumns>
         </div>
       );
     }
 
-
     if (activeTab === 'patients') {
       return (
-        <div className="space-y-6 patients-sections">
-          {renderN1Header({
-            icon: 'users',
-            title: 'Cadastro de Paciente',
-            subtitle: 'Gerencie cadastros e encontre informações rapidamente',
-            actions: []
-          })}
-          <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
-            <Toolbar>
-              <AddRecordButton
-                label="Novo paciente"
-                ariaLabel="Cadastrar novo paciente"
-                onClick={openCreatePatientN2}
-              />
-              <SearchToggleButton
-                isOpen={isPatientsSearchVisible}
-                onClick={() => setIsPatientsSearchVisible((prev) => !prev)}
-              />
-              <SortToggleButton onClick={() => setIsPatientsSortLevelOpen(true)} />
-              <MultiToggleButton
-                isActive={isPatientsMultiMode}
-                onClick={() => {
-                  setIsPatientsMultiMode((prev) => {
-                    if (prev) setSelectedPatientIds([]);
-                    return !prev;
-                  });
-                }}
-              />
-            </Toolbar>
-          </div>
-          <TransientNotice
-            visible={showPatientHint && !formFeedback}
-            message="Clique em um paciente para abrir a tela N2 com os dados completos."
-            onClose={() => setShowPatientHint(false)}
-          />
-          <TransientNotice
-            visible={Boolean(formFeedback)}
-            message={formFeedback}
-            tone="info"
-            onClose={() => setFormFeedback('')}
-          />
-          {isPatientsSearchVisible ? (
-            <div className="patients-search-section">
-              <div className="search-row">
-                <input
-                  className="search-input search-input--compact ui-search"
-                  placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
-                  value={patientsQuery}
-                  onChange={(e) => setPatientsQuery(e.target.value)}
-                />
-              </div>
-              <p className="search-legend">{sortedPatients.length} registro(s) exibido(s)</p>
-            </div>
-          ) : null}
-          {isPatientsSortLevelOpen ? (
-            <div className="selector-level">
-              <button className="selector-level__backdrop" type="button" aria-label="Fechar nível de filtro" onClick={() => setIsPatientsSortLevelOpen(false)} />
-              <div className="selector-level__card">
-                <div className="selector-level__header">
-                  <p>Nível de ordenação</p>
-                  <button className="btn btn--ghost" type="button" onClick={() => setIsPatientsSortLevelOpen(false)}>Fechar</button>
-                </div>
-                <div className="selector-level__body">
-                  {[
-                    { value: 'name-asc', label: 'Nome (A → Z)' },
-                    { value: 'name-desc', label: 'Nome (Z → A)' },
-                    { value: 'phone-asc', label: 'Telefone' },
-                    { value: 'lastVisit-desc', label: 'Última visita (mais recente)' },
-                    { value: 'lastVisit-asc', label: 'Última visita (mais antiga)' },
-                    { value: 'birth-desc', label: 'Nascimento (mais recente)' },
-                    { value: 'birth-asc', label: 'Nascimento (mais antigo)' },
-                    { value: 'plan-asc', label: 'Plano (A → Z)' }
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={`selector-window__option ${option.value === patientsSort ? 'is-active' : ''}`}
-                      onClick={() => {
-                        setPatientsSort(option.value);
-                        setIsPatientsSortLevelOpen(false);
-                      }}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
-          {isPatientsMultiMode ? (
-            <div className="ui-card flex flex-wrap gap-2 items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500">
-                {selectedPatientIds.length} selecionado(s)
-              </p>
-              <div className="flex gap-2">
-                <button
-                  className="btn btn--ghost"
-                  onClick={() => {
-                    const allVisibleIds = visiblePatients.map((item) => item.id);
-                    const shouldClear = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedPatientIds.includes(id));
-                    setSelectedPatientIds(shouldClear ? [] : allVisibleIds);
-                  }}
-                >
-                  Selecionar todos
-                </button>
-                <button
-                  className="btn btn--danger"
-                  disabled={selectedPatientIds.length === 0}
-                  onClick={() => {
-                    const archiveAt = new Date().toISOString();
-                    setPatients((prev) => prev.map((item) => (
-                      selectedPatientIds.includes(item.id)
-                        ? { ...item, archivedAt: archiveAt }
-                        : item
-                    )));
-                    setSelectedPatientIds([]);
-                    setIsPatientsMultiMode(false);
-                  }}
-                >
-                  Arquivar selecionados
-                </button>
-              </div>
-            </div>
-          ) : null}
-          <div className="patients-data-section">
-            <div className="data-grid patients-grid">
-            {visiblePatients.length === 0 ? (
-              <div className="ui-empty-state">
-                <strong>Nenhum paciente encontrado</strong>
-                <span>Altere a pesquisa ou ajuste a ordenação.</span>
-              </div>
-            ) : (
-              visiblePatients.map((p) => (
-                <article key={p.id} className={`ui-card data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
-                  <button
-                    onClick={() => {
-                      if (isPatientsMultiMode) {
-                        setSelectedPatientIds((prev) => (
-                          prev.includes(p.id)
-                            ? prev.filter((id) => id !== p.id)
-                            : [...prev, p.id]
-                        ));
-                        return;
-                      }
-                      openPatientN2(p);
-                    }}
-                    className="btn btn--icon patient-card__open"
-                    aria-label={isPatientsMultiMode ? `Selecionar ${p.name}` : `Abrir prontuário de ${p.name}`}
-                    title={isPatientsMultiMode ? 'Selecionar paciente' : 'Abrir prontuário N2'}
-                  >
-                    {isPatientsMultiMode
-                      ? (selectedPatientIds.includes(p.id) ? '✓' : '○')
-                      : <AppIcon name="expand" size={16} />}
-                  </button>
-                  <div className="patient-card__header">
-                    <div className="patient-avatar">{getInitials(p.name)}</div>
-                    <div>
-                      <p className="patient-card__name">{p.name}</p>
-                    </div>
-                  </div>
-
-                  <div className="patient-card__grid">
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="phone" size={13} />Telefone</p>
-                      <p className="patient-meta__value">{p.phone}</p>
-                    </div>
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="calendar" size={13} />Última visita</p>
-                      <p className="patient-meta__value">{p.lastVisit}</p>
-                    </div>
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="birth" size={13} />Nascimento</p>
-                      <p className="patient-meta__value">{p.birth}</p>
-                    </div>
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="plan" size={13} />Plano</p>
-                      <p className="patient-meta__value">{p.plan}</p>
-                    </div>
-                  </div>
-                </article>
-              ))
-            )}
-            </div>
-          </div>
-          {isMobileViewport ? (
-            <div ref={patientsInfiniteTriggerRef} className="infinite-trigger">
-              {patientsPagination.page < patientsPagination.totalPages
-                ? 'Role para carregar mais pacientes'
-                : 'Todos os pacientes carregados'}
-            </div>
-          ) : (
-            <div className="pagination-row ui-action-bar">
-              <button
-                className="btn btn--pager"
-                onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
-                disabled={patientsPagination.page === 1}
-              >
-                ← Anterior
-              </button>
-              <span className="pagination-label">
-                Página {patientsPagination.page} de {patientsPagination.totalPages}
-              </span>
-              <button
-                className="btn btn--pager"
-                onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
-                disabled={patientsPagination.page === patientsPagination.totalPages}
-              >
-                Próxima →
-              </button>
-            </div>
-          )}
+        <div className="space-y-6">
+          {renderN1Header({ icon: 'users', title: 'Pacientes', subtitle: 'Gestão do cadastro clínico e prontuário', actions: [] })}
+          <DataColumns columns={3}>
+            <PlaceholderSection title="Seção 1 · Lista de pacientes" notes={['Modelo padrão existente: tabela com ações e paginação.', 'Implantação posterior na sprint de Pacientes.']} />
+            <PlaceholderSection title="Seção 2 · Perfil clínico" notes={['Modelo padrão existente: cards de dados e histórico.', 'Definição de colunas e campos fica para próxima etapa.']} />
+            <PlaceholderSection title="Seção 3 · Ações em lote" notes={['Modelo padrão existente: toolbar + seleção múltipla.', 'Implementação posterior no detalhamento da tela.']} />
+          </DataColumns>
         </div>
       );
     }
 
     if (activeTab === 'profile') {
-      const provider = authUserWidget?.app_metadata?.provider || authUserWidget?.aud || '-';
-      const providers = authUserWidget?.app_metadata?.providers?.join(', ') || provider;
-      const profilePanels = [
-        {
-          id: 'auth',
-          title: 'Widget Auth (Supabase)',
-          subtitle: 'Dados carregados via supabase.auth.getUser().',
-          mobileLabel: 'Dados da conta',
-          icon: 'id-card'
-        },
-        {
-          id: 'security',
-          title: 'Editar conta (Supabase Auth API)',
-          mobileLabel: 'Segurança e sessão',
-          icon: 'settings'
-        },
-        {
-          id: 'public-profile',
-          title: 'Perfil público (tabela public.odf_users)',
-          mobileLabel: 'Perfil público',
-          icon: 'users'
-        },
-        {
-          id: 'clinics',
-          title: 'Clínicas do proprietário (tabela public.odf_clinics)',
-          mobileLabel: 'Clínicas',
-          icon: 'plan'
-        }
-      ];
-
-      const renderAuthSummary = () => (
-        <ProfileFieldGrid
-          items={[
-            { key: 'id', label: 'ID', value: authUserWidget?.id || '-', breakAll: true },
-            { key: 'email', label: 'E-mail', value: authUserWidget?.email || authEmail || '-', breakAll: true },
-            { key: 'provider', label: 'Provedor', value: providers },
-            { key: 'confirmed', label: 'Email confirmado', value: formatDateTime(authUserWidget?.email_confirmed_at) },
-            { key: 'created', label: 'Criado em', value: formatDateTime(authUserWidget?.created_at) },
-            { key: 'last-login', label: 'Último login', value: formatDateTime(authUserWidget?.last_sign_in_at) }
-          ]}
-        />
-      );
-
-      const renderSecurityActions = () => (
-        <>
-          <ProfileFieldGrid
-            items={[
-              { key: 'current-email', label: 'E-mail atual', value: authUserWidget?.email || authEmail || '-', breakAll: true },
-              { key: 'password', label: 'Senha', value: '********' }
-            ]}
-          />
-          <ProfileActionRow
-            actions={[
-              { key: 'edit-account', label: 'Editar', icon: 'edit', onClick: openAccountEditN2, disabled: authActionStatus === 'loading', ariaLabel: 'Editar conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' },
-              ...(accountService?.signOut ? [{ key: 'sign-out', label: 'Sair', icon: 'close', onClick: accountService.signOut, disabled: authActionStatus === 'loading', ariaLabel: 'Desconectar conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first modal-action-btn--uniform' }] : []),
-              ...(accountService?.deleteAuthUser ? [{ key: 'delete-account', label: 'Excluir', icon: 'archive', onClick: handleDeleteAccount, disabled: authActionStatus === 'loading', ariaLabel: 'Excluir conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first modal-action-btn--uniform' }] : [])
-            ]}
-          />
-          <ProfileFeedbackMessage message={authActionMessage} status={authActionStatus} />
-        </>
-      );
-
-      const renderPublicProfileSummary = () => (
-        <>
-          <ProfileFieldGrid
-            items={[
-              { key: 'full-name', label: 'Nome', value: publicProfileDraft.full_name || '-' },
-              { key: 'email', label: 'E-mail', value: publicProfileDraft.email || '-' },
-              { key: 'phone', label: 'Telefone', value: publicProfileDraft.phone || '-' },
-              { key: 'address', label: 'Endereço', value: publicProfileDraft.address || '-' },
-              { key: 'birth', label: 'Data de nascimento', value: publicProfileDraft.birth_date || '-' }
-            ]}
-          />
-          <ProfileActionRow
-            actions={[
-              { key: 'edit-profile', label: 'Editar', icon: 'edit', onClick: openPublicProfileEditN2, disabled: profileActionStatus === 'loading', ariaLabel: 'Editar perfil público', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' }
-            ]}
-          />
-          <ProfileFeedbackMessage message={profileActionMessage} status={profileActionStatus} />
-        </>
-      );
-
-      const renderClinicsSummary = () => (
-        <>
-          {clinics.length === 0 ? (
-            <div className="ui-empty-state">
-              <strong>Nenhuma clínica encontrada</strong>
-              <span>Ao abrir o editor, uma clínica padrão será criada automaticamente.</span>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {clinics.slice(0, 3).map((clinic) => (
-                <div key={clinic.id} className="ui-list-item text-sm text-slate-700">
-                  <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
-                  <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
-                </div>
-              ))}
-              {clinics.length > 3 ? (
-                <p className="text-xs text-slate-500">+{clinics.length - 3} clínica(s) adicional(is).</p>
-              ) : null}
-            </div>
-          )}
-          <ProfileActionRow
-            actions={[
-              { key: 'add-clinic', label: 'Adicionar', icon: 'plus', iconSize: 22, onClick: handleOpenClinicCreateN2, disabled: clinicActionStatus === 'loading', ariaLabel: 'Adicionar clínica', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' }
-            ]}
-          />
-          <ProfileFeedbackMessage message={clinicActionMessage} status={clinicActionStatus} />
-        </>
-      );
-
-      const renderProfilePanelContent = (panelId) => {
-        if (panelId === 'auth') return renderAuthSummary();
-        if (panelId === 'security') return renderSecurityActions();
-        if (panelId === 'public-profile') return renderPublicProfileSummary();
-        if (panelId === 'clinics') return renderClinicsSummary();
-        return null;
-      };
-
       return (
         <div className="space-y-6">
-          <ScreenHeaderBlock
-            header={renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
-          />
-          <ProfileResponsivePanels
-            isMobileViewport={isMobileViewport}
-            panels={profilePanels}
-            expandedPanel={expandedProfilePanel}
-            onTogglePanel={(panelId) => setExpandedProfilePanel((current) => (current === panelId ? '' : panelId))}
-            renderPanelContent={renderProfilePanelContent}
-          />
+          {renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais', actions: [] })}
+          <DataColumns columns={2}>
+            <PlaceholderSection title="Seção 1 · Conta e segurança" notes={['Modelo padrão existente: DataSection + formulários padrão.', 'Implantação posterior na sprint da tela Perfil.']} />
+            <PlaceholderSection title="Seção 2 · Preferências e clínicas" notes={['Modelo padrão existente: colunas de dados configuráveis.', 'Conteúdo e contratos serão definidos quando abrirmos a tela Perfil.']} />
+          </DataColumns>
         </div>
       );
     }
@@ -3301,29 +2993,105 @@ function DashboardApp({
     if (activeTab === 'clinic') {
       return (
         <div className="space-y-6">
-          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais' })}
-          <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínica (nível 1)</p>
-            <p className="text-sm text-slate-600">
-              Placeholder da nova tela de Clínica no nível 1. Em breve com visão operacional da unidade,
-              dados institucionais e controles administrativos.
-            </p>
-          </div>
+          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais', actions: [] })}
+          <DataColumns columns={3}>
+            <PlaceholderSection title="Seção 1 · Dados cadastrais" notes={['Modelo padrão existente: seção de dados em 1/2/3 colunas.', 'Implantação posterior com campos de cadastro e validação.']} />
+            <PlaceholderSection title="Seção 2 · Fiscal e contratos" notes={['Modelo padrão existente: tabelas + ações de edição.', 'Regras serão definidas na sprint da tela Clínica.']} />
+            <PlaceholderSection title="Seção 3 · Equipe e unidades" notes={['Modelo padrão existente: cartões e listas reutilizáveis.', 'Implementação posterior conforme roadmap.']} />
+          </DataColumns>
         </div>
       );
     }
 
     const summary = summarizeFinancialData(financialLaunches);
-    const kpis = [
-      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [62], sparkVariant: 'donut' },
-      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [44], sparkVariant: 'donut' },
-      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [71], sparkVariant: 'donut' },
-      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [35], sparkVariant: 'donut' },
-      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2], sparkVariant: 'bar' },
-      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7], sparkVariant: 'bar' }
-    ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+    const totalReceitas = contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const totalDespesas = contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const receitasConfirmadas = contasReceber.filter((item) => isFinancialLaunchConfirmed(item));
+    const despesasConfirmadas = contasPagar.filter((item) => isFinancialLaunchConfirmed(item));
+    const receitaRecebidaTotal = receitasConfirmadas.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const despesaPagaTotal = despesasConfirmadas.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const receitaAbertaTotal = Math.max(totalReceitas - receitaRecebidaTotal, 0);
+    const despesaAbertaTotal = Math.max(totalDespesas - despesaPagaTotal, 0);
+    const receiptRatio = totalReceitas > 0 ? (receitaRecebidaTotal / totalReceitas) : 0;
+    const expenseRatio = totalDespesas > 0 ? (despesaPagaTotal / totalDespesas) : 0;
+    const reconciliationRatio = totalDespesas > 0 ? Math.min(receitaRecebidaTotal / totalDespesas, 1) : 1;
+    const getTimelineFromLaunches = (launches) => {
+      const monthMap = launches.reduce((acc, item) => {
+        const source = item.data_pagamento || item.data_competencia || item.data_vencimento;
+        if (!source || !/^\d{4}-\d{2}/.test(source)) return acc;
+        const monthKey = source.slice(0, 7);
+        acc[monthKey] = (acc[monthKey] || 0) + Number(item.valor || 0);
+        return acc;
+      }, {});
+      return Object.entries(monthMap)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-6)
+        .map(([month, total]) => ({ month: month.slice(5).replace('-', '/'), total }));
+    };
+    const receitasTimeline = getTimelineFromLaunches(contasReceber);
+    const despesasTimeline = getTimelineFromLaunches(contasPagar);
+    const conciliacaoTimeline = receitasTimeline.map((entry, index) => ({
+      month: entry.month,
+      total: Math.max(entry.total - Number(despesasTimeline[index]?.total || 0), 0)
+    }));
+    const conciliationStatus = (() => {
+      const diff = receitaRecebidaTotal - despesaPagaTotal;
+      if (diff >= 0) return { label: 'Superávit', tone: 'text-emerald-600', description: 'Fluxo positivo no período' };
+      if (Math.abs(diff) <= totalDespesas * 0.1) return { label: 'Atenção', tone: 'text-amber-600', description: 'Margem curta para despesas' };
+      return { label: 'Risco', tone: 'text-rose-600', description: 'Despesas superam recebimentos' };
+    })();
+    const financialHeroWidgets = [
+      {
+        key: 'receitas',
+        toneClass: 'financial-hero-widget--receitas',
+        title: 'Receitas consolidadas',
+        primary: formatMoney(receitaRecebidaTotal),
+        secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
+        ratio: receiptRatio,
+        ratioLabel: `${(receiptRatio * 100).toFixed(0)}% recebido`,
+        trendSeries: receitasTimeline.map((entry) => entry.total),
+        trendLabel: 'Linha de receitas',
+        chartTone: '#10b981',
+        chartVariant: 'line',
+        actionLabel: 'Foco receitas',
+        actionAria: 'Abrir lista de receitas para trabalhar o conjunto de dados',
+        onAction: () => focusFinancialLaunches('entrada')
+      },
+      {
+        key: 'despesas',
+        toneClass: 'financial-hero-widget--despesas',
+        title: 'Despesas consolidadas',
+        primary: formatMoney(despesaPagaTotal),
+        secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
+        ratio: expenseRatio,
+        ratioLabel: `${(expenseRatio * 100).toFixed(0)}% quitado`,
+        trendSeries: despesasTimeline.map((entry) => entry.total),
+        trendLabel: 'Linha de despesas',
+        chartTone: '#f43f5e',
+        chartVariant: 'area',
+        actionLabel: 'Foco despesas',
+        actionAria: 'Abrir lista de despesas para dar baixa, editar ou excluir',
+        onAction: () => focusFinancialLaunches('saida')
+      },
+      {
+        key: 'conciliacao',
+        toneClass: 'financial-hero-widget--conciliacao',
+        title: 'Conciliação financeira',
+        primary: formatMoney(receitaRecebidaTotal - despesaPagaTotal),
+        secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
+        ratio: reconciliationRatio,
+        ratioLabel: `${(reconciliationRatio * 100).toFixed(0)}% cobertura`,
+        trendSeries: conciliacaoTimeline.map((entry) => entry.total),
+        trendLabel: 'Linha de conciliação',
+        chartTone: '#3b82f6',
+        chartVariant: 'line',
+        actionLabel: 'Conferir lançamentos',
+        actionAria: 'Ir para a lista de lançamentos para conciliação',
+        onAction: () => focusFinancialLaunches('all')
+      }
+    ];
     const contasFinanceirasWidgetRows = financialAccounts.filter((item) => (
       widgetFilters.contasFinanceiras.tipo === 'all'
       || item.tipo === widgetFilters.contasFinanceiras.tipo
@@ -3393,14 +3161,27 @@ function DashboardApp({
 
     return (
       <div className="space-y-4 financial-layout--flat">
-        <ScreenHeaderBlock
-          header={!isMobileViewport ? renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null }) : null}
-          showToolbar
-          toolbarActions={[
-            { key: 'period', label: 'Período', icon: 'calendar', onClick: () => setIsPeriodPickerOpen(true) },
-            { key: 'export', label: 'Exportar relatório', icon: 'download', onClick: () => setIsExportModalOpen(true) }
-          ]}
-        />
+        {renderN1Header({
+          icon: 'settings',
+          title: 'Financeiro',
+          subtitle: 'Visão geral da saúde financeira da clínica',
+          actions: (
+            <>
+              <ActionButton
+                label="Período"
+                className="btn--header btn--header-muted"
+                icon={<AppIcon name="calendar" size={14} />}
+                onClick={() => setIsPeriodPickerOpen(true)}
+              />
+              <ActionButton
+                label="Exportar relatório"
+                className="btn--header btn--header-muted"
+                icon={<AppIcon name="download" size={14} />}
+                onClick={() => setIsExportModalOpen(true)}
+              />
+            </>
+          )
+        })}
 
         {isPeriodPickerOpen ? (
           <div className="finance-overlay" onClick={() => setIsPeriodPickerOpen(false)}>
@@ -3442,227 +3223,271 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <section className="financial-kpi-row" aria-label="KPIs financeiros">
-          {kpis.map((kpi) => (
-            <StatCard
-              key={kpi.label}
-              className="financial-kpi-row__card"
-              label={kpi.label}
-              value={kpi.value}
-              trend={`${kpi.trend} vs mês anterior`}
-              trendTone={kpi.tone}
-              sparkPoints={kpi.sparkPoints}
-              sparkColor={kpi.sparkColor}
-              sparkVariant={kpi.sparkVariant}
-            />
-          ))}
-        </section>
+        <FinancialPageSection
+          eyebrow="Nível 1 · visão consolidada"
+          title="Resumo financeiro estratégico"
+          description="Widgets consolidados para receitas, despesas e conciliação, com foco operacional em poucos cliques."
+        >
+          <FinancialSectionColumns variant="hero">
+            <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
+              {financialHeroWidgets.map((widget) => {
+                return (
+                  <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
+                    <div className="financial-hero-widget__header">
+                      <div>
+                        <p className="financial-hero-widget__eyebrow">{widget.title}</p>
+                        <p className="financial-hero-widget__value">{widget.primary}</p>
+                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="financial-hero-widget__focus-btn"
+                        onClick={widget.onAction}
+                        aria-label={widget.actionAria}
+                        title={widget.actionLabel}
+                      >
+                        <AppIcon name="search" size={13} />
+                        <span>{widget.actionLabel}</span>
+                      </button>
+                    </div>
+                    <div className="financial-hero-widget__body">
+                      <ChartDonut
+                        value={widget.ratio}
+                        label={widget.ratioLabel}
+                        tone={widget.chartTone}
+                        size={82}
+                      />
+                      <div className="financial-hero-widget__trend">
+                        {widget.chartVariant === 'area' ? (
+                          <ChartSparkArea points={widget.trendSeries} tone={widget.chartTone} />
+                        ) : (
+                          <ChartSparkLine points={widget.trendSeries} tone={widget.chartTone} />
+                        )}
+                        <p>{widget.trendLabel}</p>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+          </FinancialSectionColumns>
+        </FinancialPageSection>
 
-        <DualContentRow
-          left={(
-            <FinancialTableSectionCard
-              title="Contas financeiras"
-              addAriaLabel="Adicionar conta financeira"
-              onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
-              onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
-              isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
-              filterAriaLabel="Filtrar contas financeiras"
-              filterDropdown={renderWidgetFilterDropdown(
-                <label className="financial-filter-dropdown__field">
-                  <span>Tipo da conta</span>
-                  <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
-                    <option value="all">Todos</option>
-                    <option value="corrente">Corrente</option>
-                    <option value="poupanca">Poupança</option>
-                  </select>
-                </label>
-              )}
-              columns={[
-                { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
-                { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
-                { key: 'tipo', label: 'Tipo', hideBelow: 740, render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                { key: 'saldo', label: 'Saldo inicial', hideBelow: 620, render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
-              ]}
-              rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma conta cadastrada."
-              footer={(
-                <div className="financial-widget-totalizer">
-                  <p><span>Registros</span><strong>{contasFinanceirasWidgetRows.length}</strong></p>
-                  <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
-                </div>
-              )}
-            />
-          )}
-          right={(
-            <SectionCard
-            className="financial-section-card"
-            title="Categorias financeiras"
-            actions={(
-              <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
-            )}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
-                <div className="space-y-2">
-                  {receitasPorCategoriaResumo.map(([categoria, total]) => (
-                    <div key={`cat-income-${categoria}`}>
-                      <div className="flex justify-between text-xs text-slate-600 mb-1">
-                        <span>{categoria}</span><span>{formatMoney(total)}</span>
-                      </div>
-                      <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                        <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+        <FinancialPageSection
+          eyebrow="Nível 1 · operação"
+          title="Operação financeira diária"
+          description="Módulos reutilizáveis por seção para contas, categorias e recorrências."
+        >
+          <FinancialSectionColumns>
+            <DataSection
+              title="Configurações e cadastros"
+              description="Elementos orientados a estrutura de dados, reutilizáveis em outras telas como Perfil."
+            >
+              <DataColumns columns={2}>
+                <FinancialTableSectionCard
+                  title="Contas financeiras"
+                  addAriaLabel="Adicionar conta financeira"
+                  onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
+                  onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
+                  isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
+                  filterAriaLabel="Filtrar contas financeiras"
+                  filterDropdown={renderWidgetFilterDropdown(
+                    <label className="financial-filter-dropdown__field">
+                      <span>Tipo da conta</span>
+                      <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
+                        <option value="all">Todos</option>
+                        <option value="corrente">Corrente</option>
+                        <option value="poupanca">Poupança</option>
+                      </select>
+                    </label>
+                  )}
+                  columns={[
+                    { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+                    { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                    { key: 'tipo', label: 'Tipo', hideBelow: 740, render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                    { key: 'saldo', label: 'Saldo inicial', hideBelow: 620, render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
+                  ]}
+                  rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
+                  emptyMessage="Nenhuma conta cadastrada."
+                  footer={(
+                    <div className="financial-widget-totalizer">
+                      <p><span>Registros</span><strong>{contasFinanceirasWidgetRows.length}</strong></p>
+                      <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
+                    </div>
+                  )}
+                />
+                <SectionCard
+                  className="financial-section-card"
+                  title="Categorias financeiras"
+                  actions={(
+                    <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
+                  )}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
+                      <div className="space-y-2">
+                        {receitasPorCategoriaResumo.map(([categoria, total]) => (
+                          <div key={`cat-income-${categoria}`}>
+                            <div className="flex justify-between text-xs text-slate-600 mb-1">
+                              <span>{categoria}</span><span>{formatMoney(total)}</span>
+                            </div>
+                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                              <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
-                <div className="space-y-2">
-                  {despesasPorCategoriaResumo.map(([categoria, total]) => (
-                    <div key={`cat-expense-${categoria}`}>
-                      <div className="flex justify-between text-xs text-slate-600 mb-1">
-                        <span>{categoria}</span><span>{formatMoney(total)}</span>
-                      </div>
-                      <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                        <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                    <div>
+                      <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
+                      <div className="space-y-2">
+                        {despesasPorCategoriaResumo.map(([categoria, total]) => (
+                          <div key={`cat-expense-${categoria}`}>
+                            <div className="flex justify-between text-xs text-slate-600 mb-1">
+                              <span>{categoria}</span><span>{formatMoney(total)}</span>
+                            </div>
+                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                              <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
-            <div className="financial-widget-totalizer mt-3">
-              <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
-              <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
-            </div>
-          </SectionCard>
-          )}
-        />
+                  </div>
+                  <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
+                  <div className="financial-widget-totalizer mt-3">
+                    <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
+                    <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
+                  </div>
+                </SectionCard>
+              </DataColumns>
+            </DataSection>
 
-        <DualContentRow
-          left={(
-            <FinancialTableSectionCard
-              title="Despesas recorrentes"
-              addAriaLabel="Adicionar despesa recorrente"
-              onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
-              onToggleFilter={() => toggleWidgetFilter('recorrencias')}
-              isFilterOpen={openWidgetFilter === 'recorrencias'}
-              filterAriaLabel="Filtrar recorrências"
-              filterDropdown={renderWidgetFilterDropdown(
-                <>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Periodicidade</span>
-                    <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
-                      <option value="all">Todas</option>
-                      <option value="mensal">Mensal</option>
-                      <option value="semanal">Semanal</option>
-                    </select>
-                  </label>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Categoria</span>
-                    <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
-                      <option value="all">Todas</option>
-                      {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
-                    </select>
-                  </label>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Status</span>
-                    <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
-                      <option value="all">Todos</option>
-                      <option value="pendente">Pendente</option>
-                      <option value="pago">Pago</option>
-                    </select>
-                  </label>
-                </>
-              )}
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
-                { key: 'categoria', label: 'Categoria', hideBelow: 840, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', hideBelow: 700, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
-                {
-                  key: 'acoes',
-                  label: 'Ações',
-                  sortable: false,
-                  render: (row) => (
-                    <div className="financial-row-actions">
-                      {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
-                      <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
-                      <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
+            <DataSection
+              title="Planejamento e recorrência"
+              description="Seções de dados detalhados com variação de 1, 2 ou 3 colunas para reaproveitar em qualquer contexto."
+            >
+              <DataColumns columns={2}>
+                <FinancialTableSectionCard
+                  title="Despesas recorrentes"
+                  addAriaLabel="Adicionar despesa recorrente"
+                  onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
+                  onToggleFilter={() => toggleWidgetFilter('recorrencias')}
+                  isFilterOpen={openWidgetFilter === 'recorrencias'}
+                  filterAriaLabel="Filtrar recorrências"
+                  filterDropdown={renderWidgetFilterDropdown(
+                    <>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Periodicidade</span>
+                        <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
+                          <option value="all">Todas</option>
+                          <option value="mensal">Mensal</option>
+                          <option value="semanal">Semanal</option>
+                        </select>
+                      </label>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Categoria</span>
+                        <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
+                          <option value="all">Todas</option>
+                          {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
+                        </select>
+                      </label>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Status</span>
+                        <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
+                          <option value="all">Todos</option>
+                          <option value="pendente">Pendente</option>
+                          <option value="pago">Pago</option>
+                        </select>
+                      </label>
+                    </>
+                  )}
+                  columns={[
+                    { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                    { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                    { key: 'categoria', label: 'Categoria', hideBelow: 840, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                    { key: 'valor', label: 'Valor', hideBelow: 700, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                    { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                    {
+                      key: 'acoes',
+                      label: 'Ações',
+                      sortable: false,
+                      render: (row) => (
+                        <div className="financial-row-actions">
+                          {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
+                          <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
+                          <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
+                        </div>
+                      )
+                    }
+                  ]}
+                  rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+                  emptyMessage="Nenhuma despesa recorrente cadastrada."
+                  footer={(
+                    <div className="financial-widget-totalizer">
+                      <p><span>Registros</span><strong>{recurringWidgetRows.length}</strong></p>
+                      <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
                     </div>
-                  )
-                }
-              ]}
-              rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma despesa recorrente cadastrada."
-              footer={(
-                <div className="financial-widget-totalizer">
-                  <p><span>Registros</span><strong>{recurringWidgetRows.length}</strong></p>
-                  <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
-                </div>
-              )}
-            />
-          )}
-          right={(
-            <FinancialTableSectionCard
-              title="Previsões de custos"
-              addAriaLabel="Adicionar previsão de custo"
-              onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
-              onToggleFilter={() => toggleWidgetFilter('previsoes')}
-              isFilterOpen={openWidgetFilter === 'previsoes'}
-              filterAriaLabel="Filtrar previsões"
-              filterDropdown={renderWidgetFilterDropdown(
-                <>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Período</span>
-                    <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
-                      <option value="all">Todos</option>
-                      {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
-                    </select>
-                  </label>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Comprometido</span>
-                    <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
-                      <option value="all">Todos</option>
-                      <option value="sim">Sim</option>
-                      <option value="nao">Não</option>
-                    </select>
-                  </label>
-                </>
-              )}
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', hideBelow: 740, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'comprometido', label: 'Comprometido no período', hideBelow: 620, render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
-                {
-                  key: 'acoes',
-                  label: 'Ações',
-                  sortable: false,
-                  render: (row) => (
-                    <div className="financial-row-actions">
-                      {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
-                      <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
-                      <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                  )}
+                />
+                <FinancialTableSectionCard
+                  title="Previsões de custos"
+                  addAriaLabel="Adicionar previsão de custo"
+                  onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
+                  onToggleFilter={() => toggleWidgetFilter('previsoes')}
+                  isFilterOpen={openWidgetFilter === 'previsoes'}
+                  filterAriaLabel="Filtrar previsões"
+                  filterDropdown={renderWidgetFilterDropdown(
+                    <>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Período</span>
+                        <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
+                          <option value="all">Todos</option>
+                          {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
+                        </select>
+                      </label>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Comprometido</span>
+                        <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
+                          <option value="all">Todos</option>
+                          <option value="sim">Sim</option>
+                          <option value="nao">Não</option>
+                        </select>
+                      </label>
+                    </>
+                  )}
+                  columns={[
+                    { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                    { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                    { key: 'valor', label: 'Valor previsto', hideBelow: 740, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                    { key: 'comprometido', label: 'Comprometido no período', hideBelow: 620, render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                    {
+                      key: 'acoes',
+                      label: 'Ações',
+                      sortable: false,
+                      render: (row) => (
+                        <div className="financial-row-actions">
+                          {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
+                          <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
+                          <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                        </div>
+                      )
+                    }
+                  ]}
+                  rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+                  emptyMessage="Nenhuma previsão cadastrada."
+                  footer={(
+                    <div className="financial-widget-totalizer">
+                      <p><span>Registros</span><strong>{forecastWidgetRows.length}</strong></p>
+                      <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
                     </div>
-                  )
-                }
-              ]}
-              rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma previsão cadastrada."
-              footer={(
-                <div className="financial-widget-totalizer">
-                  <p><span>Registros</span><strong>{forecastWidgetRows.length}</strong></p>
-                  <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
-                </div>
-              )}
-            />
-          )}
-        />
+                  )}
+                />
+              </DataColumns>
+            </DataSection>
+          </FinancialSectionColumns>
+        </FinancialPageSection>
 
         {isAccountModalOpen || isAccountsEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }}>
@@ -3896,8 +3721,11 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <DualContentRow
-          left={(
+        <DataSection
+          title="Contas a receber e pagar"
+          description="Grade de dados detalhados parametrizada em duas colunas, reaproveitável em outros módulos."
+        >
+          <DataColumns columns={2}>
             <FinancialTablePanelCard
               title="Contas a receber"
               onAdd={() => openFinancialCreate('entrada')}
@@ -3939,8 +3767,6 @@ function DashboardApp({
               footerClassName="text-emerald-700"
               footerValue={formatMoney(contasReceberWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
-          )}
-          right={(
             <FinancialTablePanelCard
               title="Contas a pagar"
               onAdd={() => openFinancialCreate('saida')}
@@ -3982,15 +3808,21 @@ function DashboardApp({
               footerClassName="text-rose-700"
               footerValue={formatMoney(contasPagarWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
-          )}
-        />
+          </DataColumns>
+        </DataSection>
 
-        <SectionCard
-          className="financial-section-card"
-          title="Lançamentos"
-          actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
+        <DataSection
+          title="Lançamentos financeiros"
+          description="Exemplo de seção em uma coluna para histórico completo e ações rápidas."
         >
-          <DataTable
+          <DataColumns columns={1}>
+            <div ref={financialLaunchesSectionRef}>
+              <SectionCard
+                className="financial-section-card"
+                title="Lançamentos"
+                actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
+              >
+                <DataTable
             columns={[
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
@@ -4023,8 +3855,11 @@ function DashboardApp({
               { label: 'Registros', value: financialLaunches.length },
               { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
             ]}
-          />
-        </SectionCard>
+                />
+              </SectionCard>
+            </div>
+          </DataColumns>
+        </DataSection>
 
         {isFinancialFormOpen ? (
           <div className="finance-overlay" onClick={closeFinancialForm}>
