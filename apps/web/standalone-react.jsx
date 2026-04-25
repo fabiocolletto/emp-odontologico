@@ -1699,6 +1699,7 @@ function DashboardApp({
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
   const quickLinksSnapTimeoutRef = useRef(null);
+  const financialLaunchesSectionRef = useRef(null);
   const [isSidebarDrawerOpen, setIsSidebarDrawerOpen] = useState(false);
 
   const formatDateTime = (value) => {
@@ -1748,6 +1749,37 @@ function DashboardApp({
   const closeFinancialForm = () => {
     setFinancialDraft(emptyFinancialDraft());
     setIsFinancialFormOpen(false);
+  };
+
+  const focusFinancialLaunches = (tipo) => {
+    setWidgetFilters((current) => ({
+      ...current,
+      contasReceber: { ...current.contasReceber, status: 'all' },
+      contasPagar: { ...current.contasPagar, status: 'all' }
+    }));
+    requestAnimationFrame(() => {
+      financialLaunchesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    if (tipo === 'entrada') {
+      setConfirmationDialog({
+        isOpen: true,
+        title: 'Receitas em foco',
+        message: 'Use as ações da tabela para dar baixa, editar ou cancelar receitas.',
+        confirmLabel: 'OK',
+        tone: 'info',
+        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
+      });
+    }
+    if (tipo === 'saida') {
+      setConfirmationDialog({
+        isOpen: true,
+        title: 'Despesas em foco',
+        message: 'Use as ações da tabela para pagar, editar ou cancelar despesas.',
+        confirmLabel: 'OK',
+        tone: 'info',
+        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
+      });
+    }
   };
 
   const handleFinancialDraftChange = (field, value) => {
@@ -3314,16 +3346,89 @@ function DashboardApp({
     }
 
     const summary = summarizeFinancialData(financialLaunches);
-    const kpis = [
-      { label: 'Receita recebida', value: formatMoney(summary.receitaRecebida), trend: '+18,6%', tone: 'text-emerald-600', sparkColor: '#16a34a', sparkPoints: [62], sparkVariant: 'donut' },
-      { label: 'Despesas pagas', value: formatMoney(summary.despesasPagas), trend: '+9,4%', tone: 'text-rose-600', sparkColor: '#dc2626', sparkPoints: [44], sparkVariant: 'donut' },
-      { label: 'Resultado líquido', value: formatMoney(summary.resultadoLiquido), trend: '+28,7%', tone: 'text-sky-600', sparkColor: '#2563eb', sparkPoints: [71], sparkVariant: 'donut' },
-      { label: 'A receber', value: formatMoney(summary.aReceber), trend: '-5,2%', tone: 'text-amber-600', sparkColor: '#d97706', sparkPoints: [35], sparkVariant: 'donut' },
-      { label: 'Ticket médio', value: formatMoney(summary.ticketMedio), trend: '+12,3%', tone: 'text-sky-600', sparkColor: '#0ea5e9', sparkPoints: [8, 8.4, 8.1, 9, 9.4, 9.7, 10, 10.2], sparkVariant: 'bar' },
-      { label: 'Inadimplência', value: `${summary.inadimplencia.toFixed(1).replace('.', ',')}%`, trend: '+2,1%', tone: 'text-rose-600', sparkColor: '#e11d48', sparkPoints: [2, 2.1, 2.3, 2.4, 2.2, 2.5, 2.6, 2.7], sparkVariant: 'bar' }
-    ];
     const contasReceber = financialLaunches.filter((item) => item.tipo === 'entrada');
     const contasPagar = financialLaunches.filter((item) => item.tipo === 'saida');
+    const totalReceitas = contasReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const totalDespesas = contasPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const receitasConfirmadas = contasReceber.filter((item) => isFinancialLaunchConfirmed(item));
+    const despesasConfirmadas = contasPagar.filter((item) => isFinancialLaunchConfirmed(item));
+    const receitaRecebidaTotal = receitasConfirmadas.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const despesaPagaTotal = despesasConfirmadas.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const receitaAbertaTotal = Math.max(totalReceitas - receitaRecebidaTotal, 0);
+    const despesaAbertaTotal = Math.max(totalDespesas - despesaPagaTotal, 0);
+    const receiptRatio = totalReceitas > 0 ? (receitaRecebidaTotal / totalReceitas) : 0;
+    const expenseRatio = totalDespesas > 0 ? (despesaPagaTotal / totalDespesas) : 0;
+    const reconciliationRatio = totalDespesas > 0 ? Math.min(receitaRecebidaTotal / totalDespesas, 1) : 1;
+    const visibleTimelineRows = isMobileViewport ? 4 : 6;
+    const getTimelineFromLaunches = (launches) => {
+      const monthMap = launches.reduce((acc, item) => {
+        const source = item.data_pagamento || item.data_competencia || item.data_vencimento;
+        if (!source || !/^\d{4}-\d{2}/.test(source)) return acc;
+        const monthKey = source.slice(0, 7);
+        acc[monthKey] = (acc[monthKey] || 0) + Number(item.valor || 0);
+        return acc;
+      }, {});
+      return Object.entries(monthMap)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-6)
+        .map(([month, total]) => ({ month: month.slice(5).replace('-', '/'), total }));
+    };
+    const receitasTimeline = getTimelineFromLaunches(contasReceber);
+    const despesasTimeline = getTimelineFromLaunches(contasPagar);
+    const conciliacaoTimeline = receitasTimeline.map((entry, index) => ({
+      month: entry.month,
+      total: Math.max(entry.total - Number(despesasTimeline[index]?.total || 0), 0)
+    }));
+    const conciliationStatus = (() => {
+      const diff = receitaRecebidaTotal - despesaPagaTotal;
+      if (diff >= 0) return { label: 'Superávit', tone: 'text-emerald-600', description: 'Fluxo positivo no período' };
+      if (Math.abs(diff) <= totalDespesas * 0.1) return { label: 'Atenção', tone: 'text-amber-600', description: 'Margem curta para despesas' };
+      return { label: 'Risco', tone: 'text-rose-600', description: 'Despesas superam recebimentos' };
+    })();
+    const financialHeroWidgets = [
+      {
+        key: 'receitas',
+        toneClass: 'financial-hero-widget--receitas',
+        title: 'Receitas consolidadas',
+        primary: formatMoney(receitaRecebidaTotal),
+        secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
+        ratio: receiptRatio,
+        ratioLabel: `${(receiptRatio * 100).toFixed(0)}% recebido`,
+        timeline: receitasTimeline,
+        timelineLabel: 'Volume por mês',
+        actionLabel: 'Foco receitas',
+        actionAria: 'Abrir lista de receitas para trabalhar o conjunto de dados',
+        onAction: () => focusFinancialLaunches('entrada')
+      },
+      {
+        key: 'despesas',
+        toneClass: 'financial-hero-widget--despesas',
+        title: 'Despesas consolidadas',
+        primary: formatMoney(despesaPagaTotal),
+        secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
+        ratio: expenseRatio,
+        ratioLabel: `${(expenseRatio * 100).toFixed(0)}% quitado`,
+        timeline: despesasTimeline,
+        timelineLabel: 'Saídas por mês',
+        actionLabel: 'Foco despesas',
+        actionAria: 'Abrir lista de despesas para dar baixa, editar ou excluir',
+        onAction: () => focusFinancialLaunches('saida')
+      },
+      {
+        key: 'conciliacao',
+        toneClass: 'financial-hero-widget--conciliacao',
+        title: 'Conciliação financeira',
+        primary: formatMoney(receitaRecebidaTotal - despesaPagaTotal),
+        secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
+        ratio: reconciliationRatio,
+        ratioLabel: `${(reconciliationRatio * 100).toFixed(0)}% cobertura`,
+        timeline: conciliacaoTimeline,
+        timelineLabel: 'Saldo mensal',
+        actionLabel: 'Conferir lançamentos',
+        actionAria: 'Ir para a lista de lançamentos para conciliação',
+        onAction: () => focusFinancialLaunches('all')
+      }
+    ];
     const contasFinanceirasWidgetRows = financialAccounts.filter((item) => (
       widgetFilters.contasFinanceiras.tipo === 'all'
       || item.tipo === widgetFilters.contasFinanceiras.tipo
@@ -3442,20 +3547,46 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <section className="financial-kpi-row" aria-label="KPIs financeiros">
-          {kpis.map((kpi) => (
-            <StatCard
-              key={kpi.label}
-              className="financial-kpi-row__card"
-              label={kpi.label}
-              value={kpi.value}
-              trend={`${kpi.trend} vs mês anterior`}
-              trendTone={kpi.tone}
-              sparkPoints={kpi.sparkPoints}
-              sparkColor={kpi.sparkColor}
-              sparkVariant={kpi.sparkVariant}
-            />
-          ))}
+        <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
+          {financialHeroWidgets.map((widget) => {
+            const timelineMax = Math.max(...widget.timeline.map((entry) => entry.total), 1);
+            return (
+              <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
+                <div className="financial-hero-widget__header">
+                  <div>
+                    <p className="financial-hero-widget__eyebrow">{widget.title}</p>
+                    <p className="financial-hero-widget__value">{widget.primary}</p>
+                    <p className="financial-hero-widget__caption">{widget.secondary}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="financial-hero-widget__focus-btn"
+                    onClick={widget.onAction}
+                    aria-label={widget.actionAria}
+                    title={widget.actionLabel}
+                  >
+                    <AppIcon name="search" size={13} />
+                    <span>{widget.actionLabel}</span>
+                  </button>
+                </div>
+                <div className="financial-hero-widget__body">
+                  <div className="financial-donut" style={{ '--progress': `${Math.round(widget.ratio * 360)}deg` }}>
+                    <span>{widget.ratioLabel}</span>
+                  </div>
+                  <div className="financial-timeline" aria-label={widget.timelineLabel}>
+                    {widget.timeline.slice(-visibleTimelineRows).map((entry) => (
+                      <div key={`${widget.key}-${entry.month}`} className="financial-timeline__row">
+                        <span>{entry.month}</span>
+                        <div className="financial-timeline__track">
+                          <div className="financial-timeline__bar" style={{ width: `${Math.max(8, (entry.total / timelineMax) * 100)}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </section>
 
         <DualContentRow
@@ -3985,12 +4116,13 @@ function DashboardApp({
           )}
         />
 
-        <SectionCard
-          className="financial-section-card"
-          title="Lançamentos"
-          actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
-        >
-          <DataTable
+        <div ref={financialLaunchesSectionRef}>
+          <SectionCard
+            className="financial-section-card"
+            title="Lançamentos"
+            actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
+          >
+            <DataTable
             columns={[
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
@@ -4023,8 +4155,9 @@ function DashboardApp({
               { label: 'Registros', value: financialLaunches.length },
               { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
             ]}
-          />
-        </SectionCard>
+            />
+          </SectionCard>
+        </div>
 
         {isFinancialFormOpen ? (
           <div className="finance-overlay" onClick={closeFinancialForm}>
