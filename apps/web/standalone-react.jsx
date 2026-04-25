@@ -6,8 +6,6 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '1.0.0';
-const CHANGELOG_PATH = './CHANGELOG.md';
 const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
 const AUTH_NOTICE_TIMEOUT_MS = 5000;
 const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
@@ -242,6 +240,12 @@ const AddRecordButton = ({
     onClick={onClick}
   />
 );
+
+const {
+  AuthEntryModal,
+  getFirstAccessCompleted,
+  setFirstAccessCompleted
+} = globalThis.OdontoFlowAuthEntry || {};
 
 const SearchToggleButton = ({ isOpen, onClick }) => (
   <HeaderActionButton
@@ -722,26 +726,6 @@ const BioHeader = ({
 
 
 const CSV_PATH = './backend/supabase/sample-data';
-
-const parseLatestReleaseFromChangelog = (markdownText) => {
-  const normalizedText = String(markdownText || '');
-  const releaseMatch = normalizedText.match(/^##\s+v(\d+\.\d+\.\d+)\s*-\s*(\d{4}-\d{2}-\d{2})/m);
-
-  if (!releaseMatch) {
-    return {
-      version: APP_VERSION_FALLBACK,
-      date: '',
-      notes: []
-    };
-  }
-
-  const [, version, date] = releaseMatch;
-  const releaseStart = releaseMatch.index ?? 0;
-  const releaseBody = normalizedText.slice(releaseStart).split('\n## ')[0];
-  const notes = Array.from(releaseBody.matchAll(/^- (.+)$/gm)).map((item) => item[1]).slice(0, 3);
-
-  return { version, date, notes };
-};
 
 const parseCsv = (csvText) => {
   const [headersLine, ...lines] = csvText.trim().split('\n');
@@ -1711,11 +1695,6 @@ function DashboardApp({
     const isLandscape = window.innerWidth > window.innerHeight;
     return isDesktop || (isTablet && isLandscape);
   });
-  const [releaseInfo, setReleaseInfo] = useState({
-    version: APP_VERSION_FALLBACK,
-    date: '',
-    notes: []
-  });
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
@@ -2511,7 +2490,7 @@ function DashboardApp({
     : appointmentsPagination.items;
 
   useEffect(() => {
-    const t = setTimeout(() => setView('landing'), 700);
+    const t = setTimeout(() => setView('dashboard'), 700);
 
     let mounted = true;
     loadClinicDataset()
@@ -2722,33 +2701,6 @@ function DashboardApp({
     return () => observer.disconnect();
   }, [activeTab, isMobileViewport, appointmentsPagination.totalPages, filteredAppointments.length]);
 
-  useEffect(() => {
-    let active = true;
-
-    const loadReleaseInfo = async () => {
-      try {
-        const response = await fetch(CHANGELOG_PATH, { cache: 'no-store' });
-        if (!response.ok) throw new Error('changelog-unavailable');
-        const markdown = await response.text();
-        if (!active) return;
-        setReleaseInfo(parseLatestReleaseFromChangelog(markdown));
-      } catch {
-        if (!active) return;
-        setReleaseInfo({
-          version: APP_VERSION_FALLBACK,
-          date: '',
-          notes: []
-        });
-      }
-    };
-
-    loadReleaseInfo();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
   useEffect(() => () => {
     if (quickLinksSnapTimeoutRef.current) {
       clearTimeout(quickLinksSnapTimeoutRef.current);
@@ -2761,43 +2713,6 @@ function DashboardApp({
         <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
         <div className="ui-badge">Inicializando</div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
-      </div>
-    );
-  }
-
-  if (view === 'landing') {
-    return (
-      <div className="app-viewport flex flex-col items-center justify-between p-10 py-24 text-center">
-        <div className="space-y-8">
-          <div className="w-20 h-20 bg-sky-700 rounded-2xl flex items-center justify-center text-white shadow-2xl mx-auto text-3xl">🦷</div>
-          <div className="space-y-3">
-            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tighter leading-none italic">
-              Odonto<span className="text-sky-700 font-bold not-italic">Flow</span>
-            </h1>
-            <p className="text-slate-400 text-lg md:text-2xl font-medium leading-snug tracking-tight italic">
-              Design Consistente. <span className="text-slate-900 font-semibold not-italic">Gestão Ágil.</span>
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-center gap-4">
-          <button
-            onClick={() => setView('dashboard')}
-            className="btn btn--primary btn--lg landing-cta"
-          >
-            Acessar Unidade
-          </button>
-          <span
-            className="ui-badge"
-            aria-label={`Versão V${releaseInfo.version}`}
-          >
-            V{releaseInfo.version}
-          </span>
-          {releaseInfo.date ? (
-            <p className="text-[10px] font-semibold text-slate-400">
-              Atualizado em {releaseInfo.date}
-            </p>
-          ) : null}
-        </div>
       </div>
     );
   }
@@ -4554,6 +4469,16 @@ function AuthGateApp() {
   const [authMessage, setAuthMessage] = useState('');
   const [authError, setAuthError] = useState('');
   const [showSupabaseConfigNotice, setShowSupabaseConfigNotice] = useState(true);
+  const [isFirstAccessCompleted, setIsFirstAccessCompleted] = useState(false);
+
+  useEffect(() => {
+    setIsFirstAccessCompleted(Boolean(getFirstAccessCompleted?.()));
+  }, []);
+
+  const markFirstAccessCompleted = () => {
+    setFirstAccessCompleted?.();
+    setIsFirstAccessCompleted(true);
+  };
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -4568,8 +4493,11 @@ function AuthGateApp() {
       setLoading(false);
     });
 
-    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, currentSession) => {
+    const { data: listener } = supabaseClient.auth.onAuthStateChange((event, currentSession) => {
       setSession(currentSession || null);
+      if (event === 'SIGNED_IN') {
+        markFirstAccessCompleted();
+      }
     });
 
     return () => {
@@ -4598,51 +4526,25 @@ function AuthGateApp() {
     return () => clearTimeout(timer);
   }, [supabaseClient]);
 
-  const submitCredentials = async (event) => {
-    event.preventDefault();
-    setAuthError('');
-    setAuthMessage('');
-
-    if (!supabaseClient) return;
-    if (!email || !password) {
-      setAuthError('Informe e-mail e senha para continuar.');
-      return;
-    }
-
-    if (mode === 'signup') {
-      const { error } = await supabaseClient.auth.signUp({ email, password });
-      if (error) {
-        setAuthError(error.message || 'Não foi possível criar sua conta.');
-        return;
-      }
-      setAuthMessage('Conta criada. Verifique seu e-mail para confirmar o cadastro, se aplicável.');
-      return;
-    }
-
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) {
-      setAuthError(error.message || 'Falha ao entrar com e-mail e senha.');
-      return;
-    }
-    setAuthMessage('Login realizado com sucesso.');
+  const onSignUp = ({ email: signupEmail, password: signupPassword }) => {
+    if (!supabaseClient) return Promise.resolve({ data: null, error: null });
+    return supabaseClient.auth.signUp({ email: signupEmail, password: signupPassword });
   };
 
-  const loginWithGoogle = async () => {
-    setAuthError('');
-    setAuthMessage('');
-    if (!supabaseClient) return;
+  const onSignIn = ({ email: signinEmail, password: signinPassword }) => {
+    if (!supabaseClient) return Promise.resolve({ data: null, error: null });
+    return supabaseClient.auth.signInWithPassword({ email: signinEmail, password: signinPassword });
+  };
 
-    const { error } = await supabaseClient.auth.signInWithOAuth({
+  const onGoogle = () => {
+    if (!supabaseClient) return Promise.resolve({ data: null, error: null });
+    return supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + window.location.pathname,
         queryParams: { prompt: 'select_account' }
       }
     });
-
-    if (error) {
-      setAuthError(error.message || 'Falha ao iniciar login com Google.');
-    }
   };
 
   if (loading) {
@@ -4669,67 +4571,44 @@ function AuthGateApp() {
     );
   }
 
-  if (!session?.user) {
-    return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="ui-card w-full max-w-md space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
-            <h1 className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
-            <p className="text-sm text-slate-600 mt-1">Crie sua conta e acesse quando quiser, inclusive com Google.</p>
-          </div>
-
-          <form onSubmit={submitCredentials} className="space-y-3">
-            <input
-              type="email"
-              className="ui-input w-full"
-              placeholder="seuemail@clinica.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-            <input
-              type="password"
-              className="ui-input w-full"
-              placeholder="Sua senha"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-            <button type="submit" className="btn btn--primary w-full">
-              {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
-            </button>
-          </form>
-
-          <button type="button" onClick={loginWithGoogle} className="btn btn--ghost w-full">
-            Continuar com Google
-          </button>
-
-          <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => setMode((prev) => (prev === 'signup' ? 'signin' : 'signup'))}>
-            {mode === 'signup' ? 'Já tenho conta, quero entrar' : 'Não tenho conta, quero me cadastrar'}
-          </button>
-
-          <TransientNotice
-            visible={Boolean(authMessage)}
-            tone="success"
-            message={authMessage}
-            onClose={() => setAuthMessage('')}
-          />
-          <TransientNotice
-            visible={Boolean(authError)}
-            tone="error"
-            message={authError}
-            onClose={() => setAuthError('')}
-          />
-        </div>
-      </div>
-    );
-  }
+  const isAuthenticated = Boolean(session?.user);
+  const isBlocked = !isAuthenticated || !isFirstAccessCompleted;
 
   return (
-    <DashboardApp
-      authEmail={session.user.email || ''}
-      authUser={session.user}
-      accountService={accountService}
-    />
+    <>
+      <div className={isBlocked ? 'auth-gated-shell' : ''} aria-hidden={isBlocked} inert={isBlocked ? '' : undefined}>
+        <DashboardApp
+          authEmail={session?.user?.email || ''}
+          authUser={session?.user || null}
+          accountService={accountService}
+        />
+      </div>
+
+      {isBlocked ? (
+        <AuthEntryModal
+          mode={mode}
+          email={email}
+          password={password}
+          authMessage={authMessage}
+          authError={authError}
+          isAuthenticated={isAuthenticated}
+          onSetMode={setMode}
+          onSetEmail={setEmail}
+          onSetPassword={setPassword}
+          onSignIn={onSignIn}
+          onSignUp={onSignUp}
+          onGoogle={onGoogle}
+          onSetAuthMessage={setAuthMessage}
+          onSetAuthError={setAuthError}
+          onCloseNotices={() => {
+            setAuthMessage('');
+            setAuthError('');
+          }}
+          onContinueAuthenticated={markFirstAccessCompleted}
+          onAuthSuccess={markFirstAccessCompleted}
+        />
+      ) : null}
+    </>
   );
 }
 
