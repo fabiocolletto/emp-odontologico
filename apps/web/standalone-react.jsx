@@ -2955,21 +2955,29 @@ function DashboardApp({
       />
     );
 
+
+    const PlaceholderSection = ({ title, notes = [] }) => (
+      <DataSection
+        title={title}
+        description="Placeholder padronizado. A implementação detalhada será feita na sprint específica desta tela."
+      >
+        <div className="ui-card border border-slate-200 bg-white/85 rounded-2xl p-4 space-y-2">
+          {notes.map((note) => (
+            <p key={note} className="text-sm text-slate-600">• {note}</p>
+          ))}
+        </div>
+      </DataSection>
+    );
+
     if (activeTab === 'overview') {
       return (
         <div className="space-y-6">
-          {renderN1Header({
-            icon: 'home',
-            title: 'Início',
-            subtitle: 'Dashboard principal e visão consolidada',
-            actions: []
-          })}
-          <ContentGrid columns="3">
-            <StatCard label="Pacientes ativos" value={String(sortedPatients.length)} trend="+6,2% no mês" trendTone="text-emerald-600" />
-            <StatCard label="Atendimentos do dia" value={String(filteredAppointments.length)} trend="Agenda atualizada" trendTone="text-sky-600" />
-            <StatCard label="Módulos monitorados" value="5" trend="Shell unificado" trendTone="text-indigo-600" />
-          </ContentGrid>
-          <InsightCard text="Esta é a tela de nível 0 consolidada com o novo design system global do OdontoFlow." />
+          {renderN1Header({ icon: 'home', title: 'Início', subtitle: 'Dashboard principal e visão consolidada', actions: [] })}
+          <DataColumns columns={3}>
+            <PlaceholderSection title="Seção 1 · Resumo operacional" notes={['Modelo padrão existente: DataSection + DataColumns + KpiGridRow.', 'Implantação posterior ao trabalhar a tela Início.']} />
+            <PlaceholderSection title="Seção 2 · Agenda e alertas" notes={['Modelo padrão existente: cards + tabelas compactas.', 'Definição de conteúdo ficará para sprint da tela Início.']} />
+            <PlaceholderSection title="Seção 3 · Atalhos estratégicos" notes={['Modelo padrão existente: actions header + widgets.', 'Conteúdo será definido na fase de detalhamento funcional.']} />
+          </DataColumns>
         </div>
       );
     }
@@ -2977,385 +2985,36 @@ function DashboardApp({
     if (activeTab === 'agenda') {
       return (
         <div className="space-y-6">
-          {renderN1Header({
-            icon: 'calendar',
-            title: 'Agenda',
-            subtitle: 'Planejamento de atendimentos e compromissos',
-            actions: []
-          })}
-          <PanelCard title="Agenda (nível 1)">
-            <p className="text-sm text-slate-600">
-              Esta tela representa a Agenda no nível 1, ao lado de Pacientes, Financeiro e Perfil, já usando a mesma base visual global.
-            </p>
-          </PanelCard>
-          <ContentGrid columns="2">
-            <PanelCard title="Próximos atendimentos">
-              <DataTable
-                columns={[
-                  { key: 'paciente', label: 'Paciente', render: (row) => <span className="text-slate-700 font-semibold">{row.name}</span> },
-                  { key: 'hora', label: 'Hora', render: (row) => <span className="text-slate-500">{row.time}</span> },
-                  { key: 'procedimento', label: 'Procedimento', render: (row) => <span className="text-slate-500">{row.procedure}</span> }
-                ]}
-                rows={visibleAppointments.map((item) => ({ key: `appt-${item.id}`, ...item }))}
-                emptyMessage="Sem atendimentos para o período."
-              />
-            </PanelCard>
-            <AlertCard text="Use o módulo Agenda para organizar horários, encaixes e confirmações de consulta." />
-          </ContentGrid>
+          {renderN1Header({ icon: 'calendar', title: 'Agenda', subtitle: 'Planejamento de atendimentos e compromissos', actions: [] })}
+          <DataColumns columns={2}>
+            <PlaceholderSection title="Seção 1 · Grade de horários" notes={['Modelo padrão existente: DataSection + DataColumns(2).', 'Implantação posterior para regras de bloqueio, encaixe e conflito.']} />
+            <PlaceholderSection title="Seção 2 · Filtros e status" notes={['Modelo padrão existente: filtros por coluna e badges.', 'Conteúdo e colunas serão definidos na sprint da Agenda.']} />
+          </DataColumns>
         </div>
       );
     }
 
-
     if (activeTab === 'patients') {
       return (
-        <div className="space-y-6 patients-sections">
-          {renderN1Header({
-            icon: 'users',
-            title: 'Cadastro de Paciente',
-            subtitle: 'Gerencie cadastros e encontre informações rapidamente',
-            actions: []
-          })}
-          <div className={`page-header ${isMobileViewport ? 'page-header--desktop-only' : ''} ${!isWideNavigation ? 'page-header--compact-nav' : ''}`}>
-            <Toolbar>
-              <AddRecordButton
-                label="Novo paciente"
-                ariaLabel="Cadastrar novo paciente"
-                onClick={openCreatePatientN2}
-              />
-              <SearchToggleButton
-                isOpen={isPatientsSearchVisible}
-                onClick={() => setIsPatientsSearchVisible((prev) => !prev)}
-              />
-              <SortToggleButton onClick={() => setIsPatientsSortLevelOpen(true)} />
-              <MultiToggleButton
-                isActive={isPatientsMultiMode}
-                onClick={() => {
-                  setIsPatientsMultiMode((prev) => {
-                    if (prev) setSelectedPatientIds([]);
-                    return !prev;
-                  });
-                }}
-              />
-            </Toolbar>
-          </div>
-          <TransientNotice
-            visible={showPatientHint && !formFeedback}
-            message="Clique em um paciente para abrir a tela N2 com os dados completos."
-            onClose={() => setShowPatientHint(false)}
-          />
-          <TransientNotice
-            visible={Boolean(formFeedback)}
-            message={formFeedback}
-            tone="info"
-            onClose={() => setFormFeedback('')}
-          />
-          {isPatientsSearchVisible ? (
-            <div className="patients-search-section">
-              <div className="search-row">
-                <input
-                  className="search-input search-input--compact ui-search"
-                  placeholder="Pesquisar pacientes por qualquer campo (nome, telefone, plano, e-mail...)"
-                  value={patientsQuery}
-                  onChange={(e) => setPatientsQuery(e.target.value)}
-                />
-              </div>
-              <p className="search-legend">{sortedPatients.length} registro(s) exibido(s)</p>
-            </div>
-          ) : null}
-          {isPatientsSortLevelOpen ? (
-            <div className="selector-level">
-              <button className="selector-level__backdrop" type="button" aria-label="Fechar nível de filtro" onClick={() => setIsPatientsSortLevelOpen(false)} />
-              <div className="selector-level__card">
-                <div className="selector-level__header">
-                  <p>Nível de ordenação</p>
-                  <button className="btn btn--ghost" type="button" onClick={() => setIsPatientsSortLevelOpen(false)}>Fechar</button>
-                </div>
-                <div className="selector-level__body">
-                  {[
-                    { value: 'name-asc', label: 'Nome (A → Z)' },
-                    { value: 'name-desc', label: 'Nome (Z → A)' },
-                    { value: 'phone-asc', label: 'Telefone' },
-                    { value: 'lastVisit-desc', label: 'Última visita (mais recente)' },
-                    { value: 'lastVisit-asc', label: 'Última visita (mais antiga)' },
-                    { value: 'birth-desc', label: 'Nascimento (mais recente)' },
-                    { value: 'birth-asc', label: 'Nascimento (mais antigo)' },
-                    { value: 'plan-asc', label: 'Plano (A → Z)' }
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={`selector-window__option ${option.value === patientsSort ? 'is-active' : ''}`}
-                      onClick={() => {
-                        setPatientsSort(option.value);
-                        setIsPatientsSortLevelOpen(false);
-                      }}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
-          {isPatientsMultiMode ? (
-            <div className="ui-card flex flex-wrap gap-2 items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500">
-                {selectedPatientIds.length} selecionado(s)
-              </p>
-              <div className="flex gap-2">
-                <button
-                  className="btn btn--ghost"
-                  onClick={() => {
-                    const allVisibleIds = visiblePatients.map((item) => item.id);
-                    const shouldClear = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedPatientIds.includes(id));
-                    setSelectedPatientIds(shouldClear ? [] : allVisibleIds);
-                  }}
-                >
-                  Selecionar todos
-                </button>
-                <button
-                  className="btn btn--danger"
-                  disabled={selectedPatientIds.length === 0}
-                  onClick={() => {
-                    const archiveAt = new Date().toISOString();
-                    setPatients((prev) => prev.map((item) => (
-                      selectedPatientIds.includes(item.id)
-                        ? { ...item, archivedAt: archiveAt }
-                        : item
-                    )));
-                    setSelectedPatientIds([]);
-                    setIsPatientsMultiMode(false);
-                  }}
-                >
-                  Arquivar selecionados
-                </button>
-              </div>
-            </div>
-          ) : null}
-          <div className="patients-data-section">
-            <div className="data-grid patients-grid">
-            {visiblePatients.length === 0 ? (
-              <div className="ui-empty-state">
-                <strong>Nenhum paciente encontrado</strong>
-                <span>Altere a pesquisa ou ajuste a ordenação.</span>
-              </div>
-            ) : (
-              visiblePatients.map((p) => (
-                <article key={p.id} className={`ui-card data-card data-card--m patient-card ${selectedPatientIds.includes(p.id) ? 'ring-2 ring-sky-200' : ''}`}>
-                  <button
-                    onClick={() => {
-                      if (isPatientsMultiMode) {
-                        setSelectedPatientIds((prev) => (
-                          prev.includes(p.id)
-                            ? prev.filter((id) => id !== p.id)
-                            : [...prev, p.id]
-                        ));
-                        return;
-                      }
-                      openPatientN2(p);
-                    }}
-                    className="btn btn--icon patient-card__open"
-                    aria-label={isPatientsMultiMode ? `Selecionar ${p.name}` : `Abrir prontuário de ${p.name}`}
-                    title={isPatientsMultiMode ? 'Selecionar paciente' : 'Abrir prontuário N2'}
-                  >
-                    {isPatientsMultiMode
-                      ? (selectedPatientIds.includes(p.id) ? '✓' : '○')
-                      : <AppIcon name="expand" size={16} />}
-                  </button>
-                  <div className="patient-card__header">
-                    <div className="patient-avatar">{getInitials(p.name)}</div>
-                    <div>
-                      <p className="patient-card__name">{p.name}</p>
-                    </div>
-                  </div>
-
-                  <div className="patient-card__grid">
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="phone" size={13} />Telefone</p>
-                      <p className="patient-meta__value">{p.phone}</p>
-                    </div>
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="calendar" size={13} />Última visita</p>
-                      <p className="patient-meta__value">{p.lastVisit}</p>
-                    </div>
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="birth" size={13} />Nascimento</p>
-                      <p className="patient-meta__value">{p.birth}</p>
-                    </div>
-                    <div className="patient-meta">
-                      <p className="patient-meta__label"><AppIcon name="plan" size={13} />Plano</p>
-                      <p className="patient-meta__value">{p.plan}</p>
-                    </div>
-                  </div>
-                </article>
-              ))
-            )}
-            </div>
-          </div>
-          {isMobileViewport ? (
-            <div ref={patientsInfiniteTriggerRef} className="infinite-trigger">
-              {patientsPagination.page < patientsPagination.totalPages
-                ? 'Role para carregar mais pacientes'
-                : 'Todos os pacientes carregados'}
-            </div>
-          ) : (
-            <div className="pagination-row ui-action-bar">
-              <button
-                className="btn btn--pager"
-                onClick={() => setPatientsPage((prev) => Math.max(1, prev - 1))}
-                disabled={patientsPagination.page === 1}
-              >
-                ← Anterior
-              </button>
-              <span className="pagination-label">
-                Página {patientsPagination.page} de {patientsPagination.totalPages}
-              </span>
-              <button
-                className="btn btn--pager"
-                onClick={() => setPatientsPage((prev) => Math.min(patientsPagination.totalPages, prev + 1))}
-                disabled={patientsPagination.page === patientsPagination.totalPages}
-              >
-                Próxima →
-              </button>
-            </div>
-          )}
+        <div className="space-y-6">
+          {renderN1Header({ icon: 'users', title: 'Pacientes', subtitle: 'Gestão do cadastro clínico e prontuário', actions: [] })}
+          <DataColumns columns={3}>
+            <PlaceholderSection title="Seção 1 · Lista de pacientes" notes={['Modelo padrão existente: tabela com ações e paginação.', 'Implantação posterior na sprint de Pacientes.']} />
+            <PlaceholderSection title="Seção 2 · Perfil clínico" notes={['Modelo padrão existente: cards de dados e histórico.', 'Definição de colunas e campos fica para próxima etapa.']} />
+            <PlaceholderSection title="Seção 3 · Ações em lote" notes={['Modelo padrão existente: toolbar + seleção múltipla.', 'Implementação posterior no detalhamento da tela.']} />
+          </DataColumns>
         </div>
       );
     }
 
     if (activeTab === 'profile') {
-      const provider = authUserWidget?.app_metadata?.provider || authUserWidget?.aud || '-';
-      const providers = authUserWidget?.app_metadata?.providers?.join(', ') || provider;
-      const profilePanels = [
-        {
-          id: 'auth',
-          title: 'Widget Auth (Supabase)',
-          subtitle: 'Dados carregados via supabase.auth.getUser().',
-          mobileLabel: 'Dados da conta',
-          icon: 'id-card'
-        },
-        {
-          id: 'security',
-          title: 'Editar conta (Supabase Auth API)',
-          mobileLabel: 'Segurança e sessão',
-          icon: 'settings'
-        },
-        {
-          id: 'public-profile',
-          title: 'Perfil público (tabela public.odf_users)',
-          mobileLabel: 'Perfil público',
-          icon: 'users'
-        },
-        {
-          id: 'clinics',
-          title: 'Clínicas do proprietário (tabela public.odf_clinics)',
-          mobileLabel: 'Clínicas',
-          icon: 'plan'
-        }
-      ];
-
-      const renderAuthSummary = () => (
-        <ProfileFieldGrid
-          items={[
-            { key: 'id', label: 'ID', value: authUserWidget?.id || '-', breakAll: true },
-            { key: 'email', label: 'E-mail', value: authUserWidget?.email || authEmail || '-', breakAll: true },
-            { key: 'provider', label: 'Provedor', value: providers },
-            { key: 'confirmed', label: 'Email confirmado', value: formatDateTime(authUserWidget?.email_confirmed_at) },
-            { key: 'created', label: 'Criado em', value: formatDateTime(authUserWidget?.created_at) },
-            { key: 'last-login', label: 'Último login', value: formatDateTime(authUserWidget?.last_sign_in_at) }
-          ]}
-        />
-      );
-
-      const renderSecurityActions = () => (
-        <>
-          <ProfileFieldGrid
-            items={[
-              { key: 'current-email', label: 'E-mail atual', value: authUserWidget?.email || authEmail || '-', breakAll: true },
-              { key: 'password', label: 'Senha', value: '********' }
-            ]}
-          />
-          <ProfileActionRow
-            actions={[
-              { key: 'edit-account', label: 'Editar', icon: 'edit', onClick: openAccountEditN2, disabled: authActionStatus === 'loading', ariaLabel: 'Editar conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' },
-              ...(accountService?.signOut ? [{ key: 'sign-out', label: 'Sair', icon: 'close', onClick: accountService.signOut, disabled: authActionStatus === 'loading', ariaLabel: 'Desconectar conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--neutral modal-action-btn--icon-first modal-action-btn--uniform' }] : []),
-              ...(accountService?.deleteAuthUser ? [{ key: 'delete-account', label: 'Excluir', icon: 'archive', onClick: handleDeleteAccount, disabled: authActionStatus === 'loading', ariaLabel: 'Excluir conta', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--danger modal-action-btn--icon-first modal-action-btn--uniform' }] : [])
-            ]}
-          />
-          <ProfileFeedbackMessage message={authActionMessage} status={authActionStatus} />
-        </>
-      );
-
-      const renderPublicProfileSummary = () => (
-        <>
-          <ProfileFieldGrid
-            items={[
-              { key: 'full-name', label: 'Nome', value: publicProfileDraft.full_name || '-' },
-              { key: 'email', label: 'E-mail', value: publicProfileDraft.email || '-' },
-              { key: 'phone', label: 'Telefone', value: publicProfileDraft.phone || '-' },
-              { key: 'address', label: 'Endereço', value: publicProfileDraft.address || '-' },
-              { key: 'birth', label: 'Data de nascimento', value: publicProfileDraft.birth_date || '-' }
-            ]}
-          />
-          <ProfileActionRow
-            actions={[
-              { key: 'edit-profile', label: 'Editar', icon: 'edit', onClick: openPublicProfileEditN2, disabled: profileActionStatus === 'loading', ariaLabel: 'Editar perfil público', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' }
-            ]}
-          />
-          <ProfileFeedbackMessage message={profileActionMessage} status={profileActionStatus} />
-        </>
-      );
-
-      const renderClinicsSummary = () => (
-        <>
-          {clinics.length === 0 ? (
-            <div className="ui-empty-state">
-              <strong>Nenhuma clínica encontrada</strong>
-              <span>Ao abrir o editor, uma clínica padrão será criada automaticamente.</span>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {clinics.slice(0, 3).map((clinic) => (
-                <div key={clinic.id} className="ui-list-item text-sm text-slate-700">
-                  <p><strong>{clinic.trade_name}</strong> · {clinic.status}</p>
-                  <p>{clinic.city || '-'} / {clinic.state || '-'}</p>
-                </div>
-              ))}
-              {clinics.length > 3 ? (
-                <p className="text-xs text-slate-500">+{clinics.length - 3} clínica(s) adicional(is).</p>
-              ) : null}
-            </div>
-          )}
-          <ProfileActionRow
-            actions={[
-              { key: 'add-clinic', label: 'Adicionar', icon: 'plus', iconSize: 22, onClick: handleOpenClinicCreateN2, disabled: clinicActionStatus === 'loading', ariaLabel: 'Adicionar clínica', className: 'btn--ghost modal-header__btn modal-action-btn modal-action-btn--info modal-action-btn--icon-first modal-action-btn--uniform' }
-            ]}
-          />
-          <ProfileFeedbackMessage message={clinicActionMessage} status={clinicActionStatus} />
-        </>
-      );
-
-      const renderProfilePanelContent = (panelId) => {
-        if (panelId === 'auth') return renderAuthSummary();
-        if (panelId === 'security') return renderSecurityActions();
-        if (panelId === 'public-profile') return renderPublicProfileSummary();
-        if (panelId === 'clinics') return renderClinicsSummary();
-        return null;
-      };
-
       return (
         <div className="space-y-6">
-          <ScreenHeaderBlock
-            header={renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais' })}
-          />
-          <ProfileResponsivePanels
-            isMobileViewport={isMobileViewport}
-            panels={profilePanels}
-            expandedPanel={expandedProfilePanel}
-            onTogglePanel={(panelId) => setExpandedProfilePanel((current) => (current === panelId ? '' : panelId))}
-            renderPanelContent={renderProfilePanelContent}
-          />
+          {renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais', actions: [] })}
+          <DataColumns columns={2}>
+            <PlaceholderSection title="Seção 1 · Conta e segurança" notes={['Modelo padrão existente: DataSection + formulários padrão.', 'Implantação posterior na sprint da tela Perfil.']} />
+            <PlaceholderSection title="Seção 2 · Preferências e clínicas" notes={['Modelo padrão existente: colunas de dados configuráveis.', 'Conteúdo e contratos serão definidos quando abrirmos a tela Perfil.']} />
+          </DataColumns>
         </div>
       );
     }
@@ -3363,14 +3022,12 @@ function DashboardApp({
     if (activeTab === 'clinic') {
       return (
         <div className="space-y-6">
-          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais' })}
-          <div className="ui-card data-card data-card--g space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Clínica (nível 1)</p>
-            <p className="text-sm text-slate-600">
-              Placeholder da nova tela de Clínica no nível 1. Em breve com visão operacional da unidade,
-              dados institucionais e controles administrativos.
-            </p>
-          </div>
+          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais', actions: [] })}
+          <DataColumns columns={3}>
+            <PlaceholderSection title="Seção 1 · Dados cadastrais" notes={['Modelo padrão existente: seção de dados em 1/2/3 colunas.', 'Implantação posterior com campos de cadastro e validação.']} />
+            <PlaceholderSection title="Seção 2 · Fiscal e contratos" notes={['Modelo padrão existente: tabelas + ações de edição.', 'Regras serão definidas na sprint da tela Clínica.']} />
+            <PlaceholderSection title="Seção 3 · Equipe e unidades" notes={['Modelo padrão existente: cartões e listas reutilizáveis.', 'Implementação posterior conforme roadmap.']} />
+          </DataColumns>
         </div>
       );
     }
