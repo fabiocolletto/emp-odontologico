@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.32 - 2026-04-25
+
+### Changed
+- Mock de dados financeiros foi extraído de `apps/web/standalone-react.jsx` para módulo dedicado em `apps/web/src/data/financial-mocks.js`, melhorando separação de responsabilidades.
+- Runtime principal passou a consumir defaults financeiros via `globalThis.OdontoFlowMockData.financial`, com cópia defensiva para evitar mutação acidental dos dados base.
+- `index.html` atualizado para carregar o script de mocks financeiros antes dos módulos financeiros e do runtime principal, mantendo compatibilidade com deploy estático no GitHub Pages.
+
 ## v1.1.31 - 2026-04-24
 
 ### Changed
