@@ -654,10 +654,18 @@ const FinancialTableAddIconButton = ({ ariaLabel, onClick }) => (
 );
 
 const financialComponentFactories = globalThis.OdontoFlowFinancialComponents || {};
-if (!financialComponentFactories.createFinancialEditAction || !financialComponentFactories.createFinancialTableSectionCard || !financialComponentFactories.createFinancialTablePanelCard) {
+if (
+  !financialComponentFactories.createFinancialEditAction
+  || !financialComponentFactories.createFinancialPageSection
+  || !financialComponentFactories.createFinancialSectionColumns
+  || !financialComponentFactories.createFinancialTableSectionCard
+  || !financialComponentFactories.createFinancialTablePanelCard
+) {
   throw new Error('Módulos financeiros globais não carregados. Verifique os scripts em index.html.');
 }
 const FinancialEditAction = financialComponentFactories.createFinancialEditAction({ ActionButton, AppIcon });
+const FinancialPageSection = financialComponentFactories.createFinancialPageSection();
+const FinancialSectionColumns = financialComponentFactories.createFinancialSectionColumns();
 const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
 const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
 
@@ -3547,51 +3555,65 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
-          {financialHeroWidgets.map((widget) => {
-            const timelineMax = Math.max(...widget.timeline.map((entry) => entry.total), 1);
-            return (
-              <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
-                <div className="financial-hero-widget__header">
-                  <div>
-                    <p className="financial-hero-widget__eyebrow">{widget.title}</p>
-                    <p className="financial-hero-widget__value">{widget.primary}</p>
-                    <p className="financial-hero-widget__caption">{widget.secondary}</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="financial-hero-widget__focus-btn"
-                    onClick={widget.onAction}
-                    aria-label={widget.actionAria}
-                    title={widget.actionLabel}
-                  >
-                    <AppIcon name="search" size={13} />
-                    <span>{widget.actionLabel}</span>
-                  </button>
-                </div>
-                <div className="financial-hero-widget__body">
-                  <div className="financial-donut" style={{ '--progress': `${Math.round(widget.ratio * 360)}deg` }}>
-                    <span>{widget.ratioLabel}</span>
-                  </div>
-                  <div className="financial-timeline" aria-label={widget.timelineLabel}>
-                    {widget.timeline.slice(-visibleTimelineRows).map((entry) => (
-                      <div key={`${widget.key}-${entry.month}`} className="financial-timeline__row">
-                        <span>{entry.month}</span>
-                        <div className="financial-timeline__track">
-                          <div className="financial-timeline__bar" style={{ width: `${Math.max(8, (entry.total / timelineMax) * 100)}%` }} />
-                        </div>
+        <FinancialPageSection
+          eyebrow="Nível 1 · visão consolidada"
+          title="Resumo financeiro estratégico"
+          description="Widgets consolidados para receitas, despesas e conciliação, com foco operacional em poucos cliques."
+        >
+          <FinancialSectionColumns variant="hero">
+            <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
+              {financialHeroWidgets.map((widget) => {
+                const timelineMax = Math.max(...widget.timeline.map((entry) => entry.total), 1);
+                return (
+                  <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
+                    <div className="financial-hero-widget__header">
+                      <div>
+                        <p className="financial-hero-widget__eyebrow">{widget.title}</p>
+                        <p className="financial-hero-widget__value">{widget.primary}</p>
+                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </section>
+                      <button
+                        type="button"
+                        className="financial-hero-widget__focus-btn"
+                        onClick={widget.onAction}
+                        aria-label={widget.actionAria}
+                        title={widget.actionLabel}
+                      >
+                        <AppIcon name="search" size={13} />
+                        <span>{widget.actionLabel}</span>
+                      </button>
+                    </div>
+                    <div className="financial-hero-widget__body">
+                      <div className="financial-donut" style={{ '--progress': `${Math.round(widget.ratio * 360)}deg` }}>
+                        <span>{widget.ratioLabel}</span>
+                      </div>
+                      <div className="financial-timeline" aria-label={widget.timelineLabel}>
+                        {widget.timeline.slice(-visibleTimelineRows).map((entry) => (
+                          <div key={`${widget.key}-${entry.month}`} className="financial-timeline__row">
+                            <span>{entry.month}</span>
+                            <div className="financial-timeline__track">
+                              <div className="financial-timeline__bar" style={{ width: `${Math.max(8, (entry.total / timelineMax) * 100)}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+          </FinancialSectionColumns>
+        </FinancialPageSection>
 
-        <DualContentRow
-          left={(
-            <FinancialTableSectionCard
+        <FinancialPageSection
+          eyebrow="Nível 1 · operação"
+          title="Operação financeira diária"
+          description="Módulos reutilizáveis por seção para contas, categorias e recorrências."
+        >
+          <FinancialSectionColumns>
+            <DualContentRow
+              left={(
+                <FinancialTableSectionCard
               title="Contas financeiras"
               addAriaLabel="Adicionar conta financeira"
               onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
@@ -3622,10 +3644,10 @@ function DashboardApp({
                   <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
                 </div>
               )}
-            />
-          )}
-          right={(
-            <SectionCard
+                />
+              )}
+              right={(
+                <SectionCard
             className="financial-section-card"
             title="Categorias financeiras"
             actions={(
@@ -3669,11 +3691,11 @@ function DashboardApp({
               <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
               <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
             </div>
-          </SectionCard>
-          )}
-        />
+                </SectionCard>
+              )}
+            />
 
-        <DualContentRow
+            <DualContentRow
           left={(
             <FinancialTableSectionCard
               title="Despesas recorrentes"
@@ -3736,10 +3758,10 @@ function DashboardApp({
                   <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
                 </div>
               )}
-            />
-          )}
-          right={(
-            <FinancialTableSectionCard
+                />
+              )}
+              right={(
+                <FinancialTableSectionCard
               title="Previsões de custos"
               addAriaLabel="Adicionar previsão de custo"
               onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
@@ -3791,9 +3813,11 @@ function DashboardApp({
                   <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
                 </div>
               )}
+                />
+              )}
             />
-          )}
-        />
+          </FinancialSectionColumns>
+        </FinancialPageSection>
 
         {isAccountModalOpen || isAccountsEditMode ? (
           <div className="finance-overlay" onClick={() => { setIsAccountModalOpen(false); setIsAccountsEditMode(false); }}>
