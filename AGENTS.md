@@ -61,7 +61,7 @@ Usar **Atomic Design + composição por camadas (Section → Column → Widget �
 ## Roadmap incremental sugerido (financeiro → demais telas)
 1. Sections e Columns (fundação macro).
 2. Hero widgets e cards padronizados.
-3. Tabelas, filtros e ações comuns.
-4. Modais e formulários reutilizáveis.
-5. Aplicar padrão nas telas Agenda, Pacientes, Clínica e Perfil.
-
+3. Catálogo de gráficos reutilizáveis (rosca, linha, área, barras).
+4. Tabelas, filtros e ações comuns.
+5. Modais e formulários reutilizáveis.
+6. Aplicar padrão nas telas Agenda, Pacientes, Clínica e Perfil.

@@ -668,6 +668,13 @@ const FinancialPageSection = financialComponentFactories.createFinancialPageSect
 const FinancialSectionColumns = financialComponentFactories.createFinancialSectionColumns();
 const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
 const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
+const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
+if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
+  throw new Error('Catálogo de gráficos não carregado. Verifique os scripts em index.html.');
+}
+const ChartDonut = chartCatalogFactories.createChartDonut();
+const ChartSparkLine = chartCatalogFactories.createChartSparkLine();
+const ChartSparkArea = chartCatalogFactories.createChartSparkArea();
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
@@ -3367,7 +3374,6 @@ function DashboardApp({
     const receiptRatio = totalReceitas > 0 ? (receitaRecebidaTotal / totalReceitas) : 0;
     const expenseRatio = totalDespesas > 0 ? (despesaPagaTotal / totalDespesas) : 0;
     const reconciliationRatio = totalDespesas > 0 ? Math.min(receitaRecebidaTotal / totalDespesas, 1) : 1;
-    const visibleTimelineRows = isMobileViewport ? 4 : 6;
     const getTimelineFromLaunches = (launches) => {
       const monthMap = launches.reduce((acc, item) => {
         const source = item.data_pagamento || item.data_competencia || item.data_vencimento;
@@ -3402,8 +3408,10 @@ function DashboardApp({
         secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
         ratio: receiptRatio,
         ratioLabel: `${(receiptRatio * 100).toFixed(0)}% recebido`,
-        timeline: receitasTimeline,
-        timelineLabel: 'Volume por mês',
+        trendSeries: receitasTimeline.map((entry) => entry.total),
+        trendLabel: 'Linha de receitas',
+        chartTone: '#10b981',
+        chartVariant: 'line',
         actionLabel: 'Foco receitas',
         actionAria: 'Abrir lista de receitas para trabalhar o conjunto de dados',
         onAction: () => focusFinancialLaunches('entrada')
@@ -3416,8 +3424,10 @@ function DashboardApp({
         secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
         ratio: expenseRatio,
         ratioLabel: `${(expenseRatio * 100).toFixed(0)}% quitado`,
-        timeline: despesasTimeline,
-        timelineLabel: 'Saídas por mês',
+        trendSeries: despesasTimeline.map((entry) => entry.total),
+        trendLabel: 'Linha de despesas',
+        chartTone: '#f43f5e',
+        chartVariant: 'area',
         actionLabel: 'Foco despesas',
         actionAria: 'Abrir lista de despesas para dar baixa, editar ou excluir',
         onAction: () => focusFinancialLaunches('saida')
@@ -3430,8 +3440,10 @@ function DashboardApp({
         secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
         ratio: reconciliationRatio,
         ratioLabel: `${(reconciliationRatio * 100).toFixed(0)}% cobertura`,
-        timeline: conciliacaoTimeline,
-        timelineLabel: 'Saldo mensal',
+        trendSeries: conciliacaoTimeline.map((entry) => entry.total),
+        trendLabel: 'Linha de conciliação',
+        chartTone: '#3b82f6',
+        chartVariant: 'line',
         actionLabel: 'Conferir lançamentos',
         actionAria: 'Ir para a lista de lançamentos para conciliação',
         onAction: () => focusFinancialLaunches('all')
@@ -3563,7 +3575,6 @@ function DashboardApp({
           <FinancialSectionColumns variant="hero">
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
               {financialHeroWidgets.map((widget) => {
-                const timelineMax = Math.max(...widget.timeline.map((entry) => entry.total), 1);
                 return (
                   <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
                     <div className="financial-hero-widget__header">
@@ -3584,18 +3595,19 @@ function DashboardApp({
                       </button>
                     </div>
                     <div className="financial-hero-widget__body">
-                      <div className="financial-donut" style={{ '--progress': `${Math.round(widget.ratio * 360)}deg` }}>
-                        <span>{widget.ratioLabel}</span>
-                      </div>
-                      <div className="financial-timeline" aria-label={widget.timelineLabel}>
-                        {widget.timeline.slice(-visibleTimelineRows).map((entry) => (
-                          <div key={`${widget.key}-${entry.month}`} className="financial-timeline__row">
-                            <span>{entry.month}</span>
-                            <div className="financial-timeline__track">
-                              <div className="financial-timeline__bar" style={{ width: `${Math.max(8, (entry.total / timelineMax) * 100)}%` }} />
-                            </div>
-                          </div>
-                        ))}
+                      <ChartDonut
+                        value={widget.ratio}
+                        label={widget.ratioLabel}
+                        tone={widget.chartTone}
+                        size={82}
+                      />
+                      <div className="financial-hero-widget__trend">
+                        {widget.chartVariant === 'area' ? (
+                          <ChartSparkArea points={widget.trendSeries} tone={widget.chartTone} />
+                        ) : (
+                          <ChartSparkLine points={widget.trendSeries} tone={widget.chartTone} />
+                        )}
+                        <p>{widget.trendLabel}</p>
                       </div>
                     </div>
                   </article>

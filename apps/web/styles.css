@@ -3186,18 +3186,33 @@ select {
   gap: 0.75rem;
 }
 
-.financial-donut {
-  --progress: 180deg;
+.financial-hero-widget__trend {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.24rem;
+}
+
+.financial-hero-widget__trend p {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.chart-donut {
+  --chart-donut-progress: 180deg;
+  --chart-donut-tone: #3b82f6;
   width: 82px;
   height: 82px;
   border-radius: 999px;
-  background: conic-gradient(var(--financial-tone) var(--progress), rgba(148, 163, 184, 0.22) 0deg);
+  background: conic-gradient(var(--chart-donut-tone) var(--chart-donut-progress), rgba(148, 163, 184, 0.22) 0deg);
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
 
-.financial-donut span {
+.chart-donut span {
   width: 62px;
   height: 62px;
   border-radius: 999px;
@@ -3212,37 +3227,12 @@ select {
   padding: 0.15rem;
 }
 
-.financial-timeline {
-  display: grid;
-  gap: 0.34rem;
+.chart-sparkline {
   width: 100%;
-  min-width: 0;
-}
-
-.financial-timeline__row {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  align-items: center;
-  gap: 0.38rem;
-}
-
-.financial-timeline__row span {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: #64748b;
-}
-
-.financial-timeline__track {
-  height: 6px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(148, 163, 184, 0.22);
-}
-
-.financial-timeline__bar {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--financial-tone);
+  height: 56px;
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(226, 232, 240, 0.2));
 }
 
 .financial-hero-widget--receitas {
@@ -3339,10 +3329,6 @@ select {
   .financial-hero-widget {
     width: 100%;
     padding: 0.82rem;
-  }
-
-  .financial-timeline__row:nth-child(n+5) {
-    display: none;
   }
 
   .stat-sparkline {
