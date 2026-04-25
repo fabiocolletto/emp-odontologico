@@ -2432,6 +2432,137 @@ select {
   font-weight: 600;
 }
 
+.md3-access-sheet {
+  width: min(900px, 96vw);
+  border-radius: 20px;
+  border: 1px solid #d9e2ef;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.24);
+  overflow: hidden;
+}
+
+.md3-access-sheet__header {
+  padding: 1.15rem 1.25rem;
+  background: #eef2f7;
+  border-bottom: 1px solid #d9e2ef;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.md3-access-sheet__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.md3-access-sheet__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 0.24rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.md3-access-sheet__body {
+  padding: 1.2rem 1.25rem;
+  background: #ffffff;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.md3-access-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.md3-access-tab {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #64748b;
+  border-radius: 999px;
+  padding: 0.44rem 0.84rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.md3-access-tab.is-active {
+  color: #0f172a;
+  background: #e5edf7;
+  border-color: #b6c4d8;
+}
+
+.md3-access-sheet__hint {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.md3-access-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.md3-access-actions {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.md3-access-actions--split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.md3-access-btn {
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.md3-access-btn--filled {
+  color: #ffffff;
+  background: #0f2a67;
+  box-shadow: 0 8px 18px rgba(15, 42, 103, 0.25);
+}
+
+.md3-access-btn--tonal {
+  color: #1e3a8a;
+  background: #eaf0fb;
+  border-color: #c9d5ef;
+}
+
+.md3-access-btn--text {
+  color: #64748b;
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.md3-access-sheet__footer {
+  padding: 0.95rem 1.25rem 1.1rem;
+  border-top: 1px solid #d9e2ef;
+  background: #eef2f7;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 @media (max-width: 768px) {
   .finance-overlay {
     align-items: flex-end;
@@ -2462,6 +2593,17 @@ select {
     margin-left: -0.85rem;
     margin-right: -0.85rem;
     margin-bottom: -0.85rem;
+  }
+
+  .md3-access-sheet {
+    width: 100%;
+    min-height: 62vh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .md3-access-actions,
+  .md3-access-actions--split {
+    grid-template-columns: 1fr;
   }
 }
 

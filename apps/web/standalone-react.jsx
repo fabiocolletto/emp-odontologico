@@ -4718,6 +4718,7 @@ function AuthGateApp() {
   }
 
   if (!session?.user) {
+    const AccessJourneyMd3 = globalThis.OdontoAccessJourneyMd3;
     const openAccessStep = (step) => {
       if (step === 'signin' || step === 'signup') {
         setMode(step);
@@ -4752,6 +4753,30 @@ function AuthGateApp() {
           ) : null}
 
           {accessStep !== 'idle' ? (
+            AccessJourneyMd3 ? (
+              <AccessJourneyMd3
+                accessStep={accessStep}
+                tabs={ACCESS_JOURNEY_TABS}
+                onStepChange={openAccessStep}
+                onCancel={() => setAccessStep('idle')}
+                onChooseSignin={() => openAccessStep('signin')}
+                onChooseSignup={() => openAccessStep('signup')}
+                onSubmitCredentials={async () => {
+                  setMode(accessStep);
+                  await submitCredentials({ preventDefault: () => {} });
+                }}
+                onGoogleLogin={loginWithGoogle}
+                email={email}
+                password={password}
+                onEmailChange={setEmail}
+                onPasswordChange={setPassword}
+                authMessage={authMessage}
+                authError={authError}
+                onDismissMessage={() => setAuthMessage('')}
+                onDismissError={() => setAuthError('')}
+                renderIcon={(name) => <AppIcon name={name} size={16} className="ui-btn__icon" />}
+              />
+            ) : (
             <div className="confirm-overlay">
               <div className="w-full max-w-4xl" onClick={(event) => event.stopPropagation()}>
                 <PanelCard
@@ -4864,6 +4889,7 @@ function AuthGateApp() {
                 </PanelCard>
               </div>
             </div>
+            )
           ) : null}
         </div>
       </div>
