@@ -2304,16 +2304,138 @@ select {
 }
 
 .auth-entry-overlay {
-  background: rgba(15, 23, 42, 0.48);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--surface-overlay);
+  backdrop-filter: blur(var(--space-2));
+  -webkit-backdrop-filter: blur(var(--space-2));
   z-index: 95;
 }
 
 .auth-entry-modal {
-  width: min(440px, 100%);
-  padding: 1.15rem;
+  width: min(100%, calc(var(--space-10) * 4 + var(--space-6)));
+  padding: var(--space-6);
   max-height: min(92vh, 680px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.auth-entry-header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.auth-entry-eyebrow {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.auth-entry-title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.auth-entry-subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-base);
+}
+
+.auth-entry-content {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.auth-entry-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.auth-entry-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.auth-entry-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.auth-entry-input {
+  background: var(--surface-solid);
+  border-color: var(--border-soft);
+  color: var(--text-base);
+}
+
+.auth-entry-input:focus-visible {
+  border-color: color-mix(in srgb, var(--text-base) 35%, var(--surface-solid));
+  box-shadow: var(--state-focus-ring);
+}
+
+.auth-entry-input.is-error {
+  border-color: color-mix(in srgb, var(--text-strong) 24%, var(--surface-solid));
+}
+
+.auth-entry-field-message,
+.auth-entry-helper {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-base);
+}
+
+.auth-entry-action {
+  width: 100%;
+  min-height: calc(var(--space-8) + var(--space-2));
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-base);
+  background: var(--surface-soft);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.auth-entry-action:hover {
+  transform: var(--state-hover-lift);
+}
+
+.auth-entry-action:focus-visible {
+  outline: none;
+  box-shadow: var(--state-focus-ring);
+}
+
+.auth-entry-action--primary {
+  background: var(--surface-solid);
+  border-color: var(--border-subtle);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-entry-action--secondary {
+  background: var(--surface-soft);
+  border-color: var(--border-subtle);
+  color: var(--text-base);
+}
+
+.auth-entry-action--social {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
 }
 
 .confirm-overlay {
@@ -2469,8 +2591,9 @@ select {
 
   .auth-entry-modal {
     max-height: 90vh;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    padding: var(--space-5);
   }
 
   .financial-modal-card .panel-card__header {
