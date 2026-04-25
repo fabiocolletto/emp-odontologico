@@ -1579,7 +1579,8 @@ const readStoredFinancialForecasts = () => {
 function DashboardApp({
   authEmail = '',
   authUser = null,
-  accountService
+  accountService,
+  initialClinicId = ''
 }) {
   const [initialUiState] = useState(() => readStoredUiState());
   const [view, setView] = useState(initialUiState.view || 'loader');
@@ -1685,7 +1686,7 @@ function DashboardApp({
   const [profileActionMessage, setProfileActionMessage] = useState('');
   const [expandedProfilePanel, setExpandedProfilePanel] = useState('auth');
   const [clinics, setClinics] = useState([]);
-  const [selectedClinicId, setSelectedClinicId] = useState('');
+  const [selectedClinicId, setSelectedClinicId] = useState(initialClinicId);
   const [clinicDraft, setClinicDraft] = useState({
     id: '',
     trade_name: '',
@@ -2655,6 +2656,11 @@ function DashboardApp({
     setAuthUserWidget(authUser || null);
     setAccountEmailDraft(authUser?.email || '');
   }, [authUser]);
+
+  useEffect(() => {
+    if (!initialClinicId) return;
+    setSelectedClinicId((prev) => prev || initialClinicId);
+  }, [initialClinicId]);
 
   useEffect(() => {
     let active = true;
@@ -4554,6 +4560,10 @@ function AuthGateApp() {
   const [authMessage, setAuthMessage] = useState('');
   const [authError, setAuthError] = useState('');
   const [showSupabaseConfigNotice, setShowSupabaseConfigNotice] = useState(true);
+  const [accessStep, setAccessStep] = useState('idle');
+  const [clinicOptions, setClinicOptions] = useState([]);
+  const [selectedEntryClinicId, setSelectedEntryClinicId] = useState('');
+  const [isLoadingClinics, setIsLoadingClinics] = useState(false);
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -4597,6 +4607,42 @@ function AuthGateApp() {
     const timer = setTimeout(() => setShowSupabaseConfigNotice(false), SUPABASE_CONFIG_NOTICE_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, [supabaseClient]);
+
+  useEffect(() => {
+    if (!session?.user?.id || !accountService?.loadClinics) {
+      setClinicOptions([]);
+      setSelectedEntryClinicId('');
+      setIsLoadingClinics(false);
+      return undefined;
+    }
+
+    let active = true;
+    setIsLoadingClinics(true);
+    accountService.loadClinics(session.user.id)
+      .then((loadedClinics) => {
+        if (!active) return;
+        const normalized = Array.isArray(loadedClinics) ? loadedClinics.filter(Boolean) : [];
+        setClinicOptions(normalized);
+        if (normalized.length === 1) {
+          setSelectedEntryClinicId(normalized[0]?.id || '');
+        } else {
+          setSelectedEntryClinicId('');
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setClinicOptions([]);
+        setSelectedEntryClinicId('');
+      })
+      .finally(() => {
+        if (!active) return;
+        setIsLoadingClinics(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [accountService, session?.user?.id]);
 
   const submitCredentials = async (event) => {
     event.preventDefault();
@@ -4671,41 +4717,66 @@ function AuthGateApp() {
 
   if (!session?.user) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="ui-card w-full max-w-md space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
-            <h1 className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
-            <p className="text-sm text-slate-600 mt-1">Crie sua conta e acesse quando quiser, inclusive com Google.</p>
+      <div className="app-viewport flex flex-col items-center justify-between p-10 py-24 text-center">
+        <div className="space-y-8">
+          <div className="w-20 h-20 bg-sky-700 rounded-2xl flex items-center justify-center text-white shadow-2xl mx-auto text-3xl">🦷</div>
+          <div className="space-y-3">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tighter leading-none italic">
+              Odonto<span className="text-sky-700 font-bold not-italic">Flow</span>
+            </h1>
+            <p className="text-slate-400 text-lg md:text-2xl font-medium leading-snug tracking-tight italic">
+              Design Consistente. <span className="text-slate-900 font-semibold not-italic">Gestão Ágil.</span>
+            </p>
           </div>
+        </div>
 
-          <form onSubmit={submitCredentials} className="space-y-3">
-            <input
-              type="email"
-              className="ui-input w-full"
-              placeholder="seuemail@clinica.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-            <input
-              type="password"
-              className="ui-input w-full"
-              placeholder="Sua senha"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-            <button type="submit" className="btn btn--primary w-full">
-              {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
+        <div className="w-full max-w-md flex flex-col items-center gap-3">
+          {accessStep === 'idle' ? (
+            <button type="button" className="btn btn--primary btn--lg landing-cta" onClick={() => setAccessStep('choice')}>
+              Acessar Unidade
             </button>
-          </form>
+          ) : null}
 
-          <button type="button" onClick={loginWithGoogle} className="btn btn--ghost w-full">
-            Continuar com Google
-          </button>
+          {accessStep === 'choice' ? (
+            <div className="ui-card w-full space-y-3">
+              <button type="button" className="btn btn--primary w-full" onClick={() => { setMode('signin'); setAccessStep('form'); }}>
+                Acessar conta
+              </button>
+              <button type="button" className="btn btn--ghost w-full" onClick={() => { setMode('signup'); setAccessStep('form'); }}>
+                Criar conta
+              </button>
+            </div>
+          ) : null}
 
-          <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => setMode((prev) => (prev === 'signup' ? 'signin' : 'signup'))}>
-            {mode === 'signup' ? 'Já tenho conta, quero entrar' : 'Não tenho conta, quero me cadastrar'}
-          </button>
+          {accessStep === 'form' ? (
+            <div className="ui-card w-full space-y-3">
+              <form onSubmit={submitCredentials} className="space-y-3">
+                <input
+                  type="email"
+                  className="ui-input w-full"
+                  placeholder="seuemail@clinica.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+                <input
+                  type="password"
+                  className="ui-input w-full"
+                  placeholder="Sua senha"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+                <button type="submit" className="btn btn--primary w-full">
+                  {mode === 'signup' ? 'Criar conta e acessar' : 'Entrar com e-mail'}
+                </button>
+              </form>
+              <button type="button" onClick={loginWithGoogle} className="btn btn--ghost w-full">
+                Continuar com Google
+              </button>
+              <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => setAccessStep('choice')}>
+                Voltar
+              </button>
+            </div>
+          ) : null}
 
           <TransientNotice
             visible={Boolean(authMessage)}
@@ -4724,11 +4795,70 @@ function AuthGateApp() {
     );
   }
 
+  const needsClinicChoice = !isLoadingClinics && clinicOptions.length > 1;
+
+  if (isLoadingClinics) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="ui-empty-state" style={{ minWidth: '280px' }}>Carregando clínicas...</div>
+      </div>
+    );
+  }
+
+  if (needsClinicChoice) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <div className="ui-card w-full max-w-md space-y-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Escolha da clínica</p>
+          <h1 className="text-xl font-black text-slate-900">Selecione a unidade para acessar</h1>
+          <div className="space-y-2">
+            {clinicOptions.map((clinic) => (
+              <button
+                key={clinic.id || clinic.trade_name}
+                type="button"
+                className={`btn w-full ${selectedEntryClinicId === clinic.id ? 'btn--primary' : 'btn--ghost'}`}
+                onClick={() => setSelectedEntryClinicId(clinic.id || '')}
+              >
+                {clinic.trade_name || clinic.legal_name || 'Clínica sem nome'}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="btn btn--primary w-full"
+            onClick={() => {
+              if (!selectedEntryClinicId) {
+                setAuthError('Selecione uma clínica para continuar.');
+                return;
+              }
+              setClinicOptions((prev) => prev.filter((clinic) => clinic.id === selectedEntryClinicId));
+            }}
+          >
+            Entrar na clínica selecionada
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost w-full"
+            onClick={async () => {
+              if (!accountService?.signOut) return;
+              await accountService.signOut();
+            }}
+          >
+            Trocar conta
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const autoSelectedClinicId = clinicOptions.length === 1 ? (clinicOptions[0]?.id || '') : '';
+
   return (
     <DashboardApp
       authEmail={session.user.email || ''}
       authUser={session.user}
       accountService={accountService}
+      initialClinicId={autoSelectedClinicId}
     />
   );
 }
