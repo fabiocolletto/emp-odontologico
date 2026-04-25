@@ -3367,15 +3367,15 @@ select {
 
   .financial-layout--flat .toolbar-flat .btn,
   .financial-layout--flat .data-table__page-button {
-    width: 2.15rem;
-    min-width: 2.15rem;
+    width: 2rem;
+    min-width: 2rem;
     height: 2.15rem;
-    padding: 0.2rem;
-    border: 1px solid color-mix(in srgb, var(--brand-600) 18%, white);
+    padding: 0;
+    border: 0;
     border-radius: 8px;
-    background: color-mix(in srgb, rgba(255, 255, 255, 0.72) 84%, #eaf2ff);
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
-    backdrop-filter: blur(8px) saturate(120%);
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -3414,6 +3414,13 @@ select {
   .financial-section-columns--operation .financial-section-card > .flex h3,
   .financial-section-columns--operation .financial-panel-card .panel-card__title {
     font-size: 0.74rem;
+  }
+
+  .financial-layout--flat .data-table__page-button:hover:not(:disabled) {
+    transform: none;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
   }
 }
 
