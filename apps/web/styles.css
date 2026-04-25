@@ -1875,10 +1875,6 @@ select {
   padding: 0.6rem 0.9rem;
 }
 
-.landing-cta {
-  margin-inline: auto;
-}
-
 .modal-notes-input {
   margin-top: 0.45rem;
   width: 100%;
@@ -2322,9 +2318,43 @@ select {
   gap: var(--space-4);
 }
 
+.auth-entry-brand {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.auth-entry-brand__logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  background: #0369a1;
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.auth-entry-brand__title {
+  margin: 0;
+  font-size: clamp(1.8rem, 1.5rem + 1vw, 2.4rem);
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.auth-entry-brand__title span {
+  color: #0ea5e9;
+  font-style: normal;
+}
+
 .auth-entry-header {
   display: grid;
   gap: var(--space-2);
+  text-align: center;
 }
 
 .auth-entry-eyebrow {

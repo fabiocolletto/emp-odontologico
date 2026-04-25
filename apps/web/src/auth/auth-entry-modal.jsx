@@ -21,6 +21,14 @@
     onAuthSuccess
   }) => {
     const dialogRef = React.useRef(null);
+    const renderBrandBlock = () => (
+      <div className="auth-entry-brand" aria-hidden="true">
+        <div className="auth-entry-brand__logo">🦷</div>
+        <h2 className="auth-entry-brand__title">
+          Odonto<span>Flow</span>
+        </h2>
+      </div>
+    );
 
     React.useEffect(() => {
       const dialogNode = dialogRef.current;
@@ -65,6 +73,7 @@
         >
           {isAuthenticated ? (
             <>
+              {renderBrandBlock()}
               <div className="auth-entry-header">
                 <p className="auth-entry-eyebrow">Primeiro acesso</p>
                 <h1 id="auth-entry-title" className="auth-entry-title">Bem-vindo ao OdontoFlow</h1>
@@ -76,6 +85,7 @@
             </>
           ) : (
             <>
+              {renderBrandBlock()}
               <div className="auth-entry-header">
                 <p className="auth-entry-eyebrow">Acesso seguro</p>
                 <h1 id="auth-entry-title" className="auth-entry-title">Entrar no OdontoFlow</h1>

@@ -6,8 +6,6 @@ const PAGE_SIZE_PATIENTS = 9;
 const PAGE_SIZE_APPOINTMENTS = 6;
 const MOBILE_PAGE_SIZE_PATIENTS = 5;
 const PATIENTS_SEARCH_VISIBILITY_KEY = 'odontoflow-patients-search-visibility-v1';
-const APP_VERSION_FALLBACK = '1.0.0';
-const CHANGELOG_PATH = './CHANGELOG.md';
 const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
 const AUTH_NOTICE_TIMEOUT_MS = 5000;
 const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
@@ -728,26 +726,6 @@ const BioHeader = ({
 
 
 const CSV_PATH = './backend/supabase/sample-data';
-
-const parseLatestReleaseFromChangelog = (markdownText) => {
-  const normalizedText = String(markdownText || '');
-  const releaseMatch = normalizedText.match(/^##\s+v(\d+\.\d+\.\d+)\s*-\s*(\d{4}-\d{2}-\d{2})/m);
-
-  if (!releaseMatch) {
-    return {
-      version: APP_VERSION_FALLBACK,
-      date: '',
-      notes: []
-    };
-  }
-
-  const [, version, date] = releaseMatch;
-  const releaseStart = releaseMatch.index ?? 0;
-  const releaseBody = normalizedText.slice(releaseStart).split('\n## ')[0];
-  const notes = Array.from(releaseBody.matchAll(/^- (.+)$/gm)).map((item) => item[1]).slice(0, 3);
-
-  return { version, date, notes };
-};
 
 const parseCsv = (csvText) => {
   const [headersLine, ...lines] = csvText.trim().split('\n');
@@ -1717,11 +1695,6 @@ function DashboardApp({
     const isLandscape = window.innerWidth > window.innerHeight;
     return isDesktop || (isTablet && isLandscape);
   });
-  const [releaseInfo, setReleaseInfo] = useState({
-    version: APP_VERSION_FALLBACK,
-    date: '',
-    notes: []
-  });
   const patientsInfiniteTriggerRef = useRef(null);
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
@@ -2517,7 +2490,7 @@ function DashboardApp({
     : appointmentsPagination.items;
 
   useEffect(() => {
-    const t = setTimeout(() => setView('landing'), 700);
+    const t = setTimeout(() => setView('dashboard'), 700);
 
     let mounted = true;
     loadClinicDataset()
@@ -2728,33 +2701,6 @@ function DashboardApp({
     return () => observer.disconnect();
   }, [activeTab, isMobileViewport, appointmentsPagination.totalPages, filteredAppointments.length]);
 
-  useEffect(() => {
-    let active = true;
-
-    const loadReleaseInfo = async () => {
-      try {
-        const response = await fetch(CHANGELOG_PATH, { cache: 'no-store' });
-        if (!response.ok) throw new Error('changelog-unavailable');
-        const markdown = await response.text();
-        if (!active) return;
-        setReleaseInfo(parseLatestReleaseFromChangelog(markdown));
-      } catch {
-        if (!active) return;
-        setReleaseInfo({
-          version: APP_VERSION_FALLBACK,
-          date: '',
-          notes: []
-        });
-      }
-    };
-
-    loadReleaseInfo();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
   useEffect(() => () => {
     if (quickLinksSnapTimeoutRef.current) {
       clearTimeout(quickLinksSnapTimeoutRef.current);
@@ -2767,43 +2713,6 @@ function DashboardApp({
         <div className="w-10 h-10 border-[3px] border-sky-700 border-t-transparent rounded-full animate-spin"></div>
         <div className="ui-badge">Inicializando</div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Sincronizando Ecossistema</p>
-      </div>
-    );
-  }
-
-  if (view === 'landing') {
-    return (
-      <div className="app-viewport flex flex-col items-center justify-between p-10 py-24 text-center">
-        <div className="space-y-8">
-          <div className="w-20 h-20 bg-sky-700 rounded-2xl flex items-center justify-center text-white shadow-2xl mx-auto text-3xl">🦷</div>
-          <div className="space-y-3">
-            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tighter leading-none italic">
-              Odonto<span className="text-sky-700 font-bold not-italic">Flow</span>
-            </h1>
-            <p className="text-slate-400 text-lg md:text-2xl font-medium leading-snug tracking-tight italic">
-              Design Consistente. <span className="text-slate-900 font-semibold not-italic">Gestão Ágil.</span>
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-center gap-4">
-          <button
-            onClick={() => setView('dashboard')}
-            className="btn btn--primary btn--lg landing-cta"
-          >
-            Acessar Unidade
-          </button>
-          <span
-            className="ui-badge"
-            aria-label={`Versão V${releaseInfo.version}`}
-          >
-            V{releaseInfo.version}
-          </span>
-          {releaseInfo.date ? (
-            <p className="text-[10px] font-semibold text-slate-400">
-              Atualizado em {releaseInfo.date}
-            </p>
-          ) : null}
-        </div>
       </div>
     );
   }
