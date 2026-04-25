@@ -11,6 +11,7 @@ const CHANGELOG_PATH = './CHANGELOG.md';
 const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
 const AUTH_NOTICE_TIMEOUT_MS = 5000;
 const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
+const FIRST_ACCESS_COMPLETED_KEY = 'odontoflow:first-access-completed';
 const FINANCIAL_STORAGE_KEY = 'odontoflow-financial-launches-v1';
 const FINANCIAL_ACCOUNTS_STORAGE_KEY = 'odontoflow-financial-accounts-v1';
 const FINANCIAL_CATEGORIES_STORAGE_KEY = 'odontoflow-financial-categories-v1';
@@ -4554,6 +4555,17 @@ function AuthGateApp() {
   const [authMessage, setAuthMessage] = useState('');
   const [authError, setAuthError] = useState('');
   const [showSupabaseConfigNotice, setShowSupabaseConfigNotice] = useState(true);
+  const [isFirstAccessCompleted, setIsFirstAccessCompleted] = useState(false);
+
+  useEffect(() => {
+    const storedFlag = window.localStorage.getItem(FIRST_ACCESS_COMPLETED_KEY);
+    setIsFirstAccessCompleted(storedFlag === 'true');
+  }, []);
+
+  const markFirstAccessCompleted = () => {
+    window.localStorage.setItem(FIRST_ACCESS_COMPLETED_KEY, 'true');
+    setIsFirstAccessCompleted(true);
+  };
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -4568,8 +4580,11 @@ function AuthGateApp() {
       setLoading(false);
     });
 
-    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, currentSession) => {
+    const { data: listener } = supabaseClient.auth.onAuthStateChange((event, currentSession) => {
       setSession(currentSession || null);
+      if (event === 'SIGNED_IN') {
+        markFirstAccessCompleted();
+      }
     });
 
     return () => {
@@ -4610,10 +4625,13 @@ function AuthGateApp() {
     }
 
     if (mode === 'signup') {
-      const { error } = await supabaseClient.auth.signUp({ email, password });
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
       if (error) {
         setAuthError(error.message || 'Não foi possível criar sua conta.');
         return;
+      }
+      if (data?.session?.user) {
+        markFirstAccessCompleted();
       }
       setAuthMessage('Conta criada. Verifique seu e-mail para confirmar o cadastro, se aplicável.');
       return;
@@ -4624,6 +4642,7 @@ function AuthGateApp() {
       setAuthError(error.message || 'Falha ao entrar com e-mail e senha.');
       return;
     }
+    markFirstAccessCompleted();
     setAuthMessage('Login realizado com sucesso.');
   };
 
@@ -4669,68 +4688,164 @@ function AuthGateApp() {
     );
   }
 
-  if (!session?.user) {
-    return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="ui-card w-full max-w-md space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
-            <h1 className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
-            <p className="text-sm text-slate-600 mt-1">Crie sua conta e acesse quando quiser, inclusive com Google.</p>
-          </div>
-
-          <form onSubmit={submitCredentials} className="space-y-3">
-            <input
-              type="email"
-              className="ui-input w-full"
-              placeholder="seuemail@clinica.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-            <input
-              type="password"
-              className="ui-input w-full"
-              placeholder="Sua senha"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-            <button type="submit" className="btn btn--primary w-full">
-              {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
-            </button>
-          </form>
-
-          <button type="button" onClick={loginWithGoogle} className="btn btn--ghost w-full">
-            Continuar com Google
-          </button>
-
-          <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => setMode((prev) => (prev === 'signup' ? 'signin' : 'signup'))}>
-            {mode === 'signup' ? 'Já tenho conta, quero entrar' : 'Não tenho conta, quero me cadastrar'}
-          </button>
-
-          <TransientNotice
-            visible={Boolean(authMessage)}
-            tone="success"
-            message={authMessage}
-            onClose={() => setAuthMessage('')}
-          />
-          <TransientNotice
-            visible={Boolean(authError)}
-            tone="error"
-            message={authError}
-            onClose={() => setAuthError('')}
-          />
-        </div>
-      </div>
-    );
-  }
+  const isAuthenticated = Boolean(session?.user);
+  const isBlocked = !isAuthenticated || !isFirstAccessCompleted;
 
   return (
-    <DashboardApp
-      authEmail={session.user.email || ''}
-      authUser={session.user}
-      accountService={accountService}
-    />
+    <>
+      <div className={isBlocked ? 'auth-gated-shell' : ''} aria-hidden={isBlocked} inert={isBlocked ? '' : undefined}>
+        <DashboardApp
+          authEmail={session?.user?.email || ''}
+          authUser={session?.user || null}
+          accountService={accountService}
+        />
+      </div>
+
+      {isBlocked ? (
+        <AuthEntryModal
+          mode={mode}
+          email={email}
+          password={password}
+          authMessage={authMessage}
+          authError={authError}
+          isAuthenticated={isAuthenticated}
+          onSetMode={setMode}
+          onSetEmail={setEmail}
+          onSetPassword={setPassword}
+          onSubmitCredentials={submitCredentials}
+          onLoginWithGoogle={loginWithGoogle}
+          onCloseNotices={() => {
+            setAuthMessage('');
+            setAuthError('');
+          }}
+          onContinueAuthenticated={markFirstAccessCompleted}
+        />
+      ) : null}
+    </>
   );
 }
+
+const AuthEntryModal = ({
+  mode,
+  email,
+  password,
+  authMessage,
+  authError,
+  isAuthenticated,
+  onSetMode,
+  onSetEmail,
+  onSetPassword,
+  onSubmitCredentials,
+  onLoginWithGoogle,
+  onCloseNotices,
+  onContinueAuthenticated
+}) => {
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    const dialogNode = dialogRef.current;
+    if (!dialogNode) return undefined;
+
+    const focusableElements = dialogNode.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    firstFocusable?.focus();
+
+    const trapFocus = (event) => {
+      if (event.key !== 'Tab') return;
+      if (!focusableElements.length) {
+        event.preventDefault();
+        return;
+      }
+      if (event.shiftKey && document.activeElement === firstFocusable) {
+        event.preventDefault();
+        lastFocusable.focus();
+      } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+        event.preventDefault();
+        firstFocusable.focus();
+      }
+    };
+
+    dialogNode.addEventListener('keydown', trapFocus);
+    return () => dialogNode.removeEventListener('keydown', trapFocus);
+  }, [isAuthenticated]);
+
+  return (
+    <div className="finance-overlay auth-entry-overlay">
+      <div
+        ref={dialogRef}
+        className="finance-overlay__panel auth-entry-modal ui-card w-full max-w-md space-y-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-entry-title"
+      >
+        {isAuthenticated ? (
+          <>
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Primeiro acesso</p>
+              <h1 id="auth-entry-title" className="text-2xl font-black text-slate-900">Bem-vindo ao OdontoFlow</h1>
+              <p className="text-sm text-slate-600 mt-1">Seu acesso foi validado. Finalize para abrir o dashboard.</p>
+            </div>
+            <button type="button" className="btn btn--primary w-full" onClick={onContinueAuthenticated}>
+              Continuar para o dashboard
+            </button>
+          </>
+        ) : (
+          <>
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
+              <h1 id="auth-entry-title" className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
+              <p className="text-sm text-slate-600 mt-1">Crie sua conta e acesse quando quiser, inclusive com Google.</p>
+            </div>
+
+            <form onSubmit={onSubmitCredentials} className="space-y-3">
+              <input
+                type="email"
+                className="ui-input w-full"
+                placeholder="seuemail@clinica.com"
+                value={email}
+                onChange={(event) => onSetEmail(event.target.value)}
+              />
+              <input
+                type="password"
+                className="ui-input w-full"
+                placeholder="Sua senha"
+                value={password}
+                onChange={(event) => onSetPassword(event.target.value)}
+              />
+              <button type="submit" className="btn btn--primary w-full">
+                {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
+              </button>
+            </form>
+
+            <button type="button" onClick={onLoginWithGoogle} className="btn btn--ghost w-full">
+              Continuar com Google
+            </button>
+
+            <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => onSetMode((prev) => (prev === 'signup' ? 'signin' : 'signup'))}>
+              {mode === 'signup' ? 'Já tenho conta, quero entrar' : 'Não tenho conta, quero me cadastrar'}
+            </button>
+          </>
+        )}
+
+        <TransientNotice
+          visible={Boolean(authMessage)}
+          tone="success"
+          message={authMessage}
+          onClose={onCloseNotices}
+        />
+        <TransientNotice
+          visible={Boolean(authError)}
+          tone="error"
+          message={authError}
+          onClose={onCloseNotices}
+        />
+      </div>
+    </div>
+  );
+};
 
 ReactDOM.createRoot(document.getElementById('root')).render(<AuthGateApp />);

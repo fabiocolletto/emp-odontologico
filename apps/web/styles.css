@@ -2298,6 +2298,24 @@ select {
   padding: 0;
 }
 
+.auth-gated-shell {
+  pointer-events: none;
+  user-select: none;
+}
+
+.auth-entry-overlay {
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 95;
+}
+
+.auth-entry-modal {
+  width: min(440px, 100%);
+  padding: 1.15rem;
+  max-height: min(92vh, 680px);
+}
+
 .confirm-overlay {
   position: fixed;
   inset: 0;
@@ -2447,6 +2465,12 @@ select {
     padding: 0;
     background: var(--surface-solid);
     border-top: 1px solid var(--border-subtle);
+  }
+
+  .auth-entry-modal {
+    max-height: 90vh;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
   }
 
   .financial-modal-card .panel-card__header {
