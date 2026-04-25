@@ -3504,6 +3504,101 @@ select {
   background: var(--surface-soft);
 }
 
+.sidebar-placeholder-framework {
+  display: grid;
+  gap: var(--space-6);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-8);
+}
+
+.sidebar-placeholder-framework__header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.sidebar-placeholder-framework__badge {
+  margin: 0;
+  width: fit-content;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--brand-600) 22%, white);
+  background: color-mix(in srgb, var(--brand-100) 68%, white);
+  color: var(--brand-700);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sidebar-placeholder-framework__header h3 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+}
+
+.sidebar-placeholder-framework__header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.sidebar-placeholder-framework__columns {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sidebar-placeholder-framework__column {
+  display: grid;
+  gap: var(--space-3);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.sidebar-placeholder-framework__column h4 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: var(--font-size-sm);
+}
+
+.sidebar-placeholder-framework__column ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.sidebar-placeholder-framework__column li {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.sidebar-placeholder-framework__column strong {
+  color: var(--text-base);
+  font-size: 0.78rem;
+}
+
+.sidebar-placeholder-framework__column span {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 860px) {
+  .sidebar-placeholder-framework {
+    padding: var(--space-6);
+  }
+
+  .sidebar-placeholder-framework__columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ui-action-bar {
   display: flex;
   align-items: center;
