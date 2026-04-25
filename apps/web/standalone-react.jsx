@@ -4629,11 +4629,7 @@ function AuthGateApp() {
         if (!active) return;
         const normalized = Array.isArray(loadedClinics) ? loadedClinics.filter(Boolean) : [];
         setClinicOptions(normalized);
-        if (normalized.length === 1) {
-          setSelectedEntryClinicId(normalized[0]?.id || '');
-        } else {
-          setSelectedEntryClinicId('');
-        }
+        setSelectedEntryClinicId(normalized[0]?.id || '');
       })
       .catch(() => {
         if (!active) return;
@@ -4856,8 +4852,6 @@ function AuthGateApp() {
     );
   }
 
-  const needsClinicChoice = !isLoadingClinics && clinicOptions.length > 1;
-
   if (isLoadingClinics) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -4865,57 +4859,7 @@ function AuthGateApp() {
       </div>
     );
   }
-
-  if (needsClinicChoice) {
-    return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="ui-card w-full max-w-md space-y-3">
-          <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Escolha da clínica</p>
-          <h1 className="text-xl font-black text-slate-900">Selecione a unidade para acessar</h1>
-          <div className="space-y-2">
-            {clinicOptions.map((clinic) => (
-              <button
-                key={clinic.id || clinic.trade_name}
-                type="button"
-                className={`${ACCESS_BUTTON_BASE} ${selectedEntryClinicId === clinic.id ? 'is-active' : ''}`}
-                onClick={() => setSelectedEntryClinicId(clinic.id || '')}
-              >
-                <AppIcon name="id-card" size={16} className="ui-btn__icon" />
-                <span className="ui-btn__label">{clinic.trade_name || clinic.legal_name || 'Clínica sem nome'}</span>
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className={`${ACCESS_BUTTON_BASE} is-active`}
-            onClick={() => {
-              if (!selectedEntryClinicId) {
-                setAuthError('Selecione uma clínica para continuar.');
-                return;
-              }
-              setClinicOptions((prev) => prev.filter((clinic) => clinic.id === selectedEntryClinicId));
-            }}
-          >
-            <AppIcon name="check" size={16} className="ui-btn__icon" />
-            <span className="ui-btn__label">Entrar na clínica selecionada</span>
-          </button>
-          <button
-            type="button"
-            className={ACCESS_BUTTON_BASE}
-            onClick={async () => {
-              if (!accountService?.signOut) return;
-              await accountService.signOut();
-            }}
-          >
-            <AppIcon name="close" size={16} className="ui-btn__icon" />
-            <span className="ui-btn__label">Trocar conta</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const autoSelectedClinicId = clinicOptions.length === 1 ? (clinicOptions[0]?.id || '') : '';
+  const autoSelectedClinicId = selectedEntryClinicId || '';
 
   return (
     <DashboardApp
