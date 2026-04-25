@@ -8,10 +8,12 @@
       toolbarActions = []
     }
   ) => (
-    <>
-      {header}
+    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
+      <div className="min-w-0 flex-1">
+        {header}
+      </div>
       {showToolbar ? (
-        <div className="flex justify-end">
+        <div className="flex justify-start md:justify-end md:pt-1">
           <Toolbar>
             {toolbarActions.map((action) => (
               <ActionButton
@@ -25,6 +27,6 @@
           </Toolbar>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }(globalThis));
