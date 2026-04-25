@@ -3320,7 +3320,23 @@ function DashboardApp({
                   className="financial-section-card financial-section-card--operation"
                   title="Categorias financeiras"
                   actions={(
-                    <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
+                    <div className="financial-widget-actions">
+                      <FinancialEditAction
+                        ariaLabel="Abrir categorias financeiras"
+                        onClick={() => setIsCategoriesEditMode(true)}
+                        icon="expand"
+                      />
+                      <FinancialEditAction
+                        ariaLabel="Adicionar categoria financeira"
+                        onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }}
+                        icon="plus"
+                      />
+                      <FinancialEditAction
+                        ariaLabel="Filtrar categorias financeiras"
+                        onClick={() => setIsCategoriesEditMode(true)}
+                        icon="filter"
+                      />
+                    </div>
                   )}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -3821,7 +3837,25 @@ function DashboardApp({
                 <SectionCard
                   className="financial-section-card financial-section-card--operation"
                   title="Lançamentos"
-                  actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
+                  actions={(
+                    <div className="financial-widget-actions">
+                      <FinancialEditAction
+                        ariaLabel="Abrir lançamentos financeiros"
+                        onClick={() => financialLaunchesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        icon="expand"
+                      />
+                      <FinancialEditAction
+                        ariaLabel="Novo lançamento"
+                        onClick={() => openFinancialCreate('entrada')}
+                        icon="plus"
+                      />
+                      <FinancialEditAction
+                        ariaLabel="Filtrar lançamentos"
+                        onClick={() => focusFinancialLaunches('all')}
+                        icon="filter"
+                      />
+                    </div>
+                  )}
                 >
                   <DataTable
             columns={[
@@ -3852,11 +3886,11 @@ function DashboardApp({
             paginated
             compact
             keepEmptyRows
-            footerTotals={[
-              { label: 'Registros', value: financialLaunches.length },
-              { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
-            ]}
                   />
+                  <div className="financial-widget-totalizer">
+                    <p><span>Registros</span><strong>{financialLaunches.length}</strong></p>
+                    <p><span>Total lançamentos</span><strong>{formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</strong></p>
+                  </div>
                 </SectionCard>
               </div>
             </DataColumns>
