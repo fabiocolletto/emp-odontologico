@@ -11,8 +11,9 @@ Padronizar a evolução da tela **Financeiro** para que 100% dos elementos possa
 Usar **Atomic Design + composição por camadas (Section → Column → Widget → Atom)**:
 1. **Page Section**: blocos macro de contexto da página.
 2. **Section Columns**: organização responsiva das colunas/linhas internas.
-3. **Widgets reutilizáveis**: cartões, tabelas, painéis, filtros, ações.
-4. **Átomos CSS**: tokens de cor, espaçamento, tipografia, borda e sombra no `:root`.
+3. **Data Section + Data Columns (1/2/3)**: seções detalhadas de dados com variação apenas por conteúdo.
+4. **Widgets reutilizáveis**: cartões, tabelas, painéis, filtros, ações.
+5. **Átomos CSS**: tokens de cor, espaçamento, tipografia, borda e sombra no `:root`.
 
 ## Fluxo padrão (passo a passo)
 > Repetir este fluxo em cada evolução de tela.

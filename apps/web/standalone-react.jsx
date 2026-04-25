@@ -675,6 +675,12 @@ if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChar
 const ChartDonut = chartCatalogFactories.createChartDonut();
 const ChartSparkLine = chartCatalogFactories.createChartSparkLine();
 const ChartSparkArea = chartCatalogFactories.createChartSparkArea();
+const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
+if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
+  throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
+}
+const DataSection = layoutPrimitiveFactories.createDataSection();
+const DataColumns = layoutPrimitiveFactories.createDataColumns();
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
@@ -3623,211 +3629,213 @@ function DashboardApp({
           description="Módulos reutilizáveis por seção para contas, categorias e recorrências."
         >
           <FinancialSectionColumns>
-            <DualContentRow
-              left={(
+            <DataSection
+              title="Configurações e cadastros"
+              description="Elementos orientados a estrutura de dados, reutilizáveis em outras telas como Perfil."
+            >
+              <DataColumns columns={2}>
                 <FinancialTableSectionCard
-              title="Contas financeiras"
-              addAriaLabel="Adicionar conta financeira"
-              onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
-              onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
-              isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
-              filterAriaLabel="Filtrar contas financeiras"
-              filterDropdown={renderWidgetFilterDropdown(
-                <label className="financial-filter-dropdown__field">
-                  <span>Tipo da conta</span>
-                  <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
-                    <option value="all">Todos</option>
-                    <option value="corrente">Corrente</option>
-                    <option value="poupanca">Poupança</option>
-                  </select>
-                </label>
-              )}
-              columns={[
-                { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
-                { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
-                { key: 'tipo', label: 'Tipo', hideBelow: 740, render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                { key: 'saldo', label: 'Saldo inicial', hideBelow: 620, render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
-              ]}
-              rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma conta cadastrada."
-              footer={(
-                <div className="financial-widget-totalizer">
-                  <p><span>Registros</span><strong>{contasFinanceirasWidgetRows.length}</strong></p>
-                  <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
-                </div>
-              )}
+                  title="Contas financeiras"
+                  addAriaLabel="Adicionar conta financeira"
+                  onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
+                  onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
+                  isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
+                  filterAriaLabel="Filtrar contas financeiras"
+                  filterDropdown={renderWidgetFilterDropdown(
+                    <label className="financial-filter-dropdown__field">
+                      <span>Tipo da conta</span>
+                      <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
+                        <option value="all">Todos</option>
+                        <option value="corrente">Corrente</option>
+                        <option value="poupanca">Poupança</option>
+                      </select>
+                    </label>
+                  )}
+                  columns={[
+                    { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
+                    { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                    { key: 'tipo', label: 'Tipo', hideBelow: 740, render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                    { key: 'saldo', label: 'Saldo inicial', hideBelow: 620, render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
+                  ]}
+                  rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
+                  emptyMessage="Nenhuma conta cadastrada."
+                  footer={(
+                    <div className="financial-widget-totalizer">
+                      <p><span>Registros</span><strong>{contasFinanceirasWidgetRows.length}</strong></p>
+                      <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
+                    </div>
+                  )}
                 />
-              )}
-              right={(
                 <SectionCard
-            className="financial-section-card"
-            title="Categorias financeiras"
-            actions={(
-              <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
-            )}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
-                <div className="space-y-2">
-                  {receitasPorCategoriaResumo.map(([categoria, total]) => (
-                    <div key={`cat-income-${categoria}`}>
-                      <div className="flex justify-between text-xs text-slate-600 mb-1">
-                        <span>{categoria}</span><span>{formatMoney(total)}</span>
-                      </div>
-                      <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                        <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
-                <div className="space-y-2">
-                  {despesasPorCategoriaResumo.map(([categoria, total]) => (
-                    <div key={`cat-expense-${categoria}`}>
-                      <div className="flex justify-between text-xs text-slate-600 mb-1">
-                        <span>{categoria}</span><span>{formatMoney(total)}</span>
-                      </div>
-                      <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                        <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                  className="financial-section-card"
+                  title="Categorias financeiras"
+                  actions={(
+                    <FinancialWidgetIconButton ariaLabel="Editar categorias" onClick={() => setIsCategoriesEditMode(true)} />
+                  )}
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
+                      <div className="space-y-2">
+                        {receitasPorCategoriaResumo.map(([categoria, total]) => (
+                          <div key={`cat-income-${categoria}`}>
+                            <div className="flex justify-between text-xs text-slate-600 mb-1">
+                              <span>{categoria}</span><span>{formatMoney(total)}</span>
+                            </div>
+                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                              <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
-            <div className="financial-widget-totalizer mt-3">
-              <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
-              <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
-            </div>
+                    <div>
+                      <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
+                      <div className="space-y-2">
+                        {despesasPorCategoriaResumo.map(([categoria, total]) => (
+                          <div key={`cat-expense-${categoria}`}>
+                            <div className="flex justify-between text-xs text-slate-600 mb-1">
+                              <span>{categoria}</span><span>{formatMoney(total)}</span>
+                            </div>
+                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                              <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
+                  <div className="financial-widget-totalizer mt-3">
+                    <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
+                    <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
+                  </div>
                 </SectionCard>
-              )}
-            />
+              </DataColumns>
+            </DataSection>
 
-            <DualContentRow
-          left={(
-            <FinancialTableSectionCard
-              title="Despesas recorrentes"
-              addAriaLabel="Adicionar despesa recorrente"
-              onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
-              onToggleFilter={() => toggleWidgetFilter('recorrencias')}
-              isFilterOpen={openWidgetFilter === 'recorrencias'}
-              filterAriaLabel="Filtrar recorrências"
-              filterDropdown={renderWidgetFilterDropdown(
-                <>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Periodicidade</span>
-                    <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
-                      <option value="all">Todas</option>
-                      <option value="mensal">Mensal</option>
-                      <option value="semanal">Semanal</option>
-                    </select>
-                  </label>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Categoria</span>
-                    <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
-                      <option value="all">Todas</option>
-                      {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
-                    </select>
-                  </label>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Status</span>
-                    <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
-                      <option value="all">Todos</option>
-                      <option value="pendente">Pendente</option>
-                      <option value="pago">Pago</option>
-                    </select>
-                  </label>
-                </>
-              )}
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
-                { key: 'categoria', label: 'Categoria', hideBelow: 840, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', hideBelow: 700, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
-                {
-                  key: 'acoes',
-                  label: 'Ações',
-                  sortable: false,
-                  render: (row) => (
-                    <div className="financial-row-actions">
-                      {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
-                      <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
-                      <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
-                    </div>
-                  )
-                }
-              ]}
-              rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma despesa recorrente cadastrada."
-              footer={(
-                <div className="financial-widget-totalizer">
-                  <p><span>Registros</span><strong>{recurringWidgetRows.length}</strong></p>
-                  <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
-                </div>
-              )}
-                />
-              )}
-              right={(
+            <DataSection
+              title="Planejamento e recorrência"
+              description="Seções de dados detalhados com variação de 1, 2 ou 3 colunas para reaproveitar em qualquer contexto."
+            >
+              <DataColumns columns={2}>
                 <FinancialTableSectionCard
-              title="Previsões de custos"
-              addAriaLabel="Adicionar previsão de custo"
-              onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
-              onToggleFilter={() => toggleWidgetFilter('previsoes')}
-              isFilterOpen={openWidgetFilter === 'previsoes'}
-              filterAriaLabel="Filtrar previsões"
-              filterDropdown={renderWidgetFilterDropdown(
-                <>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Período</span>
-                    <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
-                      <option value="all">Todos</option>
-                      {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
-                    </select>
-                  </label>
-                  <label className="financial-filter-dropdown__field">
-                    <span>Comprometido</span>
-                    <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
-                      <option value="all">Todos</option>
-                      <option value="sim">Sim</option>
-                      <option value="nao">Não</option>
-                    </select>
-                  </label>
-                </>
-              )}
-              columns={[
-                { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', hideBelow: 740, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'comprometido', label: 'Comprometido no período', hideBelow: 620, render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
-                {
-                  key: 'acoes',
-                  label: 'Ações',
-                  sortable: false,
-                  render: (row) => (
-                    <div className="financial-row-actions">
-                      {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
-                      <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
-                      <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                  title="Despesas recorrentes"
+                  addAriaLabel="Adicionar despesa recorrente"
+                  onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
+                  onToggleFilter={() => toggleWidgetFilter('recorrencias')}
+                  isFilterOpen={openWidgetFilter === 'recorrencias'}
+                  filterAriaLabel="Filtrar recorrências"
+                  filterDropdown={renderWidgetFilterDropdown(
+                    <>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Periodicidade</span>
+                        <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
+                          <option value="all">Todas</option>
+                          <option value="mensal">Mensal</option>
+                          <option value="semanal">Semanal</option>
+                        </select>
+                      </label>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Categoria</span>
+                        <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
+                          <option value="all">Todas</option>
+                          {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
+                        </select>
+                      </label>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Status</span>
+                        <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
+                          <option value="all">Todos</option>
+                          <option value="pendente">Pendente</option>
+                          <option value="pago">Pago</option>
+                        </select>
+                      </label>
+                    </>
+                  )}
+                  columns={[
+                    { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                    { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                    { key: 'categoria', label: 'Categoria', hideBelow: 840, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                    { key: 'valor', label: 'Valor', hideBelow: 700, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                    { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                    {
+                      key: 'acoes',
+                      label: 'Ações',
+                      sortable: false,
+                      render: (row) => (
+                        <div className="financial-row-actions">
+                          {(row.status || 'pendente') !== 'pago' ? <FinancialWidgetIconButton ariaLabel="Confirmar pagamento da parcela" icon="check" tone="text-emerald-600" onClick={() => confirmRecurringPayment(row.id)} /> : null}
+                          <FinancialWidgetIconButton ariaLabel="Editar recorrência" onClick={() => editRecurring(row.id)} />
+                          <FinancialWidgetIconButton ariaLabel="Excluir recorrência" icon="close" tone="text-rose-600" onClick={() => deleteRecurring(row.id)} />
+                        </div>
+                      )
+                    }
+                  ]}
+                  rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
+                  emptyMessage="Nenhuma despesa recorrente cadastrada."
+                  footer={(
+                    <div className="financial-widget-totalizer">
+                      <p><span>Registros</span><strong>{recurringWidgetRows.length}</strong></p>
+                      <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
                     </div>
-                  )
-                }
-              ]}
-              rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
-              emptyMessage="Nenhuma previsão cadastrada."
-              footer={(
-                <div className="financial-widget-totalizer">
-                  <p><span>Registros</span><strong>{forecastWidgetRows.length}</strong></p>
-                  <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
-                </div>
-              )}
+                  )}
                 />
-              )}
-            />
+                <FinancialTableSectionCard
+                  title="Previsões de custos"
+                  addAriaLabel="Adicionar previsão de custo"
+                  onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
+                  onToggleFilter={() => toggleWidgetFilter('previsoes')}
+                  isFilterOpen={openWidgetFilter === 'previsoes'}
+                  filterAriaLabel="Filtrar previsões"
+                  filterDropdown={renderWidgetFilterDropdown(
+                    <>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Período</span>
+                        <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
+                          <option value="all">Todos</option>
+                          {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
+                        </select>
+                      </label>
+                      <label className="financial-filter-dropdown__field">
+                        <span>Comprometido</span>
+                        <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
+                          <option value="all">Todos</option>
+                          <option value="sim">Sim</option>
+                          <option value="nao">Não</option>
+                        </select>
+                      </label>
+                    </>
+                  )}
+                  columns={[
+                    { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+                    { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                    { key: 'valor', label: 'Valor previsto', hideBelow: 740, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                    { key: 'comprometido', label: 'Comprometido no período', hideBelow: 620, render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                    {
+                      key: 'acoes',
+                      label: 'Ações',
+                      sortable: false,
+                      render: (row) => (
+                        <div className="financial-row-actions">
+                          {!row.comprometido ? <FinancialWidgetIconButton ariaLabel="Marcar previsão como comprometida" icon="check" tone="text-emerald-600" onClick={() => toggleForecastCommitted(row.id)} /> : null}
+                          <FinancialWidgetIconButton ariaLabel="Editar previsão" onClick={() => editForecast(row.id)} />
+                          <FinancialWidgetIconButton ariaLabel="Excluir previsão" icon="close" tone="text-rose-600" onClick={() => deleteForecast(row.id)} />
+                        </div>
+                      )
+                    }
+                  ]}
+                  rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
+                  emptyMessage="Nenhuma previsão cadastrada."
+                  footer={(
+                    <div className="financial-widget-totalizer">
+                      <p><span>Registros</span><strong>{forecastWidgetRows.length}</strong></p>
+                      <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
+                    </div>
+                  )}
+                />
+              </DataColumns>
+            </DataSection>
           </FinancialSectionColumns>
         </FinancialPageSection>
 
@@ -4063,8 +4071,11 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <DualContentRow
-          left={(
+        <DataSection
+          title="Contas a receber e pagar"
+          description="Grade de dados detalhados parametrizada em duas colunas, reaproveitável em outros módulos."
+        >
+          <DataColumns columns={2}>
             <FinancialTablePanelCard
               title="Contas a receber"
               onAdd={() => openFinancialCreate('entrada')}
@@ -4106,8 +4117,6 @@ function DashboardApp({
               footerClassName="text-emerald-700"
               footerValue={formatMoney(contasReceberWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
-          )}
-          right={(
             <FinancialTablePanelCard
               title="Contas a pagar"
               onAdd={() => openFinancialCreate('saida')}
@@ -4149,16 +4158,21 @@ function DashboardApp({
               footerClassName="text-rose-700"
               footerValue={formatMoney(contasPagarWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0))}
             />
-          )}
-        />
+          </DataColumns>
+        </DataSection>
 
-        <div ref={financialLaunchesSectionRef}>
-          <SectionCard
-            className="financial-section-card"
-            title="Lançamentos"
-            actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
-          >
-            <DataTable
+        <DataSection
+          title="Lançamentos financeiros"
+          description="Exemplo de seção em uma coluna para histórico completo e ações rápidas."
+        >
+          <DataColumns columns={1}>
+            <div ref={financialLaunchesSectionRef}>
+              <SectionCard
+                className="financial-section-card"
+                title="Lançamentos"
+                actions={<FinancialTableAddIconButton ariaLabel="Novo lançamento" onClick={() => openFinancialCreate('entrada')} />}
+              >
+                <DataTable
             columns={[
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
@@ -4191,9 +4205,11 @@ function DashboardApp({
               { label: 'Registros', value: financialLaunches.length },
               { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
             ]}
-            />
-          </SectionCard>
-        </div>
+                />
+              </SectionCard>
+            </div>
+          </DataColumns>
+        </DataSection>
 
         {isFinancialFormOpen ? (
           <div className="finance-overlay" onClick={closeFinancialForm}>
