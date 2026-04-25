@@ -4564,6 +4564,7 @@ function AuthGateApp() {
   const [clinicOptions, setClinicOptions] = useState([]);
   const [selectedEntryClinicId, setSelectedEntryClinicId] = useState('');
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
+  const ACCESS_BUTTON_BASE = 'ui-btn ui-btn--md ui-btn--label-side sidebar-nav-btn w-full';
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -4732,18 +4733,33 @@ function AuthGateApp() {
 
         <div className="w-full max-w-md flex flex-col items-center gap-3">
           {accessStep === 'idle' ? (
-            <button type="button" className="btn btn--primary btn--lg landing-cta" onClick={() => setAccessStep('choice')}>
-              Acessar Unidade
+            <button
+              type="button"
+              className={`${ACCESS_BUTTON_BASE} is-active landing-cta`}
+              onClick={() => setAccessStep('choice')}
+            >
+              <AppIcon name="chevron-right" size={16} className="ui-btn__icon" />
+              <span className="ui-btn__label">Acessar Unidade</span>
             </button>
           ) : null}
 
           {accessStep === 'choice' ? (
             <div className="ui-card w-full space-y-3">
-              <button type="button" className="btn btn--primary w-full" onClick={() => { setMode('signin'); setAccessStep('form'); }}>
-                Acessar conta
+              <button
+                type="button"
+                className={`${ACCESS_BUTTON_BASE} is-active`}
+                onClick={() => { setMode('signin'); setAccessStep('form'); }}
+              >
+                <AppIcon name="check" size={16} className="ui-btn__icon" />
+                <span className="ui-btn__label">Acessar conta</span>
               </button>
-              <button type="button" className="btn btn--ghost w-full" onClick={() => { setMode('signup'); setAccessStep('form'); }}>
-                Criar conta
+              <button
+                type="button"
+                className={ACCESS_BUTTON_BASE}
+                onClick={() => { setMode('signup'); setAccessStep('form'); }}
+              >
+                <AppIcon name="plus" size={16} className="ui-btn__icon" />
+                <span className="ui-btn__label">Criar conta</span>
               </button>
             </div>
           ) : null}
@@ -4765,15 +4781,18 @@ function AuthGateApp() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />
-                <button type="submit" className="btn btn--primary w-full">
-                  {mode === 'signup' ? 'Criar conta e acessar' : 'Entrar com e-mail'}
+                <button type="submit" className={`${ACCESS_BUTTON_BASE} is-active`}>
+                  <AppIcon name={mode === 'signup' ? 'plus' : 'check'} size={16} className="ui-btn__icon" />
+                  <span className="ui-btn__label">{mode === 'signup' ? 'Criar conta e acessar' : 'Entrar com e-mail'}</span>
                 </button>
               </form>
-              <button type="button" onClick={loginWithGoogle} className="btn btn--ghost w-full">
-                Continuar com Google
+              <button type="button" onClick={loginWithGoogle} className={ACCESS_BUTTON_BASE}>
+                <AppIcon name="users" size={16} className="ui-btn__icon" />
+                <span className="ui-btn__label">Continuar com Google</span>
               </button>
-              <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => setAccessStep('choice')}>
-                Voltar
+              <button type="button" className={ACCESS_BUTTON_BASE} onClick={() => setAccessStep('choice')}>
+                <AppIcon name="chevron-left" size={16} className="ui-btn__icon" />
+                <span className="ui-btn__label">Voltar</span>
               </button>
             </div>
           ) : null}
@@ -4816,16 +4835,17 @@ function AuthGateApp() {
               <button
                 key={clinic.id || clinic.trade_name}
                 type="button"
-                className={`btn w-full ${selectedEntryClinicId === clinic.id ? 'btn--primary' : 'btn--ghost'}`}
+                className={`${ACCESS_BUTTON_BASE} ${selectedEntryClinicId === clinic.id ? 'is-active' : ''}`}
                 onClick={() => setSelectedEntryClinicId(clinic.id || '')}
               >
-                {clinic.trade_name || clinic.legal_name || 'Clínica sem nome'}
+                <AppIcon name="id-card" size={16} className="ui-btn__icon" />
+                <span className="ui-btn__label">{clinic.trade_name || clinic.legal_name || 'Clínica sem nome'}</span>
               </button>
             ))}
           </div>
           <button
             type="button"
-            className="btn btn--primary w-full"
+            className={`${ACCESS_BUTTON_BASE} is-active`}
             onClick={() => {
               if (!selectedEntryClinicId) {
                 setAuthError('Selecione uma clínica para continuar.');
@@ -4834,17 +4854,19 @@ function AuthGateApp() {
               setClinicOptions((prev) => prev.filter((clinic) => clinic.id === selectedEntryClinicId));
             }}
           >
-            Entrar na clínica selecionada
+            <AppIcon name="check" size={16} className="ui-btn__icon" />
+            <span className="ui-btn__label">Entrar na clínica selecionada</span>
           </button>
           <button
             type="button"
-            className="btn btn--ghost w-full"
+            className={ACCESS_BUTTON_BASE}
             onClick={async () => {
               if (!accountService?.signOut) return;
               await accountService.signOut();
             }}
           >
-            Trocar conta
+            <AppIcon name="close" size={16} className="ui-btn__icon" />
+            <span className="ui-btn__label">Trocar conta</span>
           </button>
         </div>
       </div>
