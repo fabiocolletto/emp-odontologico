@@ -273,11 +273,12 @@ const SortToggleButton = ({ onClick }) => (
   />
 );
 
-const AppShell = ({ sidebar, header, children }) => (
+const AppShell = ({ sidebar, header, mobileHeader, children }) => (
   <div className="app-shell">
     <div className="app-frame">
       {sidebar}
       <main className="app-content">
+        {mobileHeader}
         {header}
         {children}
       </main>
@@ -394,8 +395,8 @@ const SparkMiniChart = ({ points = [], tone = '#2563eb', variant = 'line' }) => 
   );
 };
 
-const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb', sparkVariant = 'line' }) => (
-  <BaseCard className="stat-card-flat">
+const StatCard = ({ label, value, trend, trendTone = 'text-slate-500', sparkPoints = [], sparkColor = '#2563eb', sparkVariant = 'line', className = '' }) => (
+  <BaseCard className={`stat-card-flat ${className}`.trim()}>
     <p className="text-xs uppercase tracking-[0.14em] text-slate-400 font-black">{label}</p>
     <div className="stat-card-flat__main">
       <p className="text-[1.95rem] font-semibold tracking-tight text-slate-900 mt-1 whitespace-nowrap">{value}</p>
@@ -468,6 +469,24 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage({ compact }) : Math.max(rows.length, 1)));
+  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1280));
+
+  useEffect(() => {
+    const syncViewportWidth = () => setViewportWidth(window.innerWidth);
+    syncViewportWidth();
+    window.addEventListener('resize', syncViewportWidth);
+    return () => window.removeEventListener('resize', syncViewportWidth);
+  }, []);
+
+  const visibleColumns = useMemo(() => columns.filter((column) => (
+    typeof column.hideBelow !== 'number' || viewportWidth >= column.hideBelow
+  )), [columns, viewportWidth]);
+
+  useEffect(() => {
+    if (!sortConfig.key) return;
+    if (visibleColumns.some((column) => column.key === sortConfig.key)) return;
+    setSortConfig({ key: null, direction: 'asc' });
+  }, [sortConfig.key, visibleColumns]);
 
   useEffect(() => {
     if (!paginated) return undefined;
@@ -483,7 +502,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
 
   const sortedRows = useMemo(() => {
     if (!sortConfig.key) return rows;
-    const activeColumn = columns.find((column) => column.key === sortConfig.key);
+    const activeColumn = visibleColumns.find((column) => column.key === sortConfig.key);
     if (!activeColumn || activeColumn.sortable === false) return rows;
 
     return [...rows].sort((leftRow, rightRow) => {
@@ -497,7 +516,7 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
       const result = String(leftValue).localeCompare(String(rightValue), 'pt-BR', { numeric: true, sensitivity: 'base' });
       return sortConfig.direction === 'asc' ? result : -result;
     });
-  }, [columns, rows, sortConfig.direction, sortConfig.key]);
+  }, [rows, sortConfig.direction, sortConfig.key, visibleColumns]);
 
   const totalPages = paginated ? Math.max(1, Math.ceil(sortedRows.length / rowsPerPage)) : 1;
 
@@ -522,11 +541,11 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
 
   return (
     <div className="data-table-shell">
-      <div className="overflow-x-auto">
+      <div className="data-table__scroller">
         <table className={`data-table min-w-full text-sm ${compact ? 'data-table--compact' : ''}`.trim()}>
           <thead>
             <tr className="text-slate-400">
-              {columns.map((column) => (
+              {visibleColumns.map((column) => (
                 <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">
                   <button
                     type="button"
@@ -549,18 +568,18 @@ const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', pag
           <tbody>
             {visibleRows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length}><EmptyState message={emptyMessage} /></td>
+                <td colSpan={visibleColumns.length}><EmptyState message={emptyMessage} /></td>
               </tr>
             ) : visibleRows.map((row) => (
               <tr key={row.key} className="data-table__row">
-                {columns.map((column) => (
+                {visibleColumns.map((column) => (
                   <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
                 ))}
               </tr>
             ))}
             {Array.from({ length: placeholderRowsCount }).map((_, index) => (
               <tr key={`placeholder-${index}`} className="data-table__row data-table__row--placeholder" aria-hidden="true">
-                {columns.map((column) => (
+                {visibleColumns.map((column) => (
                   <td key={`placeholder-${index}-${column.key}`} className="data-table__cell py-2 pr-3">&nbsp;</td>
                 ))}
               </tr>
@@ -849,113 +868,15 @@ const FALLBACK_PATIENTS = [
   }
 ];
 
-const FINANCIAL_DEFAULT_LANCAMENTOS = [
-  {
-    id: 1,
-    tipo: 'entrada',
-    descricao: 'Consulta clínica',
-    categoria: 'Atendimento',
-    subcategoria: 'Consulta',
-    valor: 250,
-    status: 'recebido',
-    data_competencia: '2026-04-10',
-    data_vencimento: '2026-04-10',
-    data_pagamento: '2026-04-10',
-    origem: 'Paciente João',
-    paciente_id: 1,
-    profissional_id: 2,
-    observacoes: 'Pagamento no cartão'
-  },
-  {
-    id: 2,
-    tipo: 'entrada',
-    descricao: 'Implante unitário',
-    categoria: 'Procedimento',
-    subcategoria: 'Implantodontia',
-    valor: 2850,
-    status: 'recebido',
-    data_competencia: '2026-04-11',
-    data_vencimento: '2026-04-11',
-    data_pagamento: '2026-04-11',
-    origem: 'Paciente Maria',
-    paciente_id: 3,
-    profissional_id: 5,
-    observacoes: 'Pacote com retorno'
-  },
-  {
-    id: 3,
-    tipo: 'entrada',
-    descricao: 'Convênio OdontoPrev',
-    categoria: 'Convênio',
-    subcategoria: 'Repasse',
-    valor: 4300,
-    status: 'previsto',
-    data_competencia: '2026-04-15',
-    data_vencimento: '2026-04-20',
-    data_pagamento: '',
-    origem: 'Convênio',
-    paciente_id: null,
-    profissional_id: null,
-    observacoes: 'Lote abril'
-  },
-  {
-    id: 4,
-    tipo: 'saida',
-    descricao: 'Aluguel da clínica',
-    categoria: 'Estrutura',
-    subcategoria: 'Aluguel',
-    valor: 5300,
-    status: 'pago',
-    data_competencia: '2026-04-01',
-    data_vencimento: '2026-04-05',
-    data_pagamento: '2026-04-05',
-    origem: 'Imobiliária Centro',
-    paciente_id: null,
-    profissional_id: null,
-    observacoes: 'Mensal'
-  },
-  {
-    id: 5,
-    tipo: 'saida',
-    descricao: 'Laboratório de prótese',
-    categoria: 'Laboratório',
-    subcategoria: 'Prótese',
-    valor: 1980,
-    status: 'vencido',
-    data_competencia: '2026-04-12',
-    data_vencimento: '2026-04-17',
-    data_pagamento: '',
-    origem: 'Lab Sorriso',
-    paciente_id: null,
-    profissional_id: null,
-    observacoes: '3 casos'
-  }
-];
-
-const FINANCIAL_DEFAULT_ACCOUNTS = [
-  {
-    id: 1,
-    nome: 'Conta Principal Clínica',
-    banco: 'Odonto Bank',
-    tipo: 'corrente',
-    saldo_inicial: 15000
-  }
-];
-
+const FINANCIAL_MOCK_DATA = globalThis.OdontoFlowMockData?.financial || {};
+const FINANCIAL_DEFAULT_LANCAMENTOS = Array.isArray(FINANCIAL_MOCK_DATA.launches) ? FINANCIAL_MOCK_DATA.launches.map((item) => ({ ...item })) : [];
+const FINANCIAL_DEFAULT_ACCOUNTS = Array.isArray(FINANCIAL_MOCK_DATA.accounts) ? FINANCIAL_MOCK_DATA.accounts.map((item) => ({ ...item })) : [];
 const FINANCIAL_DEFAULT_CATEGORIES = {
-  entradas: ['Consulta', 'Procedimento', 'Convênio', 'Ortodontia', 'Implantodontia'],
-  saidas: ['Aluguel', 'Laboratório', 'Insumos', 'Marketing', 'Pessoal']
+  entradas: Array.isArray(FINANCIAL_MOCK_DATA.categories?.entradas) ? [...FINANCIAL_MOCK_DATA.categories.entradas] : [],
+  saidas: Array.isArray(FINANCIAL_MOCK_DATA.categories?.saidas) ? [...FINANCIAL_MOCK_DATA.categories.saidas] : []
 };
-
-const FINANCIAL_DEFAULT_RECURRING = [
-  { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', categoria: 'Aluguel', status: 'pendente', ultima_quitacao: '' },
-  { id: 2, descricao: 'Folha de pagamento', valor: 13190, periodicidade: 'mensal', categoria: 'Pessoal', status: 'pendente', ultima_quitacao: '' }
-];
-
-const FINANCIAL_DEFAULT_FORECASTS = [
-  { id: 1, descricao: 'Previsão de insumos', valor: 4200, periodo: 'Próximos 30 dias', comprometido: false },
-  { id: 2, descricao: 'Previsão de laboratório', valor: 3600, periodo: 'Próximos 30 dias', comprometido: false }
-];
+const FINANCIAL_DEFAULT_RECURRING = Array.isArray(FINANCIAL_MOCK_DATA.recurring) ? FINANCIAL_MOCK_DATA.recurring.map((item) => ({ ...item })) : [];
+const FINANCIAL_DEFAULT_FORECASTS = Array.isArray(FINANCIAL_MOCK_DATA.forecasts) ? FINANCIAL_MOCK_DATA.forecasts.map((item) => ({ ...item })) : [];
 
 const summarizeFinancialData = (items = []) => {
   const receitaRecebida = items
@@ -1799,6 +1720,7 @@ function DashboardApp({
   const appointmentsInfiniteTriggerRef = useRef(null);
   const quickLinksCarouselRef = useRef(null);
   const quickLinksSnapTimeoutRef = useRef(null);
+  const [isSidebarDrawerOpen, setIsSidebarDrawerOpen] = useState(false);
 
   const formatDateTime = (value) => {
     if (!value) return '-';
@@ -2611,6 +2533,12 @@ function DashboardApp({
   }, []);
 
   useEffect(() => {
+    if (isWideNavigation) {
+      setIsSidebarDrawerOpen(false);
+    }
+  }, [isWideNavigation]);
+
+  useEffect(() => {
     if (!selectedPatientId) return;
     const source = patients.find((p) => p.id === selectedPatientId);
     if (source) {
@@ -2826,8 +2754,6 @@ function DashboardApp({
       clearTimeout(quickLinksSnapTimeoutRef.current);
     }
   }, []);
-
-  const isFloatingWindowOpen = isClinicN2Open || showPatientN2 || isAccountEditN2Open || isPublicProfileN2Open;
 
   if (view === 'loader') {
     return (
@@ -3531,6 +3457,15 @@ function DashboardApp({
           return acc;
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const contasFinanceirasTotal = contasFinanceirasWidgetRows.reduce((acc, item) => acc + Number(item.saldo_inicial || 0), 0);
+    const recorrenciasTotal = recurringWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const previsoesTotal = forecastWidgetRows.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const categoriasReceitasTotal = financialLaunches
+      .filter((item) => item.tipo === 'entrada')
+      .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+    const categoriasDespesasTotal = financialLaunches
+      .filter((item) => item.tipo === 'saida')
+      .reduce((acc, item) => acc + Number(item.valor || 0), 0);
     const receitasPorCategoriaResumo = Object.entries(
       financialLaunches
         .filter((item) => item.tipo === 'entrada')
@@ -3542,10 +3477,10 @@ function DashboardApp({
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 financial-layout--flat">
         <ScreenHeaderBlock
-          header={renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null })}
-          showToolbar={!isMobileViewport}
+          header={!isMobileViewport ? renderN1Header({ icon: 'settings', title: 'Financeiro', subtitle: 'Visão geral da saúde financeira da clínica', navigation: null }) : null}
+          showToolbar
           toolbarActions={[
             { key: 'period', label: 'Período', icon: 'calendar', onClick: () => setIsPeriodPickerOpen(true) },
             { key: 'export', label: 'Exportar relatório', icon: 'download', onClick: () => setIsExportModalOpen(true) }
@@ -3592,8 +3527,21 @@ function DashboardApp({
           </div>
         ) : null}
 
-        <KpiGridRow columns="4" kpis={kpis.slice(0, 4)} />
-        <KpiGridRow columns="2" kpis={kpis.slice(4)} />
+        <section className="financial-kpi-row" aria-label="KPIs financeiros">
+          {kpis.map((kpi) => (
+            <StatCard
+              key={kpi.label}
+              className="financial-kpi-row__card"
+              label={kpi.label}
+              value={kpi.value}
+              trend={`${kpi.trend} vs mês anterior`}
+              trendTone={kpi.tone}
+              sparkPoints={kpi.sparkPoints}
+              sparkColor={kpi.sparkColor}
+              sparkVariant={kpi.sparkVariant}
+            />
+          ))}
+        </section>
 
         <DualContentRow
           left={(
@@ -3616,12 +3564,18 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
-                { key: 'banco', label: 'Banco', render: (row) => <span className="text-slate-500">{row.banco}</span> },
-                { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-500">{row.tipo}</span> },
-                { key: 'saldo', label: 'Saldo inicial', render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
+                { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
+                { key: 'tipo', label: 'Tipo', hideBelow: 740, render: (row) => <span className="text-slate-500">{row.tipo}</span> },
+                { key: 'saldo', label: 'Saldo inicial', hideBelow: 620, render: (row) => <span className="text-slate-700">{formatMoney(row.saldo_inicial)}</span> }
               ]}
               rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
               emptyMessage="Nenhuma conta cadastrada."
+              footer={(
+                <div className="financial-widget-totalizer">
+                  <p><span>Registros</span><strong>{contasFinanceirasWidgetRows.length}</strong></p>
+                  <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
+                </div>
+              )}
             />
           )}
           right={(
@@ -3665,6 +3619,10 @@ function DashboardApp({
               </div>
             </div>
             <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
+            <div className="financial-widget-totalizer mt-3">
+              <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
+              <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
+            </div>
           </SectionCard>
           )}
         />
@@ -3707,10 +3665,10 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodicidade', label: 'Periodicidade', render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
-                { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
-                { key: 'valor', label: 'Valor', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
+                { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
+                { key: 'categoria', label: 'Categoria', hideBelow: 840, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+                { key: 'valor', label: 'Valor', hideBelow: 700, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 620, render: (row) => <StatusBadge status={row.status || 'pendente'} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -3726,6 +3684,12 @@ function DashboardApp({
               ]}
               rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
               emptyMessage="Nenhuma despesa recorrente cadastrada."
+              footer={(
+                <div className="financial-widget-totalizer">
+                  <p><span>Registros</span><strong>{recurringWidgetRows.length}</strong></p>
+                  <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
+                </div>
+              )}
             />
           )}
           right={(
@@ -3757,9 +3721,9 @@ function DashboardApp({
               )}
               columns={[
                 { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-                { key: 'periodo', label: 'Período', render: (row) => <span className="text-slate-600">{row.periodo}</span> },
-                { key: 'valor', label: 'Valor previsto', render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'comprometido', label: 'Comprometido no período', render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
+                { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
+                { key: 'valor', label: 'Valor previsto', hideBelow: 740, render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'comprometido', label: 'Comprometido no período', hideBelow: 620, render: (row) => <StatusBadge status={row.comprometido ? 'pago' : 'previsto'} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -3775,6 +3739,12 @@ function DashboardApp({
               ]}
               rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
               emptyMessage="Nenhuma previsão cadastrada."
+              footer={(
+                <div className="financial-widget-totalizer">
+                  <p><span>Registros</span><strong>{forecastWidgetRows.length}</strong></p>
+                  <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
+                </div>
+              )}
             />
           )}
         />
@@ -4035,8 +4005,8 @@ function DashboardApp({
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 680, render: (row) => <StatusBadge status={row.status} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -4078,8 +4048,8 @@ function DashboardApp({
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-                { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-                { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+                { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+                { key: 'status', label: 'Status', hideBelow: 680, render: (row) => <StatusBadge status={row.status} /> },
                 {
                   key: 'acoes',
                   label: 'Ações',
@@ -4109,11 +4079,11 @@ function DashboardApp({
             columns={[
               { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
               { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-              { key: 'categoria', label: 'Categoria', render: (row) => <span className="text-slate-600">{row.categoria}</span> },
-              { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-              { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+              { key: 'categoria', label: 'Categoria', hideBelow: 1120, render: (row) => <span className="text-slate-600">{row.categoria}</span> },
+              { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+              { key: 'status', label: 'Status', hideBelow: 760, render: (row) => <StatusBadge status={row.status} /> },
               { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-              { key: 'pagamento', label: 'Pagamento', sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
+              { key: 'pagamento', label: 'Pagamento', hideBelow: 620, sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
               {
                 key: 'acoes_rapidas',
                 label: 'Ações rápidas',
@@ -4431,7 +4401,46 @@ function DashboardApp({
           onTabChange={goToLevel1}
         />
       )}
+      mobileHeader={!isWideNavigation ? (
+        <header className="app-mobile-header">
+          <button
+            type="button"
+            className="btn btn--ghost app-mobile-header__menu-btn"
+            onClick={() => setIsSidebarDrawerOpen(true)}
+            aria-label="Abrir barra lateral"
+          >
+            <AppIcon name="menu" size={16} />
+          </button>
+          <div className="app-mobile-header__brand">
+            <span className="app-mobile-header__title">OdontoFlow</span>
+            <span className="app-mobile-header__subtitle">{TAB_META[activeTab]?.label || 'Início'}</span>
+          </div>
+        </header>
+      ) : null}
     >
+      {isSidebarDrawerOpen ? (
+        <div className="app-sidebar-drawer" role="dialog" aria-modal="true" aria-label="Menu lateral">
+          <button
+            type="button"
+            className="app-sidebar-drawer__backdrop"
+            aria-label="Fechar menu lateral"
+            onClick={() => setIsSidebarDrawerOpen(false)}
+          />
+          <div className="app-sidebar-drawer__panel">
+            <AppSidebar
+              isVisible
+              authEmail={authEmail}
+              tabs={LEVEL1_TABS}
+              activeTab={activeTab}
+              onTabChange={(tabId) => {
+                goToLevel1(tabId);
+                setIsSidebarDrawerOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {renderContent()}
 
       <AccountN2Modal
@@ -4530,12 +4539,6 @@ function DashboardApp({
         </div>
       ) : null}
 
-      <MobileMd3Nav
-        visible={!isWideNavigation && !isFloatingWindowOpen}
-        leftActions={mobileNavActionConfig.left}
-        centerAction={mobileNavActionConfig.center}
-        rightActions={mobileNavActionConfig.right}
-      />
     </AppShell>
   );
 }
