@@ -3240,21 +3240,6 @@ select {
   color: #64748b;
 }
 
-.financial-hero-widget__focus-btn {
-  border: 1px solid color-mix(in srgb, var(--brand-600) 18%, white);
-  border-radius: 12px;
-  height: fit-content;
-  padding: 0.45rem 0.55rem;
-  background: color-mix(in srgb, #fff 82%, #e2e8f0);
-  color: #0f172a;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.32rem;
-}
-
 .financial-hero-widget__body {
   display: flex;
   align-items: center;
@@ -3384,10 +3369,6 @@ select {
 
   .financial-layout--flat .toolbar-flat .btn span,
   .financial-layout--flat .data-table__page-button span {
-    display: none;
-  }
-
-  .financial-hero-widget__focus-btn span {
     display: none;
   }
 

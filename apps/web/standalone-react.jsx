@@ -3239,16 +3239,13 @@ function DashboardApp({
                         <p className="financial-hero-widget__value">{widget.primary}</p>
                         <p className="financial-hero-widget__caption">{widget.secondary}</p>
                       </div>
-                      <button
-                        type="button"
-                        className="financial-hero-widget__focus-btn"
-                        onClick={widget.onAction}
-                        aria-label={widget.actionAria}
-                        title={widget.actionLabel}
-                      >
-                        <AppIcon name="search" size={13} />
-                        <span>{widget.actionLabel}</span>
-                      </button>
+                      <div className="financial-widget-actions">
+                        <FinancialEditAction
+                          ariaLabel={widget.actionAria}
+                          onClick={widget.onAction}
+                          icon="search"
+                        />
+                      </div>
                     </div>
                     <div className="financial-hero-widget__body">
                       <ChartDonut
