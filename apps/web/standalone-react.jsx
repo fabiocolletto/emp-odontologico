@@ -11,7 +11,6 @@ const CHANGELOG_PATH = './CHANGELOG.md';
 const SUPABASE_STORAGE_KEY = 'odontoflow-supabase-auth';
 const AUTH_NOTICE_TIMEOUT_MS = 5000;
 const SUPABASE_CONFIG_NOTICE_TIMEOUT_MS = 9000;
-const FIRST_ACCESS_COMPLETED_KEY = 'odontoflow:first-access-completed';
 const FINANCIAL_STORAGE_KEY = 'odontoflow-financial-launches-v1';
 const FINANCIAL_ACCOUNTS_STORAGE_KEY = 'odontoflow-financial-accounts-v1';
 const FINANCIAL_CATEGORIES_STORAGE_KEY = 'odontoflow-financial-categories-v1';
@@ -243,6 +242,12 @@ const AddRecordButton = ({
     onClick={onClick}
   />
 );
+
+const {
+  AuthEntryModal,
+  getFirstAccessCompleted,
+  setFirstAccessCompleted
+} = globalThis.OdontoFlowAuthEntry || {};
 
 const SearchToggleButton = ({ isOpen, onClick }) => (
   <HeaderActionButton
@@ -4558,12 +4563,11 @@ function AuthGateApp() {
   const [isFirstAccessCompleted, setIsFirstAccessCompleted] = useState(false);
 
   useEffect(() => {
-    const storedFlag = window.localStorage.getItem(FIRST_ACCESS_COMPLETED_KEY);
-    setIsFirstAccessCompleted(storedFlag === 'true');
+    setIsFirstAccessCompleted(Boolean(getFirstAccessCompleted?.()));
   }, []);
 
   const markFirstAccessCompleted = () => {
-    window.localStorage.setItem(FIRST_ACCESS_COMPLETED_KEY, 'true');
+    setFirstAccessCompleted?.();
     setIsFirstAccessCompleted(true);
   };
 
@@ -4613,55 +4617,25 @@ function AuthGateApp() {
     return () => clearTimeout(timer);
   }, [supabaseClient]);
 
-  const submitCredentials = async (event) => {
-    event.preventDefault();
-    setAuthError('');
-    setAuthMessage('');
-
-    if (!supabaseClient) return;
-    if (!email || !password) {
-      setAuthError('Informe e-mail e senha para continuar.');
-      return;
-    }
-
-    if (mode === 'signup') {
-      const { data, error } = await supabaseClient.auth.signUp({ email, password });
-      if (error) {
-        setAuthError(error.message || 'Não foi possível criar sua conta.');
-        return;
-      }
-      if (data?.session?.user) {
-        markFirstAccessCompleted();
-      }
-      setAuthMessage('Conta criada. Verifique seu e-mail para confirmar o cadastro, se aplicável.');
-      return;
-    }
-
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) {
-      setAuthError(error.message || 'Falha ao entrar com e-mail e senha.');
-      return;
-    }
-    markFirstAccessCompleted();
-    setAuthMessage('Login realizado com sucesso.');
+  const onSignUp = ({ email: signupEmail, password: signupPassword }) => {
+    if (!supabaseClient) return Promise.resolve({ data: null, error: null });
+    return supabaseClient.auth.signUp({ email: signupEmail, password: signupPassword });
   };
 
-  const loginWithGoogle = async () => {
-    setAuthError('');
-    setAuthMessage('');
-    if (!supabaseClient) return;
+  const onSignIn = ({ email: signinEmail, password: signinPassword }) => {
+    if (!supabaseClient) return Promise.resolve({ data: null, error: null });
+    return supabaseClient.auth.signInWithPassword({ email: signinEmail, password: signinPassword });
+  };
 
-    const { error } = await supabaseClient.auth.signInWithOAuth({
+  const onGoogle = () => {
+    if (!supabaseClient) return Promise.resolve({ data: null, error: null });
+    return supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + window.location.pathname,
         queryParams: { prompt: 'select_account' }
       }
     });
-
-    if (error) {
-      setAuthError(error.message || 'Falha ao iniciar login com Google.');
-    }
   };
 
   if (loading) {
@@ -4712,140 +4686,21 @@ function AuthGateApp() {
           onSetMode={setMode}
           onSetEmail={setEmail}
           onSetPassword={setPassword}
-          onSubmitCredentials={submitCredentials}
-          onLoginWithGoogle={loginWithGoogle}
+          onSignIn={onSignIn}
+          onSignUp={onSignUp}
+          onGoogle={onGoogle}
+          onSetAuthMessage={setAuthMessage}
+          onSetAuthError={setAuthError}
           onCloseNotices={() => {
             setAuthMessage('');
             setAuthError('');
           }}
           onContinueAuthenticated={markFirstAccessCompleted}
+          onAuthSuccess={markFirstAccessCompleted}
         />
       ) : null}
     </>
   );
 }
-
-const AuthEntryModal = ({
-  mode,
-  email,
-  password,
-  authMessage,
-  authError,
-  isAuthenticated,
-  onSetMode,
-  onSetEmail,
-  onSetPassword,
-  onSubmitCredentials,
-  onLoginWithGoogle,
-  onCloseNotices,
-  onContinueAuthenticated
-}) => {
-  const dialogRef = useRef(null);
-
-  useEffect(() => {
-    const dialogNode = dialogRef.current;
-    if (!dialogNode) return undefined;
-
-    const focusableElements = dialogNode.querySelectorAll(
-      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-    const firstFocusable = focusableElements[0];
-    const lastFocusable = focusableElements[focusableElements.length - 1];
-
-    firstFocusable?.focus();
-
-    const trapFocus = (event) => {
-      if (event.key !== 'Tab') return;
-      if (!focusableElements.length) {
-        event.preventDefault();
-        return;
-      }
-      if (event.shiftKey && document.activeElement === firstFocusable) {
-        event.preventDefault();
-        lastFocusable.focus();
-      } else if (!event.shiftKey && document.activeElement === lastFocusable) {
-        event.preventDefault();
-        firstFocusable.focus();
-      }
-    };
-
-    dialogNode.addEventListener('keydown', trapFocus);
-    return () => dialogNode.removeEventListener('keydown', trapFocus);
-  }, [isAuthenticated]);
-
-  return (
-    <div className="finance-overlay auth-entry-overlay">
-      <div
-        ref={dialogRef}
-        className="finance-overlay__panel auth-entry-modal ui-card w-full max-w-md space-y-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="auth-entry-title"
-      >
-        {isAuthenticated ? (
-          <>
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Primeiro acesso</p>
-              <h1 id="auth-entry-title" className="text-2xl font-black text-slate-900">Bem-vindo ao OdontoFlow</h1>
-              <p className="text-sm text-slate-600 mt-1">Seu acesso foi validado. Finalize para abrir o dashboard.</p>
-            </div>
-            <button type="button" className="btn btn--primary w-full" onClick={onContinueAuthenticated}>
-              Continuar para o dashboard
-            </button>
-          </>
-        ) : (
-          <>
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">Acesso seguro</p>
-              <h1 id="auth-entry-title" className="text-2xl font-black text-slate-900">Entrar no OdontoFlow</h1>
-              <p className="text-sm text-slate-600 mt-1">Crie sua conta e acesse quando quiser, inclusive com Google.</p>
-            </div>
-
-            <form onSubmit={onSubmitCredentials} className="space-y-3">
-              <input
-                type="email"
-                className="ui-input w-full"
-                placeholder="seuemail@clinica.com"
-                value={email}
-                onChange={(event) => onSetEmail(event.target.value)}
-              />
-              <input
-                type="password"
-                className="ui-input w-full"
-                placeholder="Sua senha"
-                value={password}
-                onChange={(event) => onSetPassword(event.target.value)}
-              />
-              <button type="submit" className="btn btn--primary w-full">
-                {mode === 'signup' ? 'Criar conta' : 'Entrar com e-mail'}
-              </button>
-            </form>
-
-            <button type="button" onClick={onLoginWithGoogle} className="btn btn--ghost w-full">
-              Continuar com Google
-            </button>
-
-            <button type="button" className="text-sm text-sky-700 font-semibold" onClick={() => onSetMode((prev) => (prev === 'signup' ? 'signin' : 'signup'))}>
-              {mode === 'signup' ? 'Já tenho conta, quero entrar' : 'Não tenho conta, quero me cadastrar'}
-            </button>
-          </>
-        )}
-
-        <TransientNotice
-          visible={Boolean(authMessage)}
-          tone="success"
-          message={authMessage}
-          onClose={onCloseNotices}
-        />
-        <TransientNotice
-          visible={Boolean(authError)}
-          tone="error"
-          message={authError}
-          onClose={onCloseNotices}
-        />
-      </div>
-    </div>
-  );
-};
 
 ReactDOM.createRoot(document.getElementById('root')).render(<AuthGateApp />);
