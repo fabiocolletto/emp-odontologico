@@ -669,12 +669,13 @@ const FinancialSectionColumns = financialComponentFactories.createFinancialSecti
 const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
 const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
 const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
-if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
+if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea || !chartCatalogFactories.createChartTrendLine) {
   throw new Error('Catálogo de gráficos não carregado. Verifique os scripts em index.html.');
 }
 const ChartDonut = chartCatalogFactories.createChartDonut();
 const ChartSparkLine = chartCatalogFactories.createChartSparkLine();
 const ChartSparkArea = chartCatalogFactories.createChartSparkArea();
+const ChartTrendLine = chartCatalogFactories.createChartTrendLine({ formatValue: formatMoney });
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -1617,7 +1618,6 @@ function DashboardApp({
   const [financialRecurring, setFinancialRecurring] = useState(() => readStoredFinancialRecurring());
   const [financialForecasts, setFinancialForecasts] = useState(() => readStoredFinancialForecasts());
   const [isFinancialFormOpen, setIsFinancialFormOpen] = useState(false);
-  const [isFinancialLaunchesFocusOpen, setIsFinancialLaunchesFocusOpen] = useState(false);
   const [isPeriodPickerOpen, setIsPeriodPickerOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedPeriodLabel, setSelectedPeriodLabel] = useState('01/04/2026 - 30/04/2026');
@@ -1639,6 +1639,7 @@ function DashboardApp({
   const [recurringFilter, setRecurringFilter] = useState('');
   const [forecastFilter, setForecastFilter] = useState('');
   const [openWidgetFilter, setOpenWidgetFilter] = useState('');
+  const [financialInfoKey, setFinancialInfoKey] = useState('');
   const [widgetFilters, setWidgetFilters] = useState({
     contasFinanceiras: { tipo: 'all' },
     recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
@@ -3047,6 +3048,8 @@ function DashboardApp({
       {
         key: 'receitas',
         toneClass: 'financial-hero-widget--receitas',
+        iconName: 'download',
+        iconToneClass: 'financial-widget-title__icon--emerald',
         title: 'Receitas consolidadas',
         primary: formatMoney(receitaRecebidaTotal),
         secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
@@ -3063,6 +3066,8 @@ function DashboardApp({
       {
         key: 'despesas',
         toneClass: 'financial-hero-widget--despesas',
+        iconName: 'clear',
+        iconToneClass: 'financial-widget-title__icon--rose',
         title: 'Despesas consolidadas',
         primary: formatMoney(despesaPagaTotal),
         secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
@@ -3079,6 +3084,8 @@ function DashboardApp({
       {
         key: 'conciliacao',
         toneClass: 'financial-hero-widget--conciliacao',
+        iconName: 'plan',
+        iconToneClass: 'financial-widget-title__icon--indigo',
         title: 'Conciliação financeira',
         primary: formatMoney(receitaRecebidaTotal - despesaPagaTotal),
         secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
@@ -3159,7 +3166,33 @@ function DashboardApp({
           return acc;
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
-    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const financialWidgetVisualMap = {
+      contasFinanceiras: { icon: 'wallet', toneClass: 'financial-widget-title__icon--sky' },
+      categoriasFinanceiras: { icon: 'archive', toneClass: 'financial-widget-title__icon--violet' },
+      recorrencias: { icon: 'clock', toneClass: 'financial-widget-title__icon--amber' },
+      previsoes: { icon: 'plan', toneClass: 'financial-widget-title__icon--rose' },
+      contasReceber: { icon: 'download', toneClass: 'financial-widget-title__icon--emerald' },
+      contasPagar: { icon: 'clear', toneClass: 'financial-widget-title__icon--orange' },
+      lancamentos: { icon: 'multi', toneClass: 'financial-widget-title__icon--indigo' }
+    };
+    const getFinancialWidgetVisual = (key) => {
+      const visual = financialWidgetVisualMap[key];
+      if (!visual) return {};
+      return {
+        titleIcon: <AppIcon name={visual.icon} size={12} />,
+        titleToneClass: visual.toneClass
+      };
+    };
+    const financialSectionInfoMap = {
+      consolidated: {
+        title: 'Resumo financeiro estratégico',
+        content: 'Esta seção consolida receitas, despesas e conciliação para leitura rápida do período.'
+      },
+      operation: {
+        title: 'Operação financeira diária',
+        content: 'Esta seção concentra widgets operacionais para cadastros, recorrências, previsões, contas e lançamentos.'
+      }
+    };
     const financialLaunchColumns = [
       { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
       { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
@@ -3183,8 +3216,6 @@ function DashboardApp({
         )
       }
     ];
-    const financialLaunchMainColumns = financialLaunchColumns.filter((column) => !isActionColumn(column));
-
     return (
       <div className="space-y-4 financial-layout--flat">
         {renderN1Header({
@@ -3249,46 +3280,75 @@ function DashboardApp({
           </div>
         ) : null}
 
+        {financialInfoKey && financialSectionInfoMap[financialInfoKey] ? (
+          <div className="finance-overlay" onClick={() => setFinancialInfoKey('')}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title={financialSectionInfoMap[financialInfoKey].title}>
+                <p className="text-sm text-slate-600">{financialSectionInfoMap[financialInfoKey].content}</p>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setFinancialInfoKey('')} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
         <FinancialPageSection
-          eyebrow="Nível 1 · visão consolidada"
-          title="Resumo financeiro estratégico"
-          description="Widgets consolidados para receitas, despesas e conciliação, com foco operacional em poucos cliques."
+          title={(
+            <span className="financial-section-inline-title">
+              <span>Resumo financeiro estratégico</span>
+              <button
+                type="button"
+                className="financial-section-info-indicator"
+                aria-label="Informações da visão consolidada"
+                onClick={() => setFinancialInfoKey('consolidated')}
+              >
+                <AppIcon name="info" size={13} />
+              </button>
+            </span>
+          )}
         >
           <FinancialSectionColumns variant="hero">
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
               {financialHeroWidgets.map((widget) => {
                 return (
-                  <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
-                    <div className="financial-hero-widget__header">
-                      <div>
-                        <p className="financial-hero-widget__eyebrow">{widget.title}</p>
-                        <p className="financial-hero-widget__value">{widget.primary}</p>
-                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
-                      </div>
+                  <article key={widget.key} className={`financial-hero-widget financial-widget-container financial-widget-container--triple ${widget.toneClass}`.trim()}>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="financial-hero-widget__eyebrow financial-widget-title">
+                        <span className={`financial-widget-title__icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
+                        <span>{widget.title}</span>
+                      </p>
                       <div className="financial-widget-actions">
                         <FinancialEditAction
                           ariaLabel={widget.actionAria}
                           onClick={widget.onAction}
-                          icon="search"
+                          icon="expand"
                         />
                       </div>
                     </div>
                     <div className="financial-hero-widget__body">
+                      <div className="financial-hero-widget__summary">
+                        <p className="financial-hero-widget__value">{widget.primary}</p>
+                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
+                      </div>
                       <ChartDonut
                         value={widget.ratio}
                         label={widget.ratioLabel}
                         tone={widget.chartTone}
                         size={82}
                       />
-                      <div className="financial-hero-widget__trend">
-                        {widget.chartVariant === 'area' ? (
-                          <ChartSparkArea points={widget.trendSeries} tone={widget.chartTone} />
-                        ) : (
-                          <ChartSparkLine points={widget.trendSeries} tone={widget.chartTone} />
-                        )}
-                        <p>{widget.trendLabel}</p>
-                      </div>
                     </div>
+                    <div className="financial-hero-widget__trend">
+                      <ChartTrendLine
+                        points={widget.trendSeries}
+                        tone={widget.chartTone}
+                        ariaLabel={`Tendência de ${widget.title.toLowerCase()}`}
+                      />
+                    </div>
+                    <footer className="financial-hero-widget__footer">
+                      <p>{widget.ratioLabel}</p>
+                      <p>{widget.trendLabel}</p>
+                    </footer>
                   </article>
                 );
               })}
@@ -3297,18 +3357,28 @@ function DashboardApp({
         </FinancialPageSection>
 
         <FinancialPageSection
-          eyebrow="Nível 1 · operação"
-          title="Operação financeira diária"
-          description="Módulos reutilizáveis por seção para contas, categorias e recorrências."
+          title={(
+            <span className="financial-section-inline-title">
+              <span>Operação financeira diária</span>
+              <button
+                type="button"
+                className="financial-section-info-indicator"
+                aria-label="Informações da operação financeira"
+                onClick={() => setFinancialInfoKey('operation')}
+              >
+                <AppIcon name="info" size={13} />
+              </button>
+            </span>
+          )}
         >
           <FinancialSectionColumns variant="operation">
             <DataSection
-              title="Configurações e cadastros"
-              description="Elementos orientados a estrutura de dados, reutilizáveis em outras telas como Perfil."
+              title=""
             >
               <DataColumns columns={2}>
                 <FinancialTableSectionCard
                   title="Contas financeiras"
+                  {...getFinancialWidgetVisual('contasFinanceiras')}
                   addAriaLabel="Adicionar conta financeira"
                   onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
                   onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
@@ -3332,16 +3402,19 @@ function DashboardApp({
                   ]}
                   rows={contasFinanceirasWidgetRows.map((item) => ({ key: `account-${item.id}`, ...item }))}
                   emptyMessage="Nenhuma conta cadastrada."
-                  footer={(
-                    <div className="financial-widget-totalizer">
-                      <p><span>Registros</span><strong>{contasFinanceirasWidgetRows.length}</strong></p>
-                      <p><span>Total saldo inicial</span><strong>{formatMoney(contasFinanceirasTotal)}</strong></p>
-                    </div>
-                  )}
+                  footerTotals={[
+                    { label: 'Registros', value: contasFinanceirasWidgetRows.length },
+                    { label: 'Total saldo inicial', value: formatMoney(contasFinanceirasTotal) }
+                  ]}
                 />
                 <SectionCard
-                  className="financial-section-card financial-section-card--operation"
-                  title="Categorias financeiras"
+                  className="financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--double"
+                  title={(
+                    <span className="financial-widget-title">
+                      <span className="financial-widget-title__icon financial-widget-title__icon--violet" aria-hidden="true"><AppIcon name="archive" size={12} /></span>
+                      <span>Categorias financeiras</span>
+                    </span>
+                  )}
                   actions={(
                     <div className="financial-widget-actions">
                       <FinancialEditAction
@@ -3349,55 +3422,57 @@ function DashboardApp({
                         onClick={() => setIsCategoriesEditMode(true)}
                         icon="expand"
                       />
-                      <FinancialEditAction
-                        ariaLabel="Adicionar categoria financeira"
-                        onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }}
-                        icon="plus"
-                      />
-                      <FinancialEditAction
-                        ariaLabel="Filtrar categorias financeiras"
-                        onClick={() => setIsCategoriesEditMode(true)}
-                        icon="filter"
-                      />
                     </div>
                   )}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
-                      <div className="space-y-2">
-                        {receitasPorCategoriaResumo.map(([categoria, total]) => (
-                          <div key={`cat-income-${categoria}`}>
-                            <div className="flex justify-between text-xs text-slate-600 mb-1">
-                              <span>{categoria}</span><span>{formatMoney(total)}</span>
-                            </div>
-                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                              <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
-                            </div>
+                  <div className="financial-widget-body-scroll">
+                    <div className="data-table__scroller">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm p-2">
+                        <div>
+                          <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
+                          <div className="space-y-2">
+                            {receitasPorCategoriaResumo.map(([categoria, total]) => (
+                              <div key={`cat-income-${categoria}`}>
+                                <div className="flex justify-between text-xs text-slate-600 mb-1">
+                                  <span>{categoria}</span><span>{formatMoney(total)}</span>
+                                </div>
+                                <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                                  <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
+                        <div>
+                          <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
+                          <div className="space-y-2">
+                            {despesasPorCategoriaResumo.map(([categoria, total]) => (
+                              <div key={`cat-expense-${categoria}`}>
+                                <div className="flex justify-between text-xs text-slate-600 mb-1">
+                                  <span>{categoria}</span><span>{formatMoney(total)}</span>
+                                </div>
+                                <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                                  <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
-                      <div className="space-y-2">
-                        {despesasPorCategoriaResumo.map(([categoria, total]) => (
-                          <div key={`cat-expense-${categoria}`}>
-                            <div className="flex justify-between text-xs text-slate-600 mb-1">
-                              <span>{categoria}</span><span>{formatMoney(total)}</span>
-                            </div>
-                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                              <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
-                            </div>
-                          </div>
-                        ))}
+                    <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
+                    <div className="data-table__footer">
+                      <div className="data-table__totals" aria-label="Totalizadores da tabela">
+                        <p className="data-table__total-item">
+                          <span>Total receitas:</span>
+                          <strong>{formatMoney(categoriasReceitasTotal)}</strong>
+                        </p>
+                        <p className="data-table__total-item">
+                          <span>Total despesas:</span>
+                          <strong>{formatMoney(categoriasDespesasTotal)}</strong>
+                        </p>
                       </div>
                     </div>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
-                  <div className="financial-widget-totalizer mt-3">
-                    <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
-                    <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
                   </div>
                 </SectionCard>
               </DataColumns>
@@ -3405,11 +3480,11 @@ function DashboardApp({
 
             <DataSection
               title="Planejamento e recorrência"
-              description="Seções de dados detalhados com variação de 1, 2 ou 3 colunas para reaproveitar em qualquer contexto."
             >
               <DataColumns columns={2}>
                 <FinancialTableSectionCard
                   title="Despesas recorrentes"
+                  {...getFinancialWidgetVisual('recorrencias')}
                   addAriaLabel="Adicionar despesa recorrente"
                   onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
                   onToggleFilter={() => toggleWidgetFilter('recorrencias')}
@@ -3463,15 +3538,14 @@ function DashboardApp({
                   ]}
                   rows={recurringWidgetRows.map((item) => ({ key: `rec-${item.id}`, ...item }))}
                   emptyMessage="Nenhuma despesa recorrente cadastrada."
-                  footer={(
-                    <div className="financial-widget-totalizer">
-                      <p><span>Registros</span><strong>{recurringWidgetRows.length}</strong></p>
-                      <p><span>Total recorrências</span><strong>{formatMoney(recorrenciasTotal)}</strong></p>
-                    </div>
-                  )}
+                  footerTotals={[
+                    { label: 'Registros', value: recurringWidgetRows.length },
+                    { label: 'Total recorrências', value: formatMoney(recorrenciasTotal) }
+                  ]}
                 />
                 <FinancialTableSectionCard
                   title="Previsões de custos"
+                  {...getFinancialWidgetVisual('previsoes')}
                   addAriaLabel="Adicionar previsão de custo"
                   onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
                   onToggleFilter={() => toggleWidgetFilter('previsoes')}
@@ -3516,12 +3590,10 @@ function DashboardApp({
                   ]}
                   rows={forecastWidgetRows.map((item) => ({ key: `fore-${item.id}`, ...item }))}
                   emptyMessage="Nenhuma previsão cadastrada."
-                  footer={(
-                    <div className="financial-widget-totalizer">
-                      <p><span>Registros</span><strong>{forecastWidgetRows.length}</strong></p>
-                      <p><span>Total previsto</span><strong>{formatMoney(previsoesTotal)}</strong></p>
-                    </div>
-                  )}
+                  footerTotals={[
+                    { label: 'Registros', value: forecastWidgetRows.length },
+                    { label: 'Total previsto', value: formatMoney(previsoesTotal) }
+                  ]}
                 />
               </DataColumns>
             </DataSection>
@@ -3763,11 +3835,11 @@ function DashboardApp({
         <FinancialSectionColumns variant="operation">
           <DataSection
             title="Contas a receber e pagar"
-            description="Grade de dados detalhados parametrizada em duas colunas, reaproveitável em outros módulos."
           >
             <DataColumns columns={2}>
             <FinancialTablePanelCard
               title="Contas a receber"
+              {...getFinancialWidgetVisual('contasReceber')}
               onAdd={() => openFinancialCreate('entrada')}
               addAriaLabel="Adicionar conta a receber"
               onToggleFilter={() => toggleWidgetFilter('contasReceber')}
@@ -3809,6 +3881,7 @@ function DashboardApp({
             />
             <FinancialTablePanelCard
               title="Contas a pagar"
+              {...getFinancialWidgetVisual('contasPagar')}
               onAdd={() => openFinancialCreate('saida')}
               addAriaLabel="Adicionar conta a pagar"
               onToggleFilter={() => toggleWidgetFilter('contasPagar')}
@@ -3853,85 +3926,29 @@ function DashboardApp({
 
           <DataSection
             title="Lançamentos financeiros"
-            description="Exemplo de seção em uma coluna para histórico completo e ações rápidas."
           >
             <DataColumns columns={1}>
               <div ref={financialLaunchesSectionRef}>
-                <SectionCard
-                  className="financial-section-card financial-section-card--operation"
+                <FinancialTableSectionCard
                   title="Lançamentos"
-                  actions={(
-                    <div className="financial-widget-actions">
-                      <FinancialEditAction
-                        ariaLabel="Abrir lançamentos financeiros"
-                        onClick={() => setIsFinancialLaunchesFocusOpen(true)}
-                        icon="expand"
-                      />
-                      <FinancialEditAction
-                        ariaLabel="Novo lançamento"
-                        onClick={() => openFinancialCreate('entrada')}
-                        icon="plus"
-                      />
-                      <FinancialEditAction
-                        ariaLabel="Filtrar lançamentos"
-                        onClick={() => focusFinancialLaunches('all')}
-                        icon="filter"
-                      />
-                    </div>
-                  )}
-                >
-                  <DataTable
-            columns={financialLaunchMainColumns}
-            rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
-            emptyMessage="Nenhum lançamento financeiro cadastrado."
-            paginated
-            compact
-            keepEmptyRows
-                  />
-                  <div className="financial-widget-totalizer">
-                    <p><span>Registros</span><strong>{financialLaunches.length}</strong></p>
-                    <p><span>Total lançamentos</span><strong>{formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0))}</strong></p>
-                  </div>
-                </SectionCard>
+                  {...getFinancialWidgetVisual('lancamentos')}
+                  layout="single"
+                  addAriaLabel="Novo lançamento"
+                  onAdd={() => openFinancialCreate('entrada')}
+                  onToggleFilter={() => focusFinancialLaunches('all')}
+                  filterAriaLabel="Filtrar lançamentos"
+                  columns={financialLaunchColumns}
+                  rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
+                  emptyMessage="Nenhum lançamento financeiro cadastrado."
+                  footerTotals={[
+                    { label: 'Registros', value: financialLaunches.length },
+                    { label: 'Total lançamentos', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                  ]}
+                />
               </div>
             </DataColumns>
           </DataSection>
         </FinancialSectionColumns>
-
-        {isFinancialLaunchesFocusOpen ? (
-          <div className="finance-overlay" onClick={() => setIsFinancialLaunchesFocusOpen(false)}>
-            <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <SectionCard
-                className="financial-modal-card financial-focus-card"
-                title="Lançamentos"
-                actions={(
-                  <div className="financial-widget-actions">
-                    <FinancialEditAction
-                      ariaLabel="Novo lançamento"
-                      onClick={() => openFinancialCreate('entrada')}
-                      icon="plus"
-                    />
-                    <FinancialEditAction
-                      ariaLabel="Fechar visão focada de lançamentos"
-                      onClick={() => setIsFinancialLaunchesFocusOpen(false)}
-                      icon="close"
-                    />
-                  </div>
-                )}
-              >
-                <DataTable
-                  columns={financialLaunchColumns}
-                  rows={financialLaunches.map((item) => ({ key: `launch-focus-${item.id}`, ...item }))}
-                  emptyMessage="Nenhum lançamento financeiro cadastrado."
-                  footerTotals={[
-                    { label: 'Registros', value: financialLaunches.length },
-                    { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
-                  ]}
-                />
-              </SectionCard>
-            </div>
-          </div>
-        ) : null}
 
         {isFinancialFormOpen ? (
           <div className="finance-overlay" onClick={closeFinancialForm}>

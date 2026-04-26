@@ -5,6 +5,8 @@
   namespace.createFinancialTablePanelCard = ({ PanelCard, DataTable, FinancialEditAction }) => (
     {
       title,
+      titleIcon = null,
+      titleToneClass = '',
       columns,
       rows,
       onAdd,
@@ -15,11 +17,12 @@
       filterAriaLabel,
       footerClassName = '',
       footerValue = '',
+      layout = 'double',
       hideActionColumnOnMain = true
     }
   ) => {
     const [isFocusOpen, setIsFocusOpen] = useState(false);
-    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const isActionColumn = (column) => /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.key || '')) || /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.label || ''));
     const mainColumns = hideActionColumnOnMain ? columns.filter((column) => !isActionColumn(column)) : columns;
     const totalColumn = columns.find((column) => /valor|saldo/i.test(column.key || ''));
     const hasNumericValues = totalColumn
@@ -32,12 +35,18 @@
       ? rows.reduce((acc, row) => acc + Number(row[totalColumn.key] || 0), 0)
       : 0;
     const resolvedFooterValue = footerValue || (hasNumericValues ? numericTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '');
+    const resolvedTitle = (
+      <span className="financial-widget-title">
+        {titleIcon ? <span className={`financial-widget-title__icon ${titleToneClass}`.trim()} aria-hidden="true">{titleIcon}</span> : null}
+        <span>{title}</span>
+      </span>
+    );
 
     return (
       <>
         <PanelCard
-          className="financial-panel-card"
-          title={title}
+          className={`financial-panel-card financial-widget-container financial-widget-container--${layout}`.trim()}
+          title={resolvedTitle}
           extra={(
             <div className="financial-widget-actions">
               <FinancialEditAction
@@ -45,20 +54,6 @@
                 onClick={() => setIsFocusOpen(true)}
                 icon="expand"
               />
-              <FinancialEditAction
-                ariaLabel={addAriaLabel || `Adicionar em ${title.toLowerCase()}`}
-                onClick={onAdd}
-                icon="plus"
-              />
-              <div className="financial-widget-actions__filter">
-                <FinancialEditAction
-                  ariaLabel={filterAriaLabel || `Filtrar ${title.toLowerCase()}`}
-                  onClick={onToggleFilter}
-                  icon="filter"
-                  className={isFilterOpen ? 'is-active' : ''}
-                />
-                {isFilterOpen ? <div className="financial-widget-actions__dropdown">{filterDropdown}</div> : null}
-              </div>
             </div>
           )}
         >
@@ -79,8 +74,8 @@
           <div className="finance-overlay" onClick={() => setIsFocusOpen(false)}>
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <PanelCard
-                className="financial-modal-card financial-focus-card"
-                title={title}
+                className="financial-modal-card financial-focus-card financial-widget-container financial-widget-container--single"
+                title={resolvedTitle}
                 extra={(
                   <div className="financial-widget-actions">
                     <FinancialEditAction
@@ -88,6 +83,15 @@
                       onClick={onAdd}
                       icon="plus"
                     />
+                    <div className="financial-widget-actions__filter">
+                      <FinancialEditAction
+                        ariaLabel={filterAriaLabel || `Filtrar ${title.toLowerCase()}`}
+                        onClick={onToggleFilter}
+                        icon="filter"
+                        className={isFilterOpen ? 'is-active' : ''}
+                      />
+                      {isFilterOpen ? <div className="financial-widget-actions__dropdown">{filterDropdown}</div> : null}
+                    </div>
                     <FinancialEditAction
                       ariaLabel="Fechar visão focada"
                       onClick={() => setIsFocusOpen(false)}

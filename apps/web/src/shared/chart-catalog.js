@@ -60,4 +60,55 @@
       </svg>
     );
   };
+
+  namespace.createChartTrendLine = ({ formatValue = (value) => value } = {}) => ({
+    points = [],
+    tone = '#3b82f6',
+    width = 280,
+    height = 92,
+    leftPad = 32,
+    rightPad = 8,
+    topPad = 10,
+    bottomPad = 20,
+    ariaLabel = 'Tendência'
+  }) => {
+    const safePoints = normalizePoints(points).map((value, index) => ({ value, label: `M${index + 1}` }));
+    const max = Math.max(...safePoints.map((item) => item.value), 1);
+    const min = Math.min(...safePoints.map((item) => item.value), 0);
+    const range = Math.max(max - min, 1);
+    const usableWidth = Math.max(width - leftPad - rightPad, 1);
+    const usableHeight = Math.max(height - topPad - bottomPad, 1);
+    const xStep = safePoints.length > 1 ? usableWidth / (safePoints.length - 1) : 0;
+    const yFor = (value) => topPad + ((max - value) / range) * usableHeight;
+    const chartPoints = safePoints.map((item, index) => ({ ...item, x: leftPad + (xStep * index), y: yFor(item.value) }));
+    const polyline = chartPoints.map((item) => `${item.x},${item.y}`).join(' ');
+    const yTicks = [max, max - (range / 3), max - ((range * 2) / 3), min];
+
+    return (
+      <div className="financial-hero-widget__trend-linechart">
+        <svg viewBox={`0 0 ${width} ${height}`} aria-label={ariaLabel}>
+          {yTicks.map((tick, index) => (
+            <g key={`grid-${index}`}>
+              <line x1={leftPad} x2={width - rightPad} y1={yFor(tick)} y2={yFor(tick)} className="financial-hero-widget__trend-grid" />
+              <text x={leftPad - 4} y={yFor(tick) + 3} textAnchor="end" className="financial-hero-widget__trend-y-label">
+                {formatValue(tick)}
+              </text>
+            </g>
+          ))}
+          <polyline points={polyline} className="financial-hero-widget__trend-line" style={{ stroke: tone }} />
+          {chartPoints.map((point) => (
+            <g key={`point-${point.label}`}>
+              <circle cx={point.x} cy={point.y} r="3.2" className="financial-hero-widget__trend-point" style={{ fill: tone }} />
+              <text x={point.x} y={point.y - 7} textAnchor="middle" className="financial-hero-widget__trend-point-label">
+                {formatValue(point.value)}
+              </text>
+              <text x={point.x} y={height - 4} textAnchor="middle" className="financial-hero-widget__trend-x-label">
+                {point.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    );
+  };
 }(globalThis));

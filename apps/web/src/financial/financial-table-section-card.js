@@ -5,6 +5,8 @@
   namespace.createFinancialTableSectionCard = ({ SectionCard, DataTable, FinancialEditAction }) => (
     {
       title,
+      titleIcon = null,
+      titleToneClass = '',
       columns,
       rows,
       emptyMessage,
@@ -14,12 +16,13 @@
       isFilterOpen = false,
       filterDropdown = null,
       filterAriaLabel,
-      footer = null,
+      footerTotals = [],
+      layout = 'double',
       hideActionColumnOnMain = true
     }
   ) => {
     const [isFocusOpen, setIsFocusOpen] = useState(false);
-    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const isActionColumn = (column) => /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.key || '')) || /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.label || ''));
     const mainColumns = hideActionColumnOnMain ? columns.filter((column) => !isActionColumn(column)) : columns;
     const totalColumn = columns.find((column) => /valor|saldo/i.test(column.key || ''));
     const hasNumericValues = totalColumn
@@ -37,12 +40,18 @@
         ? [{ label: 'Total', value: numericTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }]
         : [])
     ];
+    const resolvedTitle = (
+      <span className="financial-widget-title">
+        {titleIcon ? <span className={`financial-widget-title__icon ${titleToneClass}`.trim()} aria-hidden="true">{titleIcon}</span> : null}
+        <span>{title}</span>
+      </span>
+    );
 
     return (
       <>
         <SectionCard
-          className="financial-section-card financial-section-card--operation"
-          title={title}
+          className={`financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--${layout}`.trim()}
+          title={resolvedTitle}
           actions={(
             <div className="financial-widget-actions">
               <FinancialEditAction
@@ -50,20 +59,6 @@
                 onClick={() => setIsFocusOpen(true)}
                 icon="expand"
               />
-              <FinancialEditAction
-                ariaLabel={addAriaLabel}
-                onClick={onAdd}
-                icon="plus"
-              />
-              <div className="financial-widget-actions__filter">
-                <FinancialEditAction
-                  ariaLabel={filterAriaLabel}
-                  onClick={onToggleFilter}
-                  icon="filter"
-                  className={isFilterOpen ? 'is-active' : ''}
-                />
-                {isFilterOpen ? <div className="financial-widget-actions__dropdown">{filterDropdown}</div> : null}
-              </div>
             </div>
           )}
         >
@@ -74,16 +69,16 @@
             paginated
             compact
             keepEmptyRows
+            footerTotals={footerTotals}
           />
-          {footer}
         </SectionCard>
 
         {isFocusOpen ? (
           <div className="finance-overlay" onClick={() => setIsFocusOpen(false)}>
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <SectionCard
-                className="financial-modal-card financial-focus-card"
-                title={title}
+                className="financial-modal-card financial-focus-card financial-widget-container financial-widget-container--single"
+                title={resolvedTitle}
                 actions={(
                   <div className="financial-widget-actions">
                     <FinancialEditAction
@@ -91,6 +86,15 @@
                       onClick={onAdd}
                       icon="plus"
                     />
+                    <div className="financial-widget-actions__filter">
+                      <FinancialEditAction
+                        ariaLabel={filterAriaLabel}
+                        onClick={onToggleFilter}
+                        icon="filter"
+                        className={isFilterOpen ? 'is-active' : ''}
+                      />
+                      {isFilterOpen ? <div className="financial-widget-actions__dropdown">{filterDropdown}</div> : null}
+                    </div>
                     <FinancialEditAction
                       ariaLabel="Fechar visão focada"
                       onClick={() => setIsFocusOpen(false)}

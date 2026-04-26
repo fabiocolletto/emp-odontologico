@@ -2,6 +2,97 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.33 - 2026-04-26
+
+### Changed
+- Padronização visual dos widgets financeiros ampliada com ícone + cor por widget (hero, tabelas operacionais e cards de contas), reforçando leitura contextual por bloco.
+- Botão de **Adicionar** foi removido do header da tela principal dos widgets financeiros e mantido na **tela foco** (overlay), reduzindo ruído visual no nível principal.
+- Rodapé das tabelas financeiras ajustado para manter navegação e totalizadores com tipografia mais legível e compacta, incluindo paginação flat e espaçamento reduzido entre ações.
+
+## v1.1.34 - 2026-04-26
+
+### Changed
+- Widget **Categorias financeiras** foi alinhado ao mesmo padrão estrutural dos demais (mesmo container/layout e sem botão de adicionar na tela principal).
+- Containers dos widgets financeiros passaram a usar alturas constantes por variação (`single/double/triple`) para manter alinhamento vertical entre colunas da mesma linha.
+- Conteúdo interno dos widgets e tabelas agora prioriza rolagem interna quando necessário, com bloqueio de quebra de linha em células/rodapés para reduzir variações de altura entre cards.
+
+## v1.1.35 - 2026-04-26
+
+### Changed
+- Widgets financeiros passaram a usar estrutura vertical fixa (`header` no topo, `body` com scroll interno e `footer` ancorado na base), evitando variação visual por quantidade de registros.
+- Fundo e borda dos widgets foram unificados para o mesmo padrão visual do bloco **Contas a receber**.
+- Superfícies internas de `header`, `body` e `footer` foram padronizadas com divisórias e cores consistentes para leitura homogênea entre todos os widgets.
+
+## v1.1.36 - 2026-04-26
+
+### Changed
+- Seção **Nível 1 · Visão consolidada** migrou para o mesmo padrão estrutural de widgets do nível operacional (header/body/footer padronizados, ação alinhada ao título e layout em 3 colunas com `--triple`).
+- Botão de foco dos widgets consolidados foi unificado para o mesmo ícone/comportamento visual dos demais widgets financeiros.
+- Hero widgets passaram a usar footer padronizado e superfícies internas consistentes com o padrão Material Design 3 adotado na tela Financeiro.
+
+## v1.1.37 - 2026-04-26
+
+### Changed
+- Widget **Categorias financeiras** passou a reutilizar a mesma estrutura visual de `body` e `footer` dos widgets de tabela (`data-table__scroller` + `data-table__footer`), removendo diferença de estilo em relação aos demais cards financeiros.
+
+## v1.1.38 - 2026-04-26
+
+### Changed
+- Widgets financeiros receberam ajuste visual para `body` sem bordas laterais e sem espaçamento após o header, mantendo continuidade da linha divisória superior.
+- Cabeçalho da tabela agora tem linha superior e inferior padronizada para reforçar hierarquia visual do título das colunas.
+- Footer global dos widgets foi simplificado (sem fundo/sombra/raio), mantendo apenas a linha divisória superior e removendo espaçamento inferior excessivo do card.
+
+## v1.1.39 - 2026-04-26
+
+### Changed
+- Footer da **visão consolidada** foi alinhado ao mesmo padrão visual usado na **operação** (sem fundo/sombra, somente linha divisória).
+- Removido o espaçamento visual entre header/body e body/footer dos widgets para reforçar continuidade entre blocos.
+- Tabelas dos widgets passaram a usar apenas a linha inferior do header como borda estrutural.
+
+## v1.1.40 - 2026-04-26
+
+### Changed
+- Conteúdos textuais fora dos widgets na tela Financeiro foram reduzidos para priorizar informação útil ao usuário final.
+- Seções principais (**Resumo financeiro estratégico** e **Operação financeira diária**) passaram a usar botão de informações adicionais (`info`) para abrir contexto sob demanda em modal.
+- Descrições auxiliares de `DataSection` foram removidas para deixar o fluxo mais direto entre header da seção e widgets.
+
+## v1.1.41 - 2026-04-26
+
+### Changed
+- Bordas de tabelas financeiras foram unificadas em um único padrão visual (modelo de **Contas a pagar**), aplicando o mesmo contorno no `data-table__scroller` para todos os widgets.
+- Removidas diferenças de borda específicas entre cards de operação e lançamentos, garantindo consistência entre todas as tabelas do Financeiro.
+
+## v1.1.42 - 2026-04-26
+
+### Changed
+- Botão de informações da seção **Operação financeira diária** foi movido para inline ao título e convertido para estilo indicador (sem fundo/sombra), mantendo a ação de abrir modal.
+- Título auxiliar **Configurações e cadastros** foi removido para reduzir texto fora dos widgets.
+- Tabelas dos widgets tiveram bordas de body removidas e espaçamento entre header do widget e body reduzido para ampliar área útil sem alterar dimensões do card.
+
+## v1.1.43 - 2026-04-26
+
+### Changed
+- Espaçamento visual no cabeçalho da tabela foi refinado para centralizar melhor o título das colunas entre a linha superior (header do widget) e a linha inferior do thead.
+- Rodapé global das tabelas financeiras foi tipograficamente padronizado para duas hierarquias apenas: texto base uniforme e valor em destaque (`strong`), reduzindo variação de fontes internas.
+
+## v1.1.44 - 2026-04-26
+
+### Changed
+- Botão de informações adicionais foi padronizado para as seções principais (Resumo e Operação) em formato indicador inline ao título, com círculo/borda/ícone na cor azul.
+- Botões internos dos widgets (ações rápidas e ações de header dos cards) receberam estilo flat, sem borda e sem sombra.
+
+## v1.1.45 - 2026-04-26
+
+### Changed
+- Widgets do **Resumo financeiro estratégico** foram reorganizados para duas linhas no body: primeira linha com valor + rosca e segunda linha com gráfico de barras mais amplo.
+- Gráfico inferior dos widgets consolidados evoluiu para modelo de barras com eixos/indicadores e fragmentação por período (`M1...Mn`), ampliando leitura comparativa de variação no tempo.
+
+## v1.1.46 - 2026-04-26
+
+### Changed
+- Ação de **Filtrar** foi removida dos headers da visualização principal dos widgets financeiros e movida para a **área de foco** (overlay), junto às demais ações contextuais.
+- Widget de **Categorias financeiras** também teve simplificação no header principal, mantendo abertura para gestão na janela focada.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed
