@@ -669,12 +669,13 @@ const FinancialSectionColumns = financialComponentFactories.createFinancialSecti
 const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
 const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
 const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
-if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
+if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea || !chartCatalogFactories.createChartTrendLine) {
   throw new Error('Catálogo de gráficos não carregado. Verifique os scripts em index.html.');
 }
 const ChartDonut = chartCatalogFactories.createChartDonut();
 const ChartSparkLine = chartCatalogFactories.createChartSparkLine();
 const ChartSparkArea = chartCatalogFactories.createChartSparkArea();
+const ChartTrendLine = chartCatalogFactories.createChartTrendLine({ formatValue: formatMoney });
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -3338,52 +3339,11 @@ function DashboardApp({
                       />
                     </div>
                     <div className="financial-hero-widget__trend">
-                      {(() => {
-                        const points = widget.trendSeries.map((point, index) => ({ value: Number(point || 0), label: `M${index + 1}` }));
-                        const max = Math.max(...points.map((item) => item.value), 1);
-                        const min = Math.min(...points.map((item) => item.value), 0);
-                        const range = Math.max(max - min, 1);
-                        const chartWidth = 280;
-                        const chartHeight = 92;
-                        const leftPad = 32;
-                        const rightPad = 8;
-                        const topPad = 10;
-                        const bottomPad = 20;
-                        const usableWidth = Math.max(chartWidth - leftPad - rightPad, 1);
-                        const usableHeight = Math.max(chartHeight - topPad - bottomPad, 1);
-                        const xStep = points.length > 1 ? usableWidth / (points.length - 1) : 0;
-                        const yFor = (value) => topPad + ((max - value) / range) * usableHeight;
-                        const chartPoints = points.map((item, index) => ({ ...item, x: leftPad + (xStep * index), y: yFor(item.value) }));
-                        const polyline = chartPoints.map((item) => `${item.x},${item.y}`).join(' ');
-                        const yTicks = [max, max - (range / 3), max - ((range * 2) / 3), min];
-
-                        return (
-                          <div className="financial-hero-widget__trend-linechart">
-                            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} aria-label={`Tendência de ${widget.title.toLowerCase()}`}>
-                              {yTicks.map((tick, index) => (
-                                <g key={`grid-${widget.key}-${index}`}>
-                                  <line x1={leftPad} x2={chartWidth - rightPad} y1={yFor(tick)} y2={yFor(tick)} className="financial-hero-widget__trend-grid" />
-                                  <text x={leftPad - 4} y={yFor(tick) + 3} textAnchor="end" className="financial-hero-widget__trend-y-label">
-                                    {formatMoney(tick)}
-                                  </text>
-                                </g>
-                              ))}
-                              <polyline points={polyline} className="financial-hero-widget__trend-line" style={{ stroke: widget.chartTone }} />
-                              {chartPoints.map((point) => (
-                                <g key={`point-${widget.key}-${point.label}`}>
-                                  <circle cx={point.x} cy={point.y} r="3.2" className="financial-hero-widget__trend-point" style={{ fill: widget.chartTone }} />
-                                  <text x={point.x} y={point.y - 7} textAnchor="middle" className="financial-hero-widget__trend-point-label">
-                                    {formatMoney(point.value)}
-                                  </text>
-                                  <text x={point.x} y={chartHeight - 4} textAnchor="middle" className="financial-hero-widget__trend-x-label">
-                                    {point.label}
-                                  </text>
-                                </g>
-                              ))}
-                            </svg>
-                          </div>
-                        );
-                      })()}
+                      <ChartTrendLine
+                        points={widget.trendSeries}
+                        tone={widget.chartTone}
+                        ariaLabel={`Tendência de ${widget.title.toLowerCase()}`}
+                      />
                     </div>
                     <footer className="financial-hero-widget__footer">
                       <p>{widget.ratioLabel}</p>
