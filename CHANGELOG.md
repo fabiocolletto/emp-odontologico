@@ -16,6 +16,13 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Containers dos widgets financeiros passaram a usar alturas constantes por variação (`single/double/triple`) para manter alinhamento vertical entre colunas da mesma linha.
 - Conteúdo interno dos widgets e tabelas agora prioriza rolagem interna quando necessário, com bloqueio de quebra de linha em células/rodapés para reduzir variações de altura entre cards.
 
+## v1.1.35 - 2026-04-26
+
+### Changed
+- Widgets financeiros passaram a usar estrutura vertical fixa (`header` no topo, `body` com scroll interno e `footer` ancorado na base), evitando variação visual por quantidade de registros.
+- Fundo e borda dos widgets foram unificados para o mesmo padrão visual do bloco **Contas a receber**.
+- Superfícies internas de `header`, `body` e `footer` foram padronizadas com divisórias e cores consistentes para leitura homogênea entre todos os widgets.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed
