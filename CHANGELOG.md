@@ -87,6 +87,12 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Widgets do **Resumo financeiro estratégico** foram reorganizados para duas linhas no body: primeira linha com valor + rosca e segunda linha com gráfico de barras mais amplo.
 - Gráfico inferior dos widgets consolidados evoluiu para modelo de barras com eixos/indicadores e fragmentação por período (`M1...Mn`), ampliando leitura comparativa de variação no tempo.
 
+## v1.1.46 - 2026-04-26
+
+### Changed
+- Ação de **Filtrar** foi removida dos headers da visualização principal dos widgets financeiros e movida para a **área de foco** (overlay), junto às demais ações contextuais.
+- Widget de **Categorias financeiras** também teve simplificação no header principal, mantendo abertura para gestão na janela focada.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed

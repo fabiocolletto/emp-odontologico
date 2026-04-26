@@ -59,15 +59,6 @@
                 onClick={() => setIsFocusOpen(true)}
                 icon="expand"
               />
-              <div className="financial-widget-actions__filter">
-                <FinancialEditAction
-                  ariaLabel={filterAriaLabel}
-                  onClick={onToggleFilter}
-                  icon="filter"
-                  className={isFilterOpen ? 'is-active' : ''}
-                />
-                {isFilterOpen ? <div className="financial-widget-actions__dropdown">{filterDropdown}</div> : null}
-              </div>
             </div>
           )}
         >
@@ -95,6 +86,15 @@
                       onClick={onAdd}
                       icon="plus"
                     />
+                    <div className="financial-widget-actions__filter">
+                      <FinancialEditAction
+                        ariaLabel={filterAriaLabel}
+                        onClick={onToggleFilter}
+                        icon="filter"
+                        className={isFilterOpen ? 'is-active' : ''}
+                      />
+                      {isFilterOpen ? <div className="financial-widget-actions__dropdown">{filterDropdown}</div> : null}
+                    </div>
                     <FinancialEditAction
                       ariaLabel="Fechar visão focada"
                       onClick={() => setIsFocusOpen(false)}

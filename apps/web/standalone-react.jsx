@@ -3437,11 +3437,6 @@ function DashboardApp({
                         onClick={() => setIsCategoriesEditMode(true)}
                         icon="expand"
                       />
-                      <FinancialEditAction
-                        ariaLabel="Filtrar categorias financeiras"
-                        onClick={() => setIsCategoriesEditMode(true)}
-                        icon="filter"
-                      />
                     </div>
                   )}
                 >
