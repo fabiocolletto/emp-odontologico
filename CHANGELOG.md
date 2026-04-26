@@ -35,6 +35,13 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 ### Changed
 - Widget **Categorias financeiras** passou a reutilizar a mesma estrutura visual de `body` e `footer` dos widgets de tabela (`data-table__scroller` + `data-table__footer`), removendo diferença de estilo em relação aos demais cards financeiros.
 
+## v1.1.38 - 2026-04-26
+
+### Changed
+- Widgets financeiros receberam ajuste visual para `body` sem bordas laterais e sem espaçamento após o header, mantendo continuidade da linha divisória superior.
+- Cabeçalho da tabela agora tem linha superior e inferior padronizada para reforçar hierarquia visual do título das colunas.
+- Footer global dos widgets foi simplificado (sem fundo/sombra/raio), mantendo apenas a linha divisória superior e removendo espaçamento inferior excessivo do card.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed
