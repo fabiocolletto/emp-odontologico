@@ -5,6 +5,8 @@
   namespace.createFinancialTableSectionCard = ({ SectionCard, DataTable, FinancialEditAction }) => (
     {
       title,
+      titleIcon = null,
+      titleToneClass = '',
       columns,
       rows,
       emptyMessage,
@@ -38,12 +40,18 @@
         ? [{ label: 'Total', value: numericTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }]
         : [])
     ];
+    const resolvedTitle = (
+      <span className="financial-widget-title">
+        {titleIcon ? <span className={`financial-widget-title__icon ${titleToneClass}`.trim()} aria-hidden="true">{titleIcon}</span> : null}
+        <span>{title}</span>
+      </span>
+    );
 
     return (
       <>
         <SectionCard
           className={`financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--${layout}`.trim()}
-          title={title}
+          title={resolvedTitle}
           actions={(
             <div className="financial-widget-actions">
               <FinancialEditAction
@@ -79,7 +87,7 @@
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <SectionCard
                 className="financial-modal-card financial-focus-card financial-widget-container financial-widget-container--single"
-                title={title}
+                title={resolvedTitle}
                 actions={(
                   <div className="financial-widget-actions">
                     <FinancialEditAction

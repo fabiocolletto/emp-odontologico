@@ -2,6 +2,13 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+## v1.1.33 - 2026-04-26
+
+### Changed
+- Padronização visual dos widgets financeiros ampliada com ícone + cor por widget (hero, tabelas operacionais e cards de contas), reforçando leitura contextual por bloco.
+- Botão de **Adicionar** foi removido do header da tela principal dos widgets financeiros e mantido na **tela foco** (overlay), reduzindo ruído visual no nível principal.
+- Rodapé das tabelas financeiras ajustado para manter navegação e totalizadores com tipografia mais legível e compacta, incluindo paginação flat e espaçamento reduzido entre ações.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed

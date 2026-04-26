@@ -5,6 +5,8 @@
   namespace.createFinancialTablePanelCard = ({ PanelCard, DataTable, FinancialEditAction }) => (
     {
       title,
+      titleIcon = null,
+      titleToneClass = '',
       columns,
       rows,
       onAdd,
@@ -33,12 +35,18 @@
       ? rows.reduce((acc, row) => acc + Number(row[totalColumn.key] || 0), 0)
       : 0;
     const resolvedFooterValue = footerValue || (hasNumericValues ? numericTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '');
+    const resolvedTitle = (
+      <span className="financial-widget-title">
+        {titleIcon ? <span className={`financial-widget-title__icon ${titleToneClass}`.trim()} aria-hidden="true">{titleIcon}</span> : null}
+        <span>{title}</span>
+      </span>
+    );
 
     return (
       <>
         <PanelCard
           className={`financial-panel-card financial-widget-container financial-widget-container--${layout}`.trim()}
-          title={title}
+          title={resolvedTitle}
           extra={(
             <div className="financial-widget-actions">
               <FinancialEditAction
@@ -76,7 +84,7 @@
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <PanelCard
                 className="financial-modal-card financial-focus-card financial-widget-container financial-widget-container--single"
-                title={title}
+                title={resolvedTitle}
                 extra={(
                   <div className="financial-widget-actions">
                     <FinancialEditAction

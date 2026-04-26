@@ -3046,6 +3046,8 @@ function DashboardApp({
       {
         key: 'receitas',
         toneClass: 'financial-hero-widget--receitas',
+        iconName: 'download',
+        iconToneClass: 'financial-widget-title__icon--emerald',
         title: 'Receitas consolidadas',
         primary: formatMoney(receitaRecebidaTotal),
         secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
@@ -3062,6 +3064,8 @@ function DashboardApp({
       {
         key: 'despesas',
         toneClass: 'financial-hero-widget--despesas',
+        iconName: 'clear',
+        iconToneClass: 'financial-widget-title__icon--rose',
         title: 'Despesas consolidadas',
         primary: formatMoney(despesaPagaTotal),
         secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
@@ -3078,6 +3082,8 @@ function DashboardApp({
       {
         key: 'conciliacao',
         toneClass: 'financial-hero-widget--conciliacao',
+        iconName: 'plan',
+        iconToneClass: 'financial-widget-title__icon--indigo',
         title: 'Conciliação financeira',
         primary: formatMoney(receitaRecebidaTotal - despesaPagaTotal),
         secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
@@ -3158,6 +3164,23 @@ function DashboardApp({
           return acc;
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const financialWidgetVisualMap = {
+      contasFinanceiras: { icon: 'wallet', toneClass: 'financial-widget-title__icon--sky' },
+      categoriasFinanceiras: { icon: 'archive', toneClass: 'financial-widget-title__icon--violet' },
+      recorrencias: { icon: 'clock', toneClass: 'financial-widget-title__icon--amber' },
+      previsoes: { icon: 'plan', toneClass: 'financial-widget-title__icon--rose' },
+      contasReceber: { icon: 'download', toneClass: 'financial-widget-title__icon--emerald' },
+      contasPagar: { icon: 'clear', toneClass: 'financial-widget-title__icon--orange' },
+      lancamentos: { icon: 'multi', toneClass: 'financial-widget-title__icon--indigo' }
+    };
+    const getFinancialWidgetVisual = (key) => {
+      const visual = financialWidgetVisualMap[key];
+      if (!visual) return {};
+      return {
+        titleIcon: <AppIcon name={visual.icon} size={12} />,
+        titleToneClass: visual.toneClass
+      };
+    };
     const financialLaunchColumns = [
       { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
       { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
@@ -3257,7 +3280,10 @@ function DashboardApp({
                   <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
                     <div className="financial-hero-widget__header">
                       <div>
-                        <p className="financial-hero-widget__eyebrow">{widget.title}</p>
+                        <p className="financial-hero-widget__eyebrow financial-widget-title">
+                          <span className={`financial-widget-title__icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
+                          <span>{widget.title}</span>
+                        </p>
                         <p className="financial-hero-widget__value">{widget.primary}</p>
                         <p className="financial-hero-widget__caption">{widget.secondary}</p>
                       </div>
@@ -3305,6 +3331,7 @@ function DashboardApp({
               <DataColumns columns={2}>
                 <FinancialTableSectionCard
                   title="Contas financeiras"
+                  {...getFinancialWidgetVisual('contasFinanceiras')}
                   addAriaLabel="Adicionar conta financeira"
                   onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
                   onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
@@ -3335,7 +3362,12 @@ function DashboardApp({
                 />
                 <SectionCard
                   className="financial-section-card financial-section-card--operation"
-                  title="Categorias financeiras"
+                  title={(
+                    <span className="financial-widget-title">
+                      <span className="financial-widget-title__icon financial-widget-title__icon--violet" aria-hidden="true"><AppIcon name="archive" size={12} /></span>
+                      <span>Categorias financeiras</span>
+                    </span>
+                  )}
                   actions={(
                     <div className="financial-widget-actions">
                       <FinancialEditAction
@@ -3404,6 +3436,7 @@ function DashboardApp({
               <DataColumns columns={2}>
                 <FinancialTableSectionCard
                   title="Despesas recorrentes"
+                  {...getFinancialWidgetVisual('recorrencias')}
                   addAriaLabel="Adicionar despesa recorrente"
                   onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
                   onToggleFilter={() => toggleWidgetFilter('recorrencias')}
@@ -3464,6 +3497,7 @@ function DashboardApp({
                 />
                 <FinancialTableSectionCard
                   title="Previsões de custos"
+                  {...getFinancialWidgetVisual('previsoes')}
                   addAriaLabel="Adicionar previsão de custo"
                   onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
                   onToggleFilter={() => toggleWidgetFilter('previsoes')}
@@ -3758,6 +3792,7 @@ function DashboardApp({
             <DataColumns columns={2}>
             <FinancialTablePanelCard
               title="Contas a receber"
+              {...getFinancialWidgetVisual('contasReceber')}
               onAdd={() => openFinancialCreate('entrada')}
               addAriaLabel="Adicionar conta a receber"
               onToggleFilter={() => toggleWidgetFilter('contasReceber')}
@@ -3799,6 +3834,7 @@ function DashboardApp({
             />
             <FinancialTablePanelCard
               title="Contas a pagar"
+              {...getFinancialWidgetVisual('contasPagar')}
               onAdd={() => openFinancialCreate('saida')}
               addAriaLabel="Adicionar conta a pagar"
               onToggleFilter={() => toggleWidgetFilter('contasPagar')}
@@ -3849,6 +3885,7 @@ function DashboardApp({
               <div ref={financialLaunchesSectionRef}>
                 <FinancialTableSectionCard
                   title="Lançamentos"
+                  {...getFinancialWidgetVisual('lancamentos')}
                   layout="single"
                   addAriaLabel="Novo lançamento"
                   onAdd={() => openFinancialCreate('entrada')}
