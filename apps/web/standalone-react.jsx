@@ -3277,25 +3277,25 @@ function DashboardApp({
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
               {financialHeroWidgets.map((widget) => {
                 return (
-                  <article key={widget.key} className={`financial-hero-widget ${widget.toneClass}`}>
-                    <div className="financial-hero-widget__header">
-                      <div>
-                        <p className="financial-hero-widget__eyebrow financial-widget-title">
-                          <span className={`financial-widget-title__icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
-                          <span>{widget.title}</span>
-                        </p>
-                        <p className="financial-hero-widget__value">{widget.primary}</p>
-                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
-                      </div>
+                  <article key={widget.key} className={`financial-hero-widget financial-widget-container financial-widget-container--triple ${widget.toneClass}`.trim()}>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="financial-hero-widget__eyebrow financial-widget-title">
+                        <span className={`financial-widget-title__icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
+                        <span>{widget.title}</span>
+                      </p>
                       <div className="financial-widget-actions">
                         <FinancialEditAction
                           ariaLabel={widget.actionAria}
                           onClick={widget.onAction}
-                          icon="search"
+                          icon="expand"
                         />
                       </div>
                     </div>
                     <div className="financial-hero-widget__body">
+                      <div className="financial-hero-widget__summary">
+                        <p className="financial-hero-widget__value">{widget.primary}</p>
+                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
+                      </div>
                       <ChartDonut
                         value={widget.ratio}
                         label={widget.ratioLabel}
@@ -3308,9 +3308,12 @@ function DashboardApp({
                         ) : (
                           <ChartSparkLine points={widget.trendSeries} tone={widget.chartTone} />
                         )}
-                        <p>{widget.trendLabel}</p>
                       </div>
                     </div>
+                    <footer className="financial-hero-widget__footer">
+                      <p>{widget.ratioLabel}</p>
+                      <p>{widget.trendLabel}</p>
+                    </footer>
                   </article>
                 );
               })}

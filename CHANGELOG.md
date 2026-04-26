@@ -23,6 +23,13 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Fundo e borda dos widgets foram unificados para o mesmo padrão visual do bloco **Contas a receber**.
 - Superfícies internas de `header`, `body` e `footer` foram padronizadas com divisórias e cores consistentes para leitura homogênea entre todos os widgets.
 
+## v1.1.36 - 2026-04-26
+
+### Changed
+- Seção **Nível 1 · Visão consolidada** migrou para o mesmo padrão estrutural de widgets do nível operacional (header/body/footer padronizados, ação alinhada ao título e layout em 3 colunas com `--triple`).
+- Botão de foco dos widgets consolidados foi unificado para o mesmo ícone/comportamento visual dos demais widgets financeiros.
+- Hero widgets passaram a usar footer padronizado e superfícies internas consistentes com o padrão Material Design 3 adotado na tela Financeiro.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed
