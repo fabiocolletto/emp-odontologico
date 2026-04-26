@@ -62,6 +62,13 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Bordas de tabelas financeiras foram unificadas em um único padrão visual (modelo de **Contas a pagar**), aplicando o mesmo contorno no `data-table__scroller` para todos os widgets.
 - Removidas diferenças de borda específicas entre cards de operação e lançamentos, garantindo consistência entre todas as tabelas do Financeiro.
 
+## v1.1.42 - 2026-04-26
+
+### Changed
+- Botão de informações da seção **Operação financeira diária** foi movido para inline ao título e convertido para estilo indicador (sem fundo/sombra), mantendo a ação de abrir modal.
+- Título auxiliar **Configurações e cadastros** foi removido para reduzir texto fora dos widgets.
+- Tabelas dos widgets tiveram bordas de body removidas e espaçamento entre header do widget e body reduzido para ampliar área útil sem alterar dimensões do card.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed

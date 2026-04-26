@@ -3351,18 +3351,23 @@ function DashboardApp({
         </FinancialPageSection>
 
         <FinancialPageSection
-          title="Operação financeira diária"
-          actions={(
-            <FinancialEditAction
-              ariaLabel="Informações da operação financeira"
-              onClick={() => setFinancialInfoKey('operation')}
-              icon="info"
-            />
+          title={(
+            <span className="financial-section-inline-title">
+              <span>Operação financeira diária</span>
+              <button
+                type="button"
+                className="financial-section-info-indicator"
+                aria-label="Informações da operação financeira"
+                onClick={() => setFinancialInfoKey('operation')}
+              >
+                <AppIcon name="info" size={13} />
+              </button>
+            </span>
           )}
         >
           <FinancialSectionColumns variant="operation">
             <DataSection
-              title="Configurações e cadastros"
+              title=""
             >
               <DataColumns columns={2}>
                 <FinancialTableSectionCard

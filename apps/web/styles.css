@@ -2997,7 +2997,7 @@ select {
   align-items: center;
   gap: var(--financial-widget-header-gap);
   margin-bottom: 0;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -3073,14 +3073,30 @@ select {
 
 .financial-widget-container .data-table__scroller {
   overflow: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: 0;
+  border-radius: 0;
   background: #ffffff;
   padding: 0;
 }
 
 .financial-widget-container .data-table thead tr {
   border-bottom: 1px solid #e2e8f0;
+}
+
+.financial-section-inline-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.financial-section-info-indicator {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #64748b;
+  line-height: 0;
+  padding: 0;
+  cursor: pointer;
 }
 
 .financial-widget-container .data-table__head-cell,
