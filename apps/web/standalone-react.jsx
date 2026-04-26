@@ -3159,7 +3159,7 @@ function DashboardApp({
           return acc;
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
-    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const isActionColumn = (column) => /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.key || '')) || /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.label || ''));
     const financialLaunchColumns = [
       { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
       { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },

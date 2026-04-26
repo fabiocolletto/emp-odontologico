@@ -19,7 +19,7 @@
     }
   ) => {
     const [isFocusOpen, setIsFocusOpen] = useState(false);
-    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const isActionColumn = (column) => /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.key || '')) || /(a[cç][aã]o|a[cç][oõ]es)/i.test(String(column?.label || ''));
     const mainColumns = hideActionColumnOnMain ? columns.filter((column) => !isActionColumn(column)) : columns;
     const totalColumn = columns.find((column) => /valor|saldo/i.test(column.key || ''));
     const hasNumericValues = totalColumn
