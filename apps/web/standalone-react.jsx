@@ -3338,27 +3338,52 @@ function DashboardApp({
                       />
                     </div>
                     <div className="financial-hero-widget__trend">
-                      <div className="financial-hero-widget__trend-axis">
-                        {(() => {
-                          const max = Math.max(...widget.trendSeries, 1);
-                          const axis = [max, max * 0.66, max * 0.33, 0];
-                          return axis.map((value, index) => (
-                            <span key={`axis-${widget.key}-${index}`}>{formatMoney(value)}</span>
-                          ));
-                        })()}
-                      </div>
-                      <div className="financial-hero-widget__trend-bars">
-                        {widget.trendSeries.map((point, index) => {
-                          const max = Math.max(...widget.trendSeries, 1);
-                          const height = Math.max(8, (point / max) * 100);
-                          return (
-                            <div key={`trend-${widget.key}-${index}`} className="financial-hero-widget__trend-bar-item">
-                              <span className="financial-hero-widget__trend-bar" style={{ height: `${height}%`, background: widget.chartTone }} />
-                              <small>M{index + 1}</small>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {(() => {
+                        const points = widget.trendSeries.map((point, index) => ({ value: Number(point || 0), label: `M${index + 1}` }));
+                        const max = Math.max(...points.map((item) => item.value), 1);
+                        const min = Math.min(...points.map((item) => item.value), 0);
+                        const range = Math.max(max - min, 1);
+                        const chartWidth = 280;
+                        const chartHeight = 92;
+                        const leftPad = 32;
+                        const rightPad = 8;
+                        const topPad = 10;
+                        const bottomPad = 20;
+                        const usableWidth = Math.max(chartWidth - leftPad - rightPad, 1);
+                        const usableHeight = Math.max(chartHeight - topPad - bottomPad, 1);
+                        const xStep = points.length > 1 ? usableWidth / (points.length - 1) : 0;
+                        const yFor = (value) => topPad + ((max - value) / range) * usableHeight;
+                        const chartPoints = points.map((item, index) => ({ ...item, x: leftPad + (xStep * index), y: yFor(item.value) }));
+                        const polyline = chartPoints.map((item) => `${item.x},${item.y}`).join(' ');
+                        const yTicks = [max, max - (range / 3), max - ((range * 2) / 3), min];
+
+                        return (
+                          <div className="financial-hero-widget__trend-linechart">
+                            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} aria-label={`Tendência de ${widget.title.toLowerCase()}`}>
+                              {yTicks.map((tick, index) => (
+                                <g key={`grid-${widget.key}-${index}`}>
+                                  <line x1={leftPad} x2={chartWidth - rightPad} y1={yFor(tick)} y2={yFor(tick)} className="financial-hero-widget__trend-grid" />
+                                  <text x={leftPad - 4} y={yFor(tick) + 3} textAnchor="end" className="financial-hero-widget__trend-y-label">
+                                    {formatMoney(tick)}
+                                  </text>
+                                </g>
+                              ))}
+                              <polyline points={polyline} className="financial-hero-widget__trend-line" style={{ stroke: widget.chartTone }} />
+                              {chartPoints.map((point) => (
+                                <g key={`point-${widget.key}-${point.label}`}>
+                                  <circle cx={point.x} cy={point.y} r="3.2" className="financial-hero-widget__trend-point" style={{ fill: widget.chartTone }} />
+                                  <text x={point.x} y={point.y - 7} textAnchor="middle" className="financial-hero-widget__trend-point-label">
+                                    {formatMoney(point.value)}
+                                  </text>
+                                  <text x={point.x} y={chartHeight - 4} textAnchor="middle" className="financial-hero-widget__trend-x-label">
+                                    {point.label}
+                                  </text>
+                                </g>
+                              ))}
+                            </svg>
+                          </div>
+                        );
+                      })()}
                     </div>
                     <footer className="financial-hero-widget__footer">
                       <p>{widget.ratioLabel}</p>

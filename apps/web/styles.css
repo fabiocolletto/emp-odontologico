@@ -3408,47 +3408,50 @@ select {
 .financial-hero-widget__trend {
   min-height: 102px;
   border-top: 1px solid #e2e8f0;
-  margin-top: 0.35rem;
-  padding-top: 0.45rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.5rem;
-  align-items: end;
+  margin-top: 0.2rem;
+  padding-top: 0.35rem;
+  display: block;
 }
 
-.financial-hero-widget__trend-axis {
-  display: grid;
-  gap: 0.2rem;
-  font-size: 0.58rem;
-  color: #94a3b8;
-  text-align: right;
-  min-width: 3.2rem;
-}
-
-.financial-hero-widget__trend-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.35rem;
-  min-height: 82px;
-}
-
-.financial-hero-widget__trend-bar-item {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  justify-items: center;
-  gap: 0.2rem;
-}
-
-.financial-hero-widget__trend-bar {
+.financial-hero-widget__trend-linechart {
   width: 100%;
-  max-width: 22px;
-  border-radius: 4px 4px 0 0;
+  min-height: 96px;
 }
 
-.financial-hero-widget__trend-bar-item small {
-  font-size: 0.56rem;
+.financial-hero-widget__trend-linechart svg {
+  width: 100%;
+  height: 96px;
+  display: block;
+}
+
+.financial-hero-widget__trend-grid {
+  stroke: #e2e8f0;
+  stroke-width: 1;
+}
+
+.financial-hero-widget__trend-line {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.financial-hero-widget__trend-point {
+  stroke: #ffffff;
+  stroke-width: 1.4;
+}
+
+.financial-hero-widget__trend-y-label,
+.financial-hero-widget__trend-x-label {
+  font-size: 0.5rem;
   color: #94a3b8;
+  fill: #94a3b8;
+  font-weight: 600;
+}
+
+.financial-hero-widget__trend-point-label {
+  font-size: 0.52rem;
+  fill: #334155;
   font-weight: 600;
 }
 
