@@ -2786,8 +2786,12 @@ select {
 .financial-widget-totalizer {
   margin-top: 0.55rem;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 0.55rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
 }
 
 .financial-widget-totalizer p {
@@ -2795,6 +2799,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
+  white-space: nowrap;
   font-size: 0.72rem;
   color: #64748b;
   font-weight: 700;
@@ -2985,7 +2990,10 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
 }
 
 .data-table__total-item {
@@ -3339,10 +3347,22 @@ select {
 
 .financial-section-columns--operation .financial-widget-totalizer {
   margin-top: 0.65rem;
-  padding: 0.55rem 0.7rem;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, #cbd5e1 58%, white);
-  background: color-mix(in srgb, #fff 92%, #eff6ff);
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+}
+
+.financial-layout--flat .data-table__page-button {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.financial-layout--flat .data-table__page-button:hover:not(:disabled) {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
 }
 
 @media (max-width: 1023px) {
