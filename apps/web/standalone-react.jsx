@@ -1617,6 +1617,7 @@ function DashboardApp({
   const [financialRecurring, setFinancialRecurring] = useState(() => readStoredFinancialRecurring());
   const [financialForecasts, setFinancialForecasts] = useState(() => readStoredFinancialForecasts());
   const [isFinancialFormOpen, setIsFinancialFormOpen] = useState(false);
+  const [isFinancialLaunchesFocusOpen, setIsFinancialLaunchesFocusOpen] = useState(false);
   const [isPeriodPickerOpen, setIsPeriodPickerOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedPeriodLabel, setSelectedPeriodLabel] = useState('01/04/2026 - 30/04/2026');
@@ -3158,6 +3159,31 @@ function DashboardApp({
           return acc;
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const financialLaunchColumns = [
+      { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
+      { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+      { key: 'categoria', label: 'Categoria', hideBelow: 1120, render: (row) => <span className="text-slate-600">{row.categoria}</span> },
+      { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+      { key: 'status', label: 'Status', hideBelow: 760, render: (row) => <StatusBadge status={row.status} /> },
+      { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
+      { key: 'pagamento', label: 'Pagamento', hideBelow: 620, sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
+      {
+        key: 'acoes_rapidas',
+        label: 'Ações rápidas',
+        sortable: false,
+        render: (row) => (
+          <div className="financial-row-actions">
+            {!isFinancialLaunchConfirmed(row) ? (
+              <FinancialWidgetIconButton ariaLabel="Confirmar lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} />
+            ) : null}
+            <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
+            <FinancialWidgetIconButton ariaLabel="Excluir lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialDelete(row.id)} />
+          </div>
+        )
+      }
+    ];
+    const financialLaunchMainColumns = financialLaunchColumns.filter((column) => !isActionColumn(column));
 
     return (
       <div className="space-y-4 financial-layout--flat">
@@ -3838,7 +3864,7 @@ function DashboardApp({
                     <div className="financial-widget-actions">
                       <FinancialEditAction
                         ariaLabel="Abrir lançamentos financeiros"
-                        onClick={() => financialLaunchesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        onClick={() => setIsFinancialLaunchesFocusOpen(true)}
                         icon="expand"
                       />
                       <FinancialEditAction
@@ -3855,29 +3881,7 @@ function DashboardApp({
                   )}
                 >
                   <DataTable
-            columns={[
-              { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
-              { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
-              { key: 'categoria', label: 'Categoria', hideBelow: 1120, render: (row) => <span className="text-slate-600">{row.categoria}</span> },
-              { key: 'valor', label: 'Valor', hideBelow: 520, sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
-              { key: 'status', label: 'Status', hideBelow: 760, render: (row) => <StatusBadge status={row.status} /> },
-              { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
-              { key: 'pagamento', label: 'Pagamento', hideBelow: 620, sortValue: (row) => row.data_pagamento || '', render: (row) => <span className="text-slate-600">{row.data_pagamento || '-'}</span> },
-              {
-                key: 'acoes_rapidas',
-                label: 'Ações rápidas',
-                sortable: false,
-                render: (row) => (
-                  <div className="financial-row-actions">
-                    {!isFinancialLaunchConfirmed(row) ? (
-                      <FinancialWidgetIconButton ariaLabel="Confirmar lançamento" icon="check" tone="text-emerald-600" onClick={() => handleFinancialConfirm(row.id)} />
-                    ) : null}
-                    <FinancialWidgetIconButton ariaLabel="Editar lançamento" onClick={() => openFinancialEdit(row)} />
-                    <FinancialWidgetIconButton ariaLabel="Excluir lançamento" icon="close" tone="text-rose-600" onClick={() => handleFinancialDelete(row.id)} />
-                  </div>
-                )
-              }
-            ]}
+            columns={financialLaunchMainColumns}
             rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
             emptyMessage="Nenhum lançamento financeiro cadastrado."
             paginated
@@ -3893,6 +3897,41 @@ function DashboardApp({
             </DataColumns>
           </DataSection>
         </FinancialSectionColumns>
+
+        {isFinancialLaunchesFocusOpen ? (
+          <div className="finance-overlay" onClick={() => setIsFinancialLaunchesFocusOpen(false)}>
+            <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <SectionCard
+                className="financial-modal-card financial-focus-card"
+                title="Lançamentos"
+                actions={(
+                  <div className="financial-widget-actions">
+                    <FinancialEditAction
+                      ariaLabel="Novo lançamento"
+                      onClick={() => openFinancialCreate('entrada')}
+                      icon="plus"
+                    />
+                    <FinancialEditAction
+                      ariaLabel="Fechar visão focada de lançamentos"
+                      onClick={() => setIsFinancialLaunchesFocusOpen(false)}
+                      icon="close"
+                    />
+                  </div>
+                )}
+              >
+                <DataTable
+                  columns={financialLaunchColumns}
+                  rows={financialLaunches.map((item) => ({ key: `launch-focus-${item.id}`, ...item }))}
+                  emptyMessage="Nenhum lançamento financeiro cadastrado."
+                  footerTotals={[
+                    { label: 'Registros', value: financialLaunches.length },
+                    { label: 'Total', value: formatMoney(financialLaunches.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                  ]}
+                />
+              </SectionCard>
+            </div>
+          </div>
+        ) : null}
 
         {isFinancialFormOpen ? (
           <div className="finance-overlay" onClick={closeFinancialForm}>
