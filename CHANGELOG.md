@@ -49,6 +49,13 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Removido o espaçamento visual entre header/body e body/footer dos widgets para reforçar continuidade entre blocos.
 - Tabelas dos widgets passaram a usar apenas a linha inferior do header como borda estrutural.
 
+## v1.1.40 - 2026-04-26
+
+### Changed
+- Conteúdos textuais fora dos widgets na tela Financeiro foram reduzidos para priorizar informação útil ao usuário final.
+- Seções principais (**Resumo financeiro estratégico** e **Operação financeira diária**) passaram a usar botão de informações adicionais (`info`) para abrir contexto sob demanda em modal.
+- Descrições auxiliares de `DataSection` foram removidas para deixar o fluxo mais direto entre header da seção e widgets.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed

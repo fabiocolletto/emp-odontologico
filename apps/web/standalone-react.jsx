@@ -1638,6 +1638,7 @@ function DashboardApp({
   const [recurringFilter, setRecurringFilter] = useState('');
   const [forecastFilter, setForecastFilter] = useState('');
   const [openWidgetFilter, setOpenWidgetFilter] = useState('');
+  const [financialInfoKey, setFinancialInfoKey] = useState('');
   const [widgetFilters, setWidgetFilters] = useState({
     contasFinanceiras: { tipo: 'all' },
     recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
@@ -3181,6 +3182,16 @@ function DashboardApp({
         titleToneClass: visual.toneClass
       };
     };
+    const financialSectionInfoMap = {
+      consolidated: {
+        title: 'Resumo financeiro estratégico',
+        content: 'Esta seção consolida receitas, despesas e conciliação para leitura rápida do período.'
+      },
+      operation: {
+        title: 'Operação financeira diária',
+        content: 'Esta seção concentra widgets operacionais para cadastros, recorrências, previsões, contas e lançamentos.'
+      }
+    };
     const financialLaunchColumns = [
       { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
       { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
@@ -3268,10 +3279,28 @@ function DashboardApp({
           </div>
         ) : null}
 
+        {financialInfoKey && financialSectionInfoMap[financialInfoKey] ? (
+          <div className="finance-overlay" onClick={() => setFinancialInfoKey('')}>
+            <div className="finance-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card" title={financialSectionInfoMap[financialInfoKey].title}>
+                <p className="text-sm text-slate-600">{financialSectionInfoMap[financialInfoKey].content}</p>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setFinancialInfoKey('')} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
         <FinancialPageSection
-          eyebrow="Nível 1 · visão consolidada"
           title="Resumo financeiro estratégico"
-          description="Widgets consolidados para receitas, despesas e conciliação, com foco operacional em poucos cliques."
+          actions={(
+            <FinancialEditAction
+              ariaLabel="Informações da visão consolidada"
+              onClick={() => setFinancialInfoKey('consolidated')}
+              icon="info"
+            />
+          )}
         >
           <FinancialSectionColumns variant="hero">
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
@@ -3322,14 +3351,18 @@ function DashboardApp({
         </FinancialPageSection>
 
         <FinancialPageSection
-          eyebrow="Nível 1 · operação"
           title="Operação financeira diária"
-          description="Módulos reutilizáveis por seção para contas, categorias e recorrências."
+          actions={(
+            <FinancialEditAction
+              ariaLabel="Informações da operação financeira"
+              onClick={() => setFinancialInfoKey('operation')}
+              icon="info"
+            />
+          )}
         >
           <FinancialSectionColumns variant="operation">
             <DataSection
               title="Configurações e cadastros"
-              description="Elementos orientados a estrutura de dados, reutilizáveis em outras telas como Perfil."
             >
               <DataColumns columns={2}>
                 <FinancialTableSectionCard
@@ -3441,7 +3474,6 @@ function DashboardApp({
 
             <DataSection
               title="Planejamento e recorrência"
-              description="Seções de dados detalhados com variação de 1, 2 ou 3 colunas para reaproveitar em qualquer contexto."
             >
               <DataColumns columns={2}>
                 <FinancialTableSectionCard
@@ -3797,7 +3829,6 @@ function DashboardApp({
         <FinancialSectionColumns variant="operation">
           <DataSection
             title="Contas a receber e pagar"
-            description="Grade de dados detalhados parametrizada em duas colunas, reaproveitável em outros módulos."
           >
             <DataColumns columns={2}>
             <FinancialTablePanelCard
@@ -3889,7 +3920,6 @@ function DashboardApp({
 
           <DataSection
             title="Lançamentos financeiros"
-            description="Exemplo de seção em uma coluna para histórico completo e ações rápidas."
           >
             <DataColumns columns={1}>
               <div ref={financialLaunchesSectionRef}>
