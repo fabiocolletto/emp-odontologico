@@ -9,6 +9,13 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Botão de **Adicionar** foi removido do header da tela principal dos widgets financeiros e mantido na **tela foco** (overlay), reduzindo ruído visual no nível principal.
 - Rodapé das tabelas financeiras ajustado para manter navegação e totalizadores com tipografia mais legível e compacta, incluindo paginação flat e espaçamento reduzido entre ações.
 
+## v1.1.34 - 2026-04-26
+
+### Changed
+- Widget **Categorias financeiras** foi alinhado ao mesmo padrão estrutural dos demais (mesmo container/layout e sem botão de adicionar na tela principal).
+- Containers dos widgets financeiros passaram a usar alturas constantes por variação (`single/double/triple`) para manter alinhamento vertical entre colunas da mesma linha.
+- Conteúdo interno dos widgets e tabelas agora prioriza rolagem interna quando necessário, com bloqueio de quebra de linha em células/rodapés para reduzir variações de altura entre cards.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed

@@ -3361,7 +3361,7 @@ function DashboardApp({
                   ]}
                 />
                 <SectionCard
-                  className="financial-section-card financial-section-card--operation"
+                  className="financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--double"
                   title={(
                     <span className="financial-widget-title">
                       <span className="financial-widget-title__icon financial-widget-title__icon--violet" aria-hidden="true"><AppIcon name="archive" size={12} /></span>
@@ -3376,11 +3376,6 @@ function DashboardApp({
                         icon="expand"
                       />
                       <FinancialEditAction
-                        ariaLabel="Adicionar categoria financeira"
-                        onClick={() => { setIsCategoriesEditMode(false); setIsCategoryModalOpen(true); }}
-                        icon="plus"
-                      />
-                      <FinancialEditAction
                         ariaLabel="Filtrar categorias financeiras"
                         onClick={() => setIsCategoriesEditMode(true)}
                         icon="filter"
@@ -3388,42 +3383,44 @@ function DashboardApp({
                     </div>
                   )}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
-                      <div className="space-y-2">
-                        {receitasPorCategoriaResumo.map(([categoria, total]) => (
-                          <div key={`cat-income-${categoria}`}>
-                            <div className="flex justify-between text-xs text-slate-600 mb-1">
-                              <span>{categoria}</span><span>{formatMoney(total)}</span>
+                  <div className="financial-widget-body-scroll">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
+                        <div className="space-y-2">
+                          {receitasPorCategoriaResumo.map(([categoria, total]) => (
+                            <div key={`cat-income-${categoria}`}>
+                              <div className="flex justify-between text-xs text-slate-600 mb-1">
+                                <span>{categoria}</span><span>{formatMoney(total)}</span>
+                              </div>
+                              <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                                <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                              </div>
                             </div>
-                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                              <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
+                        <div className="space-y-2">
+                          {despesasPorCategoriaResumo.map(([categoria, total]) => (
+                            <div key={`cat-expense-${categoria}`}>
+                              <div className="flex justify-between text-xs text-slate-600 mb-1">
+                                <span>{categoria}</span><span>{formatMoney(total)}</span>
+                              </div>
+                              <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                                <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
-                      <div className="space-y-2">
-                        {despesasPorCategoriaResumo.map(([categoria, total]) => (
-                          <div key={`cat-expense-${categoria}`}>
-                            <div className="flex justify-between text-xs text-slate-600 mb-1">
-                              <span>{categoria}</span><span>{formatMoney(total)}</span>
-                            </div>
-                            <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                              <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
+                    <div className="financial-widget-totalizer mt-3">
+                      <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
+                      <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
                     </div>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
-                  <div className="financial-widget-totalizer mt-3">
-                    <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
-                    <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
                   </div>
                 </SectionCard>
               </DataColumns>
