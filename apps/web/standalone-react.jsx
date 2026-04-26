@@ -3222,6 +3222,15 @@ function DashboardApp({
           subtitle: 'Visão geral da saúde financeira da clínica',
           actions: (
             <>
+              {!isWideNavigation ? (
+                <ActionButton
+                  label="Menu"
+                  className="btn--header btn--header-muted financial-header-action"
+                  icon={<AppIcon name="menu" size={14} className="btn-icon" />}
+                  ariaLabel="Abrir barra lateral"
+                  onClick={() => setIsSidebarDrawerOpen(true)}
+                />
+              ) : null}
               <ActionButton
                 label="Período"
                 className="btn--header btn--header-muted financial-header-action"
@@ -4260,7 +4269,7 @@ function DashboardApp({
         />
       )}
     >
-      {!isWideNavigation ? (
+      {!isWideNavigation && activeTab !== 'financial' ? (
         <button
           type="button"
           className="mobile-sidebar-trigger btn btn--ghost"
