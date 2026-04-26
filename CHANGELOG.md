@@ -75,6 +75,12 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Espaçamento visual no cabeçalho da tabela foi refinado para centralizar melhor o título das colunas entre a linha superior (header do widget) e a linha inferior do thead.
 - Rodapé global das tabelas financeiras foi tipograficamente padronizado para duas hierarquias apenas: texto base uniforme e valor em destaque (`strong`), reduzindo variação de fontes internas.
 
+## v1.1.44 - 2026-04-26
+
+### Changed
+- Botão de informações adicionais foi padronizado para as seções principais (Resumo e Operação) em formato indicador inline ao título, com círculo/borda/ícone na cor azul.
+- Botões internos dos widgets (ações rápidas e ações de header dos cards) receberam estilo flat, sem borda e sem sombra.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed

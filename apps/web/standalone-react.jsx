@@ -3293,13 +3293,18 @@ function DashboardApp({
         ) : null}
 
         <FinancialPageSection
-          title="Resumo financeiro estratégico"
-          actions={(
-            <FinancialEditAction
-              ariaLabel="Informações da visão consolidada"
-              onClick={() => setFinancialInfoKey('consolidated')}
-              icon="info"
-            />
+          title={(
+            <span className="financial-section-inline-title">
+              <span>Resumo financeiro estratégico</span>
+              <button
+                type="button"
+                className="financial-section-info-indicator"
+                aria-label="Informações da visão consolidada"
+                onClick={() => setFinancialInfoKey('consolidated')}
+              >
+                <AppIcon name="info" size={13} />
+              </button>
+            </span>
           )}
         >
           <FinancialSectionColumns variant="hero">
