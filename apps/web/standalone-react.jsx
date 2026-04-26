@@ -3387,42 +3387,52 @@ function DashboardApp({
                   )}
                 >
                   <div className="financial-widget-body-scroll">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
-                        <div className="space-y-2">
-                          {receitasPorCategoriaResumo.map(([categoria, total]) => (
-                            <div key={`cat-income-${categoria}`}>
-                              <div className="flex justify-between text-xs text-slate-600 mb-1">
-                                <span>{categoria}</span><span>{formatMoney(total)}</span>
+                    <div className="data-table__scroller">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm p-2">
+                        <div>
+                          <p className="font-black text-slate-700 mb-2">Top receitas por categoria</p>
+                          <div className="space-y-2">
+                            {receitasPorCategoriaResumo.map(([categoria, total]) => (
+                              <div key={`cat-income-${categoria}`}>
+                                <div className="flex justify-between text-xs text-slate-600 mb-1">
+                                  <span>{categoria}</span><span>{formatMoney(total)}</span>
+                                </div>
+                                <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                                  <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                                </div>
                               </div>
-                              <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                                <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (total / Math.max(receitasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
-                        <div className="space-y-2">
-                          {despesasPorCategoriaResumo.map(([categoria, total]) => (
-                            <div key={`cat-expense-${categoria}`}>
-                              <div className="flex justify-between text-xs text-slate-600 mb-1">
-                                <span>{categoria}</span><span>{formatMoney(total)}</span>
+                        <div>
+                          <p className="font-black text-slate-700 mb-2">Top despesas por categoria</p>
+                          <div className="space-y-2">
+                            {despesasPorCategoriaResumo.map(([categoria, total]) => (
+                              <div key={`cat-expense-${categoria}`}>
+                                <div className="flex justify-between text-xs text-slate-600 mb-1">
+                                  <span>{categoria}</span><span>{formatMoney(total)}</span>
+                                </div>
+                                <div className="h-2 rounded bg-slate-100 overflow-hidden">
+                                  <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
+                                </div>
                               </div>
-                              <div className="h-2 rounded bg-slate-100 overflow-hidden">
-                                <div className="h-full bg-rose-500" style={{ width: `${Math.min(100, (total / Math.max(despesasPorCategoriaResumo[0]?.[1] || 1, 1)) * 100)}%` }} />
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
                     <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
-                    <div className="financial-widget-totalizer mt-3">
-                      <p><span>Total receitas</span><strong>{formatMoney(categoriasReceitasTotal)}</strong></p>
-                      <p><span>Total despesas</span><strong>{formatMoney(categoriasDespesasTotal)}</strong></p>
+                    <div className="data-table__footer">
+                      <div className="data-table__totals" aria-label="Totalizadores da tabela">
+                        <p className="data-table__total-item">
+                          <span>Total receitas:</span>
+                          <strong>{formatMoney(categoriasReceitasTotal)}</strong>
+                        </p>
+                        <p className="data-table__total-item">
+                          <span>Total despesas:</span>
+                          <strong>{formatMoney(categoriasDespesasTotal)}</strong>
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </SectionCard>

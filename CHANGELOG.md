@@ -30,6 +30,11 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Botão de foco dos widgets consolidados foi unificado para o mesmo ícone/comportamento visual dos demais widgets financeiros.
 - Hero widgets passaram a usar footer padronizado e superfícies internas consistentes com o padrão Material Design 3 adotado na tela Financeiro.
 
+## v1.1.37 - 2026-04-26
+
+### Changed
+- Widget **Categorias financeiras** passou a reutilizar a mesma estrutura visual de `body` e `footer` dos widgets de tabela (`data-table__scroller` + `data-table__footer`), removendo diferença de estilo em relação aos demais cards financeiros.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed
