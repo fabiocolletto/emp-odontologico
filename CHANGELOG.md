@@ -69,6 +69,12 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Título auxiliar **Configurações e cadastros** foi removido para reduzir texto fora dos widgets.
 - Tabelas dos widgets tiveram bordas de body removidas e espaçamento entre header do widget e body reduzido para ampliar área útil sem alterar dimensões do card.
 
+## v1.1.43 - 2026-04-26
+
+### Changed
+- Espaçamento visual no cabeçalho da tabela foi refinado para centralizar melhor o título das colunas entre a linha superior (header do widget) e a linha inferior do thead.
+- Rodapé global das tabelas financeiras foi tipograficamente padronizado para duas hierarquias apenas: texto base uniforme e valor em destaque (`strong`), reduzindo variação de fontes internas.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed

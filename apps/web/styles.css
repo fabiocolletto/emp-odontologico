@@ -3083,6 +3083,12 @@ select {
   border-bottom: 1px solid #e2e8f0;
 }
 
+.financial-widget-container .data-table__head-cell {
+  padding-top: 0.34rem !important;
+  padding-bottom: 0.34rem !important;
+  vertical-align: middle;
+}
+
 .financial-section-inline-title {
   display: inline-flex;
   align-items: center;
@@ -3120,6 +3126,9 @@ select {
   background: transparent;
   border-radius: 0;
   padding: 0.3rem 0;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #64748b;
 }
 
 .data-table__totals {
@@ -3134,8 +3143,8 @@ select {
 
 .data-table__total-item {
   margin: 0;
-  font-size: 0.74rem;
-  color: #64748b;
+  font-size: 0.7rem;
+  color: inherit;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
@@ -3144,6 +3153,7 @@ select {
 
 .data-table__total-item strong {
   color: #334155;
+  font-weight: 700;
 }
 
 .data-table__pagination {
@@ -3157,8 +3167,8 @@ select {
 
 .data-table__pagination-label {
   margin: 0;
-  font-size: 0.72rem;
-  color: #94a3b8;
+  font-size: 0.7rem;
+  color: inherit;
   font-weight: 500;
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -3509,7 +3519,7 @@ select {
   padding: 0.1rem 0.3rem;
   min-height: 24px;
   gap: 0.12rem;
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   font-weight: 500;
 }
 
