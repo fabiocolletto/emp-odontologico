@@ -277,12 +277,11 @@ const SortToggleButton = ({ onClick }) => (
   />
 );
 
-const AppShell = ({ sidebar, header, mobileHeader, children }) => (
+const AppShell = ({ sidebar, header, children }) => (
   <div className="app-shell">
     <div className="app-frame">
       {sidebar}
       <main className="app-content">
-        {mobileHeader}
         {header}
         {children}
       </main>
@@ -3225,14 +3224,14 @@ function DashboardApp({
             <>
               <ActionButton
                 label="Período"
-                className="btn--header btn--header-muted"
-                icon={<AppIcon name="calendar" size={14} />}
+                className="btn--header btn--header-muted financial-header-action"
+                icon={<AppIcon name="calendar" size={14} className="btn-icon" />}
                 onClick={() => setIsPeriodPickerOpen(true)}
               />
               <ActionButton
                 label="Exportar relatório"
-                className="btn--header btn--header-muted"
-                icon={<AppIcon name="download" size={14} />}
+                className="btn--header btn--header-muted financial-header-action"
+                icon={<AppIcon name="download" size={14} className="btn-icon" />}
                 onClick={() => setIsExportModalOpen(true)}
               />
             </>
@@ -4260,22 +4259,6 @@ function DashboardApp({
           onTabChange={goToLevel1}
         />
       )}
-      mobileHeader={!isWideNavigation ? (
-        <header className="app-mobile-header">
-          <button
-            type="button"
-            className="btn btn--ghost app-mobile-header__menu-btn"
-            onClick={() => setIsSidebarDrawerOpen(true)}
-            aria-label="Abrir barra lateral"
-          >
-            <AppIcon name="menu" size={16} />
-          </button>
-          <div className="app-mobile-header__brand">
-            <span className="app-mobile-header__title">OdontoFlow</span>
-            <span className="app-mobile-header__subtitle">{TAB_META[activeTab]?.label || 'Início'}</span>
-          </div>
-        </header>
-      ) : null}
     >
       {isSidebarDrawerOpen ? (
         <div className="app-sidebar-drawer" role="dialog" aria-modal="true" aria-label="Menu lateral">

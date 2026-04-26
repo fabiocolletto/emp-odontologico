@@ -3576,6 +3576,31 @@ select {
 }
 
 @media (max-width: 1023px) {
+  .financial-header-action {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    min-height: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .financial-header-action span {
+    display: none;
+  }
+
+  .financial-header-action .btn-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: 0 auto;
+  }
+
   .financial-layout--flat .app-header-flat {
     margin-bottom: 0.5rem;
   }
