@@ -14,10 +14,13 @@
       filterDropdown = null,
       filterAriaLabel,
       footerClassName = '',
-      footerValue = ''
+      footerValue = '',
+      hideActionColumnOnMain = true
     }
   ) => {
     const [isFocusOpen, setIsFocusOpen] = useState(false);
+    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const mainColumns = hideActionColumnOnMain ? columns.filter((column) => !isActionColumn(column)) : columns;
     const totalColumn = columns.find((column) => /valor|saldo/i.test(column.key || ''));
     const hasNumericValues = totalColumn
       ? rows.some((row) => {
@@ -60,7 +63,7 @@
           )}
         >
           <DataTable
-            columns={columns}
+            columns={mainColumns}
             rows={rows}
             paginated
             compact

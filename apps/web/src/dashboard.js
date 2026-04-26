@@ -47,6 +47,7 @@ import {
   ViewLayout
 } from './components.js';
 import { DashboardBottomTabbar, DashboardSidebarNav, getNavItemById } from './dashboard-navigation.js';
+import SidebarPlaceholderFramework from './shared/sidebar-placeholder-framework.js';
 
 const Dashboard = () => {
   const PATIENTS_SORT_KEY = 'odontoflow:patients-sort';
@@ -595,6 +596,30 @@ const Dashboard = () => {
     ? `Olá, ${lightSessionUser.firstName}`
     : (currentClinic?.name || 'Clínica não definida');
 
+  const agendaPlaceholderLayers = [
+    { title: 'Page Section', description: 'Resumo operacional do dia com status da agenda e alertas clínicos.' },
+    { title: 'Section Columns', description: 'Distribuição entre agenda principal, fila de encaixes e ações rápidas.' },
+    { title: 'Widgets reutilizáveis', description: 'Lista de atendimentos, card de profissional e timeline de confirmação.' }
+  ];
+
+  const agendaPlaceholderExamples = [
+    { label: 'Resumo do dia', content: '12 atendimentos confirmados, 2 aguardando retorno e 1 encaixe disponível às 16h.' },
+    { label: 'Ação principal', content: 'Confirmar presença dos pacientes das próximas 2 horas.' },
+    { label: 'Aviso de operação', content: 'Equipe de recepção com cobertura completa até o fim do expediente.' }
+  ];
+
+  const profilePlaceholderLayers = [
+    { title: 'Data Section', description: 'Detalhes por contexto de conta, assinatura, clínica e suporte.' },
+    { title: 'Data Columns', description: 'Colunas responsivas para dados, ações e histórico rápido.' },
+    { title: 'Atoms de feedback', description: 'Mensagens de status, badges de segurança e CTA de atualização.' }
+  ];
+
+  const profilePlaceholderExamples = [
+    { label: 'Contexto do módulo', content: 'Gerencie credenciais, preferências de acesso e vínculo com clínicas ativas.' },
+    { label: 'Ação recomendada', content: 'Atualizar método de pagamento antes do próximo ciclo de cobrança.' },
+    { label: 'Próximo passo', content: 'Conectar este bloco ao endpoint da rota selecionada no workspace de perfil.' }
+  ];
+
   return (
     <AppShell
       headerLeading={<div className="app-header__brand"><HeaderLeadingIcon size={18} /> OdontoFlow</div>}
@@ -656,10 +681,13 @@ const Dashboard = () => {
 
       {activeTab === 'overview' && (
         <ViewLayout>
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
-            <h3 className="text-xl font-bold text-slate-900">Agenda</h3>
-            <p className="text-sm text-slate-600 mt-2">Placeholder da nova Agenda do nível 0. Em breve com visão diária, filtros e próximos atendimentos.</p>
-          </div>
+          <SidebarPlaceholderFramework
+            frameworkLabel="Framework Sidebar · Agenda"
+            title="Agenda"
+            description="Estrutura pronta para evoluir com dados reais sem depender de rótulos genéricos de seção."
+            layers={agendaPlaceholderLayers}
+            exampleText={agendaPlaceholderExamples}
+          />
         </ViewLayout>
       )}
 
@@ -1157,11 +1185,13 @@ const Dashboard = () => {
               </>
             ) : (
               <section className="profile-screen__detail">
-                <h4>{activeProfileItem?.label}</h4>
-                <p>
-                  Tela de nível 1 preparada para rota <strong>{activeProfileItem?.route}</strong>.
-                  Conecte este espaço aos dados reais de sessão/perfil sem alterar o shell principal.
-                </p>
+                <SidebarPlaceholderFramework
+                  frameworkLabel="Framework Sidebar · Perfil"
+                  title={activeProfileItem?.label || 'Perfil'}
+                  description={`Rota preparada para ${activeProfileItem?.route || 'profile.root'} com composição modular por camadas.`}
+                  layers={profilePlaceholderLayers}
+                  exampleText={profilePlaceholderExamples}
+                />
               </section>
             )}
           </div>

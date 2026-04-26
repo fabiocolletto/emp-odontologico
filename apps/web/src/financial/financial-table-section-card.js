@@ -14,10 +14,13 @@
       isFilterOpen = false,
       filterDropdown = null,
       filterAriaLabel,
-      footer = null
+      footer = null,
+      hideActionColumnOnMain = true
     }
   ) => {
     const [isFocusOpen, setIsFocusOpen] = useState(false);
+    const isActionColumn = (column) => /a[cç][aã]o/i.test(String(column?.key || '')) || /a[cç][aã]o/i.test(String(column?.label || ''));
+    const mainColumns = hideActionColumnOnMain ? columns.filter((column) => !isActionColumn(column)) : columns;
     const totalColumn = columns.find((column) => /valor|saldo/i.test(column.key || ''));
     const hasNumericValues = totalColumn
       ? rows.some((row) => {
@@ -38,7 +41,7 @@
     return (
       <>
         <SectionCard
-          className="financial-section-card"
+          className="financial-section-card financial-section-card--operation"
           title={title}
           actions={(
             <div className="financial-widget-actions">
@@ -65,7 +68,7 @@
           )}
         >
           <DataTable
-            columns={columns}
+            columns={mainColumns}
             rows={rows}
             emptyMessage={emptyMessage}
             paginated
