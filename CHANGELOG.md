@@ -42,6 +42,13 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Cabeçalho da tabela agora tem linha superior e inferior padronizada para reforçar hierarquia visual do título das colunas.
 - Footer global dos widgets foi simplificado (sem fundo/sombra/raio), mantendo apenas a linha divisória superior e removendo espaçamento inferior excessivo do card.
 
+## v1.1.39 - 2026-04-26
+
+### Changed
+- Footer da **visão consolidada** foi alinhado ao mesmo padrão visual usado na **operação** (sem fundo/sombra, somente linha divisória).
+- Removido o espaçamento visual entre header/body e body/footer dos widgets para reforçar continuidade entre blocos.
+- Tabelas dos widgets passaram a usar apenas a linha inferior do header como borda estrutural.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed
