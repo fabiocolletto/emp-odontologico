@@ -3021,7 +3021,9 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .data-table__totals {
@@ -3054,6 +3056,7 @@ select {
   align-items: center;
   justify-content: flex-end;
   gap: 0.45rem;
+  flex-shrink: 0;
 }
 
 .data-table__pagination-label {
@@ -3062,6 +3065,7 @@ select {
   color: #94a3b8;
   font-weight: 700;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .data-table__pagination-actions {

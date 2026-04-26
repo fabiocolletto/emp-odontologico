@@ -2,7 +2,7 @@
   const namespace = global.OdontoFlowFinancialComponents = global.OdontoFlowFinancialComponents || {};
   const { useState } = React;
 
-  namespace.createFinancialTableSectionCard = ({ SectionCard, DataTable, FinancialEditAction, FinancialWidgetFooter }) => (
+  namespace.createFinancialTableSectionCard = ({ SectionCard, DataTable, FinancialEditAction }) => (
     {
       title,
       columns,
@@ -75,8 +75,8 @@
             paginated
             compact
             keepEmptyRows
+            footerTotals={footerTotals}
           />
-          <FinancialWidgetFooter totals={footerTotals} />
         </SectionCard>
 
         {isFocusOpen ? (

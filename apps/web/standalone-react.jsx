@@ -656,7 +656,6 @@ const FinancialTableAddIconButton = ({ ariaLabel, onClick }) => (
 const financialComponentFactories = globalThis.OdontoFlowFinancialComponents || {};
 if (
   !financialComponentFactories.createFinancialEditAction
-  || !financialComponentFactories.createFinancialWidgetFooter
   || !financialComponentFactories.createFinancialPageSection
   || !financialComponentFactories.createFinancialSectionColumns
   || !financialComponentFactories.createFinancialTableSectionCard
@@ -665,10 +664,9 @@ if (
   throw new Error('Módulos financeiros globais não carregados. Verifique os scripts em index.html.');
 }
 const FinancialEditAction = financialComponentFactories.createFinancialEditAction({ ActionButton, AppIcon });
-const FinancialWidgetFooter = financialComponentFactories.createFinancialWidgetFooter();
 const FinancialPageSection = financialComponentFactories.createFinancialPageSection();
 const FinancialSectionColumns = financialComponentFactories.createFinancialSectionColumns();
-const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction, FinancialWidgetFooter });
+const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
 const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
 const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
 if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
