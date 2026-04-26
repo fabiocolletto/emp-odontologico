@@ -3336,12 +3336,28 @@ function DashboardApp({
                         tone={widget.chartTone}
                         size={82}
                       />
-                      <div className="financial-hero-widget__trend">
-                        {widget.chartVariant === 'area' ? (
-                          <ChartSparkArea points={widget.trendSeries} tone={widget.chartTone} />
-                        ) : (
-                          <ChartSparkLine points={widget.trendSeries} tone={widget.chartTone} />
-                        )}
+                    </div>
+                    <div className="financial-hero-widget__trend">
+                      <div className="financial-hero-widget__trend-axis">
+                        {(() => {
+                          const max = Math.max(...widget.trendSeries, 1);
+                          const axis = [max, max * 0.66, max * 0.33, 0];
+                          return axis.map((value, index) => (
+                            <span key={`axis-${widget.key}-${index}`}>{formatMoney(value)}</span>
+                          ));
+                        })()}
+                      </div>
+                      <div className="financial-hero-widget__trend-bars">
+                        {widget.trendSeries.map((point, index) => {
+                          const max = Math.max(...widget.trendSeries, 1);
+                          const height = Math.max(8, (point / max) * 100);
+                          return (
+                            <div key={`trend-${widget.key}-${index}`} className="financial-hero-widget__trend-bar-item">
+                              <span className="financial-hero-widget__trend-bar" style={{ height: `${height}%`, background: widget.chartTone }} />
+                              <small>M{index + 1}</small>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     <footer className="financial-hero-widget__footer">
