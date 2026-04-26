@@ -3073,8 +3073,8 @@ select {
 
 .financial-widget-container .data-table__scroller {
   overflow: auto;
-  border: 0;
-  border-radius: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   background: #ffffff;
   padding: 0;
 }
@@ -3470,10 +3470,11 @@ select {
   color: #475569;
 }
 
-.financial-section-columns--operation .financial-section-card .data-table {
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+.financial-section-columns--operation .financial-section-card .data-table,
+.financial-section-columns--operation .financial-panel-card .data-table {
+  border-radius: 0;
+  border: 0;
+  background: transparent;
 }
 
 .financial-section-columns--operation .financial-widget-totalizer {

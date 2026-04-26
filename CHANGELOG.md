@@ -56,6 +56,12 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 - Seções principais (**Resumo financeiro estratégico** e **Operação financeira diária**) passaram a usar botão de informações adicionais (`info`) para abrir contexto sob demanda em modal.
 - Descrições auxiliares de `DataSection` foram removidas para deixar o fluxo mais direto entre header da seção e widgets.
 
+## v1.1.41 - 2026-04-26
+
+### Changed
+- Bordas de tabelas financeiras foram unificadas em um único padrão visual (modelo de **Contas a pagar**), aplicando o mesmo contorno no `data-table__scroller` para todos os widgets.
+- Removidas diferenças de borda específicas entre cards de operação e lançamentos, garantindo consistência entre todas as tabelas do Financeiro.
+
 ## v1.1.32 - 2026-04-25
 
 ### Changed
