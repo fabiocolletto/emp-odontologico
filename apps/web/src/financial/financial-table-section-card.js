@@ -51,11 +51,6 @@
                 onClick={() => setIsFocusOpen(true)}
                 icon="expand"
               />
-              <FinancialEditAction
-                ariaLabel={addAriaLabel}
-                onClick={onAdd}
-                icon="plus"
-              />
               <div className="financial-widget-actions__filter">
                 <FinancialEditAction
                   ariaLabel={filterAriaLabel}

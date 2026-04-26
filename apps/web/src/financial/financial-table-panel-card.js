@@ -46,11 +46,6 @@
                 onClick={() => setIsFocusOpen(true)}
                 icon="expand"
               />
-              <FinancialEditAction
-                ariaLabel={addAriaLabel || `Adicionar em ${title.toLowerCase()}`}
-                onClick={onAdd}
-                icon="plus"
-              />
               <div className="financial-widget-actions__filter">
                 <FinancialEditAction
                   ariaLabel={filterAriaLabel || `Filtrar ${title.toLowerCase()}`}
