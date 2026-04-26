@@ -1708,6 +1708,29 @@ select {
 }
 
 @media (max-width: 1023px) {
+  .mobile-sidebar-trigger {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 0.7rem);
+    left: 0.7rem;
+    z-index: 55;
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--surface-0) 92%, #dbeafe);
+    border: 1px solid color-mix(in srgb, var(--brand-600) 20%, #dbeafe);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mobile-sidebar-trigger:hover {
+    transform: translateY(-1px);
+  }
+
   .app-mobile-header {
     display: flex;
     align-items: center;
@@ -1742,6 +1765,12 @@ select {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 700;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-sidebar-trigger {
+    display: none;
   }
 }
 

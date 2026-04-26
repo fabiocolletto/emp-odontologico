@@ -4260,6 +4260,17 @@ function DashboardApp({
         />
       )}
     >
+      {!isWideNavigation ? (
+        <button
+          type="button"
+          className="mobile-sidebar-trigger btn btn--ghost"
+          onClick={() => setIsSidebarDrawerOpen(true)}
+          aria-label="Abrir barra lateral"
+        >
+          <AppIcon name="menu" size={16} />
+        </button>
+      ) : null}
+
       {isSidebarDrawerOpen ? (
         <div className="app-sidebar-drawer" role="dialog" aria-modal="true" aria-label="Menu lateral">
           <button
