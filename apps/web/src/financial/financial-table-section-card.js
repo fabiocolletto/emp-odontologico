@@ -15,6 +15,7 @@
       filterDropdown = null,
       filterAriaLabel,
       footerTotals = [],
+      layout = 'double',
       hideActionColumnOnMain = true
     }
   ) => {
@@ -41,7 +42,7 @@
     return (
       <>
         <SectionCard
-          className="financial-section-card financial-section-card--operation"
+          className={`financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--${layout}`.trim()}
           title={title}
           actions={(
             <div className="financial-widget-actions">
@@ -82,7 +83,7 @@
           <div className="finance-overlay" onClick={() => setIsFocusOpen(false)}>
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <SectionCard
-                className="financial-modal-card financial-focus-card"
+                className="financial-modal-card financial-focus-card financial-widget-container financial-widget-container--single"
                 title={title}
                 actions={(
                   <div className="financial-widget-actions">

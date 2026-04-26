@@ -15,6 +15,7 @@
       filterAriaLabel,
       footerClassName = '',
       footerValue = '',
+      layout = 'double',
       hideActionColumnOnMain = true
     }
   ) => {
@@ -36,7 +37,7 @@
     return (
       <>
         <PanelCard
-          className="financial-panel-card"
+          className={`financial-panel-card financial-widget-container financial-widget-container--${layout}`.trim()}
           title={title}
           extra={(
             <div className="financial-widget-actions">
@@ -79,7 +80,7 @@
           <div className="finance-overlay" onClick={() => setIsFocusOpen(false)}>
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
               <PanelCard
-                className="financial-modal-card financial-focus-card"
+                className="financial-modal-card financial-focus-card financial-widget-container financial-widget-container--single"
                 title={title}
                 extra={(
                   <div className="financial-widget-actions">

@@ -2977,6 +2977,44 @@ select {
   padding-bottom: 0.85rem;
 }
 
+.financial-widget-container {
+  --financial-widget-min-height: 286px;
+  --financial-widget-padding: 0.85rem;
+  --financial-widget-header-gap: 0.65rem;
+  min-height: var(--financial-widget-min-height);
+  padding: var(--financial-widget-padding);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, #cbd5e1 56%, white);
+  background: color-mix(in srgb, #ffffff 96%, #eef4ff);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 6px 18px rgba(15, 23, 42, 0.05);
+}
+
+.financial-widget-container .panel-card__header,
+.financial-widget-container > .flex {
+  align-items: center;
+  gap: var(--financial-widget-header-gap);
+  margin-bottom: 0.7rem;
+}
+
+.financial-widget-container .panel-card__content {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.financial-widget-container--single {
+  --financial-widget-min-height: 314px;
+}
+
+.financial-widget-container--double {
+  --financial-widget-min-height: 286px;
+}
+
+.financial-widget-container--triple {
+  --financial-widget-min-height: 256px;
+  --financial-widget-padding: 0.7rem;
+}
+
 .data-table__footer {
   margin-top: 0.2rem;
   display: flex;

@@ -3851,6 +3851,7 @@ function DashboardApp({
               <div ref={financialLaunchesSectionRef}>
                 <FinancialTableSectionCard
                   title="Lançamentos"
+                  layout="single"
                   addAriaLabel="Novo lançamento"
                   onAdd={() => openFinancialCreate('entrada')}
                   onToggleFilter={() => focusFinancialLaunches('all')}
