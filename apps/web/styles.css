@@ -1708,6 +1708,29 @@ select {
 }
 
 @media (max-width: 1023px) {
+  .mobile-sidebar-trigger {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 0.7rem);
+    left: 0.7rem;
+    z-index: 55;
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--surface-0) 92%, #dbeafe);
+    border: 1px solid color-mix(in srgb, var(--brand-600) 20%, #dbeafe);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mobile-sidebar-trigger:hover {
+    transform: translateY(-1px);
+  }
+
   .app-mobile-header {
     display: flex;
     align-items: center;
@@ -1742,6 +1765,12 @@ select {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 700;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-sidebar-trigger {
+    display: none;
   }
 }
 
@@ -1957,21 +1986,69 @@ select {
 
   .bio-header-shell {
     display: block;
-    padding: 0.85rem 1rem 0.55rem;
+    padding: 0.55rem 0.7rem 0.35rem;
     border-bottom: 0;
     background: transparent;
   }
 
   .bio-header {
-    gap: 0.65rem;
+    gap: 0.45rem;
   }
 
   .bio-header__top {
-    padding: 0.58rem 0.66rem;
+    padding: 0.4rem 0.35rem;
   }
 
   .bio-header__bottom {
-    padding: 0.56rem 0.48rem 0.32rem;
+    padding: 0.34rem 0.35rem 0.2rem;
+  }
+
+  .bio-header__icon {
+    width: 30px;
+    height: 30px;
+    min-height: 30px;
+    border-radius: 10px;
+  }
+
+  .bio-header__title {
+    font-size: 0.86rem;
+  }
+
+  .bio-header__subtitle {
+    font-size: 0.62rem;
+  }
+
+  .sidebar-screen-header__breadcrumb {
+    display: none;
+  }
+
+  .financial-layout--flat .page-header {
+    gap: 0.45rem;
+  }
+
+  .financial-layout--flat .page-header > div:first-child {
+    width: 100%;
+  }
+
+  .financial-layout--flat .page-header > div:last-child {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.45rem;
+    padding-left: 0.35rem;
+  }
+
+  .financial-header-action {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--brand-100) 85%, white);
+    border: 1px solid color-mix(in srgb, var(--brand-600) 24%, #d7e5fb);
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .patients-sections {
@@ -3576,6 +3653,31 @@ select {
 }
 
 @media (max-width: 1023px) {
+  .financial-header-action {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    min-height: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .financial-header-action span {
+    display: none;
+  }
+
+  .financial-header-action .btn-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: 0 auto;
+  }
+
   .financial-layout--flat .app-header-flat {
     margin-bottom: 0.5rem;
   }
