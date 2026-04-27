@@ -7,6 +7,20 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+
+## v1.1.55 - 2026-04-27
+
+### Changed
+- Criada a camada oficial `apps/web/shared/` com componentes reutilizáveis (page header, filter panel, date range picker, modal, drawer, empty/loading/error state, status badge e action bar) em JavaScript puro e CSS compartilhado por tokens.
+- Criada a camada oficial de serviços compartilhados (Supabase client singleton, auth service, session service, clinic context service, storage service e event bus), com exposição compatível via `globalThis.OdontoFlowShared`.
+- Criados registries oficiais (`component-registry.js` e `service-registry.js`) e documentação da camada shared para consulta humana e por agentes antes de qualquer nova implementação.
+- Atualizada a governança visual e de agentes para exigir consulta prévia da camada shared antes de criar UI/serviços/helpers.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+- Execução de verificação sintática `node --check` para todos os arquivos JavaScript novos em `apps/web/shared`.
+
 ## v1.1.54 - 2026-04-27
 
 ### Changed
