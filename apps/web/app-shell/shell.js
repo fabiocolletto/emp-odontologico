@@ -12,13 +12,13 @@
 */
 
 const NAV_ITEMS = [
-  { id: 'inicio', label: 'Início', icon: '🏠', accent: '#2563eb', src: './apps/web/src/home/inicio.html' },
-  { id: 'agenda', label: 'Agenda', icon: '📅', accent: '#0b6aa7', src: './apps/web/src/agenda/agenda.html' },
-  { id: 'patients', label: 'Pacientes', icon: '🦷', accent: '#0891b2', src: './apps/web/src/patients/pacientes.html' },
-  { id: 'clinic', label: 'Clínica', icon: '🏥', accent: '#7c3aed', src: './apps/web/src/clinics/clinicas.html' },
-  { id: 'team', label: 'Equipe', icon: '👥', accent: '#4f46e5', src: './apps/web/src/team/equipe.html' },
-  { id: 'financial', label: 'Financeiro', icon: '💳', accent: '#16a34a', src: './apps/web/src/financial/financeiro.html' },
-  { id: 'profile', label: 'Perfil', icon: '🪪', accent: '#ea580c', src: './apps/web/src/profile/perfil.html' }
+  { id: 'inicio', label: 'Início', subtitle: 'Nível 0', icon: '🏠', accent: '#2563eb', src: './apps/web/src/home/inicio.html' },
+  { id: 'agenda', label: 'Agenda', subtitle: 'Atendimentos', icon: '📅', accent: '#0b6aa7', src: './apps/web/src/agenda/agenda.html' },
+  { id: 'patients', label: 'Pacientes', subtitle: 'Cadastro clínico', icon: '🦷', accent: '#0891b2', src: './apps/web/src/patients/pacientes.html' },
+  { id: 'clinic', label: 'Clínica', subtitle: 'Dados institucionais', icon: '🏥', accent: '#7c3aed', src: './apps/web/src/clinics/clinicas.html' },
+  { id: 'team', label: 'Equipe', subtitle: 'Profissionais', icon: '👥', accent: '#4f46e5', src: './apps/web/src/team/equipe.html' },
+  { id: 'financial', label: 'Financeiro', subtitle: 'Gestão financeira', icon: '💳', accent: '#16a34a', src: './apps/web/src/financial/financeiro.html' },
+  { id: 'profile', label: 'Perfil', subtitle: 'Conta e preferências', icon: '🪪', accent: '#ea580c', src: './apps/web/src/profile/perfil.html' }
 ];
 
 const DEFAULT_TAB_ID = 'inicio';
@@ -39,9 +39,12 @@ function renderHeader() {
 
   header.innerHTML = `
     <button type="button" class="of-button of-button--secondary of-button--icon app-menu-toggle" aria-controls="app-sidebar" aria-expanded="false" aria-label="Abrir menu">☰</button>
-    <div>
-      <p class="app-header-subtitle">OdontoFlow</p>
-      <h1 class="app-header-title">Shell modular</h1>
+    <div class="app-header-context">
+      <span class="app-header-icon" data-app-header-icon aria-hidden="true">🧭</span>
+      <div class="app-header-content">
+        <p class="app-header-subtitle" data-app-header-subtitle>OdontoFlow</p>
+        <h1 class="app-header-title" data-app-header-title>Shell modular</h1>
+      </div>
     </div>
   `;
 
@@ -121,7 +124,9 @@ function navigateTo(tabId) {
 
   frame.src = item.src;
   setActiveState(tabId);
+  updateShellHeader(item);
   updateHash(tabId);
+  frame.addEventListener('load', () => prepareEmbeddedScreen(frame), { once: true });
   closeSidebarDrawer();
 }
 
@@ -167,6 +172,26 @@ function applyBottomNavLayout(bottomNav, itemCount) {
   const shouldScroll = itemCount > visibleCount;
   bottomNav.classList.toggle('is-scrollable', shouldScroll);
   bottomNav.style.setProperty('--app-bottom-visible-count', String(Math.min(itemCount, visibleCount)));
+}
+
+function updateShellHeader(item) {
+  const title = document.querySelector('[data-app-header-title]');
+  const subtitle = document.querySelector('[data-app-header-subtitle]');
+  const icon = document.querySelector('[data-app-header-icon]');
+  if (title) title.textContent = item?.label || 'OdontoFlow';
+  if (subtitle) subtitle.textContent = item?.subtitle || 'Shell modular';
+  if (icon) icon.textContent = item?.icon || '🧭';
+}
+
+function prepareEmbeddedScreen(frame) {
+  try {
+    const doc = frame?.contentDocument;
+    if (!doc) return;
+    doc.documentElement.classList.add('of-shell-embedded');
+    doc.body?.classList.add('of-shell-embedded');
+  } catch {
+    // Sem ação: apenas fallback silencioso para conteúdo cross-origin.
+  }
 }
 
 window.addEventListener('message', (event) => {

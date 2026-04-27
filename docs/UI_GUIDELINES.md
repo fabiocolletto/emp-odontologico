@@ -49,6 +49,7 @@ Diretrizes:
 - Conteúdo com largura confortável: `--of-content-max-width`.
 - Sem overflow horizontal global.
 - Sidebar fixa em desktop; drawer/overlay em mobile/tablet retrato.
+- Em módulos HTML carregados no iframe do shell, manter apenas o header do shell (header interno da tela deve ficar oculto no modo embed).
 
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:

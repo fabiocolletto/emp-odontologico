@@ -250,6 +250,18 @@
   }
 }
 
+/* Shell embedding contract: when HTML modules run inside app-shell iframe,
+   screen-level headers are hidden and shell header becomes the single source. */
+.of-shell-embedded .financeiro-screen-header,
+.of-shell-embedded .inicio-page__header,
+.of-shell-embedded .agenda-page__header,
+.of-shell-embedded .pacientes-page__header,
+.of-shell-embedded .clinicas-page__header,
+.of-shell-embedded .equipe-page__header,
+.of-shell-embedded .perfil-page__header {
+  display: none !important;
+}
+
 /* Breakpoints oficiais OdontoFlow
    Mobile: até 767px
    Tablet retrato: 768px - 1023px

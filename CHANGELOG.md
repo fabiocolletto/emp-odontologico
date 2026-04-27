@@ -8,6 +8,17 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.57 - 2026-04-27
+
+### Changed
+- Removido o header interno das telas no modo embed do shell (`iframe`) via classe `of-shell-embedded`, mantendo o header do shell como única referência visual global.
+- Header do shell passou a refletir a tela ativa (ícone, título e subtítulo por módulo) com atualização automática a cada navegação.
+- Ajustes finos de layout do header no mobile para manter hierarquia e legibilidade.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
 ## v1.1.56 - 2026-04-27
 
 ### Changed
