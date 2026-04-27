@@ -3503,19 +3503,6 @@ function DashboardApp({
                   {...getFinancialWidgetVisual('contasFinanceiras')}
                   addAriaLabel="Adicionar conta financeira"
                   onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
-                  onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
-                  isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
-                  filterAriaLabel="Filtrar contas financeiras"
-                  filterDropdown={renderWidgetFilterDropdown(
-                    <label className="financial-filter-dropdown__field">
-                      <span>Tipo da conta</span>
-                      <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
-                        <option value="all">Todos</option>
-                        <option value="corrente">Corrente</option>
-                        <option value="poupanca">Poupança</option>
-                      </select>
-                    </label>
-                  )}
                   columns={[
                     { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                     { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
@@ -3543,11 +3530,6 @@ function DashboardApp({
                         ariaLabel="Abrir categorias financeiras"
                         onClick={() => setIsCategoriesEditMode(true)}
                         icon="expand"
-                      />
-                      <FinancialEditAction
-                        ariaLabel="Filtrar categorias financeiras"
-                        onClick={() => setIsCategoriesEditMode(true)}
-                        icon="filter"
                       />
                     </div>
                   )}
@@ -3614,36 +3596,6 @@ function DashboardApp({
                   {...getFinancialWidgetVisual('recorrencias')}
                   addAriaLabel="Adicionar despesa recorrente"
                   onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
-                  onToggleFilter={() => toggleWidgetFilter('recorrencias')}
-                  isFilterOpen={openWidgetFilter === 'recorrencias'}
-                  filterAriaLabel="Filtrar recorrências"
-                  filterDropdown={renderWidgetFilterDropdown(
-                    <>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Periodicidade</span>
-                        <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
-                          <option value="all">Todas</option>
-                          <option value="mensal">Mensal</option>
-                          <option value="semanal">Semanal</option>
-                        </select>
-                      </label>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Categoria</span>
-                        <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
-                          <option value="all">Todas</option>
-                          {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
-                        </select>
-                      </label>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Status</span>
-                        <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
-                          <option value="all">Todos</option>
-                          <option value="pendente">Pendente</option>
-                          <option value="pago">Pago</option>
-                        </select>
-                      </label>
-                    </>
-                  )}
                   columns={[
                     { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                     { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
@@ -3675,28 +3627,6 @@ function DashboardApp({
                   {...getFinancialWidgetVisual('previsoes')}
                   addAriaLabel="Adicionar previsão de custo"
                   onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
-                  onToggleFilter={() => toggleWidgetFilter('previsoes')}
-                  isFilterOpen={openWidgetFilter === 'previsoes'}
-                  filterAriaLabel="Filtrar previsões"
-                  filterDropdown={renderWidgetFilterDropdown(
-                    <>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Período</span>
-                        <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
-                          <option value="all">Todos</option>
-                          {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
-                        </select>
-                      </label>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Comprometido</span>
-                        <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
-                          <option value="all">Todos</option>
-                          <option value="sim">Sim</option>
-                          <option value="nao">Não</option>
-                        </select>
-                      </label>
-                    </>
-                  )}
                   columns={[
                     { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                     { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
@@ -3969,21 +3899,6 @@ function DashboardApp({
               {...getFinancialWidgetVisual('contasReceber')}
               onAdd={() => openFinancialCreate('entrada')}
               addAriaLabel="Adicionar conta a receber"
-              onToggleFilter={() => toggleWidgetFilter('contasReceber')}
-              isFilterOpen={openWidgetFilter === 'contasReceber'}
-              filterAriaLabel="Filtrar contas a receber"
-              filterDropdown={renderWidgetFilterDropdown(
-                <label className="financial-filter-dropdown__field">
-                  <span>Status</span>
-                  <select value={widgetFilters.contasReceber.status} onChange={(event) => updateWidgetFilter('contasReceber', 'status', event.target.value)}>
-                    <option value="all">Todos</option>
-                    <option value="abertos">Abertos</option>
-                    <option value="confirmados">Confirmados</option>
-                    <option value="previsto">Previsto</option>
-                    <option value="vencido">Vencido</option>
-                  </select>
-                </label>
-              )}
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
@@ -4011,21 +3926,6 @@ function DashboardApp({
               {...getFinancialWidgetVisual('contasPagar')}
               onAdd={() => openFinancialCreate('saida')}
               addAriaLabel="Adicionar conta a pagar"
-              onToggleFilter={() => toggleWidgetFilter('contasPagar')}
-              isFilterOpen={openWidgetFilter === 'contasPagar'}
-              filterAriaLabel="Filtrar contas a pagar"
-              filterDropdown={renderWidgetFilterDropdown(
-                <label className="financial-filter-dropdown__field">
-                  <span>Status</span>
-                  <select value={widgetFilters.contasPagar.status} onChange={(event) => updateWidgetFilter('contasPagar', 'status', event.target.value)}>
-                    <option value="all">Todos</option>
-                    <option value="abertos">Abertos</option>
-                    <option value="confirmados">Confirmados</option>
-                    <option value="previsto">Previsto</option>
-                    <option value="vencido">Vencido</option>
-                  </select>
-                </label>
-              )}
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
@@ -4062,8 +3962,6 @@ function DashboardApp({
                   layout="single"
                   addAriaLabel="Novo lançamento"
                   onAdd={() => openFinancialCreate('entrada')}
-                  onToggleFilter={() => focusFinancialLaunches('all')}
-                  filterAriaLabel="Filtrar lançamentos"
                   columns={financialLaunchColumns}
                   rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
                   emptyMessage="Nenhum lançamento financeiro cadastrado."
