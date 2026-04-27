@@ -329,6 +329,11 @@ if (!financialComponentFactories.createFinancialLegacyFrame) {
   throw new Error('Frame financeiro não carregado. Verifique os scripts em index.html.');
 }
 const FinancialLegacyFrame = financialComponentFactories.createFinancialLegacyFrame();
+const agendaComponentFactories = globalThis.OdontoFlowAgendaComponents || {};
+if (!agendaComponentFactories.createAgendaLegacyFrame) {
+  throw new Error('Frame de agenda não carregado. Verifique os scripts em index.html.');
+}
+const AgendaLegacyFrame = agendaComponentFactories.createAgendaLegacyFrame();
 const clinicComponentFactories = globalThis.OdontoFlowClinicComponents || {};
 if (!clinicComponentFactories.createClinicLegacyFrame) {
   throw new Error('Frame de clínicas não carregado. Verifique os scripts em index.html.');
@@ -2129,12 +2134,8 @@ function DashboardApp({
 
     if (activeTab === 'agenda') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: 'calendar', title: 'Agenda', subtitle: 'Planejamento de atendimentos e compromissos', actions: [] })}
-          <DataColumns columns={2}>
-            <PlaceholderSection title="Seção 1 · Grade de horários" notes={['Modelo padrão existente: DataSection + DataColumns(2).', 'Implantação posterior para regras de bloqueio, encaixe e conflito.']} />
-            <PlaceholderSection title="Seção 2 · Filtros e status" notes={['Modelo padrão existente: filtros por coluna e badges.', 'Conteúdo e colunas serão definidos na sprint da Agenda.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <AgendaLegacyFrame src="./apps/web/src/agenda/agenda.html" />
         </div>
       );
     }

@@ -4627,6 +4627,22 @@ select {
   background: var(--surface-page);
 }
 
+/* Agenda legacy framework bridge */
+.agenda-legacy-frame {
+  padding: 0;
+  border: 1px solid var(--financial-outline);
+  border-radius: var(--financial-radius);
+  overflow: hidden;
+  background: var(--financial-surface);
+}
+
+.agenda-legacy-frame__iframe {
+  width: 100%;
+  min-height: 78vh;
+  border: 0;
+  background: var(--surface-page);
+}
+
 /* Clinics legacy framework bridge */
 .clinic-legacy-frame {
   padding: 0;
@@ -4677,6 +4693,7 @@ select {
 }
 
 @media (max-width: 1024px) {
+  .agenda-legacy-frame__iframe,
   .clinic-legacy-frame__iframe,
   .patients-legacy-frame__iframe,
   .team-legacy-frame__iframe,
@@ -4686,6 +4703,7 @@ select {
 }
 
 @media (max-width: 767px) {
+  .agenda-legacy-frame__iframe,
   .clinic-legacy-frame__iframe,
   .patients-legacy-frame__iframe,
   .team-legacy-frame__iframe,
