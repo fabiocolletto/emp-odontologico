@@ -1,5 +1,5 @@
 (function registerFinancialFramework(global) {
-  const STORAGE_KEY = 'odontoflow-financeiro-framework-v3';
+  const STORAGE_KEY = 'odontoflow-financeiro-framework-v4';
 
   const model = {
     launches: [
@@ -29,6 +29,8 @@
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
   const nextId = () => Date.now() + Math.floor(Math.random() * 1000);
+  const formatCurrencyBRL = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const formatPercent = (value) => `${(Number(value || 0) * 100).toFixed(1)}%`;
 
   const read = () => {
     try {
@@ -39,18 +41,12 @@
         return deepClone(model);
       }
       return parsed;
-    } catch (error) {
+    } catch {
       return deepClone(model);
     }
   };
 
   const write = (data) => global.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  const currency = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const datePtBr = (value) => {
-    if (!value) return '-';
-    const [y, m, d] = String(value).split('-');
-    return (y && m && d) ? `${d}/${m}/${y}` : value;
-  };
 
   const escapeHtml = (value) => String(value || '')
     .replace(/&/g, '&amp;')
@@ -59,10 +55,23 @@
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
-  const statusClass = (status) => {
-    if (['pago', 'recebido'].includes(status)) return 'is-success';
-    if (['vencido', 'cancelado'].includes(status)) return 'is-danger';
-    return 'is-warning';
+  const datePtBr = (value) => {
+    if (!value) return '-';
+    const [y, m, d] = String(value).split('-');
+    return (y && m && d) ? `${d}/${m}/${y}` : value;
+  };
+
+  const getStatusClass = (status) => {
+    const current = String(status || '').toLowerCase();
+    if (['pago', 'recebido'].includes(current)) return 'is-success';
+    if (['previsto', 'pendente'].includes(current)) return 'is-warning';
+    if (['vencido', 'atrasado', 'cancelado'].includes(current)) return 'is-danger';
+    return 'is-neutral';
+  };
+
+  const getStatusLabel = (status) => {
+    if (!status) return 'Sem status';
+    return String(status).charAt(0).toUpperCase() + String(status).slice(1);
   };
 
   const buildMonthSeries = (launches = []) => {
@@ -77,22 +86,16 @@
     }, {});
 
     const labels = Object.keys(map).sort((a, b) => a.localeCompare(b));
-    const receitas = labels.map((key) => map[key].receitas);
-    const despesas = labels.map((key) => map[key].despesas);
-    const saldo = labels.map((key, index) => receitas[index] - despesas[index]);
-
     return {
-      labels: labels.map((item) => item.split('-').reverse().join('/')),
-      receitas,
-      despesas,
-      saldo
+      labels: labels.map((key) => key.split('-').reverse().join('/')),
+      receitas: labels.map((key) => map[key].receitas),
+      despesas: labels.map((key) => map[key].despesas),
+      saldo: labels.map((key) => map[key].receitas - map[key].despesas)
     };
   };
 
-  const formatPercent = (value) => `${(Number(value || 0) * 100).toFixed(1)}%`;
-
   const trendText = (series = []) => {
-    if (series.length < 2) return 'Sem histórico suficiente';
+    if (series.length < 2) return 'Histórico insuficiente';
     const current = Number(series[series.length - 1] || 0);
     const previous = Number(series[series.length - 2] || 0);
     if (!previous && !current) return 'Sem variação entre períodos';
@@ -101,52 +104,99 @@
     return `${signal} ${(Math.abs(variation) * 100).toFixed(1)}% vs período anterior`;
   };
 
-  const renderKpiCard = (target, data, activeView = 'summary') => {
-    target.innerHTML = `
-      <div class="financeiro-kpi-content" data-kpi-key="${escapeHtml(data.key)}">
-        <div class="financeiro-kpi-main">
-          <p class="financeiro-kpi-title">${escapeHtml(data.title)}</p>
-          <strong class="financeiro-kpi-value">${escapeHtml(data.value)}</strong>
-          <small>${escapeHtml(data.caption)}</small>
-          <p class="financeiro-kpi-trend">${escapeHtml(data.trend)}</p>
-          <div class="html-widget-tabs" role="tablist" aria-label="Abas do KPI ${escapeHtml(data.title)}">
-            <button type="button" class="html-widget-tab ${activeView === 'summary' ? 'is-active' : ''}" data-kpi-tab="summary" data-kpi-key="${escapeHtml(data.key)}">Resumo</button>
-            <button type="button" class="html-widget-tab ${activeView === 'time' ? 'is-active' : ''}" data-kpi-tab="time" data-kpi-key="${escapeHtml(data.key)}">Tempo</button>
-            <button type="button" class="html-widget-tab ${activeView === 'data' ? 'is-active' : ''}" data-kpi-tab="data" data-kpi-key="${escapeHtml(data.key)}">Dados</button>
-          </div>
-          <p class="html-widget-swipe-hint">Deslize para alternar as abas do KPI.</p>
-        </div>
-        <div class="financeiro-kpi-panels">
-          <section class="html-widget-view ${activeView === 'summary' ? 'is-active' : ''}" data-kpi-view="summary" data-kpi-key="${escapeHtml(data.key)}">
-            <div class="financeiro-kpi-chart-wrap">
-              <canvas class="financeiro-kpi-chart" data-kpi-chart="${escapeHtml(data.key)}-donut" aria-label="Resumo consolidado ${escapeHtml(data.title)}"></canvas>
-            </div>
-            <p class="financeiro-kpi-caption">Consolidado: ${escapeHtml(data.consolidatedLabel)} (${formatPercent(data.consolidatedRatio)})</p>
-          </section>
-          <section class="html-widget-view ${activeView === 'time' ? 'is-active' : ''}" data-kpi-view="time" data-kpi-key="${escapeHtml(data.key)}">
-            <div class="financeiro-kpi-chart-wrap">
-              <canvas class="financeiro-kpi-chart" data-kpi-chart="${escapeHtml(data.key)}-time" aria-label="Distribuição temporal ${escapeHtml(data.title)}"></canvas>
-            </div>
-          </section>
-          <section class="html-widget-view ${activeView === 'data' ? 'is-active' : ''}" data-kpi-view="data" data-kpi-key="${escapeHtml(data.key)}">
-            <div class="financeiro-kpi-data-wrap">
-              <table class="financeiro-kpi-data-table">
-                <thead><tr><th>Descrição</th><th>Status</th><th>Valor</th></tr></thead>
-                <tbody>
-                  ${data.rows.map((row) => `<tr><td>${escapeHtml(row.descricao)}</td><td>${escapeHtml(row.status)}</td><td>${escapeHtml(currency(row.valor))}</td></tr>`).join('') || '<tr><td colspan="3">Sem dados para este KPI.</td></tr>'}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
+  const renderDonutChart = (ratio, color = '#2563eb', label = 'Consolidado') => {
+    const safe = Math.max(0, Math.min(1, Number(ratio || 0)));
+    const circumference = 2 * Math.PI * 44;
+    const offset = circumference * (1 - safe);
+    return `
+      <svg class="kpi-card__chart" viewBox="0 0 120 120" role="img" aria-label="${escapeHtml(label)} ${formatPercent(safe)}">
+        <circle cx="60" cy="60" r="44" fill="none" stroke="#e2e8f0" stroke-width="12"></circle>
+        <circle cx="60" cy="60" r="44" fill="none" stroke="${escapeHtml(color)}" stroke-width="12" stroke-linecap="round"
+          stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" transform="rotate(-90 60 60)"></circle>
+        <text x="60" y="58" text-anchor="middle" class="kpi-card__chart-text">${formatPercent(safe)}</text>
+        <text x="60" y="73" text-anchor="middle" class="kpi-card__chart-subtext">${escapeHtml(label)}</text>
+      </svg>
+    `;
+  };
+
+  const renderSparkline = (points = [], color = '#2563eb', title = 'Evolução temporal') => {
+    if (!points.length) {
+      return '<p class="kpi-empty-state">Histórico insuficiente.</p>';
+    }
+    const max = Math.max(...points, 1);
+    const min = Math.min(...points, 0);
+    const range = Math.max(max - min, 1);
+    const width = 280;
+    const height = 120;
+    const step = points.length > 1 ? width / (points.length - 1) : width;
+
+    const path = points.map((point, index) => {
+      const x = index * step;
+      const y = height - ((point - min) / range) * height;
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(' ');
+
+    return `
+      <svg class="kpi-card__chart" viewBox="0 0 ${width} ${height + 24}" role="img" aria-label="${escapeHtml(title)}">
+        <line x1="0" y1="${height}" x2="${width}" y2="${height}" stroke="#cbd5e1" stroke-width="1" />
+        <path d="${path}" fill="none" stroke="${escapeHtml(color)}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    `;
+  };
+
+  const renderMiniList = (items = []) => {
+    if (!items.length) return '<p class="kpi-empty-state">Nenhum lançamento encontrado.</p>';
+
+    return `
+      <div class="kpi-card__data">
+        <ul class="kpi-mini-list">
+          ${items.map((item) => `
+            <li class="kpi-mini-row" title="${escapeHtml(item.descricao)}">
+              <span class="kpi-mini-row__description">${escapeHtml(item.descricao)}</span>
+              <span class="financeiro-pill ${getStatusClass(item.status)}">${escapeHtml(getStatusLabel(item.status))}</span>
+              <strong class="kpi-mini-row__value">${escapeHtml(formatCurrencyBRL(item.valor))}</strong>
+            </li>
+          `).join('')}
+        </ul>
       </div>
     `;
   };
 
-  const upsertChart = (charts, key, canvas, config) => {
-    if (!canvas || !global.Chart) return;
-    if (charts[key]) charts[key].destroy();
-    charts[key] = new global.Chart(canvas, config);
+  const renderKpiCard = (target, config, activeView) => {
+    target.innerHTML = `
+      <header class="kpi-card__header" data-kpi-card="${escapeHtml(config.key)}">
+        <p class="kpi-card__eyebrow">${escapeHtml(config.title)}</p>
+        <p class="kpi-card__value">${escapeHtml(config.value)}</p>
+        <p class="kpi-card__meta">${escapeHtml(config.meta)}</p>
+      </header>
+
+      <div class="kpi-card__tabs" role="tablist" aria-label="Visualização do KPI ${escapeHtml(config.title)}">
+        ${['summary', 'time', 'data'].map((tab) => `
+          <button
+            type="button"
+            class="kpi-card__tab ${activeView === tab ? 'is-active' : ''}"
+            data-kpi-tab="${tab}"
+            data-kpi-key="${escapeHtml(config.key)}"
+            aria-selected="${String(activeView === tab)}"
+            aria-pressed="${String(activeView === tab)}"
+          >${tab === 'summary' ? 'Resumo' : tab === 'time' ? 'Tempo' : 'Dados'}</button>
+        `).join('')}
+      </div>
+
+      <div class="kpi-card__visual">
+        <div class="kpi-card__panel ${activeView === 'summary' ? 'is-active' : ''}" data-kpi-panel="summary" data-kpi-key="${escapeHtml(config.key)}">
+          ${config.summaryVisual}
+        </div>
+        <div class="kpi-card__panel ${activeView === 'time' ? 'is-active' : ''}" data-kpi-panel="time" data-kpi-key="${escapeHtml(config.key)}">
+          ${config.timeVisual}
+        </div>
+        <div class="kpi-card__panel ${activeView === 'data' ? 'is-active' : ''}" data-kpi-panel="data" data-kpi-key="${escapeHtml(config.key)}">
+          ${config.dataVisual}
+        </div>
+      </div>
+
+      <p class="kpi-card__note">Deslize ou toque para alternar a visualização.</p>
+    `;
   };
 
   const upsertById = (rows, payload) => {
@@ -165,13 +215,7 @@
   const wireDialogCloseOnBackdrop = (dialog) => {
     dialog.addEventListener('click', (event) => {
       const box = dialog.getBoundingClientRect();
-      const clickedOutside = (
-        event.clientX < box.left
-        || event.clientX > box.right
-        || event.clientY < box.top
-        || event.clientY > box.bottom
-      );
-      if (clickedOutside) {
+      if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) {
         dialog.close('cancel');
       }
     });
@@ -211,145 +255,83 @@
 
     Object.values(dialogs).forEach((dialog) => wireDialogCloseOnBackdrop(dialog));
 
-    const kpiReceitas = root.querySelector('[data-kpi="receitas"]');
-    const kpiDespesas = root.querySelector('[data-kpi="despesas"]');
-    const kpiSaldo = root.querySelector('[data-kpi="saldo"]');
+    const kpiTargets = {
+      receitas: root.querySelector('[data-kpi="receitas"]'),
+      despesas: root.querySelector('[data-kpi="despesas"]'),
+      saldo: root.querySelector('[data-kpi="saldo"]')
+    };
+
     const sampleInfo = root.querySelector('[data-sample-info]');
 
-    const charts = {};
-    const kpiViewState = { receitas: 'summary', despesas: 'summary', saldo: 'summary' };
-    const kpiTabsOrder = ['summary', 'time', 'data'];
+    const viewState = { receitas: 'summary', despesas: 'summary', saldo: 'summary' };
+    const tabsOrder = ['summary', 'time', 'data'];
     const touchState = { startX: 0, key: '' };
     let state = read();
 
-    const changeKpiView = (kpiKey, nextView) => {
-      if (!kpiViewState[kpiKey]) return;
-      kpiViewState[kpiKey] = nextView;
-      paint();
-    };
-
-    const cycleKpiView = (kpiKey, direction = 1) => {
-      const currentIndex = kpiTabsOrder.indexOf(kpiViewState[kpiKey] || 'summary');
-      const nextIndex = (currentIndex + direction + kpiTabsOrder.length) % kpiTabsOrder.length;
-      changeKpiView(kpiKey, kpiTabsOrder[nextIndex]);
-    };
-
     const openDialog = (key, payload = {}, title = '') => {
       fillForm(forms[key], payload);
-      if (title && titles[key]) titles[key].textContent = title;
+      if (titles[key] && title) titles[key].textContent = title;
       dialogs[key].showModal();
+    };
+
+    const cycleKpiView = (kpiKey, direction) => {
+      const currentIndex = tabsOrder.indexOf(viewState[kpiKey] || 'summary');
+      const nextIndex = (currentIndex + direction + tabsOrder.length) % tabsOrder.length;
+      viewState[kpiKey] = tabsOrder[nextIndex];
+      paint();
     };
 
     const paint = () => {
       const launches = [...state.launches].sort((a, b) => String(b.data_vencimento || '').localeCompare(String(a.data_vencimento || '')));
-      const receitas = launches.filter((item) => item.tipo === 'entrada').reduce((acc, item) => acc + Number(item.valor || 0), 0);
-      const despesas = launches.filter((item) => item.tipo === 'saida').reduce((acc, item) => acc + Number(item.valor || 0), 0);
-      const saldo = receitas - despesas;
-
       const entries = launches.filter((item) => item.tipo === 'entrada');
       const outflows = launches.filter((item) => item.tipo === 'saida');
-      const receitasConsolidadas = entries
-        .filter((item) => ['recebido', 'pago'].includes(item.status))
-        .reduce((acc, item) => acc + Number(item.valor || 0), 0);
-      const despesasConsolidadas = outflows
-        .filter((item) => item.status === 'pago')
-        .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+
+      const receitas = entries.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const despesas = outflows.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const saldo = receitas - despesas;
+
+      const receitasConsolidadas = entries.filter((item) => ['recebido', 'pago'].includes(item.status)).reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const despesasPagas = outflows.filter((item) => item.status === 'pago').reduce((acc, item) => acc + Number(item.valor || 0), 0);
       const timeline = buildMonthSeries(launches);
 
       const kpiConfigs = {
         receitas: {
           key: 'receitas',
           title: 'Receitas',
-          value: currency(receitas),
-          caption: `${entries.length} lançamentos`,
-          trend: trendText(timeline.receitas),
-          consolidatedRatio: receitas > 0 ? receitasConsolidadas / receitas : 0,
-          consolidatedLabel: `${currency(receitasConsolidadas)} consolidado`,
-          rows: entries.slice(0, 8)
+          value: formatCurrencyBRL(receitas),
+          meta: `${entries.length} lançamentos • ${trendText(timeline.receitas)}`,
+          summaryVisual: renderDonutChart(receitas > 0 ? receitasConsolidadas / receitas : 0, '#16a34a', 'Consolidado'),
+          timeVisual: renderSparkline(timeline.receitas, '#16a34a', 'Evolução de receitas no tempo'),
+          dataVisual: renderMiniList(entries.slice(0, 8))
         },
         despesas: {
           key: 'despesas',
           title: 'Despesas',
-          value: currency(despesas),
-          caption: `${outflows.length} lançamentos`,
-          trend: trendText(timeline.despesas),
-          consolidatedRatio: despesas > 0 ? despesasConsolidadas / despesas : 0,
-          consolidatedLabel: `${currency(despesasConsolidadas)} pago`,
-          rows: outflows.slice(0, 8)
+          value: formatCurrencyBRL(despesas),
+          meta: `${outflows.length} lançamentos • ${trendText(timeline.despesas)}`,
+          summaryVisual: renderDonutChart(despesas > 0 ? despesasPagas / despesas : 0, '#dc2626', 'Pago'),
+          timeVisual: renderSparkline(timeline.despesas, '#dc2626', 'Evolução de despesas no tempo'),
+          dataVisual: renderMiniList(outflows.slice(0, 8))
         },
         saldo: {
           key: 'saldo',
           title: 'Saldo',
-          value: currency(saldo),
-          caption: saldo >= 0 ? 'Operação saudável' : 'Atenção ao caixa',
-          trend: trendText(timeline.saldo),
-          consolidatedRatio: despesas > 0 ? Math.max(Math.min(receitasConsolidadas / despesas, 1), 0) : 1,
-          consolidatedLabel: `${currency(receitasConsolidadas - despesasConsolidadas)} consolidado`,
-          rows: launches.slice(0, 8)
+          value: formatCurrencyBRL(saldo),
+          meta: saldo >= 0 ? 'Caixa positivo' : 'Atenção ao caixa',
+          summaryVisual: `
+            <div class="kpi-mini-list">
+              <div class="kpi-mini-row"><span class="kpi-mini-row__description">Receitas</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(receitas)}</strong></div>
+              <div class="kpi-mini-row"><span class="kpi-mini-row__description">Despesas</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(despesas)}</strong></div>
+              <div class="kpi-mini-row"><span class="kpi-mini-row__description">Saldo final</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(saldo)}</strong></div>
+            </div>
+          `,
+          timeVisual: renderSparkline(timeline.saldo, '#2563eb', 'Evolução de saldo no tempo'),
+          dataVisual: renderMiniList(launches.slice(0, 8))
         }
       };
 
-      renderKpiCard(kpiReceitas, kpiConfigs.receitas, kpiViewState.receitas);
-      renderKpiCard(kpiDespesas, kpiConfigs.despesas, kpiViewState.despesas);
-      renderKpiCard(kpiSaldo, kpiConfigs.saldo, kpiViewState.saldo);
-
-      const baseOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: true, position: 'top' },
-          title: { display: true }
-        },
-        scales: {
-          x: { grid: { display: true }, title: { display: true, text: 'Competência (MM/AAAA)' } },
-          y: { grid: { display: true }, title: { display: true, text: 'Valor (R$)' } }
-        }
-      };
-
-      upsertChart(charts, 'receitas-donut', root.querySelector('[data-kpi-chart="receitas-donut"]'), {
-        type: 'doughnut',
-        data: {
-          labels: ['Consolidado', 'Em aberto'],
-          datasets: [{ data: [receitasConsolidadas, Math.max(receitas - receitasConsolidadas, 0)], backgroundColor: ['#16a34a', '#e2e8f0'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Consolidação de receitas' } } }
-      });
-
-      upsertChart(charts, 'despesas-donut', root.querySelector('[data-kpi-chart="despesas-donut"]'), {
-        type: 'doughnut',
-        data: {
-          labels: ['Pago', 'Pendente'],
-          datasets: [{ data: [despesasConsolidadas, Math.max(despesas - despesasConsolidadas, 0)], backgroundColor: ['#dc2626', '#fde68a'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Consolidação de despesas' } } }
-      });
-
-      upsertChart(charts, 'saldo-donut', root.querySelector('[data-kpi-chart="saldo-donut"]'), {
-        type: 'doughnut',
-        data: {
-          labels: ['Cobertura', 'Gap'],
-          datasets: [{ data: [Math.max(receitasConsolidadas, 0), Math.max(despesasConsolidadas - receitasConsolidadas, 0)], backgroundColor: ['#2563eb', '#fecaca'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Cobertura consolidada' } } }
-      });
-
-      upsertChart(charts, 'receitas-time', root.querySelector('[data-kpi-chart="receitas-time"]'), {
-        type: 'bar',
-        data: { labels: timeline.labels, datasets: [{ label: 'Receitas', data: timeline.receitas, backgroundColor: 'rgba(22, 163, 74, 0.55)', borderColor: '#166534', borderWidth: 1 }] },
-        options: { ...baseOptions, plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição das receitas no tempo' } } }
-      });
-
-      upsertChart(charts, 'despesas-time', root.querySelector('[data-kpi-chart="despesas-time"]'), {
-        type: 'line',
-        data: { labels: timeline.labels, datasets: [{ label: 'Despesas', data: timeline.despesas, borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.18)', fill: true, tension: 0.25 }] },
-        options: { ...baseOptions, plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição das despesas no tempo' } } }
-      });
-
-      upsertChart(charts, 'saldo-time', root.querySelector('[data-kpi-chart="saldo-time"]'), {
-        type: 'line',
-        data: { labels: timeline.labels, datasets: [{ label: 'Saldo', data: timeline.saldo, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.20)', fill: true, tension: 0.2 }] },
-        options: { ...baseOptions, plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição do saldo no tempo' } } }
+      Object.entries(kpiTargets).forEach(([key, target]) => {
+        renderKpiCard(target, kpiConfigs[key], viewState[key]);
       });
 
       grids.launches.innerHTML = launches.map((item) => `
@@ -358,8 +340,8 @@
           <td>${escapeHtml(item.descricao)}</td>
           <td>${escapeHtml(item.categoria)}</td>
           <td>${datePtBr(item.data_vencimento)}</td>
-          <td>${currency(item.valor)}</td>
-          <td><span class="financeiro-pill ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td>${formatCurrencyBRL(item.valor)}</td>
+          <td><span class="financeiro-pill ${getStatusClass(item.status)}">${escapeHtml(getStatusLabel(item.status))}</span></td>
           <td><button class="financeiro-link-btn" data-edit="launch" data-id="${item.id}">Editar</button></td>
         </tr>
       `).join('');
@@ -368,8 +350,8 @@
         <tr>
           <td>${escapeHtml(item.descricao)}</td>
           <td>${escapeHtml(item.periodicidade)}</td>
-          <td>${currency(item.valor)}</td>
-          <td><span class="financeiro-pill ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td>${formatCurrencyBRL(item.valor)}</td>
+          <td><span class="financeiro-pill ${getStatusClass(item.status)}">${escapeHtml(getStatusLabel(item.status))}</span></td>
           <td><button class="financeiro-link-btn" data-edit="recurring" data-id="${item.id}">Editar</button></td>
         </tr>
       `).join('');
@@ -387,7 +369,7 @@
           <td>${escapeHtml(item.nome)}</td>
           <td>${escapeHtml(item.banco)}</td>
           <td>${escapeHtml(item.tipo)}</td>
-          <td>${currency(item.saldo_inicial)}</td>
+          <td>${formatCurrencyBRL(item.saldo_inicial)}</td>
           <td><button class="financeiro-link-btn" data-edit="account" data-id="${item.id}">Editar</button></td>
         </tr>
       `).join('');
@@ -399,54 +381,53 @@
     root.querySelector('[data-action="nova-recorrencia"]').addEventListener('click', () => openDialog('recurring', { periodicidade: 'mensal', status: 'pendente' }, 'Nova recorrência'));
     root.querySelector('[data-action="nova-categoria"]').addEventListener('click', () => openDialog('category', { tipo: 'saida' }, 'Nova categoria'));
     root.querySelector('[data-action="nova-conta"]').addEventListener('click', () => openDialog('account', { tipo: 'corrente' }, 'Nova conta financeira'));
-
-    root.querySelector('[data-action="reset-model"]').addEventListener('click', () => {
-      state = deepClone(model);
-      write(state);
-      paint();
-    });
+    root.querySelector('[data-action="reset-model"]').addEventListener('click', () => { state = deepClone(model); write(state); paint(); });
 
     root.addEventListener('click', (event) => {
       const tabButton = event.target.closest('[data-kpi-tab]');
       if (tabButton) {
-        changeKpiView(tabButton.dataset.kpiKey, tabButton.dataset.kpiTab);
+        const key = tabButton.dataset.kpiKey;
+        const tab = tabButton.dataset.kpiTab;
+        if (viewState[key]) {
+          viewState[key] = tab;
+          paint();
+        }
         return;
       }
 
-      const button = event.target.closest('[data-edit]');
-      if (!button) return;
-      const id = Number(button.dataset.id || 0);
-      const type = button.dataset.edit;
-
-      if (type === 'launch') {
-        const launch = state.launches.find((item) => item.id === id);
-        if (launch) openDialog('launch', launch, 'Editar lançamento');
-      }
-      if (type === 'recurring') {
-        const recurring = state.recurring.find((item) => item.id === id);
-        if (recurring) openDialog('recurring', recurring, 'Editar recorrência');
-      }
-      if (type === 'category') {
-        const category = state.categories.find((item) => item.id === id);
-        if (category) openDialog('category', category, 'Editar categoria');
-      }
-      if (type === 'account') {
-        const account = state.accounts.find((item) => item.id === id);
-        if (account) openDialog('account', account, 'Editar conta financeira');
+      const editButton = event.target.closest('[data-edit]');
+      if (editButton) {
+        const id = Number(editButton.dataset.id || 0);
+        const type = editButton.dataset.edit;
+        if (type === 'launch') {
+          const launch = state.launches.find((item) => item.id === id);
+          if (launch) openDialog('launch', launch, 'Editar lançamento');
+        }
+        if (type === 'recurring') {
+          const recurring = state.recurring.find((item) => item.id === id);
+          if (recurring) openDialog('recurring', recurring, 'Editar recorrência');
+        }
+        if (type === 'category') {
+          const category = state.categories.find((item) => item.id === id);
+          if (category) openDialog('category', category, 'Editar categoria');
+        }
+        if (type === 'account') {
+          const account = state.accounts.find((item) => item.id === id);
+          if (account) openDialog('account', account, 'Editar conta financeira');
+        }
       }
     });
 
     root.addEventListener('touchstart', (event) => {
-      const kpiContainer = event.target.closest('[data-kpi-key]');
-      if (!kpiContainer) return;
+      const kpiCard = event.target.closest('[data-kpi-card]');
+      if (!kpiCard) return;
       touchState.startX = event.touches[0].clientX;
-      touchState.key = kpiContainer.dataset.kpiKey;
+      touchState.key = kpiCard.dataset.kpiCard;
     }, { passive: true });
 
     root.addEventListener('touchend', (event) => {
       if (!touchState.key) return;
-      const endX = event.changedTouches[0].clientX;
-      const delta = endX - touchState.startX;
+      const delta = event.changedTouches[0].clientX - touchState.startX;
       if (Math.abs(delta) > 36) {
         cycleKpiView(touchState.key, delta < 0 ? 1 : -1);
       }
