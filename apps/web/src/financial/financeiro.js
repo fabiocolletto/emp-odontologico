@@ -123,6 +123,21 @@
     });
   };
 
+  const wireDialogCloseOnBackdrop = (dialog) => {
+    dialog.addEventListener('click', (event) => {
+      const box = dialog.getBoundingClientRect();
+      const clickedOutside = (
+        event.clientX < box.left
+        || event.clientX > box.right
+        || event.clientY < box.top
+        || event.clientY > box.bottom
+      );
+      if (clickedOutside) {
+        dialog.close('cancel');
+      }
+    });
+  };
+
   const renderStandalone = () => {
     const root = global.document.querySelector('[data-financeiro-app]');
     if (!root) return;
@@ -154,6 +169,8 @@
       category: root.ownerDocument.querySelector('[data-form-title="categoria"]'),
       account: root.ownerDocument.querySelector('[data-form-title="conta"]')
     };
+
+    Object.values(dialogs).forEach((dialog) => wireDialogCloseOnBackdrop(dialog));
 
     const kpiReceitas = root.querySelector('[data-kpi="receitas"]');
     const kpiDespesas = root.querySelector('[data-kpi="despesas"]');
@@ -336,6 +353,10 @@
 
     forms.launch.addEventListener('submit', (event) => {
       event.preventDefault();
+      if (event.submitter?.value === 'cancel') {
+        dialogs.launch.close('cancel');
+        return;
+      }
       const fd = new FormData(forms.launch);
       state.launches = upsertById(state.launches, {
         id: Number(fd.get('id') || 0),
@@ -353,6 +374,10 @@
 
     forms.recurring.addEventListener('submit', (event) => {
       event.preventDefault();
+      if (event.submitter?.value === 'cancel') {
+        dialogs.recurring.close('cancel');
+        return;
+      }
       const fd = new FormData(forms.recurring);
       state.recurring = upsertById(state.recurring, {
         id: Number(fd.get('id') || 0),
@@ -368,6 +393,10 @@
 
     forms.category.addEventListener('submit', (event) => {
       event.preventDefault();
+      if (event.submitter?.value === 'cancel') {
+        dialogs.category.close('cancel');
+        return;
+      }
       const fd = new FormData(forms.category);
       state.categories = upsertById(state.categories, {
         id: Number(fd.get('id') || 0),
@@ -381,6 +410,10 @@
 
     forms.account.addEventListener('submit', (event) => {
       event.preventDefault();
+      if (event.submitter?.value === 'cancel') {
+        dialogs.account.close('cancel');
+        return;
+      }
       const fd = new FormData(forms.account);
       state.accounts = upsertById(state.accounts, {
         id: Number(fd.get('id') || 0),
