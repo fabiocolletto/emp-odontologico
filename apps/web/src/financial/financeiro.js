@@ -65,6 +65,51 @@
     return 'is-warning';
   };
 
+  const buildMonthSeries = (launches = []) => {
+    const map = launches.reduce((acc, item) => {
+      const raw = String(item.data_vencimento || '').slice(0, 7);
+      if (!/^\d{4}-\d{2}$/.test(raw)) return acc;
+      const entry = acc[raw] || { receitas: 0, despesas: 0 };
+      if (item.tipo === 'entrada') entry.receitas += Number(item.valor || 0);
+      if (item.tipo === 'saida') entry.despesas += Number(item.valor || 0);
+      acc[raw] = entry;
+      return acc;
+    }, {});
+
+    const labels = Object.keys(map).sort((a, b) => a.localeCompare(b));
+    const receitas = labels.map((key) => map[key].receitas);
+    const despesas = labels.map((key) => map[key].despesas);
+    const saldo = labels.map((key, index) => receitas[index] - despesas[index]);
+
+    return {
+      labels: labels.map((item) => item.split('-').reverse().join('/')),
+      receitas,
+      despesas,
+      saldo
+    };
+  };
+
+  const renderKpiCard = (target, data) => {
+    target.innerHTML = `
+      <div class="financeiro-kpi-content">
+        <div class="financeiro-kpi-main">
+          <p class="financeiro-kpi-title">${escapeHtml(data.title)}</p>
+          <strong class="financeiro-kpi-value">${escapeHtml(data.value)}</strong>
+          <small>${escapeHtml(data.caption)}</small>
+        </div>
+        <div class="financeiro-kpi-chart-wrap">
+          <canvas class="financeiro-kpi-chart" data-kpi-chart="${escapeHtml(data.key)}" aria-label="${escapeHtml(data.chartTitle)}"></canvas>
+        </div>
+      </div>
+    `;
+  };
+
+  const upsertChart = (charts, key, canvas, config) => {
+    if (!canvas || !global.Chart) return;
+    if (charts[key]) charts[key].destroy();
+    charts[key] = new global.Chart(canvas, config);
+  };
+
   const upsertById = (rows, payload) => {
     const id = Number(payload.id || 0);
     if (!id) return [{ ...payload, id: nextId() }, ...rows];
@@ -115,6 +160,7 @@
     const kpiSaldo = root.querySelector('[data-kpi="saldo"]');
     const sampleInfo = root.querySelector('[data-sample-info]');
 
+    const charts = { receitas: null, despesas: null, saldo: null };
     let state = read();
 
     const openDialog = (key, payload = {}, title = '') => {
@@ -129,9 +175,86 @@
       const despesas = launches.filter((item) => item.tipo === 'saida').reduce((acc, item) => acc + Number(item.valor || 0), 0);
       const saldo = receitas - despesas;
 
-      kpiReceitas.innerHTML = `<p class="financeiro-kpi-title">Receitas</p><strong class="financeiro-kpi-value">${currency(receitas)}</strong><small>${launches.filter((item) => item.tipo === 'entrada').length} lançamentos</small>`;
-      kpiDespesas.innerHTML = `<p class="financeiro-kpi-title">Despesas</p><strong class="financeiro-kpi-value">${currency(despesas)}</strong><small>${launches.filter((item) => item.tipo === 'saida').length} lançamentos</small>`;
-      kpiSaldo.innerHTML = `<p class="financeiro-kpi-title">Saldo</p><strong class="financeiro-kpi-value">${currency(saldo)}</strong><small>${saldo >= 0 ? 'Operação saudável' : 'Atenção ao caixa'}</small>`;
+      renderKpiCard(kpiReceitas, {
+        key: 'receitas',
+        title: 'Receitas',
+        value: currency(receitas),
+        caption: `${launches.filter((item) => item.tipo === 'entrada').length} lançamentos`,
+        chartTitle: 'Distribuição de receitas no tempo'
+      });
+      renderKpiCard(kpiDespesas, {
+        key: 'despesas',
+        title: 'Despesas',
+        value: currency(despesas),
+        caption: `${launches.filter((item) => item.tipo === 'saida').length} lançamentos`,
+        chartTitle: 'Distribuição de despesas no tempo'
+      });
+      renderKpiCard(kpiSaldo, {
+        key: 'saldo',
+        title: 'Saldo',
+        value: currency(saldo),
+        caption: saldo >= 0 ? 'Operação saudável' : 'Atenção ao caixa',
+        chartTitle: 'Saldo financeiro no tempo'
+      });
+
+      const timeline = buildMonthSeries(launches);
+      const baseOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: true, position: 'top' },
+          title: { display: true }
+        },
+        scales: {
+          x: { grid: { display: true }, title: { display: true, text: 'Competência (MM/AAAA)' } },
+          y: { grid: { display: true }, title: { display: true, text: 'Valor (R$)' } }
+        }
+      };
+
+      upsertChart(charts, 'receitas', root.querySelector('[data-kpi-chart="receitas"]'), {
+        type: 'bar',
+        data: {
+          labels: timeline.labels,
+          datasets: [
+            { label: 'Receitas', data: timeline.receitas, backgroundColor: 'rgba(22, 163, 74, 0.55)', borderColor: '#166534', borderWidth: 1 },
+            { label: 'Despesas', data: timeline.despesas, backgroundColor: 'rgba(220, 38, 38, 0.25)', borderColor: '#991b1b', borderWidth: 1 }
+          ]
+        },
+        options: {
+          ...baseOptions,
+          plugins: { ...baseOptions.plugins, title: { display: true, text: 'Receitas x Despesas por período' } }
+        }
+      });
+
+      upsertChart(charts, 'despesas', root.querySelector('[data-kpi-chart="despesas"]'), {
+        type: 'line',
+        data: {
+          labels: timeline.labels,
+          datasets: [
+            { label: 'Despesas', data: timeline.despesas, borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.18)', fill: true, tension: 0.25 },
+            { label: 'Receitas', data: timeline.receitas, borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.08)', fill: false, tension: 0.25 }
+          ]
+        },
+        options: {
+          ...baseOptions,
+          plugins: { ...baseOptions.plugins, title: { display: true, text: 'Evolução de despesas e cobertura' } }
+        }
+      });
+
+      upsertChart(charts, 'saldo', root.querySelector('[data-kpi-chart="saldo"]'), {
+        type: 'line',
+        data: {
+          labels: timeline.labels,
+          datasets: [
+            { label: 'Saldo (receitas - despesas)', data: timeline.saldo, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.20)', fill: true, tension: 0.2 }
+          ]
+        },
+        options: {
+          ...baseOptions,
+          plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição do saldo no tempo' } }
+        }
+      });
 
       grids.launches.innerHTML = launches.map((item) => `
         <tr>
