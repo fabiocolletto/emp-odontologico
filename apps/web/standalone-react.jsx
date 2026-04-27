@@ -2151,8 +2151,7 @@ function DashboardApp({
 
     if (activeTab === 'financial') {
       return (
-        <div className="space-y-6"> 
-          {renderN1Header({ icon: 'plan', title: 'Financeiro', subtitle: 'Framework modular HTML + CSS + JS', actions: [] })}
+        <div className="space-y-2">
           <FinancialLegacyFrame src="./apps/web/src/financial/financeiro.html" />
         </div>
       );
