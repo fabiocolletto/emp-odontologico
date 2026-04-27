@@ -277,12 +277,11 @@ const SortToggleButton = ({ onClick }) => (
   />
 );
 
-const AppShell = ({ sidebar, header, mobileHeader, children }) => (
+const AppShell = ({ sidebar, header, children }) => (
   <div className="app-shell">
     <div className="app-frame">
       {sidebar}
       <main className="app-content">
-        {mobileHeader}
         {header}
         {children}
       </main>
@@ -1639,6 +1638,12 @@ function DashboardApp({
   const [forecastFilter, setForecastFilter] = useState('');
   const [openWidgetFilter, setOpenWidgetFilter] = useState('');
   const [financialInfoKey, setFinancialInfoKey] = useState('');
+  const [financialFocusWindow, setFinancialFocusWindow] = useState({
+    isOpen: false,
+    tipo: 'all',
+    query: '',
+    status: 'all'
+  });
   const [widgetFilters, setWidgetFilters] = useState({
     contasFinanceiras: { tipo: 'all' },
     recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
@@ -1778,34 +1783,11 @@ function DashboardApp({
   };
 
   const focusFinancialLaunches = (tipo) => {
-    setWidgetFilters((current) => ({
-      ...current,
-      contasReceber: { ...current.contasReceber, status: 'all' },
-      contasPagar: { ...current.contasPagar, status: 'all' }
-    }));
-    requestAnimationFrame(() => {
-      financialLaunchesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    if (tipo === 'entrada') {
-      setConfirmationDialog({
-        isOpen: true,
-        title: 'Receitas em foco',
-        message: 'Use as ações da tabela para dar baixa, editar ou cancelar receitas.',
-        confirmLabel: 'OK',
-        tone: 'info',
-        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
-      });
-    }
-    if (tipo === 'saida') {
-      setConfirmationDialog({
-        isOpen: true,
-        title: 'Despesas em foco',
-        message: 'Use as ações da tabela para pagar, editar ou cancelar despesas.',
-        confirmLabel: 'OK',
-        tone: 'info',
-        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
-      });
-    }
+    setFinancialFocusWindow({ isOpen: true, tipo: tipo || 'all', query: '', status: 'all' });
+  };
+
+  const closeFinancialFocusWindow = () => {
+    setFinancialFocusWindow((current) => ({ ...current, isOpen: false }));
   };
 
   const handleFinancialDraftChange = (field, value) => {
@@ -1868,6 +1850,17 @@ function DashboardApp({
       tone: 'danger',
       onConfirm: () => setFinancialLaunches((current) => current.filter((item) => item.id !== id))
     });
+  };
+
+  const handleFinancialDuplicate = (launch) => {
+    const duplicateId = Date.now() + Math.floor(Math.random() * 1000);
+    const payload = {
+      ...launch,
+      id: duplicateId,
+      descricao: `${launch.descricao || 'Lançamento'} (cópia)`,
+      status: launch.status || 'previsto'
+    };
+    setFinancialLaunches((current) => [payload, ...current]);
   };
   const handleFinancialCancel = (id) => handleFinancialDelete(id);
 
@@ -3215,6 +3208,40 @@ function DashboardApp({
         )
       }
     ];
+    const financialFocusRows = financialLaunches
+      .filter((item) => (financialFocusWindow.tipo === 'all' ? true : item.tipo === financialFocusWindow.tipo))
+      .filter((item) => {
+        if (financialFocusWindow.status === 'all') return true;
+        if (financialFocusWindow.status === 'confirmados') return isFinancialLaunchConfirmed(item);
+        if (financialFocusWindow.status === 'abertos') return !isFinancialLaunchConfirmed(item);
+        return item.status === financialFocusWindow.status;
+      })
+      .filter((item) => {
+        const normalizedQuery = financialFocusWindow.query.trim().toLowerCase();
+        if (!normalizedQuery) return true;
+        return [item.descricao, item.categoria, item.origem, item.status]
+          .some((value) => String(value || '').toLowerCase().includes(normalizedQuery));
+      });
+    const financialFocusColumns = [
+      { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
+      { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+      { key: 'categoria', label: 'Categoria', hideBelow: 880, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+      { key: 'origem', label: 'Origem', hideBelow: 720, render: (row) => <span className="text-slate-600">{row.origem || '-'}</span> },
+      { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+      { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+      {
+        key: 'acoes',
+        label: 'Ações',
+        sortable: false,
+        render: (row) => (
+          <div className="financial-row-actions">
+            <FinancialWidgetIconButton ariaLabel="Editar lançamento em foco" onClick={() => { closeFinancialFocusWindow(); openFinancialEdit(row); }} />
+            <FinancialWidgetIconButton ariaLabel="Duplicar lançamento em foco" icon="multi" onClick={() => handleFinancialDuplicate(row)} />
+            <FinancialWidgetIconButton ariaLabel="Excluir lançamento em foco" icon="close" tone="text-rose-600" onClick={() => handleFinancialDelete(row.id)} />
+          </div>
+        )
+      }
+    ];
     return (
       <div className="space-y-4 financial-layout--flat">
         {renderN1Header({
@@ -3223,16 +3250,25 @@ function DashboardApp({
           subtitle: 'Visão geral da saúde financeira da clínica',
           actions: (
             <>
+              {!isWideNavigation ? (
+                <ActionButton
+                  label="Menu"
+                  className="btn--header btn--header-muted financial-header-action"
+                  icon={<AppIcon name="menu" size={14} className="btn-icon" />}
+                  ariaLabel="Abrir barra lateral"
+                  onClick={() => setIsSidebarDrawerOpen(true)}
+                />
+              ) : null}
               <ActionButton
                 label="Período"
-                className="btn--header btn--header-muted"
-                icon={<AppIcon name="calendar" size={14} />}
+                className="btn--header btn--header-muted financial-header-action"
+                icon={<AppIcon name="calendar" size={14} className="btn-icon" />}
                 onClick={() => setIsPeriodPickerOpen(true)}
               />
               <ActionButton
                 label="Exportar relatório"
-                className="btn--header btn--header-muted"
-                icon={<AppIcon name="download" size={14} />}
+                className="btn--header btn--header-muted financial-header-action"
+                icon={<AppIcon name="download" size={14} className="btn-icon" />}
                 onClick={() => setIsExportModalOpen(true)}
               />
             </>
@@ -3286,6 +3322,77 @@ function DashboardApp({
                 <p className="text-sm text-slate-600">{financialSectionInfoMap[financialInfoKey].content}</p>
                 <div className="mt-3 flex justify-end gap-2">
                   <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setFinancialInfoKey('')} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        {financialFocusWindow.isOpen ? (
+          <div className="finance-overlay" onClick={closeFinancialFocusWindow}>
+            <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card financial-focus-card" title="Janela de foco financeiro">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                  <label className="financial-filter-dropdown__field">
+                    <span>Buscar</span>
+                    <input
+                      className="ui-input"
+                      placeholder="Descrição, categoria, origem..."
+                      value={financialFocusWindow.query}
+                      onChange={(event) => setFinancialFocusWindow((current) => ({ ...current, query: event.target.value }))}
+                    />
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Tipo</span>
+                    <select
+                      value={financialFocusWindow.tipo}
+                      onChange={(event) => setFinancialFocusWindow((current) => ({ ...current, tipo: event.target.value }))}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="entrada">Entradas</option>
+                      <option value="saida">Saídas</option>
+                    </select>
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Status</span>
+                    <select
+                      value={financialFocusWindow.status}
+                      onChange={(event) => setFinancialFocusWindow((current) => ({ ...current, status: event.target.value }))}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="abertos">Abertos</option>
+                      <option value="confirmados">Confirmados</option>
+                      <option value="previsto">Previsto</option>
+                      <option value="vencido">Vencido</option>
+                    </select>
+                  </label>
+                  <div className="flex items-end gap-2">
+                    <ActionButton
+                      label={financialFocusWindow.tipo === 'saida' ? 'Adicionar despesa' : 'Adicionar lançamento'}
+                      className="btn--header btn--header-new"
+                      icon={<AppIcon name="plus" size={14} />}
+                      onClick={() => {
+                        closeFinancialFocusWindow();
+                        openFinancialCreate(financialFocusWindow.tipo === 'saida' ? 'saida' : 'entrada');
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <DataTable
+                    columns={financialFocusColumns}
+                    rows={financialFocusRows.map((item) => ({ key: `focus-${item.id}`, ...item }))}
+                    emptyMessage="Nenhum lançamento encontrado para os filtros aplicados."
+                    paginated
+                    compact
+                    footerTotals={[
+                      { label: 'Registros', value: financialFocusRows.length },
+                      { label: 'Total', value: formatMoney(financialFocusRows.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                    ]}
+                  />
+                </div>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar foco" className="btn--header btn--header-muted" onClick={closeFinancialFocusWindow} />
                 </div>
               </PanelCard>
             </div>
@@ -3396,19 +3503,6 @@ function DashboardApp({
                   {...getFinancialWidgetVisual('contasFinanceiras')}
                   addAriaLabel="Adicionar conta financeira"
                   onAdd={() => { setIsAccountsEditMode(false); setIsAccountModalOpen(true); }}
-                  onToggleFilter={() => toggleWidgetFilter('contasFinanceiras')}
-                  isFilterOpen={openWidgetFilter === 'contasFinanceiras'}
-                  filterAriaLabel="Filtrar contas financeiras"
-                  filterDropdown={renderWidgetFilterDropdown(
-                    <label className="financial-filter-dropdown__field">
-                      <span>Tipo da conta</span>
-                      <select value={widgetFilters.contasFinanceiras.tipo} onChange={(event) => updateWidgetFilter('contasFinanceiras', 'tipo', event.target.value)}>
-                        <option value="all">Todos</option>
-                        <option value="corrente">Corrente</option>
-                        <option value="poupanca">Poupança</option>
-                      </select>
-                    </label>
-                  )}
                   columns={[
                     { key: 'nome', label: 'Conta', render: (row) => <span className="font-semibold text-slate-700">{row.nome}</span> },
                     { key: 'banco', label: 'Banco', hideBelow: 980, render: (row) => <span className="text-slate-500">{row.banco}</span> },
@@ -3436,11 +3530,6 @@ function DashboardApp({
                         ariaLabel="Abrir categorias financeiras"
                         onClick={() => setIsCategoriesEditMode(true)}
                         icon="expand"
-                      />
-                      <FinancialEditAction
-                        ariaLabel="Filtrar categorias financeiras"
-                        onClick={() => setIsCategoriesEditMode(true)}
-                        icon="filter"
                       />
                     </div>
                   )}
@@ -3507,36 +3596,6 @@ function DashboardApp({
                   {...getFinancialWidgetVisual('recorrencias')}
                   addAriaLabel="Adicionar despesa recorrente"
                   onAdd={() => { setIsRecurringEditMode(false); setIsRecurringModalOpen(true); }}
-                  onToggleFilter={() => toggleWidgetFilter('recorrencias')}
-                  isFilterOpen={openWidgetFilter === 'recorrencias'}
-                  filterAriaLabel="Filtrar recorrências"
-                  filterDropdown={renderWidgetFilterDropdown(
-                    <>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Periodicidade</span>
-                        <select value={widgetFilters.recorrencias.periodicidade} onChange={(event) => updateWidgetFilter('recorrencias', 'periodicidade', event.target.value)}>
-                          <option value="all">Todas</option>
-                          <option value="mensal">Mensal</option>
-                          <option value="semanal">Semanal</option>
-                        </select>
-                      </label>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Categoria</span>
-                        <select value={widgetFilters.recorrencias.categoria} onChange={(event) => updateWidgetFilter('recorrencias', 'categoria', event.target.value)}>
-                          <option value="all">Todas</option>
-                          {recurringCategories.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
-                        </select>
-                      </label>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Status</span>
-                        <select value={widgetFilters.recorrencias.status} onChange={(event) => updateWidgetFilter('recorrencias', 'status', event.target.value)}>
-                          <option value="all">Todos</option>
-                          <option value="pendente">Pendente</option>
-                          <option value="pago">Pago</option>
-                        </select>
-                      </label>
-                    </>
-                  )}
                   columns={[
                     { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                     { key: 'periodicidade', label: 'Periodicidade', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodicidade}</span> },
@@ -3568,28 +3627,6 @@ function DashboardApp({
                   {...getFinancialWidgetVisual('previsoes')}
                   addAriaLabel="Adicionar previsão de custo"
                   onAdd={() => { setIsForecastEditMode(false); setIsForecastModalOpen(true); }}
-                  onToggleFilter={() => toggleWidgetFilter('previsoes')}
-                  isFilterOpen={openWidgetFilter === 'previsoes'}
-                  filterAriaLabel="Filtrar previsões"
-                  filterDropdown={renderWidgetFilterDropdown(
-                    <>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Período</span>
-                        <select value={widgetFilters.previsoes.periodo} onChange={(event) => updateWidgetFilter('previsoes', 'periodo', event.target.value)}>
-                          <option value="all">Todos</option>
-                          {forecastPeriods.map((periodo) => <option key={periodo} value={periodo}>{periodo}</option>)}
-                        </select>
-                      </label>
-                      <label className="financial-filter-dropdown__field">
-                        <span>Comprometido</span>
-                        <select value={widgetFilters.previsoes.comprometido} onChange={(event) => updateWidgetFilter('previsoes', 'comprometido', event.target.value)}>
-                          <option value="all">Todos</option>
-                          <option value="sim">Sim</option>
-                          <option value="nao">Não</option>
-                        </select>
-                      </label>
-                    </>
-                  )}
                   columns={[
                     { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
                     { key: 'periodo', label: 'Período', hideBelow: 960, render: (row) => <span className="text-slate-600">{row.periodo}</span> },
@@ -3862,21 +3899,6 @@ function DashboardApp({
               {...getFinancialWidgetVisual('contasReceber')}
               onAdd={() => openFinancialCreate('entrada')}
               addAriaLabel="Adicionar conta a receber"
-              onToggleFilter={() => toggleWidgetFilter('contasReceber')}
-              isFilterOpen={openWidgetFilter === 'contasReceber'}
-              filterAriaLabel="Filtrar contas a receber"
-              filterDropdown={renderWidgetFilterDropdown(
-                <label className="financial-filter-dropdown__field">
-                  <span>Status</span>
-                  <select value={widgetFilters.contasReceber.status} onChange={(event) => updateWidgetFilter('contasReceber', 'status', event.target.value)}>
-                    <option value="all">Todos</option>
-                    <option value="abertos">Abertos</option>
-                    <option value="confirmados">Confirmados</option>
-                    <option value="previsto">Previsto</option>
-                    <option value="vencido">Vencido</option>
-                  </select>
-                </label>
-              )}
               columns={[
                 { key: 'origem', label: 'Paciente/Origem', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
@@ -3904,21 +3926,6 @@ function DashboardApp({
               {...getFinancialWidgetVisual('contasPagar')}
               onAdd={() => openFinancialCreate('saida')}
               addAriaLabel="Adicionar conta a pagar"
-              onToggleFilter={() => toggleWidgetFilter('contasPagar')}
-              isFilterOpen={openWidgetFilter === 'contasPagar'}
-              filterAriaLabel="Filtrar contas a pagar"
-              filterDropdown={renderWidgetFilterDropdown(
-                <label className="financial-filter-dropdown__field">
-                  <span>Status</span>
-                  <select value={widgetFilters.contasPagar.status} onChange={(event) => updateWidgetFilter('contasPagar', 'status', event.target.value)}>
-                    <option value="all">Todos</option>
-                    <option value="abertos">Abertos</option>
-                    <option value="confirmados">Confirmados</option>
-                    <option value="previsto">Previsto</option>
-                    <option value="vencido">Vencido</option>
-                  </select>
-                </label>
-              )}
               columns={[
                 { key: 'origem', label: 'Fornecedor', render: (row) => <span className="text-slate-600">{row.origem}</span> },
                 { key: 'vencimento', label: 'Vencimento', sortValue: (row) => row.data_vencimento || '', render: (row) => <span className="text-slate-600">{row.data_vencimento || '-'}</span> },
@@ -3955,8 +3962,6 @@ function DashboardApp({
                   layout="single"
                   addAriaLabel="Novo lançamento"
                   onAdd={() => openFinancialCreate('entrada')}
-                  onToggleFilter={() => focusFinancialLaunches('all')}
-                  filterAriaLabel="Filtrar lançamentos"
                   columns={financialLaunchColumns}
                   rows={financialLaunches.map((item) => ({ key: `launch-${item.id}`, ...item }))}
                   emptyMessage="Nenhum lançamento financeiro cadastrado."
@@ -4260,23 +4265,18 @@ function DashboardApp({
           onTabChange={goToLevel1}
         />
       )}
-      mobileHeader={!isWideNavigation ? (
-        <header className="app-mobile-header">
-          <button
-            type="button"
-            className="btn btn--ghost app-mobile-header__menu-btn"
-            onClick={() => setIsSidebarDrawerOpen(true)}
-            aria-label="Abrir barra lateral"
-          >
-            <AppIcon name="menu" size={16} />
-          </button>
-          <div className="app-mobile-header__brand">
-            <span className="app-mobile-header__title">OdontoFlow</span>
-            <span className="app-mobile-header__subtitle">{TAB_META[activeTab]?.label || 'Início'}</span>
-          </div>
-        </header>
-      ) : null}
     >
+      {!isWideNavigation && activeTab !== 'financial' ? (
+        <button
+          type="button"
+          className="mobile-sidebar-trigger btn btn--ghost"
+          onClick={() => setIsSidebarDrawerOpen(true)}
+          aria-label="Abrir barra lateral"
+        >
+          <AppIcon name="menu" size={16} />
+        </button>
+      ) : null}
+
       {isSidebarDrawerOpen ? (
         <div className="app-sidebar-drawer" role="dialog" aria-modal="true" aria-label="Menu lateral">
           <button
