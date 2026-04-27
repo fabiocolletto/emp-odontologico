@@ -9,7 +9,7 @@
       { id: 'ag-002', date: today(), time: '10:00', patient_name: 'Bruno Costa', professional_name: 'Dra. Julia Martins', procedure: 'Limpeza', channel: 'telefone', status: 'pending' },
       { id: 'ag-003', date: today(), time: '11:30', patient_name: 'Carla Mendes', professional_name: 'Dr. Rafael Nunes', procedure: 'Retorno', channel: 'presencial', status: 'checked_in' }
     ],
-    legacyMarkers: ['agenda-grid-v0', 'agenda-modal-legacy', 'agenda-status-antigo']
+    legacyMarkers: []
   };
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
@@ -20,7 +20,7 @@
       if (!raw) return deepClone(model);
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed?.appointments)) return deepClone(model);
-      return parsed;
+      return { ...parsed, legacyMarkers: [] };
     } catch {
       return deepClone(model);
     }
@@ -48,6 +48,7 @@
 
     const tableBody = root.querySelector('[data-grid="appointments"]');
     const legacyList = root.querySelector('[data-grid="legacy"]');
+    const legacySection = root.querySelector('[data-legacy="true"]');
     const infoNode = root.querySelector('[data-agenda-info]');
     const dateFilter = root.querySelector('[data-filter="date"]');
 
@@ -91,7 +92,9 @@
         : '<tr><td colspan="7">Nenhum atendimento para esta data.</td></tr>';
 
       infoNode.textContent = `Data selecionada: ${selectedDate.split('-').reverse().join('/')}.`;
-      legacyList.innerHTML = state.legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
+      legacyList.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      legacySection.hidden = legacyMarkers.length === 0;
     };
 
     root.addEventListener('click', (event) => {

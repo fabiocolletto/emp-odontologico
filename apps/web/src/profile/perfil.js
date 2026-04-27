@@ -16,7 +16,7 @@
       daily_digest: false,
       timezone: 'America/Sao_Paulo'
     },
-    legacyMarkers: ['profile-v0-accordion', 'profile-form-antigo', 'profile-auth-widget-legacy']
+    legacyMarkers: []
   };
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
@@ -26,7 +26,7 @@
       if (!raw) return deepClone(model);
       const parsed = JSON.parse(raw);
       if (!parsed?.account || !parsed?.preferences) return deepClone(model);
-      return parsed;
+      return { ...parsed, legacyMarkers: [] };
     } catch {
       return deepClone(model);
     }
@@ -63,6 +63,7 @@
 
     const summaryGrid = root.querySelector('[data-grid="summary"]');
     const legacyList = root.querySelector('[data-grid="legacy"]');
+    const legacySection = root.querySelector('[data-legacy="true"]');
     const infoNode = root.querySelector('[data-perfil-info]');
     const preferencesForm = root.querySelector('[data-form="preferences"]');
     const feedback = root.querySelector('[data-feedback]');
@@ -101,7 +102,9 @@
       `).join('');
 
       fillForm(preferencesForm, state.preferences);
-      legacyList.innerHTML = state.legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
+      legacyList.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      legacySection.hidden = legacyMarkers.length === 0;
       infoNode.textContent = activeClinic
         ? `Contexto atual: ${activeClinic.trade_name}.`
         : 'Selecione uma clínica ativa para contexto completo do perfil.';

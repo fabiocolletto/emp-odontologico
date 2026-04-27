@@ -29,7 +29,7 @@
         created_at: '2026-04-05'
       }
     ],
-    legacyMarkers: ['patients-table-react-v1', 'patients-drawer-v0', 'patients-search-old-contract']
+    legacyMarkers: []
   };
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
@@ -42,7 +42,7 @@
       if (!raw) return deepClone(model);
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed?.patients)) return deepClone(model);
-      return parsed;
+      return { ...parsed, legacyMarkers: [] };
     } catch {
       return deepClone(model);
     }
@@ -114,6 +114,7 @@
 
     const tableBody = root.querySelector('[data-grid="patients"]');
     const legacyList = root.querySelector('[data-grid="legacy"]');
+    const legacySection = root.querySelector('[data-legacy="true"]');
     const backendForm = root.querySelector('[data-backend-form]');
     const backendStatus = root.querySelector('[data-backend-status]');
     const infoNode = root.querySelector('[data-patient-info]');
@@ -174,7 +175,9 @@
     };
 
     const paintLegacy = () => {
-      legacyList.innerHTML = state.legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
+      legacyList.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      legacySection.hidden = legacyMarkers.length === 0;
     };
 
     const paintInfo = () => {
