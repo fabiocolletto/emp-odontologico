@@ -163,25 +163,28 @@
   };
 
   const renderKpiCard = (target, config, activeView) => {
+    target.setAttribute('data-kpi-card', config.key);
     target.innerHTML = `
-      <header class="kpi-card__header" data-kpi-card="${escapeHtml(config.key)}">
-        <p class="kpi-card__eyebrow">${escapeHtml(config.title)}</p>
-        <p class="kpi-card__value">${escapeHtml(config.value)}</p>
-        <p class="kpi-card__meta">${escapeHtml(config.meta)}</p>
-      </header>
+      <header class="kpi-card__header">
+        <div class="kpi-card__header-main">
+          <p class="kpi-card__eyebrow">${escapeHtml(config.title)}</p>
+          <p class="kpi-card__value">${escapeHtml(config.value)}</p>
+          <p class="kpi-card__meta">${escapeHtml(config.meta)}</p>
+        </div>
 
-      <div class="kpi-card__tabs" role="tablist" aria-label="Visualização do KPI ${escapeHtml(config.title)}">
-        ${['summary', 'time', 'data'].map((tab) => `
-          <button
-            type="button"
-            class="kpi-card__tab ${activeView === tab ? 'is-active' : ''}"
-            data-kpi-tab="${tab}"
-            data-kpi-key="${escapeHtml(config.key)}"
-            aria-selected="${String(activeView === tab)}"
-            aria-pressed="${String(activeView === tab)}"
-          >${tab === 'summary' ? 'Resumo' : tab === 'time' ? 'Tempo' : 'Dados'}</button>
-        `).join('')}
-      </div>
+        <div class="kpi-card__tabs" role="tablist" aria-label="Visualização do KPI ${escapeHtml(config.title)}">
+          ${['summary', 'time', 'data'].map((tab) => `
+            <button
+              type="button"
+              class="kpi-card__tab ${activeView === tab ? 'is-active' : ''}"
+              data-kpi-tab="${tab}"
+              data-kpi-key="${escapeHtml(config.key)}"
+              aria-selected="${String(activeView === tab)}"
+              aria-pressed="${String(activeView === tab)}"
+            >${tab === 'summary' ? 'Resumo' : tab === 'time' ? 'Tempo' : 'Dados'}</button>
+          `).join('')}
+        </div>
+      </header>
 
       <div class="kpi-card__visual">
         <div class="kpi-card__panel ${activeView === 'summary' ? 'is-active' : ''}" data-kpi-panel="summary" data-kpi-key="${escapeHtml(config.key)}">
