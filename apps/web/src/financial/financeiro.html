@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Financeiro</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="./financeiro.css" />
+  </head>
+  <body>
+    <main class="financeiro-page" data-financeiro-app>
+      <header class="financeiro-page__header">
+        <div>
+          <p class="financeiro-eyebrow">Gestão financeira odontológica</p>
+          <h1>Financeiro da clínica</h1>
+          <p class="financeiro-subtitle">Framework completo para clínicas odontológicas de pequeno e médio porte.</p>
+        </div>
+      </header>
+
+      <section class="financeiro-kpi-grid" aria-label="Indicadores financeiros">
+        <article class="financeiro-kpi-card" data-kpi="receitas"></article>
+        <article class="financeiro-kpi-card" data-kpi="despesas"></article>
+        <article class="financeiro-kpi-card" data-kpi="saldo"></article>
+      </section>
+
+      <section class="financeiro-section">
+        <header class="financeiro-section__header">
+          <h2>Lançamentos</h2>
+          <button type="button" class="financeiro-btn" data-action="novo-lancamento">Novo lançamento</button>
+        </header>
+        <div class="financeiro-table-wrap">
+          <table class="financeiro-table" aria-label="Tabela de lançamentos">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Vencimento</th>
+                <th>Valor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody data-grid="lancamentos"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="financeiro-section">
+        <header class="financeiro-section__header">
+          <h2>Contas recorrentes</h2>
+        </header>
+        <div class="financeiro-chip-row" data-grid="recorrencias"></div>
+      </section>
+    </main>
+
+    <dialog class="financeiro-dialog" data-dialog="lancamento">
+      <form method="dialog" class="financeiro-form" data-form="lancamento">
+        <h3>Novo lançamento</h3>
+        <label>Tipo
+          <select name="tipo" required>
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+          </select>
+        </label>
+        <label>Descrição
+          <input name="descricao" required maxlength="80" />
+        </label>
+        <label>Categoria
+          <input name="categoria" required maxlength="40" />
+        </label>
+        <label>Vencimento
+          <input type="date" name="data_vencimento" required />
+        </label>
+        <label>Valor
+          <input type="number" min="0" step="0.01" name="valor" required />
+        </label>
+        <menu>
+          <button value="cancel" class="financeiro-btn financeiro-btn--ghost">Cancelar</button>
+          <button value="default" class="financeiro-btn" data-action="salvar">Salvar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./financeiro.js"></script>
+  </body>
+</html>
