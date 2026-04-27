@@ -349,6 +349,11 @@ if (!teamComponentFactories.createTeamLegacyFrame) {
   throw new Error('Frame de equipe não carregado. Verifique os scripts em index.html.');
 }
 const TeamLegacyFrame = teamComponentFactories.createTeamLegacyFrame();
+const profileLegacyComponentFactories = globalThis.OdontoFlowProfileLegacyComponents || {};
+if (!profileLegacyComponentFactories.createProfileLegacyFrame) {
+  throw new Error('Frame de perfil não carregado. Verifique os scripts em index.html.');
+}
+const ProfileLegacyFrame = profileLegacyComponentFactories.createProfileLegacyFrame();
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -2150,12 +2155,8 @@ function DashboardApp({
 
     if (activeTab === 'profile') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais', actions: [] })}
-          <DataColumns columns={2}>
-            <PlaceholderSection title="Seção 1 · Conta e segurança" notes={['Modelo padrão existente: DataSection + formulários padrão.', 'Implantação posterior na sprint da tela Perfil.']} />
-            <PlaceholderSection title="Seção 2 · Preferências e clínicas" notes={['Modelo padrão existente: colunas de dados configuráveis.', 'Conteúdo e contratos serão definidos quando abrirmos a tela Perfil.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <ProfileLegacyFrame src="./apps/web/src/profile/perfil.html" />
         </div>
       );
     }

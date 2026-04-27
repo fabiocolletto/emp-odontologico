@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Perfil</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="../shared/html-widget-common.css" />
+    <link rel="stylesheet" href="./perfil.css" />
+  </head>
+  <body>
+    <main class="perfil-page of-main-inner of-view-level-1" data-perfil-app data-nav-level="1">
+      <header class="perfil-page__header financeiro-screen-header">
+        <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><span>Início</span><span>/</span><strong>Perfil</strong></p>
+        <div class="financeiro-screen-header__main">
+          <div class="financeiro-screen-header__icon" aria-hidden="true">🪪</div>
+          <div class="financeiro-screen-header__content">
+            <p class="financeiro-eyebrow">Conta e preferências</p>
+            <h1>Perfil do usuário</h1>
+            <p class="financeiro-subtitle">Gestão objetiva de dados da conta, notificações e contexto de clínicas vinculadas.</p>
+            <p class="perfil-info" data-perfil-info></p>
+          </div>
+        </div>
+      </header>
+
+      <section class="perfil-kpi-grid" aria-label="Resumo de conta">
+        <article class="perfil-kpi-card" data-kpi="clinics"></article>
+        <article class="perfil-kpi-card" data-kpi="active"></article>
+        <article class="perfil-kpi-card" data-kpi="security"></article>
+      </section>
+
+      <section class="perfil-section">
+        <header class="perfil-section__header">
+          <h2>Dados de acesso</h2>
+          <div class="perfil-section__actions">
+            <button type="button" class="perfil-btn perfil-btn--ghost" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="perfil-btn" data-action="edit-account">Editar conta</button>
+          </div>
+        </header>
+
+        <div class="perfil-grid" data-grid="summary"></div>
+      </section>
+
+      <section class="perfil-section">
+        <header class="perfil-section__header"><h2>Preferências</h2></header>
+        <form class="perfil-preferences" data-form="preferences">
+          <label><input type="checkbox" name="notify_whatsapp" /> Notificações via WhatsApp</label>
+          <label><input type="checkbox" name="notify_email" /> Notificações via e-mail</label>
+          <label><input type="checkbox" name="daily_digest" /> Resumo diário de agenda</label>
+          <label>Fuso horário
+            <select name="timezone">
+              <option value="America/Sao_Paulo">America/Sao_Paulo</option>
+              <option value="America/Fortaleza">America/Fortaleza</option>
+              <option value="America/Manaus">America/Manaus</option>
+            </select>
+          </label>
+          <menu>
+            <button type="submit" class="perfil-btn">Salvar preferências</button>
+          </menu>
+          <p class="perfil-feedback" data-feedback></p>
+        </form>
+      </section>
+
+      <section class="perfil-section" data-legacy="true">
+        <header class="perfil-section__header"><h2>Dados legados (obsoletos)</h2></header>
+        <ul class="perfil-chip-row" data-grid="legacy"></ul>
+      </section>
+    </main>
+
+    <dialog class="perfil-dialog" data-dialog="account">
+      <form method="dialog" class="perfil-form" data-form="account">
+        <h3 data-form-title="account">Editar conta</h3>
+        <label>Nome completo
+          <input name="full_name" required maxlength="100" />
+        </label>
+        <label>E-mail
+          <input type="email" name="email" required maxlength="100" />
+        </label>
+        <label>Telefone
+          <input name="phone" maxlength="30" />
+        </label>
+        <label>Cargo principal
+          <select name="primary_role" required>
+            <option value="admin">Administrador</option>
+            <option value="dentista">Dentista</option>
+            <option value="financeiro">Financeiro</option>
+            <option value="recepcao">Recepção</option>
+          </select>
+        </label>
+        <menu>
+          <button value="cancel" class="perfil-btn perfil-btn--ghost">Cancelar</button>
+          <button value="default" class="perfil-btn">Salvar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./perfil.js"></script>
+  </body>
+</html>
