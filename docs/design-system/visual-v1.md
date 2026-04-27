@@ -151,3 +151,17 @@ Módulos priorizados e tratados:
 - Aplicado em: Pacientes N2, Conta N2, Perfil público N2 e Clínicas N2.
 - Em Pacientes N2, os chips de etapa (`Identificação`, `Contato`, `Dados clínicos`) são clicáveis para navegação direta, coexistindo com `Anterior`/`Próxima` na barra inferior.
 - Em listagens de Pacientes no modo compact, as ações primárias migram para a barra inferior (`Novo`, `Multi`, `Buscar`, `Ordenar`) e o header mantém foco em contexto/título.
+
+## 14. Camada Shared / Componentes e Serviços Oficiais
+
+- Toda tela deve consultar a camada shared antes de criar novo componente, helper ou serviço.
+- Auth Supabase deve ser centralizado em `apps/web/shared/services/auth-service.js` e `supabase-client.js`.
+- Clínica ativa deve ser centralizada em `apps/web/shared/services/clinic-context-service.js`.
+- Filtros e date picker devem reutilizar `filter-panel` e `date-range-picker` da camada shared.
+- Header de página deve reutilizar `page-header` da camada shared.
+- Modais e drawers devem reutilizar `modal` e `drawer` da camada shared.
+- Componentes locais só são permitidos quando forem exclusivos da tela e sem potencial de reuso.
+- Índices oficiais de consulta obrigatória:
+  - `apps/web/shared/registry/component-registry.js`
+  - `apps/web/shared/registry/service-registry.js`
+  - `apps/web/shared/registry/README.md`

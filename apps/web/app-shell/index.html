@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow - App Shell HTML</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="./shell.css" />
+  </head>
+  <body class="app-shell of-app-shell">
+    <aside id="app-sidebar" class="of-sidebar" aria-label="Navegação principal"></aside>
+
+    <main class="app-main of-main">
+      <header id="app-header" class="of-page-header"></header>
+
+      <section id="app-content" class="of-page-body">
+        <iframe
+          id="app-frame"
+          title="Conteúdo da tela ativa"
+          loading="eager"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </section>
+
+      <nav id="app-bottom-nav" aria-label="Navegação móvel"></nav>
+    </main>
+
+    <script src="./shell.js"></script>
+  </body>
+</html>

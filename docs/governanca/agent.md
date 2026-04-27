@@ -61,3 +61,9 @@ Este documento define o fluxo operacional padrão para mudanças no projeto.
   - **Nível >= 1**: o **primeiro botão** deve ser sempre o retorno ao nível imediatamente anterior.
   - Após o retorno, listar os destinos dos níveis seguintes relacionados ao contexto atual.
 - Essa lógica deve ser replicada para todas as telas/níveis novos conforme evolução do sistema, evitando decisões ad hoc por tela.
+
+## Consulta obrigatória da camada shared (UI/serviços/helpers)
+Antes de criar qualquer UI, serviço ou helper, consultar obrigatoriamente:
+- `apps/web/shared/registry/component-registry.js`
+- `apps/web/shared/registry/service-registry.js`
+- `apps/web/shared/registry/README.md`

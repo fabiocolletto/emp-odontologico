@@ -190,3 +190,23 @@ Para evolução incremental via shell React + arquivos independentes:
   </table>
 </div>
 ```
+
+## Shell HTML oficial incremental (`apps/web/app-shell`)
+Para migração progressiva do shell React para shell em HTML/CSS/JS puro:
+
+1. Novo entrypoint oficial: `apps/web/app-shell/index.html`.
+2. O shell controla somente layout e navegação global.
+3. Conteúdo de cada módulo deve continuar isolado em `apps/web/src/**`.
+4. Navegação entre módulos deve ocorrer por troca de `iframe src`, sem mover lógica interna das telas.
+5. Para integração entre tela e shell, usar `window.parent.postMessage({ type: 'navigate', payload: '<tab-id>' }, '*')`.
+6. Manter compatibilidade com fallback legado (`standalone-react.jsx`) até migração completa.
+
+## Camada shared obrigatória para novas UIs
+Antes de criar novo componente visual ou serviço de suporte em tela HTML, consultar:
+1. `apps/web/shared/registry/component-registry.js`
+2. `apps/web/shared/registry/service-registry.js`
+3. `apps/web/shared/registry/README.md`
+
+Diretriz de reuso:
+- Reutilizar primeiro `page-header`, `filter-panel`, `date-range-picker`, `modal`, `drawer`, `status-badge`, `empty-state` e `action-bar`.
+- Auth/Sessão/Clínica/Storage/Eventos devem usar serviços da camada `apps/web/shared/services`.
