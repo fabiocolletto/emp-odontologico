@@ -5,6 +5,14 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+
+## v1.1.49 - 2026-04-27
+
+### Fixed
+- Ajuste na tela Financeiro para manter filtros dos widgets exclusivamente na tela de foco/overlay.
+- Removida a filtragem aplicada à tela principal dos widgets (cards principais voltam a exibir o conjunto completo de dados, preservando visual limpo).
+- Mantida a filtragem avançada apenas onde já existe contexto de foco (`Janela de foco financeiro`), sem reintroduzir botões/filtros nos cards principais.
+
 ## v1.1.48 - 2026-04-27
 
 ### Changed

@@ -1326,20 +1326,12 @@ function DashboardApp({
   const [categoryFilter, setCategoryFilter] = useState('');
   const [recurringFilter, setRecurringFilter] = useState('');
   const [forecastFilter, setForecastFilter] = useState('');
-  const [openWidgetFilter, setOpenWidgetFilter] = useState('');
   const [financialInfoKey, setFinancialInfoKey] = useState('');
   const [financialFocusWindow, setFinancialFocusWindow] = useState({
     isOpen: false,
     tipo: 'all',
     query: '',
     status: 'all'
-  });
-  const [widgetFilters, setWidgetFilters] = useState({
-    contasFinanceiras: { tipo: 'all' },
-    recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
-    previsoes: { periodo: 'all', comprometido: 'all' },
-    contasReceber: { status: 'all' },
-    contasPagar: { status: 'all' }
   });
   const [confirmationDialog, setConfirmationDialog] = useState({
     isOpen: false,
@@ -1662,20 +1654,6 @@ function DashboardApp({
   };
   const getFinancialConfirmedStatus = (tipo) => (tipo === 'entrada' ? 'recebido' : 'pago');
   const isFinancialLaunchConfirmed = (launch) => launch.status === getFinancialConfirmedStatus(launch.tipo);
-
-  const toggleWidgetFilter = (key) => {
-    setOpenWidgetFilter((current) => (current === key ? '' : key));
-  };
-
-  const updateWidgetFilter = (key, field, value) => {
-    setWidgetFilters((current) => ({
-      ...current,
-      [key]: {
-        ...current[key],
-        [field]: value
-      }
-    }));
-  };
 
   const applyQuickPeriod = (period) => {
     const today = new Date('2026-04-23');
@@ -2782,33 +2760,11 @@ function DashboardApp({
         onAction: () => focusFinancialLaunches('all')
       }
     ];
-    const contasFinanceirasWidgetRows = financialAccounts.filter((item) => (
-      widgetFilters.contasFinanceiras.tipo === 'all'
-      || item.tipo === widgetFilters.contasFinanceiras.tipo
-    ));
-    const recurringWidgetRows = financialRecurring.filter((item) => {
-      const byPeriodicidade = widgetFilters.recorrencias.periodicidade === 'all' || item.periodicidade === widgetFilters.recorrencias.periodicidade;
-      const byCategoria = widgetFilters.recorrencias.categoria === 'all' || (item.categoria || '-') === widgetFilters.recorrencias.categoria;
-      const byStatus = widgetFilters.recorrencias.status === 'all' || (item.status || 'pendente') === widgetFilters.recorrencias.status;
-      return byPeriodicidade && byCategoria && byStatus;
-    });
-    const forecastWidgetRows = financialForecasts.filter((item) => (
-      (widgetFilters.previsoes.periodo === 'all' || item.periodo === widgetFilters.previsoes.periodo)
-      && (widgetFilters.previsoes.comprometido === 'all'
-        || (widgetFilters.previsoes.comprometido === 'sim' ? Boolean(item.comprometido) : !Boolean(item.comprometido)))
-    ));
-    const contasReceberWidgetRows = contasReceber.filter((item) => {
-      if (widgetFilters.contasReceber.status === 'all') return true;
-      if (widgetFilters.contasReceber.status === 'confirmados') return isFinancialLaunchConfirmed(item);
-      if (widgetFilters.contasReceber.status === 'abertos') return !isFinancialLaunchConfirmed(item);
-      return item.status === widgetFilters.contasReceber.status;
-    });
-    const contasPagarWidgetRows = contasPagar.filter((item) => {
-      if (widgetFilters.contasPagar.status === 'all') return true;
-      if (widgetFilters.contasPagar.status === 'confirmados') return isFinancialLaunchConfirmed(item);
-      if (widgetFilters.contasPagar.status === 'abertos') return !isFinancialLaunchConfirmed(item);
-      return item.status === widgetFilters.contasPagar.status;
-    });
+    const contasFinanceirasWidgetRows = financialAccounts;
+    const recurringWidgetRows = financialRecurring;
+    const forecastWidgetRows = financialForecasts;
+    const contasReceberWidgetRows = contasReceber;
+    const contasPagarWidgetRows = contasPagar;
     const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
     const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
     const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
@@ -2816,11 +2772,6 @@ function DashboardApp({
     const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
     const recurringCategories = Array.from(new Set(financialRecurring.map((item) => item.categoria || '-')));
     const forecastPeriods = Array.from(new Set(financialForecasts.map((item) => item.periodo)));
-    const renderWidgetFilterDropdown = (content) => (
-      <div className="financial-filter-dropdown">
-        {content}
-      </div>
-    );
     const despesasPorCategoriaResumo = Object.entries(
       financialLaunches
         .filter((item) => item.tipo === 'saida')
