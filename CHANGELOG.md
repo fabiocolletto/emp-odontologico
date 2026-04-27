@@ -3,6 +3,13 @@
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
 
+
+## v1.1.47 - 2026-04-27
+
+### Fixed
+- Corrigida a causa de tela branca após a extração dos contratos de shell/tabela: `SidebarScreenHeader` estava sendo inicializado antes de `PageHeader`, gerando erro de inicialização por ordem de declaração.
+- Reordenada a inicialização dos blocos compartilhados no runtime para garantir que `PageHeader` esteja definido antes da criação do `SidebarScreenHeader`, sem alteração visual da tela Financeiro.
+
 ## v1.1.46 - 2026-04-27
 
 ### Changed

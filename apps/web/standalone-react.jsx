@@ -369,17 +369,6 @@ const DataColumns = layoutPrimitiveFactories.createDataColumns();
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
-const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
-if (
-  !screenBlockFactories.createSidebarScreenHeader
-  || !screenBlockFactories.createKpiGridRow
-  || !screenBlockFactories.createDualContentRow
-) {
-  throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
-}
-const SidebarScreenHeader = screenBlockFactories.createSidebarScreenHeader({ AppHeader, PageHeader });
-const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
-const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
 const profileBlockFactories = globalThis.OdontoFlowProfileBlocks || {};
 if (!profileBlockFactories.createProfileFieldGrid || !profileBlockFactories.createProfileActionRow || !profileBlockFactories.createProfileFeedbackMessage || !profileBlockFactories.createProfileResponsivePanels) {
   throw new Error('Módulos globais de perfil não carregados. Verifique os scripts em index.html.');
@@ -436,6 +425,17 @@ const BioHeader = ({
 
 
 const PageHeader = shellComponentFactories.createPageHeader({ BioHeader });
+const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
+if (
+  !screenBlockFactories.createSidebarScreenHeader
+  || !screenBlockFactories.createKpiGridRow
+  || !screenBlockFactories.createDualContentRow
+) {
+  throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
+}
+const SidebarScreenHeader = screenBlockFactories.createSidebarScreenHeader({ AppHeader, PageHeader });
+const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
+const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
 
 const CSV_PATH = './backend/supabase/sample-data';
 
