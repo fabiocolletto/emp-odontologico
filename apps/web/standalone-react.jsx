@@ -86,46 +86,31 @@ const NAV_PRIMARY = [
 const LEVEL1_TABS = NAV_PRIMARY.map(({ id, label, icon }) => ({ id, label, icon }));
 const TAB_META = NAV_PRIMARY.reduce((acc, tab) => ({ ...acc, [tab.id]: tab }), {});
 
-const AppIcon = ({ name, size = 14, className = '' }) => {
-  const icons = {
-    home: <path d="M3 10.5 12 3l9 7.5M6.5 9.8V21h11V9.8" />,
-    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16.5 3.2a3.2 3.2 0 0 1 0 6.2" /></>,
-    settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a1.8 1.8 0 1 1-2.5 2.5l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a1.8 1.8 0 1 1-3.6 0v-.1a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a1.8 1.8 0 1 1-2.5-2.5l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a1.8 1.8 0 1 1 0-3.6h.1a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a1.8 1.8 0 1 1 2.5-2.5l.1.1a1 1 0 0 0 1.1.2h.2a1 1 0 0 0 .6-.9V4a1.8 1.8 0 1 1 3.6 0v.1a1 1 0 0 0 .6.9h.2a1 1 0 0 0 1.1-.2l.1-.1a1.8 1.8 0 1 1 2.5 2.5l-.1.1a1 1 0 0 0-.2 1.1v.2a1 1 0 0 0 .9.6H20a1.8 1.8 0 1 1 0 3.6h-.1a1 1 0 0 0-.9.6Z" /></>,
-    'id-card': <><rect x="3" y="5" width="18" height="14" rx="2.5" /><circle cx="9" cy="11" r="2.2" /><path d="M6.3 15.2c.6-1.1 1.5-1.7 2.7-1.7 1.1 0 2.1.6 2.7 1.7M14.5 9h4M14.5 12h4M14.5 15h3" /></>,
-    phone: <path d="M22 16.8v3a2 2 0 0 1-2.2 2 19.7 19.7 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.7 19.7 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.7.8 2.5a2 2 0 0 1-.4 2.1L8.1 9.6a16 16 0 0 0 6.3 6.3l1.3-1.3a2 2 0 0 1 2.1-.4c.8.4 1.6.7 2.5.8A2 2 0 0 1 22 16.8Z" />,
-    calendar: <><rect x="3" y="4" width="18" height="17" rx="2.5" /><path d="M8 2v4M16 2v4M3 10h18" /></>,
-    birth: <><path d="M12 4v16M4 10h16M7 4v4M17 4v4M7 16v4M17 16v4" /></>,
-    plan: <><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10.5h19M7.5 15h3" /></>,
-    email: <><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="m3 6 9 7 9-7" /></>,
-    search: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.2 4.2" /></>,
-    filter: <path d="M4 6h16M7 12h10M10 18h4" />,
-    multi: <><rect x="3.5" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="13" y="4" width="7.5" height="7.5" rx="1.5" /><rect x="3.5" y="13.5" width="7.5" height="7.5" rx="1.5" /><path d="m14.5 17 2 2 4-4" /></>,
-    expand: <><path d="M9 3.5H3.5V9M15 3.5h5.5V9M9 20.5H3.5V15M15 20.5h5.5V15" /><path d="M8.5 8.5 3.5 3.5M15.5 8.5l5-5M8.5 15.5l-5 5M15.5 15.5l5 5" /></>,
-    info: <><circle cx="12" cy="12" r="9" /><path d="M12 10v6M12 7.5h.01" /></>,
-    star: <path d="m12 3.4 2.7 5.5 6 0.9-4.4 4.3 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.8l6-0.9L12 3.4Z" />,
-    clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.8v4.6l3 1.6" /></>,
-    map: <><path d="M3.5 6.5 9 4l6 2.5L20.5 4v13L15 19.5 9 17 3.5 19.5v-13Z" /><path d="M9 4v13M15 6.5v13" /></>,
-    menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
-    archive: <><rect x="3" y="4" width="18" height="5" rx="1.2" /><path d="M5.5 9.2V19a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V9.2" /><path d="M10 13h4" /></>,
-    plus: <path d="M12 5v14M5 12h14" />,
-    edit: <><path d="m4 20 3.5-.7 10-10a2 2 0 0 0 0-2.8l-1-1a2 2 0 0 0-2.8 0l-10 10L3 19.9Z" /><path d="M13 6l5 5" /></>,
-    check: <path d="m5 12 4.2 4.2L19 6.8" />,
-    close: <path d="M6 6l12 12M18 6 6 18" />,
-    clear: <><path d="M4 20h10" /><path d="m8 20 6.7-11.6a1.6 1.6 0 0 0-1.4-2.4H7.7a1.6 1.6 0 0 0-1.4 2.4L8.8 13" /><path d="m14 14 3.5 3.5M17.5 14 14 17.5" /></>,
-    download: <><path d="M12 4v10" /><path d="m8.5 10.5 3.5 3.5 3.5-3.5" /><path d="M4 19.5h16" /></>,
-    wallet: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M16 12h5" /><circle cx="16.5" cy="12" r="0.8" /></>,
-    'chevron-down': <path d="m6 9 6 6 6-6" />,
-    'chevron-up': <path d="m18 15-6-6-6 6" />,
-    'chevron-left': <path d="m14.5 6-6 6 6 6" />,
-    'chevron-right': <path d="m9.5 6 6 6-6 6" />
-  };
+const shellComponentFactories = globalThis.OdontoFlowShellComponents || {};
+if (
+  !shellComponentFactories.createAppIcon
+  || !shellComponentFactories.createAppShell
+  || !shellComponentFactories.createAppSidebar
+  || !shellComponentFactories.createAppHeader
+  || !shellComponentFactories.createPageHeader
+  || !shellComponentFactories.createHeaderActionButton
+  || !shellComponentFactories.createAddRecordButton
+) {
+  throw new Error('Módulos globais de shell não carregados. Verifique os scripts em index.html.');
+}
+const AppIcon = shellComponentFactories.createAppIcon();
+const AppShell = shellComponentFactories.createAppShell();
+const AppSidebar = shellComponentFactories.createAppSidebar({ AppIcon });
+const AppHeader = shellComponentFactories.createAppHeader();
+const HeaderActionButton = shellComponentFactories.createHeaderActionButton({ AppIcon });
+const AddRecordButton = shellComponentFactories.createAddRecordButton({ HeaderActionButton });
 
-  return (
-    <svg className={`app-icon ${className}`} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      {icons[name]}
-    </svg>
-  );
-};
+const tableComponentFactories = globalThis.OdontoFlowTableComponents || {};
+if (!tableComponentFactories.createEmptyState || !tableComponentFactories.createDataTable) {
+  throw new Error('Módulos globais de tabela não carregados. Verifique os scripts em index.html.');
+}
+const EmptyState = tableComponentFactories.createEmptyState();
+const DataTable = tableComponentFactories.createDataTable({ EmptyState, AppIcon });
 
 const TransientNotice = ({ message, tone = 'info', onClose, visible }) => {
   if (!visible) return null;
@@ -210,37 +195,6 @@ const SingleSelectionField = ({
   );
 };
 
-const HeaderActionButton = ({
-  label,
-  icon,
-  onClick,
-  tone = 'new',
-  ariaLabel
-}) => (
-  <button
-    className={`btn btn--primary btn--header btn--header-${tone} inline-flex items-center gap-2`}
-    onClick={onClick}
-    aria-label={ariaLabel || label}
-  >
-    <AppIcon name={icon} size={14} className="btn-icon" />
-    {label}
-  </button>
-);
-
-const AddRecordButton = ({
-  onClick,
-  label = 'Novo registro',
-  ariaLabel = 'Cadastrar novo registro'
-}) => (
-  <HeaderActionButton
-    label={label}
-    icon="edit"
-    tone="new"
-    ariaLabel={ariaLabel}
-    onClick={onClick}
-  />
-);
-
 const {
   AuthEntryModal,
   getFirstAccessCompleted,
@@ -275,75 +229,6 @@ const SortToggleButton = ({ onClick }) => (
     ariaLabel="Abrir nível de ordenação"
     onClick={onClick}
   />
-);
-
-const AppShell = ({ sidebar, header, children }) => (
-  <div className="app-shell">
-    <div className="app-frame">
-      {sidebar}
-      <main className="app-content">
-        {header}
-        {children}
-      </main>
-    </div>
-  </div>
-);
-
-const AppSidebar = ({
-  isVisible,
-  authEmail,
-  tabs,
-  activeTab,
-  onTabChange
-}) => {
-  if (!isVisible) return null;
-
-  return (
-    <aside className="app-sidebar">
-      <div className="app-brand">Odonto<span>Flow</span></div>
-      {authEmail ? (
-        <div className="text-[11px] leading-snug text-slate-300 mb-3">
-          <p className="font-semibold text-slate-200">Conectado</p>
-          <p className="truncate">{authEmail}</p>
-        </div>
-      ) : null}
-      <nav className="app-nav">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`btn btn--nav btn--nav--${tab.id} ${activeTab === tab.id ? 'is-active' : ''}`}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-            title={tab.label}
-          >
-            <AppIcon name={tab.icon} size={14} />
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-    </aside>
-  );
-};
-
-const AppHeader = ({ children }) => (
-  <header className="app-header-flat mb-3">
-    {children}
-  </header>
-);
-
-const PageHeader = ({ icon, title, subtitle, actions = null }) => (
-  <div className="flex flex-wrap items-start justify-between gap-3">
-    <div>
-      <BioHeader
-        icon={icon}
-        title={title}
-        subtitle={subtitle}
-        actions={[]}
-        navigation={null}
-      />
-    </div>
-    {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-  </div>
 );
 
 const ContentGrid = ({ columns = '2', children, className = '' }) => (
@@ -436,205 +321,6 @@ const StatusBadge = ({ status }) => {
   return <span className={`inline-flex px-2 py-1 rounded-full text-[11px] font-black uppercase ${tone}`}>{status}</span>;
 };
 
-const EmptyState = ({ message = 'Nenhum registro encontrado.' }) => (
-  <div className="py-6 text-center text-sm text-slate-500">{message}</div>
-);
-
-const getResponsiveTableRowsPerPage = ({ compact = false } = {}) => {
-  if (typeof window === 'undefined') return 5;
-  const width = window.innerWidth;
-  if (compact) {
-    if (width >= 768) return 4;
-    return 3;
-  }
-  if (width >= 1536) return 8;
-  if (width >= 1280) return 7;
-  if (width >= 1024) return 6;
-  if (width >= 768) return 5;
-  return 4;
-};
-
-const normalizeSortValue = (value) => {
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'number') return value;
-  if (value instanceof Date) return value.getTime();
-  const stringValue = String(value).trim();
-  if (!stringValue) return '';
-  if (/^\d{4}-\d{2}-\d{2}$/.test(stringValue)) {
-    const date = new Date(`${stringValue}T00:00:00`);
-    const time = date.getTime();
-    if (!Number.isNaN(time)) return time;
-  }
-  return stringValue.toLocaleLowerCase('pt-BR');
-};
-
-const DataTable = ({ columns, rows, emptyMessage = 'Sem dados para exibir.', paginated = false, compact = false, keepEmptyRows = false, footerTotals = [] }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [rowsPerPage, setRowsPerPage] = useState(() => (paginated ? getResponsiveTableRowsPerPage({ compact }) : Math.max(rows.length, 1)));
-  const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1280));
-
-  useEffect(() => {
-    const syncViewportWidth = () => setViewportWidth(window.innerWidth);
-    syncViewportWidth();
-    window.addEventListener('resize', syncViewportWidth);
-    return () => window.removeEventListener('resize', syncViewportWidth);
-  }, []);
-
-  const visibleColumns = useMemo(() => columns.filter((column) => (
-    typeof column.hideBelow !== 'number' || viewportWidth >= column.hideBelow
-  )), [columns, viewportWidth]);
-
-  useEffect(() => {
-    if (!sortConfig.key) return;
-    if (visibleColumns.some((column) => column.key === sortConfig.key)) return;
-    setSortConfig({ key: null, direction: 'asc' });
-  }, [sortConfig.key, visibleColumns]);
-
-  useEffect(() => {
-    if (!paginated) return undefined;
-
-    const syncRowsPerPage = () => {
-      setRowsPerPage(getResponsiveTableRowsPerPage({ compact }));
-    };
-
-    syncRowsPerPage();
-    window.addEventListener('resize', syncRowsPerPage);
-    return () => window.removeEventListener('resize', syncRowsPerPage);
-  }, [compact, paginated]);
-
-  const sortedRows = useMemo(() => {
-    if (!sortConfig.key) return rows;
-    const activeColumn = visibleColumns.find((column) => column.key === sortConfig.key);
-    if (!activeColumn || activeColumn.sortable === false) return rows;
-
-    return [...rows].sort((leftRow, rightRow) => {
-      const leftValue = normalizeSortValue(activeColumn.sortValue ? activeColumn.sortValue(leftRow) : leftRow[activeColumn.key]);
-      const rightValue = normalizeSortValue(activeColumn.sortValue ? activeColumn.sortValue(rightRow) : rightRow[activeColumn.key]);
-
-      if (typeof leftValue === 'number' && typeof rightValue === 'number') {
-        return sortConfig.direction === 'asc' ? leftValue - rightValue : rightValue - leftValue;
-      }
-
-      const result = String(leftValue).localeCompare(String(rightValue), 'pt-BR', { numeric: true, sensitivity: 'base' });
-      return sortConfig.direction === 'asc' ? result : -result;
-    });
-  }, [rows, sortConfig.direction, sortConfig.key, visibleColumns]);
-
-  const totalPages = paginated ? Math.max(1, Math.ceil(sortedRows.length / rowsPerPage)) : 1;
-
-  useEffect(() => {
-    if (!paginated) return;
-    setCurrentPage((current) => Math.min(current, totalPages));
-  }, [paginated, totalPages, sortedRows.length]);
-
-  const toggleSort = (column) => {
-    if (column.sortable === false) return;
-    setSortConfig((current) => {
-      if (current.key !== column.key) return { key: column.key, direction: 'asc' };
-      return { key: column.key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
-    });
-    setCurrentPage(1);
-  };
-
-  const visibleRows = paginated
-    ? sortedRows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-    : sortedRows;
-  const placeholderRowsCount = keepEmptyRows && paginated ? Math.max(rowsPerPage - visibleRows.length, 0) : 0;
-
-  return (
-    <div className="data-table-shell">
-      <div className="data-table__scroller">
-        <table className={`data-table min-w-full text-sm ${compact ? 'data-table--compact' : ''}`.trim()}>
-          <thead>
-            <tr className="text-slate-400">
-              {visibleColumns.map((column) => (
-                <th key={column.key} className="data-table__head-cell text-left py-2 pr-3">
-                  <button
-                    type="button"
-                    className={`data-table__head-button ${column.sortable === false ? 'data-table__head-button--disabled' : ''}`.trim()}
-                    onClick={() => toggleSort(column)}
-                    disabled={column.sortable === false}
-                    aria-label={column.sortable === false ? `${column.label} sem ordenação` : `Ordenar por ${column.label}`}
-                  >
-                    <span>{column.label}</span>
-                    {column.sortable === false ? null : (
-                      <span className="data-table__sort-indicator" aria-hidden="true">
-                        {sortConfig.key === column.key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
-                      </span>
-                    )}
-                  </button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visibleRows.length === 0 ? (
-              <tr>
-                <td colSpan={visibleColumns.length}><EmptyState message={emptyMessage} /></td>
-              </tr>
-            ) : visibleRows.map((row) => (
-              <tr key={row.key} className="data-table__row">
-                {visibleColumns.map((column) => (
-                  <td key={`${row.key}-${column.key}`} className="data-table__cell py-2 pr-3">{column.render(row)}</td>
-                ))}
-              </tr>
-            ))}
-            {Array.from({ length: placeholderRowsCount }).map((_, index) => (
-              <tr key={`placeholder-${index}`} className="data-table__row data-table__row--placeholder" aria-hidden="true">
-                {visibleColumns.map((column) => (
-                  <td key={`placeholder-${index}-${column.key}`} className="data-table__cell py-2 pr-3">&nbsp;</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {(footerTotals.length > 0 || (paginated && totalPages > 1)) ? (
-        <div className="data-table__footer">
-          {footerTotals.length > 0 ? (
-            <div className="data-table__totals" aria-label="Totalizadores da tabela">
-              {footerTotals.map((item) => (
-                <p key={item.label} className={`data-table__total-item ${item.toneClassName || ''}`.trim()}>
-                  <span>{item.label}:</span>
-                  <strong>{item.value}</strong>
-                </p>
-              ))}
-            </div>
-          ) : <span />}
-          {paginated && totalPages > 1 ? (
-            <div className="data-table__pagination">
-              <p className="data-table__pagination-label">Pág. {currentPage} de {totalPages}</p>
-              <div className="data-table__pagination-actions">
-                <button
-                  type="button"
-                  className="data-table__page-button"
-                  onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
-                  disabled={currentPage <= 1}
-                  aria-label="Página anterior"
-                >
-                  <AppIcon name="chevron-left" size={13} />
-                  <span>Anterior</span>
-                </button>
-                <button
-                  type="button"
-                  className="data-table__page-button"
-                  onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
-                  disabled={currentPage >= totalPages}
-                  aria-label="Próxima página"
-                >
-                  <span>Próxima</span>
-                  <AppIcon name="chevron-right" size={13} />
-                </button>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
-  );
-};
-
 const ActionButton = ({ label, tone = 'ghost', onClick, className = '', icon = null, type = 'button', ariaLabel, disabled = false }) => (
   <button type={type} className={`btn ${tone === 'primary' ? 'btn--primary' : 'btn--ghost'} ${className}`.trim()} onClick={onClick} aria-label={ariaLabel || label} disabled={disabled}>
     {icon}
@@ -657,6 +343,7 @@ if (
   !financialComponentFactories.createFinancialEditAction
   || !financialComponentFactories.createFinancialPageSection
   || !financialComponentFactories.createFinancialSectionColumns
+  || !financialComponentFactories.createFinancialWidgetFrame
   || !financialComponentFactories.createFinancialTableSectionCard
   || !financialComponentFactories.createFinancialTablePanelCard
 ) {
@@ -665,8 +352,9 @@ if (
 const FinancialEditAction = financialComponentFactories.createFinancialEditAction({ ActionButton, AppIcon });
 const FinancialPageSection = financialComponentFactories.createFinancialPageSection();
 const FinancialSectionColumns = financialComponentFactories.createFinancialSectionColumns();
-const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
-const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
+const FinancialWidgetFrame = financialComponentFactories.createFinancialWidgetFrame();
+const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ FinancialWidgetFrame, DataTable, FinancialEditAction });
+const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ FinancialWidgetFrame, DataTable, FinancialEditAction });
 const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
 if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
   throw new Error('Catálogo de gráficos não carregado. Verifique os scripts em index.html.');
@@ -683,17 +371,6 @@ const DataColumns = layoutPrimitiveFactories.createDataColumns();
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
-const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
-if (
-  !screenBlockFactories.createSidebarScreenHeader
-  || !screenBlockFactories.createKpiGridRow
-  || !screenBlockFactories.createDualContentRow
-) {
-  throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
-}
-const SidebarScreenHeader = screenBlockFactories.createSidebarScreenHeader({ AppHeader, PageHeader });
-const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
-const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
 const profileBlockFactories = globalThis.OdontoFlowProfileBlocks || {};
 if (!profileBlockFactories.createProfileFieldGrid || !profileBlockFactories.createProfileActionRow || !profileBlockFactories.createProfileFeedbackMessage || !profileBlockFactories.createProfileResponsivePanels) {
   throw new Error('Módulos globais de perfil não carregados. Verifique os scripts em index.html.');
@@ -748,6 +425,19 @@ const BioHeader = ({
   </header>
 );
 
+
+const PageHeader = shellComponentFactories.createPageHeader({ BioHeader });
+const screenBlockFactories = globalThis.OdontoFlowScreenBlocks || {};
+if (
+  !screenBlockFactories.createSidebarScreenHeader
+  || !screenBlockFactories.createKpiGridRow
+  || !screenBlockFactories.createDualContentRow
+) {
+  throw new Error('Módulos globais de blocos de tela não carregados. Verifique os scripts em index.html.');
+}
+const SidebarScreenHeader = screenBlockFactories.createSidebarScreenHeader({ AppHeader, PageHeader });
+const KpiGridRow = screenBlockFactories.createKpiGridRow({ ContentGrid, StatCard });
+const DualContentRow = screenBlockFactories.createDualContentRow({ ContentGrid });
 
 const CSV_PATH = './backend/supabase/sample-data';
 
@@ -1636,20 +1326,12 @@ function DashboardApp({
   const [categoryFilter, setCategoryFilter] = useState('');
   const [recurringFilter, setRecurringFilter] = useState('');
   const [forecastFilter, setForecastFilter] = useState('');
-  const [openWidgetFilter, setOpenWidgetFilter] = useState('');
   const [financialInfoKey, setFinancialInfoKey] = useState('');
   const [financialFocusWindow, setFinancialFocusWindow] = useState({
     isOpen: false,
     tipo: 'all',
     query: '',
     status: 'all'
-  });
-  const [widgetFilters, setWidgetFilters] = useState({
-    contasFinanceiras: { tipo: 'all' },
-    recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
-    previsoes: { periodo: 'all', comprometido: 'all' },
-    contasReceber: { status: 'all' },
-    contasPagar: { status: 'all' }
   });
   const [confirmationDialog, setConfirmationDialog] = useState({
     isOpen: false,
@@ -1972,20 +1654,6 @@ function DashboardApp({
   };
   const getFinancialConfirmedStatus = (tipo) => (tipo === 'entrada' ? 'recebido' : 'pago');
   const isFinancialLaunchConfirmed = (launch) => launch.status === getFinancialConfirmedStatus(launch.tipo);
-
-  const toggleWidgetFilter = (key) => {
-    setOpenWidgetFilter((current) => (current === key ? '' : key));
-  };
-
-  const updateWidgetFilter = (key, field, value) => {
-    setWidgetFilters((current) => ({
-      ...current,
-      [key]: {
-        ...current[key],
-        [field]: value
-      }
-    }));
-  };
 
   const applyQuickPeriod = (period) => {
     const today = new Date('2026-04-23');
@@ -3041,7 +2709,7 @@ function DashboardApp({
         key: 'receitas',
         toneClass: 'financial-hero-widget--receitas',
         iconName: 'download',
-        iconToneClass: 'financial-widget-title__icon--emerald',
+        iconToneClass: 'financial-widget__title-icon--emerald',
         title: 'Receitas consolidadas',
         primary: formatMoney(receitaRecebidaTotal),
         secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
@@ -3059,7 +2727,7 @@ function DashboardApp({
         key: 'despesas',
         toneClass: 'financial-hero-widget--despesas',
         iconName: 'clear',
-        iconToneClass: 'financial-widget-title__icon--rose',
+        iconToneClass: 'financial-widget__title-icon--rose',
         title: 'Despesas consolidadas',
         primary: formatMoney(despesaPagaTotal),
         secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
@@ -3077,7 +2745,7 @@ function DashboardApp({
         key: 'conciliacao',
         toneClass: 'financial-hero-widget--conciliacao',
         iconName: 'plan',
-        iconToneClass: 'financial-widget-title__icon--indigo',
+        iconToneClass: 'financial-widget__title-icon--indigo',
         title: 'Conciliação financeira',
         primary: formatMoney(receitaRecebidaTotal - despesaPagaTotal),
         secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
@@ -3092,33 +2760,11 @@ function DashboardApp({
         onAction: () => focusFinancialLaunches('all')
       }
     ];
-    const contasFinanceirasWidgetRows = financialAccounts.filter((item) => (
-      widgetFilters.contasFinanceiras.tipo === 'all'
-      || item.tipo === widgetFilters.contasFinanceiras.tipo
-    ));
-    const recurringWidgetRows = financialRecurring.filter((item) => {
-      const byPeriodicidade = widgetFilters.recorrencias.periodicidade === 'all' || item.periodicidade === widgetFilters.recorrencias.periodicidade;
-      const byCategoria = widgetFilters.recorrencias.categoria === 'all' || (item.categoria || '-') === widgetFilters.recorrencias.categoria;
-      const byStatus = widgetFilters.recorrencias.status === 'all' || (item.status || 'pendente') === widgetFilters.recorrencias.status;
-      return byPeriodicidade && byCategoria && byStatus;
-    });
-    const forecastWidgetRows = financialForecasts.filter((item) => (
-      (widgetFilters.previsoes.periodo === 'all' || item.periodo === widgetFilters.previsoes.periodo)
-      && (widgetFilters.previsoes.comprometido === 'all'
-        || (widgetFilters.previsoes.comprometido === 'sim' ? Boolean(item.comprometido) : !Boolean(item.comprometido)))
-    ));
-    const contasReceberWidgetRows = contasReceber.filter((item) => {
-      if (widgetFilters.contasReceber.status === 'all') return true;
-      if (widgetFilters.contasReceber.status === 'confirmados') return isFinancialLaunchConfirmed(item);
-      if (widgetFilters.contasReceber.status === 'abertos') return !isFinancialLaunchConfirmed(item);
-      return item.status === widgetFilters.contasReceber.status;
-    });
-    const contasPagarWidgetRows = contasPagar.filter((item) => {
-      if (widgetFilters.contasPagar.status === 'all') return true;
-      if (widgetFilters.contasPagar.status === 'confirmados') return isFinancialLaunchConfirmed(item);
-      if (widgetFilters.contasPagar.status === 'abertos') return !isFinancialLaunchConfirmed(item);
-      return item.status === widgetFilters.contasPagar.status;
-    });
+    const contasFinanceirasWidgetRows = financialAccounts;
+    const recurringWidgetRows = financialRecurring;
+    const forecastWidgetRows = financialForecasts;
+    const contasReceberWidgetRows = contasReceber;
+    const contasPagarWidgetRows = contasPagar;
     const filteredAccounts = financialAccounts.filter((item) => `${item.nome} ${item.banco} ${item.tipo}`.toLowerCase().includes(accountFilter.toLowerCase()));
     const filteredRecurring = financialRecurring.filter((item) => `${item.descricao} ${item.periodicidade} ${item.categoria || ''}`.toLowerCase().includes(recurringFilter.toLowerCase()));
     const filteredForecasts = financialForecasts.filter((item) => `${item.descricao} ${item.periodo}`.toLowerCase().includes(forecastFilter.toLowerCase()));
@@ -3126,11 +2772,6 @@ function DashboardApp({
     const filteredOutCategories = financialCategories.saidas.filter((item) => item.toLowerCase().includes(categoryFilter.toLowerCase()));
     const recurringCategories = Array.from(new Set(financialRecurring.map((item) => item.categoria || '-')));
     const forecastPeriods = Array.from(new Set(financialForecasts.map((item) => item.periodo)));
-    const renderWidgetFilterDropdown = (content) => (
-      <div className="financial-filter-dropdown">
-        {content}
-      </div>
-    );
     const despesasPorCategoriaResumo = Object.entries(
       financialLaunches
         .filter((item) => item.tipo === 'saida')
@@ -3159,13 +2800,13 @@ function DashboardApp({
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
     const financialWidgetVisualMap = {
-      contasFinanceiras: { icon: 'wallet', toneClass: 'financial-widget-title__icon--sky' },
-      categoriasFinanceiras: { icon: 'archive', toneClass: 'financial-widget-title__icon--violet' },
-      recorrencias: { icon: 'clock', toneClass: 'financial-widget-title__icon--amber' },
-      previsoes: { icon: 'plan', toneClass: 'financial-widget-title__icon--rose' },
-      contasReceber: { icon: 'download', toneClass: 'financial-widget-title__icon--emerald' },
-      contasPagar: { icon: 'clear', toneClass: 'financial-widget-title__icon--orange' },
-      lancamentos: { icon: 'multi', toneClass: 'financial-widget-title__icon--indigo' }
+      contasFinanceiras: { icon: 'wallet', toneClass: 'financial-widget__title-icon--sky' },
+      categoriasFinanceiras: { icon: 'archive', toneClass: 'financial-widget__title-icon--violet' },
+      recorrencias: { icon: 'clock', toneClass: 'financial-widget__title-icon--amber' },
+      previsoes: { icon: 'plan', toneClass: 'financial-widget__title-icon--rose' },
+      contasReceber: { icon: 'download', toneClass: 'financial-widget__title-icon--emerald' },
+      contasPagar: { icon: 'clear', toneClass: 'financial-widget__title-icon--orange' },
+      lancamentos: { icon: 'multi', toneClass: 'financial-widget__title-icon--indigo' }
     };
     const getFinancialWidgetVisual = (key) => {
       const visual = financialWidgetVisualMap[key];
@@ -3418,13 +3059,13 @@ function DashboardApp({
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
               {financialHeroWidgets.map((widget) => {
                 return (
-                  <article key={widget.key} className={`financial-hero-widget financial-widget-container financial-widget-container--triple ${widget.toneClass}`.trim()}>
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="financial-hero-widget__eyebrow financial-widget-title">
-                        <span className={`financial-widget-title__icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
+                  <article key={widget.key} className={`financial-hero-widget financial-widget financial-widget--summary financial-widget--triple ${widget.toneClass}`.trim()}>
+                    <div className="financial-widget__header">
+                      <p className="financial-hero-widget__eyebrow financial-widget__title">
+                        <span className={`financial-widget__title-icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
                         <span>{widget.title}</span>
                       </p>
-                      <div className="financial-widget-actions">
+                      <div className="financial-widget__actions">
                         <FinancialEditAction
                           ariaLabel={widget.actionAria}
                           onClick={widget.onAction}
@@ -3432,7 +3073,7 @@ function DashboardApp({
                         />
                       </div>
                     </div>
-                    <div className="financial-hero-widget__body">
+                    <div className="financial-hero-widget__body financial-widget__body">
                       <div className="financial-hero-widget__summary">
                         <p className="financial-hero-widget__value">{widget.primary}</p>
                         <p className="financial-hero-widget__caption">{widget.secondary}</p>
@@ -3467,7 +3108,7 @@ function DashboardApp({
                         })}
                       </div>
                     </div>
-                    <footer className="financial-hero-widget__footer">
+                    <footer className="financial-hero-widget__footer financial-widget__footer">
                       <p>{widget.ratioLabel}</p>
                       <p>{widget.trendLabel}</p>
                     </footer>
@@ -3516,25 +3157,36 @@ function DashboardApp({
                     { label: 'Total saldo inicial', value: formatMoney(contasFinanceirasTotal) }
                   ]}
                 />
-                <SectionCard
-                  className="financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--double"
-                  title={(
-                    <span className="financial-widget-title">
-                      <span className="financial-widget-title__icon financial-widget-title__icon--violet" aria-hidden="true"><AppIcon name="archive" size={12} /></span>
-                      <span>Categorias financeiras</span>
-                    </span>
-                  )}
+                <FinancialWidgetFrame
+                  className="financial-section-card financial-section-card--operation financial-widget--category"
+                  variant="category"
+                  size="double"
+                  title="Categorias financeiras"
+                  titleIcon={<AppIcon name="archive" size={12} />}
+                  titleToneClass="financial-widget__title-icon--violet"
                   actions={(
-                    <div className="financial-widget-actions">
+                    <>
                       <FinancialEditAction
                         ariaLabel="Abrir categorias financeiras"
                         onClick={() => setIsCategoriesEditMode(true)}
                         icon="expand"
                       />
+                    </>
+                  )}
+                  footer={(
+                    <div className="data-table__totals" aria-label="Totalizadores da tabela">
+                      <p className="data-table__total-item">
+                        <span>Total receitas:</span>
+                        <strong>{formatMoney(categoriasReceitasTotal)}</strong>
+                      </p>
+                      <p className="data-table__total-item">
+                        <span>Total despesas:</span>
+                        <strong>{formatMoney(categoriasDespesasTotal)}</strong>
+                      </p>
                     </div>
                   )}
                 >
-                  <div className="financial-widget-body-scroll">
+                  <div className="financial-widget-body-scroll financial-widget__body">
                     <div className="data-table__scroller">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm p-2">
                         <div>
@@ -3570,20 +3222,8 @@ function DashboardApp({
                       </div>
                     </div>
                     <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
-                    <div className="data-table__footer">
-                      <div className="data-table__totals" aria-label="Totalizadores da tabela">
-                        <p className="data-table__total-item">
-                          <span>Total receitas:</span>
-                          <strong>{formatMoney(categoriasReceitasTotal)}</strong>
-                        </p>
-                        <p className="data-table__total-item">
-                          <span>Total despesas:</span>
-                          <strong>{formatMoney(categoriasDespesasTotal)}</strong>
-                        </p>
-                      </div>
-                    </div>
                   </div>
-                </SectionCard>
+                </FinancialWidgetFrame>
               </DataColumns>
             </DataSection>
 

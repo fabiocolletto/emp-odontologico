@@ -2,6 +2,50 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+
+
+
+
+
+## v1.1.50 - 2026-04-27
+
+### Fixed
+- Indicador de ordenação nas tabelas dos widgets financeiros agora fica visível somente na coluna ativa de ordenação.
+- Reduzido o espaço vazio na parte inferior dos widgets de tabela ao remover linhas placeholder nos cards principais.
+- Ajustadas alturas base dos widgets (`single/double/triple/compact`) para densidade mais equilibrada sem quebrar o alinhamento por linha.
+
+## v1.1.49 - 2026-04-27
+
+### Fixed
+- Ajuste na tela Financeiro para manter filtros dos widgets exclusivamente na tela de foco/overlay.
+- Removida a filtragem aplicada à tela principal dos widgets (cards principais voltam a exibir o conjunto completo de dados, preservando visual limpo).
+- Mantida a filtragem avançada apenas onde já existe contexto de foco (`Janela de foco financeiro`), sem reintroduzir botões/filtros nos cards principais.
+
+## v1.1.48 - 2026-04-27
+
+### Changed
+- Padronização dos widgets do Financeiro consolidada em contrato visual único com as classes: `.financial-widget`, variações (`--summary`, `--table`, `--category`, `--compact`, `--single`, `--double`, `--triple`) e estrutura (`__header`, `__title`, `__title-icon`, `__actions`, `__body`, `__footer`).
+- `FinancialTableSectionCard` e `FinancialTablePanelCard` passaram a reutilizar um frame visual comum (`createFinancialWidgetFrame`), reduzindo variação estrutural entre widgets e mantendo footer/tabela ancorados na base.
+- Mantida a tela principal sem filtros nos cards financeiros: ações principais preservadas para foco/expansão e gestão essencial no header.
+- Mantida compatibilidade com GitHub Pages, React via CDN e Babel no navegador, sem build step ou dependências novas.
+
+### Validation
+- Revisão responsiva validada para desktop, tablet retrato e mobile com estrutura consistente entre widgets e overlays de foco.
+
+## v1.1.47 - 2026-04-27
+
+### Fixed
+- Corrigida a causa de tela branca após a extração dos contratos de shell/tabela: `SidebarScreenHeader` estava sendo inicializado antes de `PageHeader`, gerando erro de inicialização por ordem de declaração.
+- Reordenada a inicialização dos blocos compartilhados no runtime para garantir que `PageHeader` esteja definido antes da criação do `SidebarScreenHeader`, sem alteração visual da tela Financeiro.
+
+## v1.1.46 - 2026-04-27
+
+### Changed
+- Extraídos do runtime principal (`standalone-react.jsx`) os contratos reutilizáveis de shell em `apps/web/src/shared/app-shell-components.js`: `AppIcon`, `AppSidebar`, `AppShell`, `AppHeader`, `PageHeader` e botões de ação de header, mantendo o mesmo comportamento visual do Financeiro e das demais telas.
+- Extraída a tabela base para `apps/web/src/shared/base-data-table.js`, preservando ordenação, paginação responsiva e totalizadores sem alteração de aparência.
+- `index.html` atualizado para carregar os novos módulos compartilhados antes de `standalone-react.jsx`, mantendo compatibilidade com GitHub Pages (carregamento estático via CDN, sem build step).
+- Consolidada a validação técnica do cenário de retrato/mobile para evitar header/barra duplicados e sobra de espaço no topo, mantendo apenas a navegação adequada por breakpoint.
+
 ## v1.1.33 - 2026-04-26
 
 ### Changed

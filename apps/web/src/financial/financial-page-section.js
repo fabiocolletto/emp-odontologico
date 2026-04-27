@@ -39,4 +39,30 @@
       {children}
     </div>
   );
+
+  namespace.createFinancialWidgetFrame = () => (
+    {
+      title,
+      titleIcon = null,
+      titleToneClass = '',
+      actions = null,
+      children,
+      footer = null,
+      className = '',
+      variant = 'table',
+      size = 'double'
+    }
+  ) => (
+    <article className={`financial-widget financial-widget--${variant} financial-widget--${size} ${className}`.trim()}>
+      <header className="financial-widget__header">
+        <h3 className="financial-widget__title">
+          {titleIcon ? <span className={`financial-widget__title-icon ${titleToneClass}`.trim()} aria-hidden="true">{titleIcon}</span> : null}
+          <span>{title}</span>
+        </h3>
+        {actions ? <div className="financial-widget__actions">{actions}</div> : null}
+      </header>
+      <div className="financial-widget__body">{children}</div>
+      {footer ? <footer className="financial-widget__footer">{footer}</footer> : null}
+    </article>
+  );
 }(globalThis));

@@ -2,7 +2,7 @@
   const namespace = global.OdontoFlowFinancialComponents = global.OdontoFlowFinancialComponents || {};
   const { useState } = React;
 
-  namespace.createFinancialTableSectionCard = ({ SectionCard, DataTable, FinancialEditAction }) => (
+  namespace.createFinancialTableSectionCard = ({ FinancialWidgetFrame, DataTable, FinancialEditAction }) => (
     {
       title,
       titleIcon = null,
@@ -12,10 +12,6 @@
       emptyMessage,
       onAdd,
       addAriaLabel,
-      onToggleFilter,
-      isFilterOpen = false,
-      filterDropdown = null,
-      filterAriaLabel,
       footerTotals = [],
       layout = 'double',
       hideActionColumnOnMain = true
@@ -40,35 +36,23 @@
         ? [{ label: 'Total', value: numericTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) }]
         : [])
     ];
-    const resolvedTitle = (
-      <span className="financial-widget-title">
-        {titleIcon ? <span className={`financial-widget-title__icon ${titleToneClass}`.trim()} aria-hidden="true">{titleIcon}</span> : null}
-        <span>{title}</span>
-      </span>
-    );
-
     return (
       <>
-        <SectionCard
-          className={`financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--${layout}`.trim()}
-          title={resolvedTitle}
+        <FinancialWidgetFrame
+          variant="table"
+          size={layout}
+          className="financial-section-card financial-section-card--operation"
+          title={title}
+          titleIcon={titleIcon}
+          titleToneClass={titleToneClass}
           actions={(
-            <div className="financial-widget-actions">
+            <>
               <FinancialEditAction
                 ariaLabel={`Abrir ${title.toLowerCase()} em tela focada`}
                 onClick={() => setIsFocusOpen(true)}
                 icon="expand"
               />
-              <div className="financial-widget-actions__filter">
-                <FinancialEditAction
-                  ariaLabel={filterAriaLabel}
-                  onClick={onToggleFilter}
-                  icon="filter"
-                  className={isFilterOpen ? 'is-active' : ''}
-                />
-                {isFilterOpen ? <div className="financial-widget-actions__dropdown">{filterDropdown}</div> : null}
-              </div>
-            </div>
+            </>
           )}
         >
           <DataTable
@@ -77,19 +61,24 @@
             emptyMessage={emptyMessage}
             paginated
             compact
-            keepEmptyRows
+            keepEmptyRows={false}
+            footerClassName="financial-widget__footer"
             footerTotals={footerTotals}
           />
-        </SectionCard>
+        </FinancialWidgetFrame>
 
         {isFocusOpen ? (
           <div className="finance-overlay" onClick={() => setIsFocusOpen(false)}>
             <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
-              <SectionCard
-                className="financial-modal-card financial-focus-card financial-widget-container financial-widget-container--single"
-                title={resolvedTitle}
+              <FinancialWidgetFrame
+                variant="table"
+                size="single"
+                className="financial-modal-card financial-focus-card"
+                title={title}
+                titleIcon={titleIcon}
+                titleToneClass={titleToneClass}
                 actions={(
-                  <div className="financial-widget-actions">
+                  <>
                     <FinancialEditAction
                       ariaLabel={addAriaLabel}
                       onClick={onAdd}
@@ -100,16 +89,17 @@
                       onClick={() => setIsFocusOpen(false)}
                       icon="close"
                     />
-                  </div>
+                  </>
                 )}
               >
                 <DataTable
                   columns={columns}
                   rows={rows}
                   emptyMessage={emptyMessage}
+                  footerClassName="financial-widget__footer"
                   footerTotals={focusFooterTotals}
                 />
-              </SectionCard>
+              </FinancialWidgetFrame>
             </div>
           </div>
         ) : null}
