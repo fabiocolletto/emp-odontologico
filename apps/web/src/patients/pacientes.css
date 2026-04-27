@@ -77,3 +77,113 @@ body {
 .pacientes-pill.is-inactive { background: #f1f5f9; color: #475569; }
 
 .pacientes-link-btn { border: 0; background: transparent; color: var(--color-brand-600); cursor: pointer; text-decoration: underline; font-weight: 600; }
+
+/* iPad / tablet layout */
+@media (max-width: 1024px) {
+  .pacientes-page {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .pacientes-section,
+  .pacientes-kpi-card {
+    border-radius: var(--radius-md);
+  }
+
+  .pacientes-section__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pacientes-btn,
+  .pacientes-link-btn {
+    min-height: 44px;
+  }
+
+  .pacientes-filter-row input,
+  .pacientes-form input,
+  .pacientes-form select,
+  .pacientes-backend input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+/* iOS phone layout */
+@media (max-width: 767px) {
+  .pacientes-page {
+    padding: var(--space-3);
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+
+  .pacientes-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pacientes-section__actions,
+  .pacientes-backend menu,
+  .pacientes-form menu {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .pacientes-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pacientes-dialog {
+    width: calc(100% - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .pacientes-form {
+    max-height: calc(100dvh - 3rem);
+    overflow: auto;
+  }
+
+  .pacientes-table thead {
+    display: none;
+  }
+
+  .pacientes-table,
+  .pacientes-table tbody,
+  .pacientes-table tr,
+  .pacientes-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .pacientes-table tr {
+    border: 1px solid var(--pacientes-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    margin-bottom: var(--space-2);
+    background: var(--surface-soft);
+  }
+
+  .pacientes-table td {
+    border: 0;
+    padding: .4rem 0;
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .pacientes-table td::before {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  .pacientes-table td:nth-child(1)::before { content: 'Nome'; }
+  .pacientes-table td:nth-child(2)::before { content: 'Contato'; }
+  .pacientes-table td:nth-child(3)::before { content: 'Documento'; }
+  .pacientes-table td:nth-child(4)::before { content: 'Convênio'; }
+  .pacientes-table td:nth-child(5)::before { content: 'Últ. consulta'; }
+  .pacientes-table td:nth-child(6)::before { content: 'Status'; }
+  .pacientes-table td:nth-child(7)::before { content: 'Ações'; }
+}

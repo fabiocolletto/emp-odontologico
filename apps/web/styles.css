@@ -4508,3 +4508,19 @@ select {
   border: 0;
   background: var(--surface-page);
 }
+
+@media (max-width: 1024px) {
+  .clinic-legacy-frame__iframe,
+  .patients-legacy-frame__iframe,
+  .financial-legacy-frame__iframe {
+    min-height: 72vh;
+  }
+}
+
+@media (max-width: 767px) {
+  .clinic-legacy-frame__iframe,
+  .patients-legacy-frame__iframe,
+  .financial-legacy-frame__iframe {
+    min-height: 80vh;
+  }
+}

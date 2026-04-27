@@ -183,3 +183,112 @@ body {
   text-decoration: underline;
   font-weight: 600;
 }
+
+/* iPad / tablet layout */
+@media (max-width: 1024px) {
+  .clinicas-page {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .clinicas-section,
+  .clinicas-kpi-card {
+    border-radius: var(--radius-md);
+  }
+
+  .clinicas-section__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .clinicas-btn,
+  .clinicas-link-btn {
+    min-height: 44px;
+  }
+
+  .clinicas-form input,
+  .clinicas-form select,
+  .clinicas-backend input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+/* iOS phone layout */
+@media (max-width: 767px) {
+  .clinicas-page {
+    padding: var(--space-3);
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+
+  .clinicas-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clinicas-section__actions,
+  .clinicas-backend menu,
+  .clinicas-form menu {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .clinicas-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .clinicas-dialog {
+    width: calc(100% - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .clinicas-form {
+    max-height: calc(100dvh - 3rem);
+    overflow: auto;
+  }
+
+  .clinicas-table thead {
+    display: none;
+  }
+
+  .clinicas-table,
+  .clinicas-table tbody,
+  .clinicas-table tr,
+  .clinicas-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .clinicas-table tr {
+    border: 1px solid var(--clinicas-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    margin-bottom: var(--space-2);
+    background: var(--surface-soft);
+  }
+
+  .clinicas-table td {
+    border: 0;
+    padding: .4rem 0;
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .clinicas-table td::before {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  .clinicas-table td:nth-child(1)::before { content: 'Ativa'; }
+  .clinicas-table td:nth-child(2)::before { content: 'Nome'; }
+  .clinicas-table td:nth-child(3)::before { content: 'Razão social'; }
+  .clinicas-table td:nth-child(4)::before { content: 'CNPJ'; }
+  .clinicas-table td:nth-child(5)::before { content: 'Cidade/UF'; }
+  .clinicas-table td:nth-child(6)::before { content: 'Status'; }
+  .clinicas-table td:nth-child(7)::before { content: 'Ações'; }
+}
