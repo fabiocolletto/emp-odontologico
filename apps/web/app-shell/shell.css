@@ -1,0 +1,211 @@
+:root {
+  --shell-sidebar-width: clamp(228px, 18vw, 272px);
+  --shell-header-height: var(--of-shell-header-height, 4.5rem);
+  --shell-bottom-nav-height: calc(var(--of-touch-target) + var(--of-space-5) + env(safe-area-inset-bottom, 0px));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+body.app-shell {
+  font-family: var(--of-font-family);
+  color: var(--of-text-primary);
+  background: var(--of-bg-app);
+}
+
+.of-app-shell {
+  display: grid;
+  grid-template-columns: var(--shell-sidebar-width) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+#app-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: var(--of-z-sidebar);
+  display: flex;
+  flex-direction: column;
+  gap: var(--of-space-3);
+  height: 100dvh;
+  padding: var(--of-space-6) var(--of-space-4);
+  border-inline-end: 1px solid var(--of-border);
+  background: var(--of-surface-muted);
+  backdrop-filter: var(--of-blur-glass);
+}
+
+.app-brand {
+  margin: 0;
+  font-size: var(--of-font-size-lg);
+}
+
+.app-main {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+#app-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--of-z-header);
+  min-height: var(--shell-header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--of-space-4);
+  padding: var(--of-space-4) var(--of-space-6);
+  border-bottom: 1px solid var(--of-border);
+  background: var(--of-surface-glass);
+  backdrop-filter: var(--of-blur-glass);
+}
+
+.app-header-title {
+  margin: 0;
+  font-size: var(--of-font-size-lg);
+}
+
+.app-header-subtitle {
+  margin: 0;
+  color: var(--of-text-muted);
+  font-size: var(--of-font-size-sm);
+}
+
+.app-menu-toggle {
+  display: none;
+  min-width: var(--of-touch-target);
+  min-height: var(--of-touch-target);
+}
+
+#app-content {
+  min-height: 0;
+  padding: var(--of-space-4);
+}
+
+#app-frame {
+  width: 100%;
+  height: 100%;
+  min-height: calc(100dvh - var(--shell-header-height) - (var(--of-space-8)));
+  border: 0;
+  border-radius: var(--of-radius-lg);
+  background: var(--of-surface-solid);
+  box-shadow: var(--of-shadow-xs);
+}
+
+.app-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--of-space-2);
+}
+
+.app-nav-button {
+  width: 100%;
+  min-height: var(--of-touch-target);
+  border: 1px solid var(--of-border);
+  border-radius: var(--of-radius-md);
+  background: var(--of-surface-solid);
+  color: var(--of-text-secondary);
+  text-align: left;
+  padding: var(--of-space-3) var(--of-space-4);
+  font-size: var(--of-font-size-md);
+  cursor: pointer;
+}
+
+.app-nav-button.is-active {
+  border-color: var(--of-primary-border);
+  background: var(--of-primary-soft);
+  color: var(--of-primary-hover);
+  box-shadow: var(--of-shadow-xs);
+}
+
+.app-nav-button:focus-visible {
+  outline: none;
+  box-shadow: var(--state-focus-ring);
+}
+
+#app-bottom-nav {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--of-z-drawer);
+  display: none;
+  min-height: var(--shell-bottom-nav-height);
+  padding: var(--of-space-2) var(--of-space-2) calc(var(--of-space-2) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--of-border);
+  background: var(--of-surface-glass);
+  backdrop-filter: var(--of-blur-glass);
+}
+
+#app-bottom-nav .app-nav-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--of-space-2);
+}
+
+#app-bottom-nav .app-nav-button {
+  min-height: var(--of-touch-target);
+  text-align: center;
+  font-size: var(--of-font-size-xs);
+  padding: var(--of-space-2);
+}
+
+@media (max-width: 1023px) {
+  .of-app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #app-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(86vw, 320px);
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    box-shadow: var(--of-shadow-md);
+  }
+
+  .app-shell.sidebar-open #app-sidebar {
+    transform: translateX(0);
+  }
+
+  .app-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-main {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  #app-content {
+    padding: var(--of-space-3);
+    padding-bottom: var(--of-space-3);
+  }
+
+  #app-bottom-nav {
+    display: block;
+  }
+
+  #app-frame {
+    min-height: calc(100dvh - var(--shell-header-height) - var(--shell-bottom-nav-height) - (var(--of-space-6)));
+    border-radius: var(--of-radius-md);
+  }
+}
+
+@media (max-width: 767px) {
+  #app-bottom-nav .app-nav-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

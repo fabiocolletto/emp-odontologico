@@ -190,3 +190,13 @@ Para evolução incremental via shell React + arquivos independentes:
   </table>
 </div>
 ```
+
+## Shell HTML oficial incremental (`apps/web/app-shell`)
+Para migração progressiva do shell React para shell em HTML/CSS/JS puro:
+
+1. Novo entrypoint oficial: `apps/web/app-shell/index.html`.
+2. O shell controla somente layout e navegação global.
+3. Conteúdo de cada módulo deve continuar isolado em `apps/web/src/**`.
+4. Navegação entre módulos deve ocorrer por troca de `iframe src`, sem mover lógica interna das telas.
+5. Para integração entre tela e shell, usar `window.parent.postMessage({ type: 'navigate', payload: '<tab-id>' }, '*')`.
+6. Manter compatibilidade com fallback legado (`standalone-react.jsx`) até migração completa.
