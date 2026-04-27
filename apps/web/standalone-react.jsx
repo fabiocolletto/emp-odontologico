@@ -1638,6 +1638,12 @@ function DashboardApp({
   const [forecastFilter, setForecastFilter] = useState('');
   const [openWidgetFilter, setOpenWidgetFilter] = useState('');
   const [financialInfoKey, setFinancialInfoKey] = useState('');
+  const [financialFocusWindow, setFinancialFocusWindow] = useState({
+    isOpen: false,
+    tipo: 'all',
+    query: '',
+    status: 'all'
+  });
   const [widgetFilters, setWidgetFilters] = useState({
     contasFinanceiras: { tipo: 'all' },
     recorrencias: { periodicidade: 'all', categoria: 'all', status: 'all' },
@@ -1777,34 +1783,11 @@ function DashboardApp({
   };
 
   const focusFinancialLaunches = (tipo) => {
-    setWidgetFilters((current) => ({
-      ...current,
-      contasReceber: { ...current.contasReceber, status: 'all' },
-      contasPagar: { ...current.contasPagar, status: 'all' }
-    }));
-    requestAnimationFrame(() => {
-      financialLaunchesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    if (tipo === 'entrada') {
-      setConfirmationDialog({
-        isOpen: true,
-        title: 'Receitas em foco',
-        message: 'Use as ações da tabela para dar baixa, editar ou cancelar receitas.',
-        confirmLabel: 'OK',
-        tone: 'info',
-        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
-      });
-    }
-    if (tipo === 'saida') {
-      setConfirmationDialog({
-        isOpen: true,
-        title: 'Despesas em foco',
-        message: 'Use as ações da tabela para pagar, editar ou cancelar despesas.',
-        confirmLabel: 'OK',
-        tone: 'info',
-        onConfirm: () => setConfirmationDialog((current) => ({ ...current, isOpen: false }))
-      });
-    }
+    setFinancialFocusWindow({ isOpen: true, tipo: tipo || 'all', query: '', status: 'all' });
+  };
+
+  const closeFinancialFocusWindow = () => {
+    setFinancialFocusWindow((current) => ({ ...current, isOpen: false }));
   };
 
   const handleFinancialDraftChange = (field, value) => {
@@ -1867,6 +1850,17 @@ function DashboardApp({
       tone: 'danger',
       onConfirm: () => setFinancialLaunches((current) => current.filter((item) => item.id !== id))
     });
+  };
+
+  const handleFinancialDuplicate = (launch) => {
+    const duplicateId = Date.now() + Math.floor(Math.random() * 1000);
+    const payload = {
+      ...launch,
+      id: duplicateId,
+      descricao: `${launch.descricao || 'Lançamento'} (cópia)`,
+      status: launch.status || 'previsto'
+    };
+    setFinancialLaunches((current) => [payload, ...current]);
   };
   const handleFinancialCancel = (id) => handleFinancialDelete(id);
 
@@ -3214,6 +3208,40 @@ function DashboardApp({
         )
       }
     ];
+    const financialFocusRows = financialLaunches
+      .filter((item) => (financialFocusWindow.tipo === 'all' ? true : item.tipo === financialFocusWindow.tipo))
+      .filter((item) => {
+        if (financialFocusWindow.status === 'all') return true;
+        if (financialFocusWindow.status === 'confirmados') return isFinancialLaunchConfirmed(item);
+        if (financialFocusWindow.status === 'abertos') return !isFinancialLaunchConfirmed(item);
+        return item.status === financialFocusWindow.status;
+      })
+      .filter((item) => {
+        const normalizedQuery = financialFocusWindow.query.trim().toLowerCase();
+        if (!normalizedQuery) return true;
+        return [item.descricao, item.categoria, item.origem, item.status]
+          .some((value) => String(value || '').toLowerCase().includes(normalizedQuery));
+      });
+    const financialFocusColumns = [
+      { key: 'tipo', label: 'Tipo', render: (row) => <span className="text-slate-600 uppercase">{row.tipo}</span> },
+      { key: 'descricao', label: 'Descrição', render: (row) => <span className="text-slate-600">{row.descricao}</span> },
+      { key: 'categoria', label: 'Categoria', hideBelow: 880, render: (row) => <span className="text-slate-600">{row.categoria || '-'}</span> },
+      { key: 'origem', label: 'Origem', hideBelow: 720, render: (row) => <span className="text-slate-600">{row.origem || '-'}</span> },
+      { key: 'valor', label: 'Valor', sortValue: (row) => Number(row.valor || 0), render: (row) => <span className="text-slate-600">{formatMoney(row.valor)}</span> },
+      { key: 'status', label: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+      {
+        key: 'acoes',
+        label: 'Ações',
+        sortable: false,
+        render: (row) => (
+          <div className="financial-row-actions">
+            <FinancialWidgetIconButton ariaLabel="Editar lançamento em foco" onClick={() => { closeFinancialFocusWindow(); openFinancialEdit(row); }} />
+            <FinancialWidgetIconButton ariaLabel="Duplicar lançamento em foco" icon="multi" onClick={() => handleFinancialDuplicate(row)} />
+            <FinancialWidgetIconButton ariaLabel="Excluir lançamento em foco" icon="close" tone="text-rose-600" onClick={() => handleFinancialDelete(row.id)} />
+          </div>
+        )
+      }
+    ];
     return (
       <div className="space-y-4 financial-layout--flat">
         {renderN1Header({
@@ -3294,6 +3322,77 @@ function DashboardApp({
                 <p className="text-sm text-slate-600">{financialSectionInfoMap[financialInfoKey].content}</p>
                 <div className="mt-3 flex justify-end gap-2">
                   <ActionButton label="Fechar" className="btn--header btn--header-muted" onClick={() => setFinancialInfoKey('')} />
+                </div>
+              </PanelCard>
+            </div>
+          </div>
+        ) : null}
+
+        {financialFocusWindow.isOpen ? (
+          <div className="finance-overlay" onClick={closeFinancialFocusWindow}>
+            <div className="finance-overlay__panel financial-focus-overlay__panel" onClick={(event) => event.stopPropagation()}>
+              <PanelCard className="financial-modal-card financial-focus-card" title="Janela de foco financeiro">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                  <label className="financial-filter-dropdown__field">
+                    <span>Buscar</span>
+                    <input
+                      className="ui-input"
+                      placeholder="Descrição, categoria, origem..."
+                      value={financialFocusWindow.query}
+                      onChange={(event) => setFinancialFocusWindow((current) => ({ ...current, query: event.target.value }))}
+                    />
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Tipo</span>
+                    <select
+                      value={financialFocusWindow.tipo}
+                      onChange={(event) => setFinancialFocusWindow((current) => ({ ...current, tipo: event.target.value }))}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="entrada">Entradas</option>
+                      <option value="saida">Saídas</option>
+                    </select>
+                  </label>
+                  <label className="financial-filter-dropdown__field">
+                    <span>Status</span>
+                    <select
+                      value={financialFocusWindow.status}
+                      onChange={(event) => setFinancialFocusWindow((current) => ({ ...current, status: event.target.value }))}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="abertos">Abertos</option>
+                      <option value="confirmados">Confirmados</option>
+                      <option value="previsto">Previsto</option>
+                      <option value="vencido">Vencido</option>
+                    </select>
+                  </label>
+                  <div className="flex items-end gap-2">
+                    <ActionButton
+                      label={financialFocusWindow.tipo === 'saida' ? 'Adicionar despesa' : 'Adicionar lançamento'}
+                      className="btn--header btn--header-new"
+                      icon={<AppIcon name="plus" size={14} />}
+                      onClick={() => {
+                        closeFinancialFocusWindow();
+                        openFinancialCreate(financialFocusWindow.tipo === 'saida' ? 'saida' : 'entrada');
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <DataTable
+                    columns={financialFocusColumns}
+                    rows={financialFocusRows.map((item) => ({ key: `focus-${item.id}`, ...item }))}
+                    emptyMessage="Nenhum lançamento encontrado para os filtros aplicados."
+                    paginated
+                    compact
+                    footerTotals={[
+                      { label: 'Registros', value: financialFocusRows.length },
+                      { label: 'Total', value: formatMoney(financialFocusRows.reduce((acc, item) => acc + Number(item.valor || 0), 0)) }
+                    ]}
+                  />
+                </div>
+                <div className="mt-3 flex justify-end gap-2">
+                  <ActionButton label="Fechar foco" className="btn--header btn--header-muted" onClick={closeFinancialFocusWindow} />
                 </div>
               </PanelCard>
             </div>
