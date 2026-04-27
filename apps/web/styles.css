@@ -4491,3 +4491,20 @@ select {
   border: 0;
   background: var(--surface-page);
 }
+
+
+/* Patients legacy framework bridge */
+.patients-legacy-frame {
+  padding: 0;
+  border: 1px solid var(--financial-outline);
+  border-radius: var(--financial-radius);
+  overflow: hidden;
+  background: var(--financial-surface);
+}
+
+.patients-legacy-frame__iframe {
+  width: 100%;
+  min-height: 78vh;
+  border: 0;
+  background: var(--surface-page);
+}

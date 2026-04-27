@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Pacientes</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="../shared/html-widget-common.css" />
+    <link rel="stylesheet" href="./pacientes.css" />
+  </head>
+  <body>
+    <main class="pacientes-page" data-pacientes-app>
+      <header class="pacientes-page__header financeiro-screen-header">
+        <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><span>Início</span><span>/</span><strong>Pacientes</strong></p>
+        <div class="financeiro-screen-header__main">
+          <div class="financeiro-screen-header__icon" aria-hidden="true">🦷</div>
+          <div class="financeiro-screen-header__content">
+            <p class="financeiro-eyebrow">Gestão de pacientes odontológicos</p>
+            <h1>Cadastro e edição de pacientes</h1>
+            <p class="financeiro-subtitle">Módulo inicial para cadastro, edição e resumo por clínica ativa com sincronização para backend local.</p>
+            <p class="pacientes-info" data-patient-info></p>
+          </div>
+        </div>
+      </header>
+
+      <section class="pacientes-kpi-grid" aria-label="Resumo dos pacientes">
+        <article class="pacientes-kpi-card" data-kpi="total"></article>
+        <article class="pacientes-kpi-card" data-kpi="active"></article>
+        <article class="pacientes-kpi-card" data-kpi="new-month"></article>
+      </section>
+
+      <section class="pacientes-section">
+        <header class="pacientes-section__header">
+          <h2>Pacientes cadastrados</h2>
+          <div class="pacientes-section__actions">
+            <button type="button" class="pacientes-btn pacientes-btn--ghost" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="pacientes-btn" data-action="new-patient">Novo paciente</button>
+          </div>
+        </header>
+
+        <div class="pacientes-filter-row">
+          <label for="patient-search">Pesquisar</label>
+          <input id="patient-search" type="search" placeholder="Nome, CPF ou telefone" data-filter="search" />
+        </div>
+
+        <div class="pacientes-table-wrap">
+          <table class="pacientes-table" aria-label="Tabela de pacientes cadastrados">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Contato</th>
+                <th>Documento</th>
+                <th>Convênio</th>
+                <th>Última consulta</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody data-grid="patients"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="pacientes-section" data-legacy="true">
+        <header class="pacientes-section__header">
+          <h2>Dados legados (obsoletos)</h2>
+        </header>
+        <p class="pacientes-legacy-note">Marcadores preservados para facilitar limpeza futura após validar o novo fluxo de pacientes.</p>
+        <ul class="pacientes-chip-row" data-grid="legacy"></ul>
+      </section>
+
+      <section class="pacientes-section">
+        <header class="pacientes-section__header">
+          <h2>Backend local (modelagem)</h2>
+        </header>
+        <form class="pacientes-backend" data-backend-form>
+          <label>Endpoint local
+            <input type="url" name="endpoint" placeholder="http://localhost:3000/api/patients" required />
+          </label>
+          <menu>
+            <button type="submit" class="pacientes-btn">Sincronizar pacientes</button>
+          </menu>
+          <p class="pacientes-backend__status" data-backend-status>Pronto para testar integração local.</p>
+        </form>
+      </section>
+    </main>
+
+    <dialog class="pacientes-dialog" data-dialog="patient">
+      <form method="dialog" class="pacientes-form" data-form="patient">
+        <h3 data-form-title="patient">Novo paciente</h3>
+        <input type="hidden" name="id" />
+        <label>Nome completo
+          <input name="full_name" required maxlength="100" />
+        </label>
+        <label>Telefone
+          <input name="phone" maxlength="30" />
+        </label>
+        <label>E-mail
+          <input type="email" name="email" maxlength="100" />
+        </label>
+        <label>CPF
+          <input name="document_number" maxlength="14" placeholder="000.000.000-00" />
+        </label>
+        <label>Convênio
+          <input name="insurance_name" maxlength="80" placeholder="Particular" />
+        </label>
+        <label>Última consulta
+          <input type="date" name="last_visit" />
+        </label>
+        <label>Status
+          <select name="status" required>
+            <option value="active">Ativo</option>
+            <option value="attention">Atenção</option>
+            <option value="inactive">Inativo</option>
+          </select>
+        </label>
+        <menu>
+          <button value="cancel" class="pacientes-btn pacientes-btn--ghost">Cancelar</button>
+          <button value="default" class="pacientes-btn">Salvar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./pacientes.js"></script>
+  </body>
+</html>

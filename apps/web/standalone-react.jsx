@@ -333,6 +333,11 @@ if (!clinicComponentFactories.createClinicLegacyFrame) {
   throw new Error('Frame de clínicas não carregado. Verifique os scripts em index.html.');
 }
 const ClinicLegacyFrame = clinicComponentFactories.createClinicLegacyFrame();
+const patientComponentFactories = globalThis.OdontoFlowPatientComponents || {};
+if (!patientComponentFactories.createPatientsLegacyFrame) {
+  throw new Error('Frame de pacientes não carregado. Verifique os scripts em index.html.');
+}
+const PatientsLegacyFrame = patientComponentFactories.createPatientsLegacyFrame();
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -2117,13 +2122,8 @@ function DashboardApp({
 
     if (activeTab === 'patients') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: 'users', title: 'Pacientes', subtitle: 'Gestão do cadastro clínico e prontuário', actions: [] })}
-          <DataColumns columns={3}>
-            <PlaceholderSection title="Seção 1 · Lista de pacientes" notes={['Modelo padrão existente: tabela com ações e paginação.', 'Implantação posterior na sprint de Pacientes.']} />
-            <PlaceholderSection title="Seção 2 · Perfil clínico" notes={['Modelo padrão existente: cards de dados e histórico.', 'Definição de colunas e campos fica para próxima etapa.']} />
-            <PlaceholderSection title="Seção 3 · Ações em lote" notes={['Modelo padrão existente: toolbar + seleção múltipla.', 'Implementação posterior no detalhamento da tela.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <PatientsLegacyFrame src="./apps/web/src/patients/pacientes.html" />
         </div>
       );
     }
