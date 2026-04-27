@@ -61,7 +61,7 @@
             emptyMessage={emptyMessage}
             paginated
             compact
-            keepEmptyRows
+            keepEmptyRows={false}
             footerClassName="financial-widget__footer"
             footerTotals={footerTotals}
           />

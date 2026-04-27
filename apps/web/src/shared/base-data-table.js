@@ -133,9 +133,9 @@
                       aria-label={column.sortable === false ? `${column.label} sem ordenação` : `Ordenar por ${column.label}`}
                     >
                       <span>{column.label}</span>
-                      {column.sortable === false ? null : (
+                      {column.sortable === false || sortConfig.key !== column.key ? null : (
                         <span className="data-table__sort-indicator" aria-hidden="true">
-                          {sortConfig.key === column.key ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
                         </span>
                       )}
                     </button>

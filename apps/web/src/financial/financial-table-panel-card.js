@@ -55,7 +55,7 @@
             rows={rows}
             paginated
             compact
-            keepEmptyRows
+            keepEmptyRows={false}
             footerClassName="financial-widget__footer"
             footerTotals={[
               { label: 'Registros', value: rows.length },

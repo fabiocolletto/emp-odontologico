@@ -4047,10 +4047,10 @@ select {
   overflow: hidden;
 }
 
-.financial-widget--single { --financial-widget-height: 356px; }
-.financial-widget--double { --financial-widget-height: 332px; }
-.financial-widget--triple { --financial-widget-height: 292px; }
-.financial-widget--compact { --financial-widget-height: 276px; }
+.financial-widget--single { --financial-widget-height: 338px; }
+.financial-widget--double { --financial-widget-height: 314px; }
+.financial-widget--triple { --financial-widget-height: 276px; }
+.financial-widget--compact { --financial-widget-height: 260px; }
 
 .financial-widget__header {
   min-height: 44px;

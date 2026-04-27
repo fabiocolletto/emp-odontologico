@@ -6,6 +6,14 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+
+## v1.1.50 - 2026-04-27
+
+### Fixed
+- Indicador de ordenação nas tabelas dos widgets financeiros agora fica visível somente na coluna ativa de ordenação.
+- Reduzido o espaço vazio na parte inferior dos widgets de tabela ao remover linhas placeholder nos cards principais.
+- Ajustadas alturas base dos widgets (`single/double/triple/compact`) para densidade mais equilibrada sem quebrar o alinhamento por linha.
+
 ## v1.1.49 - 2026-04-27
 
 ### Fixed
