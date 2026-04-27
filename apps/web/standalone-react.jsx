@@ -2715,7 +2715,7 @@ function DashboardApp({
         secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
         ratio: receiptRatio,
         ratioLabel: `${(receiptRatio * 100).toFixed(0)}% recebido`,
-        trendSeries: receitasTimeline.map((entry) => entry.total),
+        trendSeries: receitasTimeline.map((entry) => entry.total).slice(-3),
         trendLabel: 'Linha de receitas',
         chartTone: '#10b981',
         chartVariant: 'line',
@@ -2733,7 +2733,7 @@ function DashboardApp({
         secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
         ratio: expenseRatio,
         ratioLabel: `${(expenseRatio * 100).toFixed(0)}% quitado`,
-        trendSeries: despesasTimeline.map((entry) => entry.total),
+        trendSeries: despesasTimeline.map((entry) => entry.total).slice(-3),
         trendLabel: 'Linha de despesas',
         chartTone: '#f43f5e',
         chartVariant: 'area',
@@ -2751,7 +2751,7 @@ function DashboardApp({
         secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
         ratio: reconciliationRatio,
         ratioLabel: `${(reconciliationRatio * 100).toFixed(0)}% cobertura`,
-        trendSeries: conciliacaoTimeline.map((entry) => entry.total),
+        trendSeries: conciliacaoTimeline.map((entry) => entry.total).slice(-3),
         trendLabel: 'Linha de conciliação',
         chartTone: '#3b82f6',
         chartVariant: 'line',
@@ -3058,8 +3058,10 @@ function DashboardApp({
           <FinancialSectionColumns variant="hero">
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
               {financialHeroWidgets.map((widget) => {
+                const trendMax = Math.max(...widget.trendSeries, 1);
+                const trendAxis = [trendMax, trendMax * 0.5, 0];
                 return (
-                  <article key={widget.key} className={`financial-hero-widget financial-widget financial-widget--summary financial-widget--triple ${widget.toneClass}`.trim()}>
+                  <article key={widget.key} className={`financial-summary-widget financial-hero-widget financial-widget financial-widget--summary financial-widget--triple ${widget.toneClass}`.trim()}>
                     <div className="financial-widget__header">
                       <p className="financial-hero-widget__eyebrow financial-widget__title">
                         <span className={`financial-widget__title-icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
@@ -3073,42 +3075,42 @@ function DashboardApp({
                         />
                       </div>
                     </div>
-                    <div className="financial-hero-widget__body financial-widget__body">
-                      <div className="financial-hero-widget__summary">
-                        <p className="financial-hero-widget__value">{widget.primary}</p>
-                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
+                    <div className="financial-summary-widget__body financial-hero-widget__body financial-widget__body">
+                      <div className="financial-summary-widget__hero">
+                        <div className="financial-summary-widget__metric financial-hero-widget__summary">
+                          <p className="financial-summary-widget__value financial-hero-widget__value">{widget.primary}</p>
+                          <p className="financial-summary-widget__subtitle financial-hero-widget__caption">{widget.secondary}</p>
+                        </div>
+                        <div className="financial-summary-widget__donut">
+                          <ChartDonut
+                            value={widget.ratio}
+                            label={widget.ratioLabel}
+                            tone={widget.chartTone}
+                            size={84}
+                          />
+                        </div>
                       </div>
-                      <ChartDonut
-                        value={widget.ratio}
-                        label={widget.ratioLabel}
-                        tone={widget.chartTone}
-                        size={82}
-                      />
-                    </div>
-                    <div className="financial-hero-widget__trend">
-                      <div className="financial-hero-widget__trend-axis">
-                        {(() => {
-                          const max = Math.max(...widget.trendSeries, 1);
-                          const axis = [max, max * 0.66, max * 0.33, 0];
-                          return axis.map((value, index) => (
+                      <div className="financial-summary-widget__timeline financial-hero-widget__trend">
+                        <div className="financial-hero-widget__trend-axis">
+                          {trendAxis.map((value, index) => (
                             <span key={`axis-${widget.key}-${index}`}>{formatMoney(value)}</span>
-                          ));
-                        })()}
-                      </div>
-                      <div className="financial-hero-widget__trend-bars">
-                        {widget.trendSeries.map((point, index) => {
-                          const max = Math.max(...widget.trendSeries, 1);
-                          const height = Math.max(8, (point / max) * 100);
-                          return (
-                            <div key={`trend-${widget.key}-${index}`} className="financial-hero-widget__trend-bar-item">
-                              <span className="financial-hero-widget__trend-bar" style={{ height: `${height}%`, background: widget.chartTone }} />
-                              <small>M{index + 1}</small>
-                            </div>
-                          );
-                        })}
+                          ))}
+                        </div>
+                        <div className="financial-hero-widget__trend-bars">
+                          <span className="financial-summary-widget__timeline-grid" aria-hidden="true" />
+                          {widget.trendSeries.map((point, index) => {
+                            const height = Math.max(18, (point / trendMax) * 100);
+                            return (
+                              <div key={`trend-${widget.key}-${index}`} className="financial-hero-widget__trend-bar-item">
+                                <span className="financial-hero-widget__trend-bar" style={{ height: `${height}%`, background: widget.chartTone }} />
+                                <small>M{index + 1}</small>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
-                    <footer className="financial-hero-widget__footer financial-widget__footer">
+                    <footer className="financial-summary-widget__footer financial-hero-widget__footer financial-widget__footer">
                       <p>{widget.ratioLabel}</p>
                       <p>{widget.trendLabel}</p>
                     </footer>

@@ -7,6 +7,17 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.51 - 2026-04-27
+
+### Changed
+- Ajustada a composição dos três widgets do bloco **Resumo financeiro estratégico** para um contrato executivo consistente (`financial-summary-widget`) com hierarquia clara entre KPI principal, subtítulo, indicador circular e timeline.
+- Corrigido o corte/compressão da rosca nos cards de **Receitas consolidadas**, **Despesas consolidadas** e **Conciliação financeira**, com área dedicada e responsiva para manter o donut inteiro e texto central legível.
+- Reequilibrada a leitura visual do gráfico temporal inferior (eixo compacto, grade de apoio e labels `M1`, `M2`, `M3`) para reduzir vazio e conectar o bloco ao KPI superior.
+- Mantida a seção **Operação financeira diária** sem alterações estruturais/visuais, preservando contrato atual.
+
+### Validation
+- Validação responsiva executada para desktop amplo, tablet retrato e mobile, incluindo estabilidade de altura entre os três widgets do resumo estratégico e footer ancorado na base.
+
 ## v1.1.50 - 2026-04-27
 
 ### Fixed
