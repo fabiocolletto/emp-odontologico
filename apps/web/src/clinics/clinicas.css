@@ -1,0 +1,185 @@
+:root {
+  --clinicas-bg: var(--surface-page);
+  --clinicas-card: var(--surface-solid);
+  --clinicas-border: var(--border-soft);
+}
+
+body {
+  margin: 0;
+  background: var(--clinicas-bg);
+  color: var(--text-strong);
+  font-family: var(--font-family-sans);
+}
+
+.clinicas-page {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.clinicas-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.clinicas-kpi-card,
+.clinicas-section {
+  background: var(--clinicas-card);
+  border: 1px solid var(--clinicas-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.clinicas-kpi-card {
+  padding: var(--space-4);
+}
+
+.clinicas-kpi-card h3,
+.clinicas-kpi-card p {
+  margin: 0;
+}
+
+.clinicas-kpi-card p {
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.clinicas-section {
+  padding: var(--space-4);
+}
+
+.clinicas-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.clinicas-section__header h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.clinicas-btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-500);
+  color: var(--text-on-brand);
+  padding: .5rem .9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clinicas-btn--ghost {
+  background: transparent;
+  border-color: var(--clinicas-border);
+  color: var(--text-base);
+}
+
+.clinicas-table-wrap {
+  overflow: auto;
+}
+
+.clinicas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.clinicas-table th,
+.clinicas-table td {
+  padding: .6rem;
+  border-bottom: 1px solid var(--clinicas-border);
+  text-align: left;
+}
+
+.clinicas-table th {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+.clinicas-section__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.clinicas-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clinicas-chip-row li {
+  border: 1px dashed var(--clinicas-border);
+  border-radius: var(--radius-pill);
+  padding: .3rem .6rem;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.clinicas-dialog { border: 0; border-radius: var(--radius-lg); padding: 0; width: min(520px, calc(100% - 2rem)); }
+.clinicas-form { display: grid; gap: var(--space-3); padding: var(--space-4); }
+.clinicas-form h3 { margin: 0; }
+.clinicas-form label { display: grid; gap: .35rem; font-size: var(--font-size-sm); }
+.clinicas-form input,
+.clinicas-form select {
+  border: 1px solid var(--clinicas-border);
+  border-radius: var(--radius-sm);
+  padding: .5rem .7rem;
+}
+.clinicas-form menu { margin: 0; padding: 0; display: flex; justify-content: flex-end; gap: .5rem; }
+
+.clinicas-backend {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.clinicas-backend label {
+  display: grid;
+  gap: .35rem;
+}
+
+.clinicas-backend input {
+  border: 1px solid var(--clinicas-border);
+  border-radius: var(--radius-sm);
+  padding: .5rem .7rem;
+}
+
+.clinicas-backend__status,
+.clinicas-sample-info,
+.clinicas-legacy-note {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--font-size-xs);
+}
+
+.clinicas-pill {
+  display: inline-flex;
+  padding: .2rem .5rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+.clinicas-pill.is-active { background: #dcfce7; color: #166534; }
+.clinicas-pill.is-trial { background: #dbeafe; color: #1d4ed8; }
+.clinicas-pill.is-inactive { background: #fef3c7; color: #92400e; }
+.clinicas-pill.is-archived { background: #f1f5f9; color: #475569; }
+
+.clinicas-link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--color-brand-600);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600;
+}

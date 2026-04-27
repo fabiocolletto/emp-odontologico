@@ -328,6 +328,11 @@ if (!financialComponentFactories.createFinancialLegacyFrame) {
   throw new Error('Frame financeiro não carregado. Verifique os scripts em index.html.');
 }
 const FinancialLegacyFrame = financialComponentFactories.createFinancialLegacyFrame();
+const clinicComponentFactories = globalThis.OdontoFlowClinicComponents || {};
+if (!clinicComponentFactories.createClinicLegacyFrame) {
+  throw new Error('Frame de clínicas não carregado. Verifique os scripts em index.html.');
+}
+const ClinicLegacyFrame = clinicComponentFactories.createClinicLegacyFrame();
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -2137,13 +2142,8 @@ function DashboardApp({
 
     if (activeTab === 'clinic') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais', actions: [] })}
-          <DataColumns columns={3}>
-            <PlaceholderSection title="Seção 1 · Dados cadastrais" notes={['Modelo padrão existente: seção de dados em 1/2/3 colunas.', 'Implantação posterior com campos de cadastro e validação.']} />
-            <PlaceholderSection title="Seção 2 · Fiscal e contratos" notes={['Modelo padrão existente: tabelas + ações de edição.', 'Regras serão definidas na sprint da tela Clínica.']} />
-            <PlaceholderSection title="Seção 3 · Equipe e unidades" notes={['Modelo padrão existente: cartões e listas reutilizáveis.', 'Implementação posterior conforme roadmap.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <ClinicLegacyFrame src="./apps/web/src/clinics/clinicas.html" />
         </div>
       );
     }

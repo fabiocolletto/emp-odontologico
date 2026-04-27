@@ -4475,3 +4475,19 @@ select {
   border: 0;
   background: var(--surface-page);
 }
+
+/* Clinics legacy framework bridge */
+.clinic-legacy-frame {
+  padding: 0;
+  border: 1px solid var(--financial-outline);
+  border-radius: var(--financial-radius);
+  overflow: hidden;
+  background: var(--financial-surface);
+}
+
+.clinic-legacy-frame__iframe {
+  width: 100%;
+  min-height: 78vh;
+  border: 0;
+  background: var(--surface-page);
+}
