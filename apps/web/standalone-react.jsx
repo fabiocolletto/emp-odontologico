@@ -74,6 +74,7 @@ const NAV_PRIMARY = [
   { id: 'agenda', label: 'Agenda', icon: 'calendar', tone: 'agenda', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', icon: 'users', tone: 'patients', group: 'Cadastros' },
   { id: 'clinic', label: 'Clínica', icon: 'id-card', tone: 'account', group: 'Gestão' },
+  { id: 'team', label: 'Equipe', icon: 'users', tone: 'patients', group: 'Gestão' },
   { id: 'financial', label: 'Financeiro', icon: 'plan', tone: 'settings', group: 'Gestão' },
   { id: 'profile', label: 'Perfil', icon: 'id-card', tone: 'account', group: 'Gestão' }
 ];
@@ -328,6 +329,31 @@ if (!financialComponentFactories.createFinancialLegacyFrame) {
   throw new Error('Frame financeiro não carregado. Verifique os scripts em index.html.');
 }
 const FinancialLegacyFrame = financialComponentFactories.createFinancialLegacyFrame();
+const agendaComponentFactories = globalThis.OdontoFlowAgendaComponents || {};
+if (!agendaComponentFactories.createAgendaLegacyFrame) {
+  throw new Error('Frame de agenda não carregado. Verifique os scripts em index.html.');
+}
+const AgendaLegacyFrame = agendaComponentFactories.createAgendaLegacyFrame();
+const clinicComponentFactories = globalThis.OdontoFlowClinicComponents || {};
+if (!clinicComponentFactories.createClinicLegacyFrame) {
+  throw new Error('Frame de clínicas não carregado. Verifique os scripts em index.html.');
+}
+const ClinicLegacyFrame = clinicComponentFactories.createClinicLegacyFrame();
+const patientComponentFactories = globalThis.OdontoFlowPatientComponents || {};
+if (!patientComponentFactories.createPatientsLegacyFrame) {
+  throw new Error('Frame de pacientes não carregado. Verifique os scripts em index.html.');
+}
+const PatientsLegacyFrame = patientComponentFactories.createPatientsLegacyFrame();
+const teamComponentFactories = globalThis.OdontoFlowTeamComponents || {};
+if (!teamComponentFactories.createTeamLegacyFrame) {
+  throw new Error('Frame de equipe não carregado. Verifique os scripts em index.html.');
+}
+const TeamLegacyFrame = teamComponentFactories.createTeamLegacyFrame();
+const profileLegacyComponentFactories = globalThis.OdontoFlowProfileLegacyComponents || {};
+if (!profileLegacyComponentFactories.createProfileLegacyFrame) {
+  throw new Error('Frame de perfil não carregado. Verifique os scripts em index.html.');
+}
+const ProfileLegacyFrame = profileLegacyComponentFactories.createProfileLegacyFrame();
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -2012,6 +2038,14 @@ function DashboardApp({
         ariaLabel: 'Abrir clínica',
         onClick: () => goToLevel1('clinic')
       },
+      team: {
+        key: 'team',
+        icon: 'users',
+        tone: 'patients',
+        label: 'Equipe',
+        ariaLabel: 'Abrir equipe',
+        onClick: () => goToLevel1('team')
+      },
       profile: {
         key: 'profile',
         icon: TAB_META.profile.icon,
@@ -2026,7 +2060,7 @@ function DashboardApp({
       overview: {
         level: 0,
         previous: null,
-        next: ['agenda', 'patients', 'clinic', 'financial', 'profile']
+        next: ['agenda', 'patients', 'clinic', 'team', 'financial', 'profile']
       },
       agenda: {
         level: 1,
@@ -2039,6 +2073,11 @@ function DashboardApp({
         next: ['new-patient', 'patients-search', 'patients-sort', 'patients-multi']
       },
       clinic: {
+        level: 1,
+        previous: 'overview',
+        next: []
+      },
+      team: {
         level: 1,
         previous: 'overview',
         next: []
@@ -2100,50 +2139,40 @@ function DashboardApp({
 
     if (activeTab === 'agenda') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: 'calendar', title: 'Agenda', subtitle: 'Planejamento de atendimentos e compromissos', actions: [] })}
-          <DataColumns columns={2}>
-            <PlaceholderSection title="Seção 1 · Grade de horários" notes={['Modelo padrão existente: DataSection + DataColumns(2).', 'Implantação posterior para regras de bloqueio, encaixe e conflito.']} />
-            <PlaceholderSection title="Seção 2 · Filtros e status" notes={['Modelo padrão existente: filtros por coluna e badges.', 'Conteúdo e colunas serão definidos na sprint da Agenda.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <AgendaLegacyFrame src="./apps/web/src/agenda/agenda.html" />
         </div>
       );
     }
 
     if (activeTab === 'patients') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: 'users', title: 'Pacientes', subtitle: 'Gestão do cadastro clínico e prontuário', actions: [] })}
-          <DataColumns columns={3}>
-            <PlaceholderSection title="Seção 1 · Lista de pacientes" notes={['Modelo padrão existente: tabela com ações e paginação.', 'Implantação posterior na sprint de Pacientes.']} />
-            <PlaceholderSection title="Seção 2 · Perfil clínico" notes={['Modelo padrão existente: cards de dados e histórico.', 'Definição de colunas e campos fica para próxima etapa.']} />
-            <PlaceholderSection title="Seção 3 · Ações em lote" notes={['Modelo padrão existente: toolbar + seleção múltipla.', 'Implementação posterior no detalhamento da tela.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <PatientsLegacyFrame src="./apps/web/src/patients/pacientes.html" />
         </div>
       );
     }
 
     if (activeTab === 'profile') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: TAB_META.profile.icon, title: 'Perfil', subtitle: 'Auth Supabase e preferências pessoais', actions: [] })}
-          <DataColumns columns={2}>
-            <PlaceholderSection title="Seção 1 · Conta e segurança" notes={['Modelo padrão existente: DataSection + formulários padrão.', 'Implantação posterior na sprint da tela Perfil.']} />
-            <PlaceholderSection title="Seção 2 · Preferências e clínicas" notes={['Modelo padrão existente: colunas de dados configuráveis.', 'Conteúdo e contratos serão definidos quando abrirmos a tela Perfil.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <ProfileLegacyFrame src="./apps/web/src/profile/perfil.html" />
         </div>
       );
     }
 
     if (activeTab === 'clinic') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: 'id-card', title: 'Clínica', subtitle: 'Gestão da clínica e dados cadastrais', actions: [] })}
-          <DataColumns columns={3}>
-            <PlaceholderSection title="Seção 1 · Dados cadastrais" notes={['Modelo padrão existente: seção de dados em 1/2/3 colunas.', 'Implantação posterior com campos de cadastro e validação.']} />
-            <PlaceholderSection title="Seção 2 · Fiscal e contratos" notes={['Modelo padrão existente: tabelas + ações de edição.', 'Regras serão definidas na sprint da tela Clínica.']} />
-            <PlaceholderSection title="Seção 3 · Equipe e unidades" notes={['Modelo padrão existente: cartões e listas reutilizáveis.', 'Implementação posterior conforme roadmap.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <ClinicLegacyFrame src="./apps/web/src/clinics/clinicas.html" />
+        </div>
+      );
+    }
+
+    if (activeTab === 'team') {
+      return (
+        <div className="space-y-2">
+          <TeamLegacyFrame src="./apps/web/src/team/equipe.html" />
         </div>
       );
     }
@@ -2172,6 +2201,7 @@ function DashboardApp({
       ],
       center: { key: 'overview-clinic', icon: 'id-card', tone: 'account', label: 'Clínica', onClick: () => goToLevel1('clinic') },
       right: [
+        { key: 'overview-team', icon: 'users', tone: 'patients', label: 'Equipe', onClick: () => goToLevel1('team') },
         { key: 'overview-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') },
         { key: 'overview-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
       ]
@@ -2211,7 +2241,18 @@ function DashboardApp({
       ],
       center: { key: 'clinic-add', icon: 'plus', tone: 'account', label: 'Adicionar', onClick: handleOpenClinicCreateN2 },
       right: [
+        { key: 'clinic-team', icon: 'users', tone: 'patients', label: 'Equipe', onClick: () => goToLevel1('team') },
         { key: 'clinic-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+      ]
+    },
+    team: {
+      left: [
+        { key: 'team-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
+        { key: 'team-clinic', icon: 'id-card', tone: 'account', label: 'Clínica', onClick: () => goToLevel1('clinic') }
+      ],
+      center: { key: 'team-panel', icon: 'users', tone: 'patients', label: 'Painel', onClick: () => goToLevel1('team') },
+      right: [
+        { key: 'team-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') }
       ]
     },
     profile: {

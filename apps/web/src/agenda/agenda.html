@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Agenda</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="../shared/html-widget-common.css" />
+    <link rel="stylesheet" href="./agenda.css" />
+  </head>
+  <body>
+    <main class="agenda-page of-main-inner of-view-level-1" data-agenda-app data-nav-level="1">
+      <header class="agenda-page__header financeiro-screen-header">
+        <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><span>Início</span><span>/</span><strong>Agenda</strong></p>
+        <div class="financeiro-screen-header__main">
+          <div class="financeiro-screen-header__icon" aria-hidden="true">📅</div>
+          <div class="financeiro-screen-header__content">
+            <p class="financeiro-eyebrow">Gestão de agenda clínica</p>
+            <h1>Agenda de atendimentos</h1>
+            <p class="financeiro-subtitle">Tela objetiva para planejamento diário, confirmação e controle de faltas, pronta para expansão com regras avançadas.</p>
+            <p class="agenda-info" data-agenda-info></p>
+          </div>
+        </div>
+      </header>
+
+      <section class="agenda-kpi-grid" aria-label="Resumo da agenda">
+        <article class="agenda-kpi-card" data-kpi="today"></article>
+        <article class="agenda-kpi-card" data-kpi="confirmed"></article>
+        <article class="agenda-kpi-card" data-kpi="queue"></article>
+      </section>
+
+      <section class="agenda-section">
+        <header class="agenda-section__header">
+          <h2>Atendimentos</h2>
+          <div class="agenda-section__actions">
+            <button type="button" class="agenda-btn agenda-btn--ghost" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="agenda-btn" data-action="new-item">Novo atendimento</button>
+          </div>
+        </header>
+
+        <div class="agenda-filter-row">
+          <label for="agenda-date-filter">Data</label>
+          <input id="agenda-date-filter" type="date" data-filter="date" />
+        </div>
+
+        <div class="agenda-table-wrap">
+          <table class="agenda-table" aria-label="Tabela de agenda">
+            <thead>
+              <tr>
+                <th>Horário</th>
+                <th>Paciente</th>
+                <th>Profissional</th>
+                <th>Procedimento</th>
+                <th>Canal</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody data-grid="appointments"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="agenda-section" data-legacy="true">
+        <header class="agenda-section__header"><h2>Dados legados (obsoletos)</h2></header>
+        <p class="agenda-legacy-note">Marcadores preservados para facilitar limpeza futura após validar este módulo.</p>
+        <ul class="agenda-chip-row" data-grid="legacy"></ul>
+      </section>
+    </main>
+
+    <dialog class="agenda-dialog" data-dialog="item">
+      <form method="dialog" class="agenda-form" data-form="item">
+        <h3 data-form-title="item">Novo atendimento</h3>
+        <input type="hidden" name="id" />
+        <label>Data
+          <input type="date" name="date" required />
+        </label>
+        <label>Horário
+          <input type="time" name="time" required />
+        </label>
+        <label>Paciente
+          <input name="patient_name" required maxlength="100" />
+        </label>
+        <label>Profissional
+          <input name="professional_name" required maxlength="100" />
+        </label>
+        <label>Procedimento
+          <input name="procedure" maxlength="100" />
+        </label>
+        <label>Canal
+          <select name="channel" required>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="telefone">Telefone</option>
+            <option value="presencial">Presencial</option>
+            <option value="site">Site</option>
+          </select>
+        </label>
+        <label>Status
+          <select name="status" required>
+            <option value="confirmed">Confirmado</option>
+            <option value="pending">Pendente</option>
+            <option value="checked_in">Em atendimento</option>
+            <option value="missed">Falta</option>
+            <option value="completed">Concluído</option>
+          </select>
+        </label>
+        <menu>
+          <button value="cancel" class="agenda-btn agenda-btn--ghost">Cancelar</button>
+          <button value="default" class="agenda-btn">Salvar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./agenda.js"></script>
+  </body>
+</html>

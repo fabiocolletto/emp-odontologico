@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Clínicas</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="../shared/html-widget-common.css" />
+    <link rel="stylesheet" href="./clinicas.css" />
+  </head>
+  <body>
+    <main class="clinicas-page of-main-inner of-view-level-1" data-clinicas-app data-nav-level="1">
+      <header class="clinicas-page__header financeiro-screen-header">
+        <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><span>Início</span><span>/</span><strong>Clínicas</strong></p>
+        <div class="financeiro-screen-header__main">
+          <div class="financeiro-screen-header__icon" aria-hidden="true">🏥</div>
+          <div class="financeiro-screen-header__content">
+            <p class="financeiro-eyebrow">Gestão de clínicas odontológicas</p>
+            <h1>Cadastro e edição de clínicas</h1>
+            <p class="financeiro-subtitle">Módulo preparado para modelagem com backend local e operação multi-clínica com uma clínica ativa por usuário.</p>
+            <p class="clinicas-sample-info" data-clinic-info></p>
+          </div>
+        </div>
+      </header>
+
+      <section class="clinicas-kpi-grid" aria-label="Resumo das clínicas">
+        <article class="clinicas-kpi-card" data-kpi="total"></article>
+        <article class="clinicas-kpi-card" data-kpi="active"></article>
+        <article class="clinicas-kpi-card" data-kpi="status"></article>
+      </section>
+
+      <section class="clinicas-section">
+        <header class="clinicas-section__header">
+          <h2>Clínicas cadastradas</h2>
+          <div class="clinicas-section__actions">
+            <button type="button" class="clinicas-btn clinicas-btn--ghost" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="clinicas-btn" data-action="new-clinic">Nova clínica</button>
+          </div>
+        </header>
+        <div class="clinicas-table-wrap">
+          <table class="clinicas-table" aria-label="Tabela de clínicas cadastradas">
+            <thead>
+              <tr>
+                <th>Ativa</th>
+                <th>Nome fantasia</th>
+                <th>Razão social</th>
+                <th>CNPJ</th>
+                <th>Cidade/UF</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody data-grid="clinics"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="clinicas-section" data-legacy="true">
+        <header class="clinicas-section__header">
+          <h2>Dados legados (obsoletos)</h2>
+        </header>
+        <p class="clinicas-legacy-note">Estes marcadores são temporários para facilitar limpeza futura do repositório após validação da nova tela.</p>
+        <ul class="clinicas-chip-row" data-grid="legacy"></ul>
+      </section>
+
+      <section class="clinicas-section">
+        <header class="clinicas-section__header">
+          <h2>Backend local (modelagem)</h2>
+        </header>
+        <form class="clinicas-backend" data-backend-form>
+          <label>Endpoint local
+            <input type="url" name="endpoint" placeholder="http://localhost:3000/api/clinics" required />
+          </label>
+          <menu>
+            <button type="submit" class="clinicas-btn">Sincronizar clínicas</button>
+          </menu>
+          <p class="clinicas-backend__status" data-backend-status>Pronto para testar integração local.</p>
+        </form>
+      </section>
+    </main>
+
+    <dialog class="clinicas-dialog" data-dialog="clinic">
+      <form method="dialog" class="clinicas-form" data-form="clinic">
+        <h3 data-form-title="clinic">Nova clínica</h3>
+        <input type="hidden" name="id" />
+        <label>Nome fantasia
+          <input name="trade_name" required maxlength="100" />
+        </label>
+        <label>Razão social
+          <input name="legal_name" maxlength="140" />
+        </label>
+        <label>CNPJ
+          <input name="document_number" maxlength="18" placeholder="00.000.000/0000-00" />
+        </label>
+        <label>E-mail
+          <input type="email" name="email" maxlength="100" />
+        </label>
+        <label>Telefone
+          <input name="phone" maxlength="30" />
+        </label>
+        <label>Cidade
+          <input name="city" maxlength="60" />
+        </label>
+        <label>UF
+          <input name="state" maxlength="2" />
+        </label>
+        <label>Status
+          <select name="status" required>
+            <option value="active">Ativa</option>
+            <option value="trial">Trial</option>
+            <option value="inactive">Inativa</option>
+            <option value="archived">Arquivada</option>
+          </select>
+        </label>
+        <menu>
+          <button value="cancel" class="clinicas-btn clinicas-btn--ghost">Cancelar</button>
+          <button value="default" class="clinicas-btn">Salvar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./clinicas.js"></script>
+  </body>
+</html>

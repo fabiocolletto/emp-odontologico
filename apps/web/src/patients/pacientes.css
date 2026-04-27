@@ -1,0 +1,189 @@
+:root {
+  --pacientes-bg: var(--surface-page);
+  --pacientes-card: var(--surface-solid);
+  --pacientes-border: var(--border-soft);
+}
+
+body {
+  margin: 0;
+  background: var(--pacientes-bg);
+  color: var(--text-strong);
+  font-family: var(--font-family-sans);
+}
+
+.pacientes-page {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.pacientes-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-3); }
+.pacientes-kpi-card, .pacientes-section { background: var(--pacientes-card); border: 1px solid var(--pacientes-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.pacientes-kpi-card { padding: var(--space-4); }
+.pacientes-kpi-card h3, .pacientes-kpi-card p { margin: 0; }
+.pacientes-kpi-card p { color: var(--text-muted); margin-top: var(--space-1); }
+
+.pacientes-section { padding: var(--space-4); }
+.pacientes-section__header { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.pacientes-section__header h2 { margin: 0; font-size: var(--font-size-lg); }
+.pacientes-section__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.pacientes-btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-500);
+  color: var(--text-on-brand);
+  padding: .5rem .9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pacientes-btn--ghost { background: transparent; border-color: var(--pacientes-border); color: var(--text-base); }
+
+.pacientes-filter-row { display: grid; gap: .35rem; margin-bottom: var(--space-3); }
+.pacientes-filter-row input {
+  border: 1px solid var(--pacientes-border);
+  border-radius: var(--radius-sm);
+  padding: .5rem .7rem;
+}
+
+.pacientes-table-wrap { overflow: auto; }
+.pacientes-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+.pacientes-table th, .pacientes-table td { padding: .6rem; border-bottom: 1px solid var(--pacientes-border); text-align: left; }
+.pacientes-table th { color: var(--text-muted); font-size: var(--font-size-xs); text-transform: uppercase; }
+
+.pacientes-chip-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.pacientes-chip-row li { border: 1px dashed var(--pacientes-border); border-radius: var(--radius-pill); padding: .3rem .6rem; font-size: var(--font-size-xs); color: var(--text-muted); }
+
+.pacientes-dialog { border: 0; border-radius: var(--radius-lg); padding: 0; width: min(520px, calc(100% - 2rem)); }
+.pacientes-form { display: grid; gap: var(--space-3); padding: var(--space-4); }
+.pacientes-form h3 { margin: 0; }
+.pacientes-form label { display: grid; gap: .35rem; font-size: var(--font-size-sm); }
+.pacientes-form input, .pacientes-form select { border: 1px solid var(--pacientes-border); border-radius: var(--radius-sm); padding: .5rem .7rem; }
+.pacientes-form menu { margin: 0; padding: 0; display: flex; justify-content: flex-end; gap: .5rem; }
+
+.pacientes-backend { display: grid; gap: var(--space-2); }
+.pacientes-backend label { display: grid; gap: .35rem; }
+.pacientes-backend input { border: 1px solid var(--pacientes-border); border-radius: var(--radius-sm); padding: .5rem .7rem; }
+
+.pacientes-backend__status,
+.pacientes-info,
+.pacientes-legacy-note { margin: 0; color: var(--text-soft); font-size: var(--font-size-xs); }
+
+.pacientes-pill { display: inline-flex; padding: .2rem .5rem; border-radius: var(--radius-pill); font-size: var(--font-size-xs); text-transform: uppercase; }
+.pacientes-pill.is-active { background: #dcfce7; color: #166534; }
+.pacientes-pill.is-attention { background: #fef3c7; color: #92400e; }
+.pacientes-pill.is-inactive { background: #f1f5f9; color: #475569; }
+
+.pacientes-link-btn { border: 0; background: transparent; color: var(--color-brand-600); cursor: pointer; text-decoration: underline; font-weight: 600; }
+
+/* iPad / tablet layout */
+@media (max-width: 1024px) {
+  .pacientes-page {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .pacientes-section,
+  .pacientes-kpi-card {
+    border-radius: var(--radius-md);
+  }
+
+  .pacientes-section__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pacientes-btn,
+  .pacientes-link-btn {
+    min-height: 44px;
+  }
+
+  .pacientes-filter-row input,
+  .pacientes-form input,
+  .pacientes-form select,
+  .pacientes-backend input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+/* iOS phone layout */
+@media (max-width: 767px) {
+  .pacientes-page {
+    padding: var(--space-3);
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+
+  .pacientes-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pacientes-section__actions,
+  .pacientes-backend menu,
+  .pacientes-form menu {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .pacientes-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pacientes-dialog {
+    width: calc(100% - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .pacientes-form {
+    max-height: calc(100dvh - 3rem);
+    overflow: auto;
+  }
+
+  .pacientes-table thead {
+    display: none;
+  }
+
+  .pacientes-table,
+  .pacientes-table tbody,
+  .pacientes-table tr,
+  .pacientes-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .pacientes-table tr {
+    border: 1px solid var(--pacientes-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    margin-bottom: var(--space-2);
+    background: var(--surface-soft);
+  }
+
+  .pacientes-table td {
+    border: 0;
+    padding: .4rem 0;
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .pacientes-table td::before {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  .pacientes-table td:nth-child(1)::before { content: 'Nome'; }
+  .pacientes-table td:nth-child(2)::before { content: 'Contato'; }
+  .pacientes-table td:nth-child(3)::before { content: 'Documento'; }
+  .pacientes-table td:nth-child(4)::before { content: 'Convênio'; }
+  .pacientes-table td:nth-child(5)::before { content: 'Últ. consulta'; }
+  .pacientes-table td:nth-child(6)::before { content: 'Status'; }
+  .pacientes-table td:nth-child(7)::before { content: 'Ações'; }
+}
