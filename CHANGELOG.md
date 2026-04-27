@@ -7,6 +7,19 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.54 - 2026-04-27
+
+### Changed
+- Adoção do **Chart.js via CDN** como padrão oficial de gráficos da tela Financeiro, mantendo compatibilidade com GitHub Pages sem build step e sem dependências instaladas por pacote.
+- Consolidação do wrapper interno de gráficos em `apps/web/src/shared/chart-catalog.js`, centralizando criação, atualização e cleanup das instâncias Chart.js.
+- Substituição dos gráficos compactos dos três hubs superiores (Receita, Despesa e Conciliação) por Chart.js (`doughnut` + `bar` compacto) com fallback quando `globalThis.Chart` não estiver disponível.
+- Evolução dos três widgets superiores para hubs com abas internas independentes **Resumo/Tabela**, mantendo altura fixa dos cards e sem alterar os widgets inferiores da operação.
+- Ajustes de estilo para integração visual premium dos charts (`of-chart`) no design system existente, com remoção de ruído visual (legenda/tooltip padrão) e responsividade em desktop/tablet/mobile.
+
+### Validation
+- Validação técnica executada em contrato de framework e runtime smoke.
+- Validação visual planejada para abertura da tela Financeiro, troca de abas por widget, carregamento do CDN Chart.js, ausência de overflow horizontal e cleanup dos gráficos ao alternar visões.
+
 ## v1.1.53 - 2026-04-27
 
 ### Changed
