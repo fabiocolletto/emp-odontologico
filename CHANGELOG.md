@@ -7,6 +7,17 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.53 - 2026-04-27
+
+### Changed
+- Refinado o framework visual da tela **Financeiro** com foco em afastamentos, alinhamentos e consistência de superfícies no padrão Material Design 3 (ou similar), via tokens dedicados para widgets financeiros.
+- Ajustado o bloco **Resumo financeiro estratégico** com espaçamentos internos mais equilibrados entre KPI/rosca/timeline/footer para leitura mais fluida como uma única superfície.
+- Melhorado o respiro dos eixos e labels (`M1`, `M2`, `M3`) do gráfico temporal, evitando sensação de compressão nas bordas laterais e na base do card.
+- Suavizadas divisórias internas (topo do timeline e topo do footer) para reduzir o efeito de blocos separados dentro do mesmo widget.
+
+### Validation
+- Revisão visual/responsiva executada para desktop amplo, tablet retrato e mobile, preservando altura uniforme dos três widgets estratégicos e legibilidade geral da composição.
+
 ## v1.1.52 - 2026-04-27
 
 ### Changed
