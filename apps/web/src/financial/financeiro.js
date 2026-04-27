@@ -1,33 +1,43 @@
 (function registerFinancialFramework(global) {
-  const STORAGE_KEY = 'odontoflow-financeiro-framework-v2';
+  const STORAGE_KEY = 'odontoflow-financeiro-framework-v3';
 
   const model = {
     launches: [
       { id: 101, tipo: 'entrada', descricao: 'Consulta clínica inicial', categoria: 'Atendimento', data_vencimento: '2026-04-03', valor: 260, status: 'recebido' },
       { id: 102, tipo: 'entrada', descricao: 'Clareamento dental', categoria: 'Estética', data_vencimento: '2026-04-05', valor: 1400, status: 'recebido' },
       { id: 103, tipo: 'entrada', descricao: 'Repasse convênio abril', categoria: 'Convênio', data_vencimento: '2026-04-20', valor: 4200, status: 'previsto' },
-      { id: 104, tipo: 'entrada', descricao: 'Plano ortodôntico mensal', categoria: 'Ortodontia', data_vencimento: '2026-04-28', valor: 980, status: 'recebido' },
       { id: 201, tipo: 'saida', descricao: 'Aluguel da clínica', categoria: 'Estrutura', data_vencimento: '2026-04-05', valor: 5300, status: 'pago' },
       { id: 202, tipo: 'saida', descricao: 'Laboratório de prótese', categoria: 'Laboratório', data_vencimento: '2026-04-12', valor: 1980, status: 'previsto' },
-      { id: 203, tipo: 'saida', descricao: 'Materiais clínicos', categoria: 'Insumos', data_vencimento: '2026-04-09', valor: 1320, status: 'pago' },
-      { id: 204, tipo: 'saida', descricao: 'Contabilidade mensal', categoria: 'Administrativo', data_vencimento: '2026-04-30', valor: 1180, status: 'previsto' }
+      { id: 203, tipo: 'saida', descricao: 'Materiais clínicos', categoria: 'Insumos', data_vencimento: '2026-04-09', valor: 1320, status: 'pago' }
     ],
     recurring: [
       { id: 1, descricao: 'Aluguel da clínica', valor: 5300, periodicidade: 'mensal', status: 'pago' },
-      { id: 2, descricao: 'Folha de pagamento', valor: 12890, periodicidade: 'mensal', status: 'pendente' },
-      { id: 3, descricao: 'Software de gestão', valor: 690, periodicidade: 'mensal', status: 'pago' },
-      { id: 4, descricao: 'Esterilização terceirizada', valor: 1180, periodicidade: 'semanal', status: 'pendente' }
+      { id: 2, descricao: 'Folha de pagamento', valor: 12890, periodicidade: 'mensal', status: 'pendente' }
+    ],
+    categories: [
+      { id: 1, tipo: 'entrada', nome: 'Atendimento' },
+      { id: 2, tipo: 'entrada', nome: 'Convênio' },
+      { id: 3, tipo: 'saida', nome: 'Estrutura' },
+      { id: 4, tipo: 'saida', nome: 'Laboratório' }
+    ],
+    accounts: [
+      { id: 1, nome: 'Conta Principal', banco: 'Odonto Bank', tipo: 'corrente', saldo_inicial: 15000 },
+      { id: 2, nome: 'Conta Operacional', banco: 'Banco Sul', tipo: 'corrente', saldo_inicial: 8200 },
+      { id: 3, nome: 'Caixa interno', banco: 'Clínica', tipo: 'caixa', saldo_inicial: 3500 }
     ]
   };
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
+  const nextId = () => Date.now() + Math.floor(Math.random() * 1000);
 
   const read = () => {
     try {
       const raw = global.localStorage.getItem(STORAGE_KEY);
       if (!raw) return deepClone(model);
       const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed?.launches) || !Array.isArray(parsed?.recurring)) return deepClone(model);
+      if (!Array.isArray(parsed?.launches) || !Array.isArray(parsed?.recurring) || !Array.isArray(parsed?.categories) || !Array.isArray(parsed?.accounts)) {
+        return deepClone(model);
+      }
       return parsed;
     } catch (error) {
       return deepClone(model);
@@ -35,13 +45,11 @@
   };
 
   const write = (data) => global.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
   const currency = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const datePtBr = (value) => {
     if (!value) return '-';
     const [y, m, d] = String(value).split('-');
-    if (!y || !m || !d) return value;
-    return `${d}/${m}/${y}`;
+    return (y && m && d) ? `${d}/${m}/${y}` : value;
   };
 
   const escapeHtml = (value) => String(value || '')
@@ -57,14 +65,51 @@
     return 'is-warning';
   };
 
+  const upsertById = (rows, payload) => {
+    const id = Number(payload.id || 0);
+    if (!id) return [{ ...payload, id: nextId() }, ...rows];
+    return rows.map((item) => (item.id === id ? { ...item, ...payload, id } : item));
+  };
+
+  const fillForm = (form, payload = {}) => {
+    Array.from(form.elements).forEach((element) => {
+      if (!element.name) return;
+      element.value = payload[element.name] ?? '';
+    });
+  };
+
   const renderStandalone = () => {
     const root = global.document.querySelector('[data-financeiro-app]');
     if (!root) return;
 
-    const body = root.querySelector('[data-grid="lancamentos"]');
-    const recurring = root.querySelector('[data-grid="recorrencias"]');
-    const dialog = root.querySelector('[data-dialog="lancamento"]');
-    const form = root.querySelector('[data-form="lancamento"]');
+    const grids = {
+      launches: root.querySelector('[data-grid="lancamentos"]'),
+      recurring: root.querySelector('[data-grid="recorrencias"]'),
+      categories: root.querySelector('[data-grid="categorias"]'),
+      accounts: root.querySelector('[data-grid="contas"]')
+    };
+
+    const forms = {
+      launch: root.ownerDocument.querySelector('[data-form="lancamento"]'),
+      recurring: root.ownerDocument.querySelector('[data-form="recorrencia"]'),
+      category: root.ownerDocument.querySelector('[data-form="categoria"]'),
+      account: root.ownerDocument.querySelector('[data-form="conta"]')
+    };
+
+    const dialogs = {
+      launch: root.ownerDocument.querySelector('[data-dialog="lancamento"]'),
+      recurring: root.ownerDocument.querySelector('[data-dialog="recorrencia"]'),
+      category: root.ownerDocument.querySelector('[data-dialog="categoria"]'),
+      account: root.ownerDocument.querySelector('[data-dialog="conta"]')
+    };
+
+    const titles = {
+      launch: root.ownerDocument.querySelector('[data-form-title="lancamento"]'),
+      recurring: root.ownerDocument.querySelector('[data-form-title="recorrencia"]'),
+      category: root.ownerDocument.querySelector('[data-form-title="categoria"]'),
+      account: root.ownerDocument.querySelector('[data-form-title="conta"]')
+    };
+
     const kpiReceitas = root.querySelector('[data-kpi="receitas"]');
     const kpiDespesas = root.querySelector('[data-kpi="despesas"]');
     const kpiSaldo = root.querySelector('[data-kpi="saldo"]');
@@ -72,70 +117,157 @@
 
     let state = read();
 
+    const openDialog = (key, payload = {}, title = '') => {
+      fillForm(forms[key], payload);
+      if (title && titles[key]) titles[key].textContent = title;
+      dialogs[key].showModal();
+    };
+
     const paint = () => {
       const launches = [...state.launches].sort((a, b) => String(b.data_vencimento || '').localeCompare(String(a.data_vencimento || '')));
       const receitas = launches.filter((item) => item.tipo === 'entrada').reduce((acc, item) => acc + Number(item.valor || 0), 0);
       const despesas = launches.filter((item) => item.tipo === 'saida').reduce((acc, item) => acc + Number(item.valor || 0), 0);
       const saldo = receitas - despesas;
-      const recebidos = launches.filter((item) => item.tipo === 'entrada' && item.status === 'recebido').length;
-      const previstosSaida = launches.filter((item) => item.tipo === 'saida' && item.status === 'previsto').length;
 
-      kpiReceitas.innerHTML = `<p class="financeiro-kpi-title">Receitas</p><strong class="financeiro-kpi-value">${currency(receitas)}</strong><small>${recebidos} recebidas</small>`;
-      kpiDespesas.innerHTML = `<p class="financeiro-kpi-title">Despesas</p><strong class="financeiro-kpi-value">${currency(despesas)}</strong><small>${previstosSaida} previstas</small>`;
+      kpiReceitas.innerHTML = `<p class="financeiro-kpi-title">Receitas</p><strong class="financeiro-kpi-value">${currency(receitas)}</strong><small>${launches.filter((item) => item.tipo === 'entrada').length} lançamentos</small>`;
+      kpiDespesas.innerHTML = `<p class="financeiro-kpi-title">Despesas</p><strong class="financeiro-kpi-value">${currency(despesas)}</strong><small>${launches.filter((item) => item.tipo === 'saida').length} lançamentos</small>`;
       kpiSaldo.innerHTML = `<p class="financeiro-kpi-title">Saldo</p><strong class="financeiro-kpi-value">${currency(saldo)}</strong><small>${saldo >= 0 ? 'Operação saudável' : 'Atenção ao caixa'}</small>`;
 
-      body.innerHTML = launches.map((item) => `
+      grids.launches.innerHTML = launches.map((item) => `
         <tr>
           <td><span class="financeiro-pill ${item.tipo === 'entrada' ? 'is-in' : 'is-out'}">${escapeHtml(item.tipo)}</span></td>
           <td>${escapeHtml(item.descricao)}</td>
           <td>${escapeHtml(item.categoria)}</td>
           <td>${datePtBr(item.data_vencimento)}</td>
           <td>${currency(item.valor)}</td>
-          <td><span class="financeiro-pill ${statusClass(item.status)}">${escapeHtml(item.status || 'previsto')}</span></td>
+          <td><span class="financeiro-pill ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><button class="financeiro-link-btn" data-edit="launch" data-id="${item.id}">Editar</button></td>
         </tr>
       `).join('');
 
-      recurring.innerHTML = state.recurring
-        .map((item) => `<span class="financeiro-chip">${escapeHtml(item.descricao)} • ${currency(item.valor)} • ${escapeHtml(item.periodicidade)}</span>`)
-        .join('');
+      grids.recurring.innerHTML = state.recurring.map((item) => `
+        <tr>
+          <td>${escapeHtml(item.descricao)}</td>
+          <td>${escapeHtml(item.periodicidade)}</td>
+          <td>${currency(item.valor)}</td>
+          <td><span class="financeiro-pill ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><button class="financeiro-link-btn" data-edit="recurring" data-id="${item.id}">Editar</button></td>
+        </tr>
+      `).join('');
 
-      if (sampleInfo) {
-        sampleInfo.textContent = `Dados modelo carregados: ${launches.length} lançamentos e ${state.recurring.length} recorrências.`;
-      }
+      grids.categories.innerHTML = state.categories.map((item) => `
+        <tr>
+          <td><span class="financeiro-pill ${item.tipo === 'entrada' ? 'is-in' : 'is-out'}">${escapeHtml(item.tipo)}</span></td>
+          <td>${escapeHtml(item.nome)}</td>
+          <td><button class="financeiro-link-btn" data-edit="category" data-id="${item.id}">Editar</button></td>
+        </tr>
+      `).join('');
+
+      grids.accounts.innerHTML = state.accounts.map((item) => `
+        <tr>
+          <td>${escapeHtml(item.nome)}</td>
+          <td>${escapeHtml(item.banco)}</td>
+          <td>${escapeHtml(item.tipo)}</td>
+          <td>${currency(item.saldo_inicial)}</td>
+          <td><button class="financeiro-link-btn" data-edit="account" data-id="${item.id}">Editar</button></td>
+        </tr>
+      `).join('');
+
+      sampleInfo.textContent = `Modelo: ${state.launches.length} lançamentos, ${state.recurring.length} recorrências, ${state.categories.length} categorias e ${state.accounts.length} contas.`;
     };
 
-    root.querySelector('[data-action="novo-lancamento"]').addEventListener('click', () => dialog.showModal());
+    root.querySelector('[data-action="novo-lancamento"]').addEventListener('click', () => openDialog('launch', { tipo: 'entrada', status: 'previsto' }, 'Novo lançamento'));
+    root.querySelector('[data-action="nova-recorrencia"]').addEventListener('click', () => openDialog('recurring', { periodicidade: 'mensal', status: 'pendente' }, 'Nova recorrência'));
+    root.querySelector('[data-action="nova-categoria"]').addEventListener('click', () => openDialog('category', { tipo: 'saida' }, 'Nova categoria'));
+    root.querySelector('[data-action="nova-conta"]').addEventListener('click', () => openDialog('account', { tipo: 'corrente' }, 'Nova conta financeira'));
 
-    const resetModelData = root.querySelector('[data-action="reset-model"]');
-    if (resetModelData) {
-      resetModelData.addEventListener('click', () => {
-        state = deepClone(model);
-        write(state);
-        paint();
-      });
-    }
-
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const fd = new FormData(form);
-      state = {
-        ...state,
-        launches: [
-          {
-            id: Date.now(),
-            tipo: fd.get('tipo'),
-            descricao: String(fd.get('descricao') || ''),
-            categoria: String(fd.get('categoria') || ''),
-            data_vencimento: String(fd.get('data_vencimento') || ''),
-            valor: Number(fd.get('valor') || 0),
-            status: fd.get('tipo') === 'entrada' ? 'recebido' : 'previsto'
-          },
-          ...state.launches
-        ]
-      };
+    root.querySelector('[data-action="reset-model"]').addEventListener('click', () => {
+      state = deepClone(model);
       write(state);
-      dialog.close();
-      form.reset();
+      paint();
+    });
+
+    root.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-edit]');
+      if (!button) return;
+      const id = Number(button.dataset.id || 0);
+      const type = button.dataset.edit;
+
+      if (type === 'launch') {
+        const launch = state.launches.find((item) => item.id === id);
+        if (launch) openDialog('launch', launch, 'Editar lançamento');
+      }
+      if (type === 'recurring') {
+        const recurring = state.recurring.find((item) => item.id === id);
+        if (recurring) openDialog('recurring', recurring, 'Editar recorrência');
+      }
+      if (type === 'category') {
+        const category = state.categories.find((item) => item.id === id);
+        if (category) openDialog('category', category, 'Editar categoria');
+      }
+      if (type === 'account') {
+        const account = state.accounts.find((item) => item.id === id);
+        if (account) openDialog('account', account, 'Editar conta financeira');
+      }
+    });
+
+    forms.launch.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const fd = new FormData(forms.launch);
+      state.launches = upsertById(state.launches, {
+        id: Number(fd.get('id') || 0),
+        tipo: String(fd.get('tipo') || 'entrada'),
+        descricao: String(fd.get('descricao') || ''),
+        categoria: String(fd.get('categoria') || ''),
+        data_vencimento: String(fd.get('data_vencimento') || ''),
+        valor: Number(fd.get('valor') || 0),
+        status: String(fd.get('status') || 'previsto')
+      });
+      write(state);
+      dialogs.launch.close();
+      paint();
+    });
+
+    forms.recurring.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const fd = new FormData(forms.recurring);
+      state.recurring = upsertById(state.recurring, {
+        id: Number(fd.get('id') || 0),
+        descricao: String(fd.get('descricao') || ''),
+        periodicidade: String(fd.get('periodicidade') || 'mensal'),
+        valor: Number(fd.get('valor') || 0),
+        status: String(fd.get('status') || 'pendente')
+      });
+      write(state);
+      dialogs.recurring.close();
+      paint();
+    });
+
+    forms.category.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const fd = new FormData(forms.category);
+      state.categories = upsertById(state.categories, {
+        id: Number(fd.get('id') || 0),
+        tipo: String(fd.get('tipo') || 'saida'),
+        nome: String(fd.get('nome') || '')
+      });
+      write(state);
+      dialogs.category.close();
+      paint();
+    });
+
+    forms.account.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const fd = new FormData(forms.account);
+      state.accounts = upsertById(state.accounts, {
+        id: Number(fd.get('id') || 0),
+        nome: String(fd.get('nome') || ''),
+        banco: String(fd.get('banco') || ''),
+        tipo: String(fd.get('tipo') || 'corrente'),
+        saldo_inicial: Number(fd.get('saldo_inicial') || 0)
+      });
+      write(state);
+      dialogs.account.close();
       paint();
     });
 
