@@ -161,6 +161,80 @@
   --financial-on-surface-variant: #64748b;
   --financial-elevation-1: 0 2px 8px rgba(15, 23, 42, 0.06);
   --financial-radius: 16px;
+
+  /*
+    OdontoFlow Design System (of-*)
+    Antes de criar novo padrão visual, consulte docs/UI_GUIDELINES.md.
+  */
+  --of-bg-app: var(--surface-page);
+  --of-bg-elevated: var(--surface-solid);
+  --of-bg-muted: var(--surface-soft);
+  --of-surface: rgba(255, 255, 255, 0.86);
+  --of-surface-solid: var(--surface-solid);
+  --of-surface-muted: rgba(241, 245, 249, 0.82);
+  --of-surface-glass: rgba(255, 255, 255, 0.72);
+  --of-text-primary: var(--text-strong);
+  --of-text-secondary: var(--text-base);
+  --of-text-muted: var(--text-muted);
+  --of-text-soft: var(--text-soft);
+  --of-text-inverse: var(--text-on-brand);
+  --of-primary: var(--color-brand-500);
+  --of-primary-hover: var(--color-brand-600);
+  --of-primary-soft: color-mix(in srgb, var(--color-brand-500) 14%, white);
+  --of-primary-border: color-mix(in srgb, var(--color-brand-500) 24%, white);
+  --of-success: var(--color-success-500);
+  --of-success-soft: color-mix(in srgb, var(--color-success-500) 16%, white);
+  --of-warning: var(--color-warning-500);
+  --of-warning-soft: color-mix(in srgb, var(--color-warning-500) 20%, white);
+  --of-danger: var(--color-danger-500);
+  --of-danger-soft: color-mix(in srgb, var(--color-danger-500) 16%, white);
+  --of-info: var(--color-info-500);
+  --of-info-soft: color-mix(in srgb, var(--color-info-500) 16%, white);
+  --of-border-subtle: var(--border-subtle);
+  --of-border: var(--border-soft);
+  --of-border-strong: var(--border-strong);
+  --of-radius-xs: var(--radius-xs);
+  --of-radius-sm: var(--radius-sm);
+  --of-radius-md: var(--radius-md);
+  --of-radius-lg: var(--radius-lg);
+  --of-radius-xl: var(--radius-xl);
+  --of-radius-pill: var(--radius-pill);
+  --of-shadow-xs: var(--shadow-sm);
+  --of-shadow-sm: var(--shadow-sm);
+  --of-shadow-md: var(--shadow-md);
+  --of-shadow-lg: var(--shadow-lg);
+  --of-blur-glass: blur(22px);
+  --of-space-1: var(--space-1);
+  --of-space-2: var(--space-2);
+  --of-space-3: var(--space-3);
+  --of-space-4: var(--space-4);
+  --of-space-5: var(--space-5);
+  --of-space-6: var(--space-6);
+  --of-space-8: var(--space-8);
+  --of-space-10: var(--space-10);
+  --of-space-12: 3rem;
+  --of-font-family: var(--font-family-sans);
+  --of-font-size-xs: var(--font-size-xs);
+  --of-font-size-sm: var(--font-size-sm);
+  --of-font-size-md: var(--font-size-md);
+  --of-font-size-lg: var(--font-size-lg);
+  --of-font-size-xl: var(--font-size-xl);
+  --of-font-size-2xl: 2rem;
+  --of-line-tight: 1.15;
+  --of-line-normal: 1.45;
+  --of-sidebar-width: 280px;
+  --of-sidebar-width-compact: 88px;
+  --of-content-max-width: var(--content-max-width);
+  --of-header-height: 72px;
+  --of-touch-target: 44px;
+  --of-transition-fast: 120ms ease;
+  --of-transition: 180ms ease;
+  --of-transition-slow: 240ms ease;
+  --of-z-sidebar: 30;
+  --of-z-header: 40;
+  --of-z-drawer: 70;
+  --of-z-modal: 90;
+  --of-z-toast: 110;
 }
 
 @media (min-width: 600px) {
@@ -174,6 +248,83 @@
   :root {
     --density-body-padding: 24px;
   }
+}
+
+/* Breakpoints oficiais OdontoFlow
+   Mobile: até 767px
+   Tablet retrato: 768px - 1023px
+   Tablet paisagem: 1024px - 1279px
+   Desktop: 1280px+
+   Desktop amplo: 1536px+ */
+
+/*
+  Componentes oficiais reutilizáveis.
+  Novas telas devem compor estes blocos antes de criar classes novas.
+*/
+.of-app-shell { background: var(--of-bg-app); min-height: 100vh; overflow-x: clip; }
+.of-sidebar { width: var(--of-sidebar-width); background: var(--of-surface-glass); backdrop-filter: var(--of-blur-glass); border-right: 1px solid var(--of-border); }
+.of-main { min-width: 0; }
+.of-main-inner { width: min(100%, var(--of-content-max-width)); margin: 0 auto; padding: var(--of-space-6); }
+.of-page-header { display: flex; justify-content: space-between; gap: var(--of-space-4); flex-wrap: wrap; margin-bottom: var(--of-space-4); }
+.of-page-body { display: grid; gap: var(--of-space-4); }
+.of-page-actions { display: flex; align-items: center; gap: var(--of-space-2); flex-wrap: wrap; }
+.of-content-grid { display: grid; gap: var(--of-space-4); grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+.of-card { background: var(--of-surface-solid); border: 1px solid var(--of-border); border-radius: var(--of-radius-lg); box-shadow: var(--of-shadow-sm); }
+.of-card-header, .of-card-body, .of-card-footer { padding: var(--of-space-4); }
+.of-card-title { margin: 0; font-size: var(--of-font-size-lg); color: var(--of-text-primary); }
+.of-card-subtitle { margin: var(--of-space-1) 0 0; color: var(--of-text-muted); font-size: var(--of-font-size-sm); }
+
+.of-button { min-height: var(--of-touch-target); border-radius: var(--of-radius-pill); border: 1px solid transparent; padding: .5rem .95rem; font-weight: 600; cursor: pointer; transition: background var(--of-transition), border-color var(--of-transition), color var(--of-transition); }
+.of-button--primary { background: var(--of-primary); color: var(--of-text-inverse); }
+.of-button--primary:hover { background: var(--of-primary-hover); }
+.of-button--secondary { background: var(--of-bg-elevated); border-color: var(--of-border); color: var(--of-text-primary); }
+.of-button--ghost { background: transparent; border-color: transparent; color: var(--of-text-secondary); }
+.of-button--danger { background: var(--of-danger); color: var(--of-text-inverse); }
+.of-button--icon { width: var(--of-touch-target); min-width: var(--of-touch-target); padding: 0; border-radius: var(--of-radius-pill); }
+
+.of-segmented { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--of-border); border-radius: var(--of-radius-pill); background: var(--of-bg-elevated); }
+.of-segmented__button { min-height: 34px; border: 0; border-radius: var(--of-radius-pill); padding: 0 .75rem; background: transparent; color: var(--of-text-muted); cursor: pointer; }
+.of-segmented__button.is-active { background: var(--of-primary-soft); color: var(--of-primary-hover); font-weight: 600; }
+
+.of-kpi-grid { display: grid; gap: var(--of-space-3); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.of-kpi-card { min-width: 0; max-height: 340px; overflow: hidden; }
+.of-kpi-header { display: grid; gap: var(--of-space-1); }
+.of-kpi-label { margin: 0; text-transform: uppercase; color: var(--of-text-muted); font-size: var(--of-font-size-xs); letter-spacing: .06em; }
+.of-kpi-value { margin: 0; font-size: clamp(1.3rem, 2vw, 1.8rem); color: var(--of-text-primary); }
+.of-kpi-meta { margin: 0; color: var(--of-text-muted); font-size: var(--of-font-size-sm); }
+
+.of-chip { display: inline-flex; align-items: center; border-radius: var(--of-radius-pill); border: 1px solid var(--of-border); padding: .2rem .55rem; font-size: var(--of-font-size-xs); }
+.of-chip--success { background: var(--of-success-soft); color: var(--of-success); }
+.of-chip--warning { background: var(--of-warning-soft); color: #8a5c00; }
+.of-chip--danger { background: var(--of-danger-soft); color: var(--of-danger); }
+.of-chip--info { background: var(--of-info-soft); color: var(--of-info); }
+.of-chip--neutral { background: var(--of-bg-muted); color: var(--of-text-muted); }
+
+.of-table-wrap { overflow: auto; border: 1px solid var(--of-border-subtle); border-radius: var(--of-radius-md); background: var(--of-bg-elevated); }
+.of-table { width: 100%; border-collapse: collapse; font-size: var(--of-font-size-sm); }
+.of-table th, .of-table td { padding: .65rem .7rem; border-bottom: 1px solid var(--of-border-subtle); text-align: left; }
+.of-table th { color: var(--of-text-muted); text-transform: uppercase; letter-spacing: .05em; font-size: var(--of-font-size-xs); }
+
+.of-field { display: grid; gap: .35rem; }
+.of-label { font-size: var(--of-font-size-sm); color: var(--of-text-secondary); }
+.of-input, .of-select, .of-textarea { width: 100%; min-height: var(--of-touch-target); border: 1px solid var(--of-border); border-radius: var(--of-radius-sm); padding: .55rem .75rem; background: var(--of-bg-elevated); color: var(--of-text-primary); }
+.of-helper-text { margin: 0; color: var(--of-text-muted); font-size: var(--of-font-size-xs); }
+
+.of-modal, .of-drawer { position: fixed; inset: 0; z-index: var(--of-z-modal); }
+.of-drawer-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, .42); }
+.of-drawer-panel, .of-modal-panel { background: var(--of-surface-solid); border-radius: var(--of-radius-lg); box-shadow: var(--of-shadow-lg); }
+.of-empty-state { border: 1px dashed var(--of-border); border-radius: var(--of-radius-md); padding: var(--of-space-4); color: var(--of-text-muted); text-align: center; }
+.of-empty-state-title { display: block; margin-bottom: .25rem; color: var(--of-text-primary); font-weight: 600; }
+.of-empty-state-text { margin: 0; font-size: var(--of-font-size-sm); }
+
+@media (max-width: 1279px) { .of-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1023px) { .of-main-inner { padding: var(--of-space-4); } }
+@media (max-width: 767px) {
+  .of-main-inner { padding: var(--of-space-3); padding-bottom: calc(var(--of-space-4) + env(safe-area-inset-bottom)); }
+  .of-kpi-grid { grid-template-columns: 1fr; }
+  .of-page-actions { width: 100%; }
+  .of-page-actions .of-button { width: 100%; }
 }
 
 /* Padronização global de raio em px (inclui utilitários Tailwind usados no JSX) */

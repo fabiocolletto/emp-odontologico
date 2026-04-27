@@ -1,69 +1,50 @@
-# AGENTS.md — Processo de evolução modular da UI Financeira
+# AGENTS.md — Processo de evolução modular da UI OdontoFlow
+
+## Leitura obrigatória antes de alterar UI
+1. Ler `docs/UI_GUIDELINES.md`.
+2. Reusar classes/componentes oficiais `.of-*`.
+3. Não criar padrão visual paralelo se já existir equivalente.
 
 ## Objetivo
-Padronizar a evolução da tela **Financeiro** para que 100% dos elementos possam ser reaproveitados em outras telas, com foco em:
+Padronizar evolução da UI para desktop, tablet e celular, mantendo:
 - manutenção de longo prazo,
 - repetibilidade de entrega,
 - deploy contínuo no GitHub Pages,
-- escala via componentes React.
+- escala via componentes reutilizáveis.
 
-## Técnica aprovada para o projeto
-Usar **Atomic Design + composição por camadas (Section → Column → Widget → Atom)**:
-1. **Page Section**: blocos macro de contexto da página.
-2. **Section Columns**: organização responsiva das colunas/linhas internas.
-3. **Data Section + Data Columns (1/2/3)**: seções detalhadas de dados com variação apenas por conteúdo.
-4. **Widgets reutilizáveis**: cartões, tabelas, painéis, filtros, ações.
-5. **Átomos CSS**: tokens de cor, espaçamento, tipografia, borda e sombra no `:root`.
+## Diretrizes obrigatórias para agentes
+1. Preservar navegação, rotas e comportamento funcional existente.
+2. Não quebrar página Financeiro nem dados simulados.
+3. Não adicionar framework pesado.
+4. Preservar stack atual (HTML, CSS e JS puro + shell já existente).
+5. Usar tokens CSS (`--of-*` e tokens globais existentes).
+6. Evitar overflow horizontal global.
+7. Testar responsividade em mobile/tablet/desktop.
+8. Documentar novos padrões oficiais em `docs/UI_GUIDELINES.md`.
+9. Não alterar rotas públicas sem necessidade.
+10. Toda nova tela deve declarar/seguir nível de navegação (`data-nav-level` ou `.of-view-level-*`).
 
-## Fluxo padrão (passo a passo)
-> Repetir este fluxo em cada evolução de tela.
+## Técnica aprovada
+Usar composição por camadas:
+1. **Shell/Page Section**
+2. **Section Columns**
+3. **Data Section + Data Columns**
+4. **Widgets reutilizáveis**
+5. **Átomos CSS via tokens**
 
-1. **Mapeamento da UI atual**
-   - Identificar elementos duplicados e responsabilidades por bloco.
-   - Classificar cada trecho em: seção, coluna, widget, átomo.
+## Fluxo padrão
+1. Mapear UI atual e componentes duplicados.
+2. Definir recorte mínimo da sprint (incremental).
+3. Extrair componentes para `apps/web/src/shared/` quando aplicável.
+4. Aplicar tokens globais, sem hardcode desnecessário.
+5. Integrar no shell React via namespace global já usado no projeto.
+6. Validar com:
+   - `bash ./scripts/check-framework.sh`
+   - `bash ./scripts/smoke-runtime.sh`
+7. Commits pequenos, foco funcional, PR com impacto visual e validação.
 
-2. **Recorte mínimo da sprint**
-   - Criar no máximo 1–3 novos componentes reutilizáveis por entrega.
-   - Evitar refatoração massiva sem validação incremental.
-
-3. **Extração de componentes**
-   - Preferir arquivos em `apps/web/src/financial/` ou `apps/web/src/shared/`.
-   - APIs de componente devem ser orientadas a props simples e previsíveis.
-   - Cabeçalhos de telas abertas pela barra lateral devem usar o componente padrão compartilhado (sem variações locais/legadas).
-
-4. **Tokens e CSS atômico**
-   - Novos valores visuais devem usar variáveis do `:root` em `apps/web/styles.css`.
-   - Evitar valores hardcoded quando houver token equivalente.
-
-5. **Integração no shell React**
-   - Registrar módulos via namespace global (padrão já existente no projeto).
-   - Incluir script no `index.html` antes do `standalone-react.jsx`.
-
-6. **Validação técnica**
-   - Executar:
-     - `./scripts/check-framework.sh`
-     - `./scripts/smoke-runtime.sh`
-   - Corrigir regressões antes de commit.
-
-7. **Git e manutenção (boas práticas GitHub)**
-   - Commits pequenos, com escopo único.
-   - Mensagens no imperativo e foco funcional.
-   - PR com resumo, motivação, validação e impacto visual.
-
-8. **Deploy GitHub Pages**
-   - Garantir que arquivos referenciados no `index.html` estejam versionados.
-   - Evitar dependências não empacotadas fora da estrutura já usada no projeto.
-
-## Critérios de aceitação por etapa
-- Componente novo reutilizado em pelo menos 1 ponto real da tela.
-- Responsividade preservada (mobile, tablet, desktop).
-- Sem quebra de contrato estrutural e runtime smoke.
-- Código sem acoplamento desnecessário ao contexto de uma única tela.
-
-## Roadmap incremental sugerido (financeiro → demais telas)
-1. Sections e Columns (fundação macro).
-2. Hero widgets e cards padronizados.
-3. Catálogo de gráficos reutilizáveis (rosca, linha, área, barras).
-4. Tabelas, filtros e ações comuns.
-5. Modais e formulários reutilizáveis.
-6. Aplicar padrão nas telas Agenda, Pacientes, Clínica e Perfil.
+## Critérios de aceitação
+- Componente novo reutilizado em ponto real da UI.
+- Responsividade preservada.
+- Sem quebra de contrato estrutural/runtime.
+- Sem acoplamento desnecessário a uma única tela.

@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="./financeiro.css" />
   </head>
   <body>
-    <main class="financeiro-page" data-financeiro-app>
-      <header class="financeiro-page__header financeiro-screen-header">
+    <main class="financeiro-page of-main-inner of-view-level-1" data-financeiro-app data-nav-level="1">
+      <header class="financeiro-page__header financeiro-screen-header of-page-header">
         <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><span>Início</span><span>/</span><strong>Financeiro</strong></p>
         <div class="financeiro-screen-header__main">
           <div class="financeiro-screen-header__icon" aria-hidden="true">💳</div>
@@ -23,22 +23,22 @@
         </div>
       </header>
 
-      <section class="kpi-grid" aria-label="Indicadores financeiros">
-        <article class="kpi-card" data-kpi="receitas"></article>
-        <article class="kpi-card" data-kpi="despesas"></article>
-        <article class="kpi-card" data-kpi="saldo"></article>
+      <section class="kpi-grid of-kpi-grid" aria-label="Indicadores financeiros">
+        <article class="kpi-card of-card of-kpi-card" data-kpi="receitas"></article>
+        <article class="kpi-card of-card of-kpi-card" data-kpi="despesas"></article>
+        <article class="kpi-card of-card of-kpi-card" data-kpi="saldo"></article>
       </section>
 
-      <section class="financeiro-section">
+      <section class="financeiro-section of-card">
         <header class="financeiro-section__header">
           <h2>Lançamentos</h2>
           <div class="financeiro-section__actions">
-            <button type="button" class="financeiro-btn financeiro-btn--ghost" data-action="reset-model">Recarregar modelo</button>
-            <button type="button" class="financeiro-btn" data-action="novo-lancamento">Novo lançamento</button>
+            <button type="button" class="financeiro-btn financeiro-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="financeiro-btn of-button of-button--primary" data-action="novo-lancamento">Novo lançamento</button>
           </div>
         </header>
-        <div class="financeiro-table-wrap">
-          <table class="financeiro-table" aria-label="Tabela de lançamentos">
+        <div class="financeiro-table-wrap of-table-wrap">
+          <table class="financeiro-table of-table" aria-label="Tabela de lançamentos">
             <thead>
               <tr>
                 <th>Tipo</th>
@@ -55,13 +55,13 @@
         </div>
       </section>
 
-      <section class="financeiro-section">
+      <section class="financeiro-section of-card">
         <header class="financeiro-section__header">
           <h2>Contas recorrentes</h2>
-          <button type="button" class="financeiro-btn" data-action="nova-recorrencia">Nova recorrência</button>
+          <button type="button" class="financeiro-btn of-button of-button--primary" data-action="nova-recorrencia">Nova recorrência</button>
         </header>
-        <div class="financeiro-table-wrap">
-          <table class="financeiro-table" aria-label="Tabela de contas recorrentes">
+        <div class="financeiro-table-wrap of-table-wrap">
+          <table class="financeiro-table of-table" aria-label="Tabela de contas recorrentes">
             <thead>
               <tr>
                 <th>Descrição</th>
@@ -76,13 +76,13 @@
         </div>
       </section>
 
-      <section class="financeiro-section">
+      <section class="financeiro-section of-card">
         <header class="financeiro-section__header">
           <h2>Categorias de gastos</h2>
-          <button type="button" class="financeiro-btn" data-action="nova-categoria">Nova categoria</button>
+          <button type="button" class="financeiro-btn of-button of-button--primary" data-action="nova-categoria">Nova categoria</button>
         </header>
-        <div class="financeiro-table-wrap">
-          <table class="financeiro-table" aria-label="Tabela de categorias">
+        <div class="financeiro-table-wrap of-table-wrap">
+          <table class="financeiro-table of-table" aria-label="Tabela de categorias">
             <thead>
               <tr>
                 <th>Tipo</th>
@@ -95,13 +95,13 @@
         </div>
       </section>
 
-      <section class="financeiro-section">
+      <section class="financeiro-section of-card">
         <header class="financeiro-section__header">
           <h2>Contas financeiras</h2>
-          <button type="button" class="financeiro-btn" data-action="nova-conta">Nova conta</button>
+          <button type="button" class="financeiro-btn of-button of-button--primary" data-action="nova-conta">Nova conta</button>
         </header>
-        <div class="financeiro-table-wrap">
-          <table class="financeiro-table" aria-label="Tabela de contas financeiras">
+        <div class="financeiro-table-wrap of-table-wrap">
+          <table class="financeiro-table of-table" aria-label="Tabela de contas financeiras">
             <thead>
               <tr>
                 <th>Nome</th>

@@ -162,6 +162,10 @@
     `;
   };
 
+  /*
+    KPI cards reutilizáveis do OdontoFlow.
+    Manter comportamento isolado por card e acessível por teclado.
+  */
   const renderKpiCard = (target, config, activeView) => {
     target.setAttribute('data-kpi-card', config.key);
     target.innerHTML = `
@@ -322,11 +326,11 @@
           value: formatCurrencyBRL(saldo),
           meta: saldo >= 0 ? 'Caixa positivo' : 'Atenção ao caixa',
           summaryVisual: `
-            <div class="kpi-mini-list">
-              <div class="kpi-mini-row"><span class="kpi-mini-row__description">Receitas</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(receitas)}</strong></div>
-              <div class="kpi-mini-row"><span class="kpi-mini-row__description">Despesas</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(despesas)}</strong></div>
-              <div class="kpi-mini-row"><span class="kpi-mini-row__description">Saldo final</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(saldo)}</strong></div>
-            </div>
+            <ul class="kpi-mini-list" aria-label="Resumo de saldo">
+              <li class="kpi-mini-row"><span class="kpi-mini-row__description">Receitas</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(receitas)}</strong></li>
+              <li class="kpi-mini-row"><span class="kpi-mini-row__description">Despesas</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(despesas)}</strong></li>
+              <li class="kpi-mini-row"><span class="kpi-mini-row__description">Saldo final</span><strong class="kpi-mini-row__value">${formatCurrencyBRL(saldo)}</strong></li>
+            </ul>
           `,
           timeVisual: renderSparkline(timeline.saldo, '#2563eb', 'Evolução de saldo no tempo'),
           dataVisual: renderMiniList(launches.slice(0, 8))

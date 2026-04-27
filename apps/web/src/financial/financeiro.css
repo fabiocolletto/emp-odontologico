@@ -226,8 +226,8 @@ body {
 
 .kpi-card {
   min-width: 0;
-  min-height: 272px;
-  max-height: 336px;
+  min-height: 260px;
+  max-height: 320px;
   overflow: hidden;
   border-radius: var(--radius-lg);
   border: 1px solid var(--financeiro-border);
@@ -292,11 +292,13 @@ body {
   font-size: .72rem;
   font-weight: 600;
   padding: .28rem .58rem;
+  min-height: 32px;
+  cursor: pointer;
 }
 
 .kpi-card__tab.is-active {
-  color: #fff;
-  background: var(--color-brand-500);
+  color: var(--color-brand-600);
+  background: color-mix(in srgb, var(--color-brand-500) 14%, white);
 }
 
 .kpi-card__tab:focus-visible {
@@ -326,6 +328,11 @@ body {
   max-height: 132px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.kpi-card[data-kpi-card="saldo"] .kpi-card__panel[data-kpi-panel="data"] {
+  max-height: 132px;
+  overflow: auto;
 }
 
 .kpi-mini-list {
@@ -386,6 +393,18 @@ body {
   .kpi-card__tabs {
     margin-left: 0;
     width: fit-content;
+  }
+
+  .financeiro-page {
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+  }
+
+  .financeiro-section__actions {
+    width: 100%;
+  }
+
+  .financeiro-section__actions .financeiro-btn {
+    width: 100%;
   }
 }
 
