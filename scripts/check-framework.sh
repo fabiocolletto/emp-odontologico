@@ -5,7 +5,6 @@ echo "Validando contrato estrutural do framework..."
 
 test -f "docs/framework-layout.md"
 test -f "docs/framework-checkup.md"
-test -f "apps/web/framework-shell.css"
 test -f "apps/web/app-shell/shell.css"
 test -f "apps/web/app-shell/shell.js"
 test -f "index.html"

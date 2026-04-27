@@ -50,7 +50,7 @@ Arquivo-fonte: `apps/web/styles.css`.
 
 ## 4. Componentes base oficiais
 
-Implementados no CSS e com wrappers React em `apps/web/src/components.js`:
+Implementados no CSS e aplicados nos módulos HTML oficiais:
 
 - Botões (`UiButton`)
 - Campos (`UiInput`, `UiSelect`, `UiTextarea`, `UiSearchField`)
@@ -68,7 +68,7 @@ Implementados no CSS e com wrappers React em `apps/web/src/components.js`:
 2. Toda variação visual deve nascer por token/componente base.
 3. Não duplicar componente com a mesma função visual.
 4. Estados `hover/focus/disabled` devem usar tokens oficiais.
-5. `framework-shell.css` mantém contrato estrutural V0; linguagem visual vive no design system.
+5. `index.html` + `apps/web/app-shell/*` mantém contrato estrutural V0; linguagem visual vive no design system.
 
 ## 6. O que deve ser preservado nas próximas fases
 
