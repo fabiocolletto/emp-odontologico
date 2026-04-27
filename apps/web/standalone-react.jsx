@@ -329,6 +329,11 @@ if (!financialComponentFactories.createFinancialLegacyFrame) {
   throw new Error('Frame financeiro não carregado. Verifique os scripts em index.html.');
 }
 const FinancialLegacyFrame = financialComponentFactories.createFinancialLegacyFrame();
+const homeComponentFactories = globalThis.OdontoFlowHomeComponents || {};
+if (!homeComponentFactories.createHomeLegacyFrame) {
+  throw new Error('Frame de início não carregado. Verifique os scripts em index.html.');
+}
+const HomeLegacyFrame = homeComponentFactories.createHomeLegacyFrame();
 const agendaComponentFactories = globalThis.OdontoFlowAgendaComponents || {};
 if (!agendaComponentFactories.createAgendaLegacyFrame) {
   throw new Error('Frame de agenda não carregado. Verifique os scripts em index.html.');
@@ -354,12 +359,6 @@ if (!profileLegacyComponentFactories.createProfileLegacyFrame) {
   throw new Error('Frame de perfil não carregado. Verifique os scripts em index.html.');
 }
 const ProfileLegacyFrame = profileLegacyComponentFactories.createProfileLegacyFrame();
-const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
-if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
-  throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
-}
-const DataSection = layoutPrimitiveFactories.createDataSection();
-const DataColumns = layoutPrimitiveFactories.createDataColumns();
 
 const ActionGroup = ({ children }) => <div className="flex flex-wrap items-center gap-2">{children}</div>;
 const Toolbar = ({ children }) => <section className="toolbar-flat"><ActionGroup>{children}</ActionGroup></section>;
@@ -2111,28 +2110,10 @@ function DashboardApp({
     );
 
 
-    const PlaceholderSection = ({ title, notes = [] }) => (
-      <DataSection
-        title={title}
-        description="Placeholder padronizado. A implementação detalhada será feita na sprint específica desta tela."
-      >
-        <div className="ui-card border border-slate-200 bg-white/85 rounded-2xl p-4 space-y-2">
-          {notes.map((note) => (
-            <p key={note} className="text-sm text-slate-600">• {note}</p>
-          ))}
-        </div>
-      </DataSection>
-    );
-
     if (activeTab === 'overview') {
       return (
-        <div className="space-y-6">
-          {renderN1Header({ icon: 'home', title: 'Início', subtitle: 'Dashboard principal e visão consolidada', actions: [] })}
-          <DataColumns columns={3}>
-            <PlaceholderSection title="Seção 1 · Resumo operacional" notes={['Modelo padrão existente: DataSection + DataColumns + KpiGridRow.', 'Implantação posterior ao trabalhar a tela Início.']} />
-            <PlaceholderSection title="Seção 2 · Agenda e alertas" notes={['Modelo padrão existente: cards + tabelas compactas.', 'Definição de conteúdo ficará para sprint da tela Início.']} />
-            <PlaceholderSection title="Seção 3 · Atalhos estratégicos" notes={['Modelo padrão existente: actions header + widgets.', 'Conteúdo será definido na fase de detalhamento funcional.']} />
-          </DataColumns>
+        <div className="space-y-2">
+          <HomeLegacyFrame src="./apps/web/src/home/inicio.html" />
         </div>
       );
     }

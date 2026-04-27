@@ -105,6 +105,19 @@ Usar `data-nav-level` ou classes `.of-view-level-*`:
 9. Atualizar esta documentação ao criar novo padrão.
 10. Não adicionar CDN/biblioteca sem justificativa e registro.
 
+## Padrão oficial de telas HTML modulares (nível 0 e 1)
+Para evolução incremental via shell React + arquivos independentes:
+
+1. Criar trio por tela em `apps/web/src/<modulo>/`:
+   - `<tela>.html`
+   - `<tela>.css`
+   - `<tela>.js`
+2. Declarar nível com `data-nav-level` e `.of-view-level-*` no `<main>`.
+3. Expor no JS um factory global `create*LegacyFrame` para o shell React montar via `<iframe>`.
+4. Garantir modo standalone: se existir root `[data-*-app]`, executar render local automático.
+5. Preservar seção de rastreabilidade de legados com marcador explícito `obsoleto` para facilitar limpeza futura.
+6. Registrar script da tela em `index.html` antes do bootstrap React.
+
 ## Regras para alterar componentes existentes
 - Alterações em componentes oficiais devem ser backward compatible sempre que possível.
 - Evitar renomear classes sem plano de migração.
