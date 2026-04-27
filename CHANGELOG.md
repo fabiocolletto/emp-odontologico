@@ -4,6 +4,18 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+
+## v1.1.48 - 2026-04-27
+
+### Changed
+- Padronização dos widgets do Financeiro consolidada em contrato visual único com as classes: `.financial-widget`, variações (`--summary`, `--table`, `--category`, `--compact`, `--single`, `--double`, `--triple`) e estrutura (`__header`, `__title`, `__title-icon`, `__actions`, `__body`, `__footer`).
+- `FinancialTableSectionCard` e `FinancialTablePanelCard` passaram a reutilizar um frame visual comum (`createFinancialWidgetFrame`), reduzindo variação estrutural entre widgets e mantendo footer/tabela ancorados na base.
+- Mantida a tela principal sem filtros nos cards financeiros: ações principais preservadas para foco/expansão e gestão essencial no header.
+- Mantida compatibilidade com GitHub Pages, React via CDN e Babel no navegador, sem build step ou dependências novas.
+
+### Validation
+- Revisão responsiva validada para desktop, tablet retrato e mobile com estrutura consistente entre widgets e overlays de foco.
+
 ## v1.1.47 - 2026-04-27
 
 ### Fixed

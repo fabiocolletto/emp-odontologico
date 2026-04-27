@@ -343,6 +343,7 @@ if (
   !financialComponentFactories.createFinancialEditAction
   || !financialComponentFactories.createFinancialPageSection
   || !financialComponentFactories.createFinancialSectionColumns
+  || !financialComponentFactories.createFinancialWidgetFrame
   || !financialComponentFactories.createFinancialTableSectionCard
   || !financialComponentFactories.createFinancialTablePanelCard
 ) {
@@ -351,8 +352,9 @@ if (
 const FinancialEditAction = financialComponentFactories.createFinancialEditAction({ ActionButton, AppIcon });
 const FinancialPageSection = financialComponentFactories.createFinancialPageSection();
 const FinancialSectionColumns = financialComponentFactories.createFinancialSectionColumns();
-const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ SectionCard, DataTable, FinancialEditAction });
-const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ PanelCard, DataTable, FinancialEditAction });
+const FinancialWidgetFrame = financialComponentFactories.createFinancialWidgetFrame();
+const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ FinancialWidgetFrame, DataTable, FinancialEditAction });
+const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ FinancialWidgetFrame, DataTable, FinancialEditAction });
 const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
 if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
   throw new Error('Catálogo de gráficos não carregado. Verifique os scripts em index.html.');
@@ -2729,7 +2731,7 @@ function DashboardApp({
         key: 'receitas',
         toneClass: 'financial-hero-widget--receitas',
         iconName: 'download',
-        iconToneClass: 'financial-widget-title__icon--emerald',
+        iconToneClass: 'financial-widget__title-icon--emerald',
         title: 'Receitas consolidadas',
         primary: formatMoney(receitaRecebidaTotal),
         secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
@@ -2747,7 +2749,7 @@ function DashboardApp({
         key: 'despesas',
         toneClass: 'financial-hero-widget--despesas',
         iconName: 'clear',
-        iconToneClass: 'financial-widget-title__icon--rose',
+        iconToneClass: 'financial-widget__title-icon--rose',
         title: 'Despesas consolidadas',
         primary: formatMoney(despesaPagaTotal),
         secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
@@ -2765,7 +2767,7 @@ function DashboardApp({
         key: 'conciliacao',
         toneClass: 'financial-hero-widget--conciliacao',
         iconName: 'plan',
-        iconToneClass: 'financial-widget-title__icon--indigo',
+        iconToneClass: 'financial-widget__title-icon--indigo',
         title: 'Conciliação financeira',
         primary: formatMoney(receitaRecebidaTotal - despesaPagaTotal),
         secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
@@ -2847,13 +2849,13 @@ function DashboardApp({
         }, {})
     ).sort((a, b) => b[1] - a[1]).slice(0, 4);
     const financialWidgetVisualMap = {
-      contasFinanceiras: { icon: 'wallet', toneClass: 'financial-widget-title__icon--sky' },
-      categoriasFinanceiras: { icon: 'archive', toneClass: 'financial-widget-title__icon--violet' },
-      recorrencias: { icon: 'clock', toneClass: 'financial-widget-title__icon--amber' },
-      previsoes: { icon: 'plan', toneClass: 'financial-widget-title__icon--rose' },
-      contasReceber: { icon: 'download', toneClass: 'financial-widget-title__icon--emerald' },
-      contasPagar: { icon: 'clear', toneClass: 'financial-widget-title__icon--orange' },
-      lancamentos: { icon: 'multi', toneClass: 'financial-widget-title__icon--indigo' }
+      contasFinanceiras: { icon: 'wallet', toneClass: 'financial-widget__title-icon--sky' },
+      categoriasFinanceiras: { icon: 'archive', toneClass: 'financial-widget__title-icon--violet' },
+      recorrencias: { icon: 'clock', toneClass: 'financial-widget__title-icon--amber' },
+      previsoes: { icon: 'plan', toneClass: 'financial-widget__title-icon--rose' },
+      contasReceber: { icon: 'download', toneClass: 'financial-widget__title-icon--emerald' },
+      contasPagar: { icon: 'clear', toneClass: 'financial-widget__title-icon--orange' },
+      lancamentos: { icon: 'multi', toneClass: 'financial-widget__title-icon--indigo' }
     };
     const getFinancialWidgetVisual = (key) => {
       const visual = financialWidgetVisualMap[key];
@@ -3106,13 +3108,13 @@ function DashboardApp({
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
               {financialHeroWidgets.map((widget) => {
                 return (
-                  <article key={widget.key} className={`financial-hero-widget financial-widget-container financial-widget-container--triple ${widget.toneClass}`.trim()}>
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="financial-hero-widget__eyebrow financial-widget-title">
-                        <span className={`financial-widget-title__icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
+                  <article key={widget.key} className={`financial-hero-widget financial-widget financial-widget--summary financial-widget--triple ${widget.toneClass}`.trim()}>
+                    <div className="financial-widget__header">
+                      <p className="financial-hero-widget__eyebrow financial-widget__title">
+                        <span className={`financial-widget__title-icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
                         <span>{widget.title}</span>
                       </p>
-                      <div className="financial-widget-actions">
+                      <div className="financial-widget__actions">
                         <FinancialEditAction
                           ariaLabel={widget.actionAria}
                           onClick={widget.onAction}
@@ -3120,7 +3122,7 @@ function DashboardApp({
                         />
                       </div>
                     </div>
-                    <div className="financial-hero-widget__body">
+                    <div className="financial-hero-widget__body financial-widget__body">
                       <div className="financial-hero-widget__summary">
                         <p className="financial-hero-widget__value">{widget.primary}</p>
                         <p className="financial-hero-widget__caption">{widget.secondary}</p>
@@ -3155,7 +3157,7 @@ function DashboardApp({
                         })}
                       </div>
                     </div>
-                    <footer className="financial-hero-widget__footer">
+                    <footer className="financial-hero-widget__footer financial-widget__footer">
                       <p>{widget.ratioLabel}</p>
                       <p>{widget.trendLabel}</p>
                     </footer>
@@ -3204,25 +3206,36 @@ function DashboardApp({
                     { label: 'Total saldo inicial', value: formatMoney(contasFinanceirasTotal) }
                   ]}
                 />
-                <SectionCard
-                  className="financial-section-card financial-section-card--operation financial-widget-container financial-widget-container--double"
-                  title={(
-                    <span className="financial-widget-title">
-                      <span className="financial-widget-title__icon financial-widget-title__icon--violet" aria-hidden="true"><AppIcon name="archive" size={12} /></span>
-                      <span>Categorias financeiras</span>
-                    </span>
-                  )}
+                <FinancialWidgetFrame
+                  className="financial-section-card financial-section-card--operation financial-widget--category"
+                  variant="category"
+                  size="double"
+                  title="Categorias financeiras"
+                  titleIcon={<AppIcon name="archive" size={12} />}
+                  titleToneClass="financial-widget__title-icon--violet"
                   actions={(
-                    <div className="financial-widget-actions">
+                    <>
                       <FinancialEditAction
                         ariaLabel="Abrir categorias financeiras"
                         onClick={() => setIsCategoriesEditMode(true)}
                         icon="expand"
                       />
+                    </>
+                  )}
+                  footer={(
+                    <div className="data-table__totals" aria-label="Totalizadores da tabela">
+                      <p className="data-table__total-item">
+                        <span>Total receitas:</span>
+                        <strong>{formatMoney(categoriasReceitasTotal)}</strong>
+                      </p>
+                      <p className="data-table__total-item">
+                        <span>Total despesas:</span>
+                        <strong>{formatMoney(categoriasDespesasTotal)}</strong>
+                      </p>
                     </div>
                   )}
                 >
-                  <div className="financial-widget-body-scroll">
+                  <div className="financial-widget-body-scroll financial-widget__body">
                     <div className="data-table__scroller">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm p-2">
                         <div>
@@ -3258,20 +3271,8 @@ function DashboardApp({
                       </div>
                     </div>
                     <p className="text-xs text-slate-500 mt-3">A lista completa de categorias e ações fica disponível na janela de edição.</p>
-                    <div className="data-table__footer">
-                      <div className="data-table__totals" aria-label="Totalizadores da tabela">
-                        <p className="data-table__total-item">
-                          <span>Total receitas:</span>
-                          <strong>{formatMoney(categoriasReceitasTotal)}</strong>
-                        </p>
-                        <p className="data-table__total-item">
-                          <span>Total despesas:</span>
-                          <strong>{formatMoney(categoriasDespesasTotal)}</strong>
-                        </p>
-                      </div>
-                    </div>
                   </div>
-                </SectionCard>
+                </FinancialWidgetFrame>
               </DataColumns>
             </DataSection>
 

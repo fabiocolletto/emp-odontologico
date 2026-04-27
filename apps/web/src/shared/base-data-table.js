@@ -40,6 +40,7 @@
     paginated = false,
     compact = false,
     keepEmptyRows = false,
+    footerClassName = '',
     footerTotals = []
   }) => {
     const { useEffect, useMemo, useState } = React;
@@ -165,7 +166,7 @@
           </table>
         </div>
         {(footerTotals.length > 0 || (paginated && totalPages > 1)) ? (
-          <div className="data-table__footer">
+          <div className={`data-table__footer ${footerClassName}`.trim()}>
             {footerTotals.length > 0 ? (
               <div className="data-table__totals" aria-label="Totalizadores da tabela">
                 {footerTotals.map((item) => (
