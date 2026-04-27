@@ -126,7 +126,6 @@ function navigateTo(tabId) {
   setActiveState(tabId);
   updateShellHeader(item);
   updateHash(tabId);
-  frame.addEventListener('load', () => prepareEmbeddedScreen(frame), { once: true });
   closeSidebarDrawer();
 }
 
@@ -181,17 +180,6 @@ function updateShellHeader(item) {
   if (title) title.textContent = item?.label || 'OdontoFlow';
   if (subtitle) subtitle.textContent = item?.subtitle || 'Shell modular';
   if (icon) icon.textContent = item?.icon || '🧭';
-}
-
-function prepareEmbeddedScreen(frame) {
-  try {
-    const doc = frame?.contentDocument;
-    if (!doc) return;
-    doc.documentElement.classList.add('of-shell-embedded');
-    doc.body?.classList.add('of-shell-embedded');
-  } catch {
-    // Sem ação: apenas fallback silencioso para conteúdo cross-origin.
-  }
 }
 
 window.addEventListener('message', (event) => {

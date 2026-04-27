@@ -138,6 +138,7 @@
     };
 
     const paintInfo = () => {
+      if (!infoNode) return;
       infoNode.textContent = selectedClinicId === 'all'
         ? 'Visão consolidada de equipe para múltiplas clínicas.'
         : `Clínica selecionada: ${clinicNameById(selectedClinicId)}.`;

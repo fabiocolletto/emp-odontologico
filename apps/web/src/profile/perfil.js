@@ -105,6 +105,7 @@
       const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
       legacyList.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
       legacySection.hidden = legacyMarkers.length === 0;
+      if (!infoNode) return;
       infoNode.textContent = activeClinic
         ? `Contexto atual: ${activeClinic.trade_name}.`
         : 'Selecione uma clínica ativa para contexto completo do perfil.';

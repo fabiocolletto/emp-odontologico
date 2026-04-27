@@ -71,7 +71,7 @@
       const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
       legacyGrid.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
       legacySection.hidden = legacyMarkers.length === 0;
-      infoNode.textContent = 'Nível 0 ativo. Selecione um atalho para navegar ao respectivo módulo nível 1.';
+      if (infoNode) infoNode.textContent = 'Nível 0 ativo. Selecione um atalho para navegar ao respectivo módulo nível 1.';
     };
 
     root.addEventListener('click', (event) => {
@@ -88,7 +88,7 @@
 
       if (action === 'nav') {
         const target = trigger.getAttribute('data-target') || '';
-        infoNode.textContent = `Atalho selecionado: ${target}. Integração de navegação será concluída pelo shell principal.`;
+        if (infoNode) infoNode.textContent = `Atalho selecionado: ${target}. Integração de navegação será concluída pelo shell principal.`;
       }
     });
 

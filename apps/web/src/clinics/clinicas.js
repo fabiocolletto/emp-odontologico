@@ -158,6 +158,7 @@
 
     const paintInfo = () => {
       const active = state.clinics.find((clinic) => clinic.id === state.activeClinicId);
+      if (!infoNode) return;
       infoNode.textContent = active
         ? `Clínica ativa atual: ${active.trade_name} (${active.city}/${active.state}).`
         : 'Selecione uma clínica ativa para o contexto de usuário.';

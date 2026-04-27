@@ -181,7 +181,7 @@
     };
 
     const paintInfo = () => {
-      infoNode.textContent = `Contexto atual da clínica: ${clinicContext.activeClinicId}. Apenas pacientes desta clínica são listados.`;
+      if (infoNode) infoNode.textContent = `Contexto atual da clínica: ${clinicContext.activeClinicId}. Apenas pacientes desta clínica são listados.`;
     };
 
     const paint = () => {

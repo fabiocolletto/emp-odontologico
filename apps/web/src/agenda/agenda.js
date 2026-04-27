@@ -91,7 +91,7 @@
         `).join('')
         : '<tr><td colspan="7">Nenhum atendimento para esta data.</td></tr>';
 
-      infoNode.textContent = `Data selecionada: ${selectedDate.split('-').reverse().join('/')}.`;
+      if (infoNode) infoNode.textContent = `Data selecionada: ${selectedDate.split('-').reverse().join('/')}.`;
       const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
       legacyList.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
       legacySection.hidden = legacyMarkers.length === 0;

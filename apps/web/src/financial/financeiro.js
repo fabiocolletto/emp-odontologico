@@ -381,7 +381,7 @@
         </tr>
       `).join('');
 
-      sampleInfo.textContent = `Modelo: ${state.launches.length} lançamentos, ${state.recurring.length} recorrências, ${state.categories.length} categorias e ${state.accounts.length} contas.`;
+      if (sampleInfo) sampleInfo.textContent = `Modelo: ${state.launches.length} lançamentos, ${state.recurring.length} recorrências, ${state.categories.length} categorias e ${state.accounts.length} contas.`;
     };
 
     root.querySelector('[data-action="novo-lancamento"]').addEventListener('click', () => openDialog('launch', { tipo: 'entrada', status: 'previsto' }, 'Novo lançamento'));

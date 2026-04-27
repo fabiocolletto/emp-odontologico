@@ -8,6 +8,17 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.58 - 2026-04-27
+
+### Changed
+- Removidos do sistema os headers internos das telas HTML (`Início`, `Agenda`, `Pacientes`, `Clínicas`, `Equipe`, `Perfil` e `Financeiro`), mantendo o header do shell como única camada de contexto.
+- Shell mantém header contextual por tela ativa (ícone, título e subtítulo), sem depender de header interno no conteúdo do iframe.
+- Ajustados scripts das telas para operação segura sem nós de info do header removido.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
 ## v1.1.57 - 2026-04-27
 
 ### Changed
