@@ -1,7 +1,7 @@
 # OdontoFlow App Shell (HTML + CSS + JS puro)
 
 ## 1) O que é o shell
-O App Shell é a camada de layout e navegação global da aplicação. Ele roda de forma independente em `apps/web/app-shell/index.html` e carrega as telas existentes via `<iframe>`.
+O App Shell é a camada de layout e navegação global da aplicação. Ele roda como entrypoint principal em `index.html` (raiz) e carrega as telas existentes via `<iframe>`. O arquivo `apps/web/app-shell/index.html` permanece apenas como redirecionamento de compatibilidade.
 
 ## 2) Responsabilidade do shell
 **Shell controla navegação, telas controlam conteúdo.**
@@ -28,7 +28,7 @@ O shell **não** deve duplicar ou mover lógica interna das telas.
 
 Exemplo de item:
 ```js
-{ id: 'novo-modulo', label: 'Novo módulo', src: './src/novo-modulo/tela.html' }
+{ id: 'novo-modulo', label: 'Novo módulo', src: './apps/web/src/novo-modulo/tela.html' }
 ```
 
 ## 5) Como funciona a navegação
@@ -40,7 +40,7 @@ Exemplo de item:
 ## 6) Como funciona o iframe
 - O iframe (`#app-frame`) sempre ocupa a área útil disponível.
 - O shell mantém o histórico da navegação no hash (`#agenda`, `#patients`, etc.).
-- O caminho de tela é normalizado para manter compatibilidade com o ponto de entrada em `apps/web/app-shell/`.
+- O caminho de tela é normalizado para manter compatibilidade com o ponto de entrada principal na raiz do projeto.
 
 ## 7) Como comunicar telas (shell ↔ iframe)
 O shell escuta mensagens com `window.addEventListener('message', ...)`.

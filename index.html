@@ -3,41 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OdontoFlow - Shell</title>
+    <title>OdontoFlow - App Shell</title>
     <link rel="stylesheet" href="./apps/web/styles.css" />
-    <link rel="stylesheet" href="./apps/web/framework-shell.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="./apps/web/app-shell/shell.css" />
   </head>
-  <body>
-    <div id="root"></div>
-    <script src="./apps/web/env.js"></script>
-    <script src="./apps/web/auth-account-service.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/shared/app-shell-components.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/shared/base-data-table.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/home/inicio.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/financial/financeiro.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/agenda/agenda.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/clinics/clinicas.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/patients/pacientes.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/team/equipe.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/profile/perfil.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/shared/data-section-layout.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/shared/sidebar-screen-header.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/shared/kpi-grid-row.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/shared/dual-content-row.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/profile/profile-field-grid.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/profile/profile-action-row.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/profile/profile-feedback-message.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/profile/profile-responsive-panels.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/auth/auth-entry-state.js"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/auth/auth-entry-notices.jsx"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/auth/auth-entry-form.jsx"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/src/auth/auth-entry-modal.jsx"></script>
-    <script type="text/babel" data-presets="react" src="./apps/web/standalone-react.jsx"></script>
+  <body class="app-shell of-app-shell">
+    <aside id="app-sidebar" class="of-sidebar" aria-label="Navegação principal"></aside>
+
+    <main class="app-main of-main">
+      <header id="app-header" class="of-page-header"></header>
+
+      <section id="app-content" class="of-page-body">
+        <iframe
+          id="app-frame"
+          title="Conteúdo da tela ativa"
+          loading="eager"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </section>
+
+      <nav id="app-bottom-nav" aria-label="Navegação móvel"></nav>
+    </main>
+
+    <script src="./apps/web/app-shell/shell.js"></script>
   </body>
 </html>

@@ -12,19 +12,17 @@
 */
 
 const NAV_ITEMS = [
-  { id: 'inicio', label: 'Início', src: './src/home/inicio.html' },
-  { id: 'agenda', label: 'Agenda', src: './src/agenda/agenda.html' },
-  { id: 'patients', label: 'Pacientes', src: './src/patients/pacientes.html' },
-  { id: 'clinic', label: 'Clínica', src: './src/clinics/clinicas.html' },
-  { id: 'team', label: 'Equipe', src: './src/team/equipe.html' },
-  { id: 'financial', label: 'Financeiro', src: './src/financial/financeiro.html' },
-  { id: 'profile', label: 'Perfil', src: './src/profile/perfil.html' }
+  { id: 'inicio', label: 'Início', src: './apps/web/src/home/inicio.html' },
+  { id: 'agenda', label: 'Agenda', src: './apps/web/src/agenda/agenda.html' },
+  { id: 'patients', label: 'Pacientes', src: './apps/web/src/patients/pacientes.html' },
+  { id: 'clinic', label: 'Clínica', src: './apps/web/src/clinics/clinicas.html' },
+  { id: 'team', label: 'Equipe', src: './apps/web/src/team/equipe.html' },
+  { id: 'financial', label: 'Financeiro', src: './apps/web/src/financial/financeiro.html' },
+  { id: 'profile', label: 'Perfil', src: './apps/web/src/profile/perfil.html' }
 ];
 
 const MOBILE_VISIBLE_ITEMS = ['inicio', 'agenda', 'patients', 'financial'];
 const DEFAULT_TAB_ID = 'inicio';
-const SHELL_SOURCE_PREFIX = './src/';
-const IFRAME_SOURCE_PREFIX = '../src/';
 
 function initShell() {
   renderHeader();
@@ -114,19 +112,12 @@ function navigateTo(tabId) {
 
   if (!frame) return;
 
-  frame.src = resolveFrameSrc(item.src);
+  frame.src = item.src;
   setActiveState(tabId);
   updateHash(tabId);
   closeSidebarDrawer();
 }
 
-function resolveFrameSrc(src) {
-  if (!src.startsWith(SHELL_SOURCE_PREFIX)) {
-    return src;
-  }
-
-  return src.replace(SHELL_SOURCE_PREFIX, IFRAME_SOURCE_PREFIX);
-}
 
 function setActiveState(tabId) {
   document.querySelectorAll('[data-tab-id]').forEach((button) => {
