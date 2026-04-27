@@ -69,6 +69,7 @@ Usar `data-nav-level` ou classes `.of-view-level-*`:
 - **Modal**: `.of-modal`, `.of-modal-panel`, `.of-modal-header`, `.of-modal-body`, `.of-modal-footer`
 - **Empty state**: `.of-empty-state`, `.of-empty-state-title`, `.of-empty-state-text`
 - **Page header**: `.of-page-header`, `.of-page-kicker`, `.of-page-title`, `.of-page-description`, `.of-page-actions`
+- **Bottom nav mobile (shell)**: botões lado a lado, estilo `icon-first` (ícone principal + rótulo secundário), até 5 itens visíveis sem rolagem (ou 4 em telas muito pequenas) e rolagem horizontal apenas quando exceder esse limite.
 
 ## Regras para novas telas
 1. Definir nível de navegação (`data-nav-level`).

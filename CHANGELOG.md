@@ -8,6 +8,19 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.56 - 2026-04-27
+
+### Changed
+- Ajuste pontual do shell mobile para navbar em linha única com layout `icon-first` (ícone principal + texto secundário), mantendo botões lado a lado.
+- Navbar inferior agora suporta até 5 botões sem rolagem (ou 4 em telas muito pequenas) e ativa rolagem horizontal automaticamente quando há mais itens.
+- Botões da navbar passaram a usar estilo glassmorphism com cor por objetivo de tela (sempre coloridos em estados ativo e inativo), melhorando reconhecimento e acessibilidade contextual.
+- Registrado plano de finalização frontend tela por tela em `docs/FRONTEND_ETAPA2_PLAN.md`, iniciando pela navbar e seguindo checklist por módulo.
+- Marco de encerramento da Etapa 1 do framework registrado para transição formal da Etapa 2 (refinamentos visuais e consolidação de compartilhados).
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
 ## v1.1.55 - 2026-04-27
 
 ### Changed

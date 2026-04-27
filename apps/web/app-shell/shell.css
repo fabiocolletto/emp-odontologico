@@ -138,6 +138,9 @@ body.app-shell {
 }
 
 #app-bottom-nav {
+  --app-bottom-visible-count: 5;
+  --app-bottom-gap: var(--of-space-2);
+  --app-bottom-min-item: 86px;
   position: sticky;
   bottom: 0;
   z-index: var(--of-z-drawer);
@@ -151,8 +154,9 @@ body.app-shell {
 
 #app-bottom-nav .app-nav-list {
   display: flex;
+  flex-direction: row;
   flex-wrap: nowrap;
-  gap: var(--of-space-2);
+  gap: var(--app-bottom-gap);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -164,13 +168,51 @@ body.app-shell {
 }
 
 #app-bottom-nav .app-nav-button {
-  flex: 1 0 auto;
-  min-width: 96px;
+  --nav-accent: var(--of-primary);
+  width: 100%;
   min-height: var(--of-touch-target);
+  border-color: color-mix(in srgb, var(--nav-accent) 28%, white);
+  background: color-mix(in srgb, var(--nav-accent) 10%, rgba(255, 255, 255, 0.68));
+  color: color-mix(in srgb, var(--nav-accent) 78%, #0f172a);
+  backdrop-filter: var(--of-blur-glass);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 1px;
   white-space: nowrap;
   text-align: center;
   font-size: var(--of-font-size-xs);
-  padding: var(--of-space-2);
+  padding: var(--of-space-1) var(--of-space-2);
+}
+
+#app-bottom-nav .app-nav-button__icon {
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+#app-bottom-nav .app-nav-button__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+#app-bottom-nav .app-nav-button.is-active {
+  border-color: color-mix(in srgb, var(--nav-accent) 60%, white);
+  background: color-mix(in srgb, var(--nav-accent) 20%, rgba(255, 255, 255, 0.82));
+  color: color-mix(in srgb, var(--nav-accent) 88%, #0f172a);
+}
+
+#app-bottom-nav:not(.is-scrollable) .app-nav-list > li {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#app-bottom-nav:not(.is-scrollable) .app-nav-button {
+  min-width: 0;
+}
+
+#app-bottom-nav.is-scrollable .app-nav-list > li {
+  flex: 0 0 var(--app-bottom-min-item);
 }
 
 @media (max-width: 1023px) {
@@ -234,6 +276,11 @@ body.app-shell {
 }
 
 @media (max-width: 767px) {
+  #app-bottom-nav {
+    --app-bottom-visible-count: 4;
+    --app-bottom-min-item: 82px;
+  }
+
   body.app-shell.sidebar-open {
     overflow: hidden;
   }
