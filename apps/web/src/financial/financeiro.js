@@ -89,16 +89,55 @@
     };
   };
 
-  const renderKpiCard = (target, data) => {
+  const formatPercent = (value) => `${(Number(value || 0) * 100).toFixed(1)}%`;
+
+  const trendText = (series = []) => {
+    if (series.length < 2) return 'Sem histórico suficiente';
+    const current = Number(series[series.length - 1] || 0);
+    const previous = Number(series[series.length - 2] || 0);
+    if (!previous && !current) return 'Sem variação entre períodos';
+    const variation = previous === 0 ? 1 : ((current - previous) / Math.abs(previous));
+    const signal = variation >= 0 ? '▲' : '▼';
+    return `${signal} ${(Math.abs(variation) * 100).toFixed(1)}% vs período anterior`;
+  };
+
+  const renderKpiCard = (target, data, activeView = 'summary') => {
     target.innerHTML = `
-      <div class="financeiro-kpi-content">
+      <div class="financeiro-kpi-content" data-kpi-key="${escapeHtml(data.key)}">
         <div class="financeiro-kpi-main">
           <p class="financeiro-kpi-title">${escapeHtml(data.title)}</p>
           <strong class="financeiro-kpi-value">${escapeHtml(data.value)}</strong>
           <small>${escapeHtml(data.caption)}</small>
+          <p class="financeiro-kpi-trend">${escapeHtml(data.trend)}</p>
+          <div class="html-widget-tabs" role="tablist" aria-label="Abas do KPI ${escapeHtml(data.title)}">
+            <button type="button" class="html-widget-tab ${activeView === 'summary' ? 'is-active' : ''}" data-kpi-tab="summary" data-kpi-key="${escapeHtml(data.key)}">Resumo</button>
+            <button type="button" class="html-widget-tab ${activeView === 'time' ? 'is-active' : ''}" data-kpi-tab="time" data-kpi-key="${escapeHtml(data.key)}">Tempo</button>
+            <button type="button" class="html-widget-tab ${activeView === 'data' ? 'is-active' : ''}" data-kpi-tab="data" data-kpi-key="${escapeHtml(data.key)}">Dados</button>
+          </div>
+          <p class="html-widget-swipe-hint">Deslize para alternar as abas do KPI.</p>
         </div>
-        <div class="financeiro-kpi-chart-wrap">
-          <canvas class="financeiro-kpi-chart" data-kpi-chart="${escapeHtml(data.key)}" aria-label="${escapeHtml(data.chartTitle)}"></canvas>
+        <div class="financeiro-kpi-panels">
+          <section class="html-widget-view ${activeView === 'summary' ? 'is-active' : ''}" data-kpi-view="summary" data-kpi-key="${escapeHtml(data.key)}">
+            <div class="financeiro-kpi-chart-wrap">
+              <canvas class="financeiro-kpi-chart" data-kpi-chart="${escapeHtml(data.key)}-donut" aria-label="Resumo consolidado ${escapeHtml(data.title)}"></canvas>
+            </div>
+            <p class="financeiro-kpi-caption">Consolidado: ${escapeHtml(data.consolidatedLabel)} (${formatPercent(data.consolidatedRatio)})</p>
+          </section>
+          <section class="html-widget-view ${activeView === 'time' ? 'is-active' : ''}" data-kpi-view="time" data-kpi-key="${escapeHtml(data.key)}">
+            <div class="financeiro-kpi-chart-wrap">
+              <canvas class="financeiro-kpi-chart" data-kpi-chart="${escapeHtml(data.key)}-time" aria-label="Distribuição temporal ${escapeHtml(data.title)}"></canvas>
+            </div>
+          </section>
+          <section class="html-widget-view ${activeView === 'data' ? 'is-active' : ''}" data-kpi-view="data" data-kpi-key="${escapeHtml(data.key)}">
+            <div class="financeiro-kpi-data-wrap">
+              <table class="financeiro-kpi-data-table">
+                <thead><tr><th>Descrição</th><th>Status</th><th>Valor</th></tr></thead>
+                <tbody>
+                  ${data.rows.map((row) => `<tr><td>${escapeHtml(row.descricao)}</td><td>${escapeHtml(row.status)}</td><td>${escapeHtml(currency(row.valor))}</td></tr>`).join('') || '<tr><td colspan="3">Sem dados para este KPI.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
       </div>
     `;
@@ -177,8 +216,23 @@
     const kpiSaldo = root.querySelector('[data-kpi="saldo"]');
     const sampleInfo = root.querySelector('[data-sample-info]');
 
-    const charts = { receitas: null, despesas: null, saldo: null };
+    const charts = {};
+    const kpiViewState = { receitas: 'summary', despesas: 'summary', saldo: 'summary' };
+    const kpiTabsOrder = ['summary', 'time', 'data'];
+    const touchState = { startX: 0, key: '' };
     let state = read();
+
+    const changeKpiView = (kpiKey, nextView) => {
+      if (!kpiViewState[kpiKey]) return;
+      kpiViewState[kpiKey] = nextView;
+      paint();
+    };
+
+    const cycleKpiView = (kpiKey, direction = 1) => {
+      const currentIndex = kpiTabsOrder.indexOf(kpiViewState[kpiKey] || 'summary');
+      const nextIndex = (currentIndex + direction + kpiTabsOrder.length) % kpiTabsOrder.length;
+      changeKpiView(kpiKey, kpiTabsOrder[nextIndex]);
+    };
 
     const openDialog = (key, payload = {}, title = '') => {
       fillForm(forms[key], payload);
@@ -192,29 +246,53 @@
       const despesas = launches.filter((item) => item.tipo === 'saida').reduce((acc, item) => acc + Number(item.valor || 0), 0);
       const saldo = receitas - despesas;
 
-      renderKpiCard(kpiReceitas, {
-        key: 'receitas',
-        title: 'Receitas',
-        value: currency(receitas),
-        caption: `${launches.filter((item) => item.tipo === 'entrada').length} lançamentos`,
-        chartTitle: 'Distribuição de receitas no tempo'
-      });
-      renderKpiCard(kpiDespesas, {
-        key: 'despesas',
-        title: 'Despesas',
-        value: currency(despesas),
-        caption: `${launches.filter((item) => item.tipo === 'saida').length} lançamentos`,
-        chartTitle: 'Distribuição de despesas no tempo'
-      });
-      renderKpiCard(kpiSaldo, {
-        key: 'saldo',
-        title: 'Saldo',
-        value: currency(saldo),
-        caption: saldo >= 0 ? 'Operação saudável' : 'Atenção ao caixa',
-        chartTitle: 'Saldo financeiro no tempo'
-      });
-
+      const entries = launches.filter((item) => item.tipo === 'entrada');
+      const outflows = launches.filter((item) => item.tipo === 'saida');
+      const receitasConsolidadas = entries
+        .filter((item) => ['recebido', 'pago'].includes(item.status))
+        .reduce((acc, item) => acc + Number(item.valor || 0), 0);
+      const despesasConsolidadas = outflows
+        .filter((item) => item.status === 'pago')
+        .reduce((acc, item) => acc + Number(item.valor || 0), 0);
       const timeline = buildMonthSeries(launches);
+
+      const kpiConfigs = {
+        receitas: {
+          key: 'receitas',
+          title: 'Receitas',
+          value: currency(receitas),
+          caption: `${entries.length} lançamentos`,
+          trend: trendText(timeline.receitas),
+          consolidatedRatio: receitas > 0 ? receitasConsolidadas / receitas : 0,
+          consolidatedLabel: `${currency(receitasConsolidadas)} consolidado`,
+          rows: entries.slice(0, 8)
+        },
+        despesas: {
+          key: 'despesas',
+          title: 'Despesas',
+          value: currency(despesas),
+          caption: `${outflows.length} lançamentos`,
+          trend: trendText(timeline.despesas),
+          consolidatedRatio: despesas > 0 ? despesasConsolidadas / despesas : 0,
+          consolidatedLabel: `${currency(despesasConsolidadas)} pago`,
+          rows: outflows.slice(0, 8)
+        },
+        saldo: {
+          key: 'saldo',
+          title: 'Saldo',
+          value: currency(saldo),
+          caption: saldo >= 0 ? 'Operação saudável' : 'Atenção ao caixa',
+          trend: trendText(timeline.saldo),
+          consolidatedRatio: despesas > 0 ? Math.max(Math.min(receitasConsolidadas / despesas, 1), 0) : 1,
+          consolidatedLabel: `${currency(receitasConsolidadas - despesasConsolidadas)} consolidado`,
+          rows: launches.slice(0, 8)
+        }
+      };
+
+      renderKpiCard(kpiReceitas, kpiConfigs.receitas, kpiViewState.receitas);
+      renderKpiCard(kpiDespesas, kpiConfigs.despesas, kpiViewState.despesas);
+      renderKpiCard(kpiSaldo, kpiConfigs.saldo, kpiViewState.saldo);
+
       const baseOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -229,48 +307,49 @@
         }
       };
 
-      upsertChart(charts, 'receitas', root.querySelector('[data-kpi-chart="receitas"]'), {
+      upsertChart(charts, 'receitas-donut', root.querySelector('[data-kpi-chart="receitas-donut"]'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Consolidado', 'Em aberto'],
+          datasets: [{ data: [receitasConsolidadas, Math.max(receitas - receitasConsolidadas, 0)], backgroundColor: ['#16a34a', '#e2e8f0'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Consolidação de receitas' } } }
+      });
+
+      upsertChart(charts, 'despesas-donut', root.querySelector('[data-kpi-chart="despesas-donut"]'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Pago', 'Pendente'],
+          datasets: [{ data: [despesasConsolidadas, Math.max(despesas - despesasConsolidadas, 0)], backgroundColor: ['#dc2626', '#fde68a'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Consolidação de despesas' } } }
+      });
+
+      upsertChart(charts, 'saldo-donut', root.querySelector('[data-kpi-chart="saldo-donut"]'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Cobertura', 'Gap'],
+          datasets: [{ data: [Math.max(receitasConsolidadas, 0), Math.max(despesasConsolidadas - receitasConsolidadas, 0)], backgroundColor: ['#2563eb', '#fecaca'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Cobertura consolidada' } } }
+      });
+
+      upsertChart(charts, 'receitas-time', root.querySelector('[data-kpi-chart="receitas-time"]'), {
         type: 'bar',
-        data: {
-          labels: timeline.labels,
-          datasets: [
-            { label: 'Receitas', data: timeline.receitas, backgroundColor: 'rgba(22, 163, 74, 0.55)', borderColor: '#166534', borderWidth: 1 },
-            { label: 'Despesas', data: timeline.despesas, backgroundColor: 'rgba(220, 38, 38, 0.25)', borderColor: '#991b1b', borderWidth: 1 }
-          ]
-        },
-        options: {
-          ...baseOptions,
-          plugins: { ...baseOptions.plugins, title: { display: true, text: 'Receitas x Despesas por período' } }
-        }
+        data: { labels: timeline.labels, datasets: [{ label: 'Receitas', data: timeline.receitas, backgroundColor: 'rgba(22, 163, 74, 0.55)', borderColor: '#166534', borderWidth: 1 }] },
+        options: { ...baseOptions, plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição das receitas no tempo' } } }
       });
 
-      upsertChart(charts, 'despesas', root.querySelector('[data-kpi-chart="despesas"]'), {
+      upsertChart(charts, 'despesas-time', root.querySelector('[data-kpi-chart="despesas-time"]'), {
         type: 'line',
-        data: {
-          labels: timeline.labels,
-          datasets: [
-            { label: 'Despesas', data: timeline.despesas, borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.18)', fill: true, tension: 0.25 },
-            { label: 'Receitas', data: timeline.receitas, borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.08)', fill: false, tension: 0.25 }
-          ]
-        },
-        options: {
-          ...baseOptions,
-          plugins: { ...baseOptions.plugins, title: { display: true, text: 'Evolução de despesas e cobertura' } }
-        }
+        data: { labels: timeline.labels, datasets: [{ label: 'Despesas', data: timeline.despesas, borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.18)', fill: true, tension: 0.25 }] },
+        options: { ...baseOptions, plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição das despesas no tempo' } } }
       });
 
-      upsertChart(charts, 'saldo', root.querySelector('[data-kpi-chart="saldo"]'), {
+      upsertChart(charts, 'saldo-time', root.querySelector('[data-kpi-chart="saldo-time"]'), {
         type: 'line',
-        data: {
-          labels: timeline.labels,
-          datasets: [
-            { label: 'Saldo (receitas - despesas)', data: timeline.saldo, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.20)', fill: true, tension: 0.2 }
-          ]
-        },
-        options: {
-          ...baseOptions,
-          plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição do saldo no tempo' } }
-        }
+        data: { labels: timeline.labels, datasets: [{ label: 'Saldo', data: timeline.saldo, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.20)', fill: true, tension: 0.2 }] },
+        options: { ...baseOptions, plugins: { ...baseOptions.plugins, title: { display: true, text: 'Distribuição do saldo no tempo' } } }
       });
 
       grids.launches.innerHTML = launches.map((item) => `
@@ -328,6 +407,12 @@
     });
 
     root.addEventListener('click', (event) => {
+      const tabButton = event.target.closest('[data-kpi-tab]');
+      if (tabButton) {
+        changeKpiView(tabButton.dataset.kpiKey, tabButton.dataset.kpiTab);
+        return;
+      }
+
       const button = event.target.closest('[data-edit]');
       if (!button) return;
       const id = Number(button.dataset.id || 0);
@@ -350,6 +435,23 @@
         if (account) openDialog('account', account, 'Editar conta financeira');
       }
     });
+
+    root.addEventListener('touchstart', (event) => {
+      const kpiContainer = event.target.closest('[data-kpi-key]');
+      if (!kpiContainer) return;
+      touchState.startX = event.touches[0].clientX;
+      touchState.key = kpiContainer.dataset.kpiKey;
+    }, { passive: true });
+
+    root.addEventListener('touchend', (event) => {
+      if (!touchState.key) return;
+      const endX = event.changedTouches[0].clientX;
+      const delta = endX - touchState.startX;
+      if (Math.abs(delta) > 36) {
+        cycleKpiView(touchState.key, delta < 0 ? 1 : -1);
+      }
+      touchState.key = '';
+    }, { passive: true });
 
     forms.launch.addEventListener('submit', (event) => {
       event.preventDefault();
