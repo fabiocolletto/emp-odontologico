@@ -14,6 +14,7 @@
           <p class="financeiro-eyebrow">Gestão financeira odontológica</p>
           <h1>Financeiro da clínica</h1>
           <p class="financeiro-subtitle">Framework completo para clínicas odontológicas de pequeno e médio porte.</p>
+          <p class="financeiro-sample-info" data-sample-info></p>
         </div>
       </header>
 
@@ -26,7 +27,10 @@
       <section class="financeiro-section">
         <header class="financeiro-section__header">
           <h2>Lançamentos</h2>
-          <button type="button" class="financeiro-btn" data-action="novo-lancamento">Novo lançamento</button>
+          <div class="financeiro-section__actions">
+            <button type="button" class="financeiro-btn financeiro-btn--ghost" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="financeiro-btn" data-action="novo-lancamento">Novo lançamento</button>
+          </div>
         </header>
         <div class="financeiro-table-wrap">
           <table class="financeiro-table" aria-label="Tabela de lançamentos">
