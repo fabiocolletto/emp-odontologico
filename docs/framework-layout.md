@@ -97,10 +97,10 @@ Convenções implementadas:
 
 ## 6.1) Localização oficial da infraestrutura
 
-- Entrada atual do app no `index.html`: `apps/web/standalone-react.jsx`.
+- Entrada atual do app no `index.html` (raiz), com shell HTML/CSS/JS puro.
 - Código modular em `apps/web/src` permanece como base de evolução do framework.
-- Tokens e estilos legados/base: `apps/web/styles.css`.
-- Estilos oficiais do framework (shell, breakpoints e primitivas): `apps/web/framework-shell.css`.
+- Tokens e estilos oficiais: `apps/web/styles.css`.
+- Estilos/comportamento do shell: `apps/web/app-shell/shell.css` e `apps/web/app-shell/shell.js`.
 
 ## 7) Regras de preservação (contrato de continuidade)
 

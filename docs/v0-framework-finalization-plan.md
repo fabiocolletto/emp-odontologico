@@ -15,7 +15,7 @@ O framework possui base funcional de shell, breakpoints, níveis e primitivas es
 ## Escopo executado para fechar a versão 0
 
 ### Eixo A — Runtime único oficial
-- ✅ Definida entrada oficial funcional no `index.html`: `apps/web/standalone-react.jsx`.
+- ✅ Definida entrada oficial funcional no `index.html` da raiz com shell HTML/CSS/JS puro.
 - ✅ Runtime estabilizado para evitar regressão de tela branca.
 - ✅ Contrato de evolução modular mantido em `apps/web/src` para próximas etapas de aplicação.
 

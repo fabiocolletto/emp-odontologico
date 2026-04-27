@@ -8,15 +8,20 @@ Sistema de gestão empresarial para clínicas odontológicas.
 .
 ├── apps/
 │   └── web/
-│       ├── index.html
+│       ├── app-shell/
+│       │   ├── index.html (compatibilidade)
+│       │   ├── shell.css
+│       │   └── shell.js
 │       ├── styles.css
 │       └── src/
-│           ├── app.js
-│           ├── components.js
-│           ├── constants.js
-│           ├── dashboard.js
-│           ├── main.js
-│           └── modelagem.js
+│           ├── agenda/
+│           ├── clinics/
+│           ├── financial/
+│           ├── home/
+│           ├── patients/
+│           ├── profile/
+│           ├── team/
+│           └── shared/
 ├── backend/
 │   └── supabase/
 │       ├── migrations/
@@ -50,8 +55,8 @@ Para detalhes da organização e evolução, consulte `docs/estrutura-repositori
 
 ## Design System Visual (V1)
 - Documento oficial: `docs/design-system/visual-v1.md`.
-- Tokens e componentes base oficiais: `apps/web/styles.css` e `apps/web/src/components.js`.
-- Contrato estrutural da V0 permanece em `apps/web/framework-shell.css`.
+- Tokens e componentes base oficiais: `apps/web/styles.css`.
+- Contrato estrutural atual: shell HTML/CSS/JS em `index.html` + `apps/web/app-shell/*`.
 
 
 

@@ -33,7 +33,7 @@ Framework de layout **consolidado como base oficial** para evolução das próxi
 
 Nenhuma pendência estrutural crítica aberta para fechamento da v0.
 
-- ✅ Entrada funcional única definida no runtime atual (`apps/web/standalone-react.jsx`).
+- ✅ Entrada funcional única definida no runtime atual (`index.html` raiz + `apps/web/app-shell/shell.js`).
 - ✅ Check de runtime (`scripts/smoke-runtime.sh`) e check de contrato (`scripts/check-framework.sh`) criados.
 
 ## Conclusão
