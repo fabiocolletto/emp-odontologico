@@ -2,6 +2,15 @@
 
 Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar validação no GitHub Pages.
 
+
+## v1.1.46 - 2026-04-27
+
+### Changed
+- Extraídos do runtime principal (`standalone-react.jsx`) os contratos reutilizáveis de shell em `apps/web/src/shared/app-shell-components.js`: `AppIcon`, `AppSidebar`, `AppShell`, `AppHeader`, `PageHeader` e botões de ação de header, mantendo o mesmo comportamento visual do Financeiro e das demais telas.
+- Extraída a tabela base para `apps/web/src/shared/base-data-table.js`, preservando ordenação, paginação responsiva e totalizadores sem alteração de aparência.
+- `index.html` atualizado para carregar os novos módulos compartilhados antes de `standalone-react.jsx`, mantendo compatibilidade com GitHub Pages (carregamento estático via CDN, sem build step).
+- Consolidada a validação técnica do cenário de retrato/mobile para evitar header/barra duplicados e sobra de espaço no topo, mantendo apenas a navegação adequada por breakpoint.
+
 ## v1.1.33 - 2026-04-26
 
 ### Changed
