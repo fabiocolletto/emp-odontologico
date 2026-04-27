@@ -355,13 +355,12 @@ const FinancialSectionColumns = financialComponentFactories.createFinancialSecti
 const FinancialWidgetFrame = financialComponentFactories.createFinancialWidgetFrame();
 const FinancialTableSectionCard = financialComponentFactories.createFinancialTableSectionCard({ FinancialWidgetFrame, DataTable, FinancialEditAction });
 const FinancialTablePanelCard = financialComponentFactories.createFinancialTablePanelCard({ FinancialWidgetFrame, DataTable, FinancialEditAction });
-const chartCatalogFactories = globalThis.OdontoFlowChartCatalog || {};
-if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartSparkLine || !chartCatalogFactories.createChartSparkArea) {
+const chartCatalogFactories = globalThis.OdontoFlowChartComponents || globalThis.OdontoFlowChartCatalog || {};
+if (!chartCatalogFactories.createChartDonut || !chartCatalogFactories.createChartCompactBar || !chartCatalogFactories.createChartSparkLine) {
   throw new Error('Catálogo de gráficos não carregado. Verifique os scripts em index.html.');
 }
 const ChartDonut = chartCatalogFactories.createChartDonut();
-const ChartSparkLine = chartCatalogFactories.createChartSparkLine();
-const ChartSparkArea = chartCatalogFactories.createChartSparkArea();
+const ChartCompactBar = chartCatalogFactories.createChartCompactBar();
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -1327,6 +1326,11 @@ function DashboardApp({
   const [recurringFilter, setRecurringFilter] = useState('');
   const [forecastFilter, setForecastFilter] = useState('');
   const [financialInfoKey, setFinancialInfoKey] = useState('');
+  const [financialHubTabs, setFinancialHubTabs] = useState({
+    receitas: 'summary',
+    despesas: 'summary',
+    conciliacao: 'summary'
+  });
   const [financialFocusWindow, setFinancialFocusWindow] = useState({
     isOpen: false,
     tipo: 'all',
@@ -2704,6 +2708,20 @@ function DashboardApp({
       if (Math.abs(diff) <= totalDespesas * 0.1) return { label: 'Atenção', tone: 'text-amber-600', description: 'Margem curta para despesas' };
       return { label: 'Risco', tone: 'text-rose-600', description: 'Despesas superam recebimentos' };
     })();
+    const buildHubRows = (rows = [], type = 'entrada') => rows.slice(0, 4).map((item) => ({
+      id: item.id,
+      principal: item.descricao || 'Lançamento',
+      secondary: item.categoria || '-',
+      value: formatMoney(item.valor),
+      status: item.status || (type === 'entrada' ? 'recebido' : 'pendente')
+    }));
+    const conciliacaoRows = conciliacaoTimeline.slice(-3).map((item, index) => ({
+      id: `conc-${index}`,
+      principal: `Período M${index + 1}`,
+      secondary: conciliationStatus.label,
+      value: formatMoney(item.total),
+      status: item.total > 0 ? 'equilibrado' : 'atenção'
+    }));
     const financialHeroWidgets = [
       {
         key: 'receitas',
@@ -2715,10 +2733,11 @@ function DashboardApp({
         secondary: `A receber ${formatMoney(receitaAbertaTotal)}`,
         ratio: receiptRatio,
         ratioLabel: `${(receiptRatio * 100).toFixed(0)}% recebido`,
-        trendSeries: receitasTimeline.map((entry) => entry.total),
+        trendSeries: receitasTimeline.map((entry) => entry.total).slice(-3),
         trendLabel: 'Linha de receitas',
         chartTone: '#10b981',
-        chartVariant: 'line',
+        timelineLabels: ['M1', 'M2', 'M3'],
+        tableRows: buildHubRows(contasReceber, 'entrada'),
         actionLabel: 'Foco receitas',
         actionAria: 'Abrir lista de receitas para trabalhar o conjunto de dados',
         onAction: () => focusFinancialLaunches('entrada')
@@ -2733,10 +2752,11 @@ function DashboardApp({
         secondary: `A pagar ${formatMoney(despesaAbertaTotal)}`,
         ratio: expenseRatio,
         ratioLabel: `${(expenseRatio * 100).toFixed(0)}% quitado`,
-        trendSeries: despesasTimeline.map((entry) => entry.total),
+        trendSeries: despesasTimeline.map((entry) => entry.total).slice(-3),
         trendLabel: 'Linha de despesas',
         chartTone: '#f43f5e',
-        chartVariant: 'area',
+        timelineLabels: ['M1', 'M2', 'M3'],
+        tableRows: buildHubRows(contasPagar, 'saida'),
         actionLabel: 'Foco despesas',
         actionAria: 'Abrir lista de despesas para dar baixa, editar ou excluir',
         onAction: () => focusFinancialLaunches('saida')
@@ -2751,10 +2771,11 @@ function DashboardApp({
         secondary: `${conciliationStatus.label} · ${conciliationStatus.description}`,
         ratio: reconciliationRatio,
         ratioLabel: `${(reconciliationRatio * 100).toFixed(0)}% cobertura`,
-        trendSeries: conciliacaoTimeline.map((entry) => entry.total),
+        trendSeries: conciliacaoTimeline.map((entry) => entry.total).slice(-3),
         trendLabel: 'Linha de conciliação',
         chartTone: '#3b82f6',
-        chartVariant: 'line',
+        timelineLabels: ['M1', 'M2', 'M3'],
+        tableRows: conciliacaoRows,
         actionLabel: 'Conferir lançamentos',
         actionAria: 'Ir para a lista de lançamentos para conciliação',
         onAction: () => focusFinancialLaunches('all')
@@ -3058,8 +3079,9 @@ function DashboardApp({
           <FinancialSectionColumns variant="hero">
             <section className="financial-kpi-row financial-kpi-row--hero" aria-label="Consolidado financeiro com inspiração Bloomberg">
               {financialHeroWidgets.map((widget) => {
+                const currentTab = financialHubTabs[widget.key] || 'summary';
                 return (
-                  <article key={widget.key} className={`financial-hero-widget financial-widget financial-widget--summary financial-widget--triple ${widget.toneClass}`.trim()}>
+                  <article key={widget.key} className={`financial-hub-widget financial-summary-widget financial-hero-widget financial-widget financial-widget--summary financial-widget--triple financial-hub-widget--${widget.key === 'receitas' ? 'revenue' : widget.key === 'despesas' ? 'expense' : 'reconciliation'} ${widget.toneClass}`.trim()}>
                     <div className="financial-widget__header">
                       <p className="financial-hero-widget__eyebrow financial-widget__title">
                         <span className={`financial-widget__title-icon ${widget.iconToneClass}`.trim()} aria-hidden="true"><AppIcon name={widget.iconName} size={11} /></span>
@@ -3073,42 +3095,70 @@ function DashboardApp({
                         />
                       </div>
                     </div>
-                    <div className="financial-hero-widget__body financial-widget__body">
-                      <div className="financial-hero-widget__summary">
-                        <p className="financial-hero-widget__value">{widget.primary}</p>
-                        <p className="financial-hero-widget__caption">{widget.secondary}</p>
+                    <div className="financial-hub-widget__body financial-summary-widget__body financial-hero-widget__body financial-widget__body">
+                      <div className="financial-hub-widget__tabs" role="tablist" aria-label={`Abas do hub ${widget.title}`}>
+                        <button
+                          type="button"
+                          className={`financial-hub-widget__tab ${currentTab === 'summary' ? 'is-active' : ''}`.trim()}
+                          role="tab"
+                          aria-selected={currentTab === 'summary'}
+                          onClick={() => setFinancialHubTabs((prev) => ({ ...prev, [widget.key]: 'summary' }))}
+                        >
+                          Resumo
+                        </button>
+                        <button
+                          type="button"
+                          className={`financial-hub-widget__tab ${currentTab === 'table' ? 'is-active' : ''}`.trim()}
+                          role="tab"
+                          aria-selected={currentTab === 'table'}
+                          onClick={() => setFinancialHubTabs((prev) => ({ ...prev, [widget.key]: 'table' }))}
+                        >
+                          Tabela
+                        </button>
                       </div>
-                      <ChartDonut
-                        value={widget.ratio}
-                        label={widget.ratioLabel}
-                        tone={widget.chartTone}
-                        size={82}
-                      />
-                    </div>
-                    <div className="financial-hero-widget__trend">
-                      <div className="financial-hero-widget__trend-axis">
-                        {(() => {
-                          const max = Math.max(...widget.trendSeries, 1);
-                          const axis = [max, max * 0.66, max * 0.33, 0];
-                          return axis.map((value, index) => (
-                            <span key={`axis-${widget.key}-${index}`}>{formatMoney(value)}</span>
-                          ));
-                        })()}
-                      </div>
-                      <div className="financial-hero-widget__trend-bars">
-                        {widget.trendSeries.map((point, index) => {
-                          const max = Math.max(...widget.trendSeries, 1);
-                          const height = Math.max(8, (point / max) * 100);
-                          return (
-                            <div key={`trend-${widget.key}-${index}`} className="financial-hero-widget__trend-bar-item">
-                              <span className="financial-hero-widget__trend-bar" style={{ height: `${height}%`, background: widget.chartTone }} />
-                              <small>M{index + 1}</small>
+                      {currentTab === 'summary' ? (
+                        <div className="financial-hub-widget__summary">
+                          <div className="financial-summary-widget__hero">
+                            <div className="financial-summary-widget__metric financial-hero-widget__summary">
+                              <p className="financial-summary-widget__value financial-hero-widget__value">{widget.primary}</p>
+                              <p className="financial-summary-widget__subtitle financial-hero-widget__caption">{widget.secondary}</p>
                             </div>
-                          );
-                        })}
-                      </div>
+                            <div className="financial-hub-widget__donut-chart financial-summary-widget__donut">
+                              <ChartDonut
+                                value={widget.ratio}
+                                label={widget.ratioLabel}
+                                tone={widget.chartTone}
+                                size={84}
+                              />
+                            </div>
+                          </div>
+                          <div className="financial-hub-widget__chart-row financial-summary-widget__timeline financial-hero-widget__trend">
+                            <div className="financial-hub-widget__timeline-chart financial-summary-widget__timeline-chart financial-hero-widget__trend-bars">
+                              <ChartCompactBar points={widget.trendSeries} labels={widget.timelineLabels} tone={widget.chartTone} maxTicks={3} />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="financial-hub-widget__table" role="region" aria-label={`Tabela compacta de ${widget.title}`}>
+                          <div className="financial-hub-widget__table-head">
+                            <span>Item</span>
+                            <span>Valor</span>
+                          </div>
+                          <div className="financial-hub-widget__table-body">
+                            {widget.tableRows.map((row) => (
+                              <div key={`${widget.key}-${row.id}`} className="financial-hub-widget__table-row">
+                                <div>
+                                  <p>{row.principal}</p>
+                                  <small>{row.secondary}</small>
+                                </div>
+                                <strong>{row.value}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <footer className="financial-hero-widget__footer financial-widget__footer">
+                    <footer className="financial-hub-widget__footer financial-summary-widget__footer financial-hero-widget__footer financial-widget__footer">
                       <p>{widget.ratioLabel}</p>
                       <p>{widget.trendLabel}</p>
                     </footer>

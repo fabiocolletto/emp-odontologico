@@ -7,6 +7,52 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.54 - 2026-04-27
+
+### Changed
+- Adoção do **Chart.js via CDN** como padrão oficial de gráficos da tela Financeiro, mantendo compatibilidade com GitHub Pages sem build step e sem dependências instaladas por pacote.
+- Consolidação do wrapper interno de gráficos em `apps/web/src/shared/chart-catalog.js`, centralizando criação, atualização e cleanup das instâncias Chart.js.
+- Substituição dos gráficos compactos dos três hubs superiores (Receita, Despesa e Conciliação) por Chart.js (`doughnut` + `bar` compacto) com fallback quando `globalThis.Chart` não estiver disponível.
+- Evolução dos três widgets superiores para hubs com abas internas independentes **Resumo/Tabela**, mantendo altura fixa dos cards e sem alterar os widgets inferiores da operação.
+- Ajustes de estilo para integração visual premium dos charts (`of-chart`) no design system existente, com remoção de ruído visual (legenda/tooltip padrão) e responsividade em desktop/tablet/mobile.
+
+### Validation
+- Validação técnica executada em contrato de framework e runtime smoke.
+- Validação visual planejada para abertura da tela Financeiro, troca de abas por widget, carregamento do CDN Chart.js, ausência de overflow horizontal e cleanup dos gráficos ao alternar visões.
+
+## v1.1.53 - 2026-04-27
+
+### Changed
+- Refinado o framework visual da tela **Financeiro** com foco em afastamentos, alinhamentos e consistência de superfícies no padrão Material Design 3 (ou similar), via tokens dedicados para widgets financeiros.
+- Ajustado o bloco **Resumo financeiro estratégico** com espaçamentos internos mais equilibrados entre KPI/rosca/timeline/footer para leitura mais fluida como uma única superfície.
+- Melhorado o respiro dos eixos e labels (`M1`, `M2`, `M3`) do gráfico temporal, evitando sensação de compressão nas bordas laterais e na base do card.
+- Suavizadas divisórias internas (topo do timeline e topo do footer) para reduzir o efeito de blocos separados dentro do mesmo widget.
+
+### Validation
+- Revisão visual/responsiva executada para desktop amplo, tablet retrato e mobile, preservando altura uniforme dos três widgets estratégicos e legibilidade geral da composição.
+
+## v1.1.52 - 2026-04-27
+
+### Changed
+- Refinado o padding interno do gráfico temporal nos widgets do **Resumo financeiro estratégico** para evitar contato nas bordas laterais e no limite inferior do card.
+- Melhorado o espaçamento interno e a leitura dos eixos/labels (`M1`, `M2`, `M3`) com classes específicas de timeline (`__timeline-axis`, `__timeline-chart`, `__timeline-labels`).
+- Suavizada a transição entre o bloco superior (KPI + rosca) e o gráfico temporal por meio de divisória menos agressiva e respiro vertical mais intencional.
+- Rodapé dos widgets estratégicos ajustado para manter ancoragem na base com padding coerente, evitando proximidade excessiva com o gráfico.
+
+### Validation
+- Revisão responsiva validada para desktop amplo, tablet retrato e mobile, mantendo os três cards estratégicos com altura uniforme e leitura estável do gráfico inferior.
+
+## v1.1.51 - 2026-04-27
+
+### Changed
+- Ajustada a composição dos três widgets do bloco **Resumo financeiro estratégico** para um contrato executivo consistente (`financial-summary-widget`) com hierarquia clara entre KPI principal, subtítulo, indicador circular e timeline.
+- Corrigido o corte/compressão da rosca nos cards de **Receitas consolidadas**, **Despesas consolidadas** e **Conciliação financeira**, com área dedicada e responsiva para manter o donut inteiro e texto central legível.
+- Reequilibrada a leitura visual do gráfico temporal inferior (eixo compacto, grade de apoio e labels `M1`, `M2`, `M3`) para reduzir vazio e conectar o bloco ao KPI superior.
+- Mantida a seção **Operação financeira diária** sem alterações estruturais/visuais, preservando contrato atual.
+
+### Validation
+- Validação responsiva executada para desktop amplo, tablet retrato e mobile, incluindo estabilidade de altura entre os três widgets do resumo estratégico e footer ancorado na base.
+
 ## v1.1.50 - 2026-04-27
 
 ### Fixed
