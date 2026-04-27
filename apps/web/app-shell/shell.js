@@ -49,9 +49,8 @@ function renderHeader() {
   const menuButton = header.querySelector('.app-menu-toggle');
 
   menuButton?.addEventListener('click', () => {
-    document.body.classList.toggle('sidebar-open');
     const isExpanded = document.body.classList.contains('sidebar-open');
-    menuButton.setAttribute('aria-expanded', String(isExpanded));
+    setSidebarOpen(!isExpanded);
   });
 }
 
@@ -141,10 +140,14 @@ function updateHash(tabId) {
 }
 
 function closeSidebarDrawer() {
-  document.body.classList.remove('sidebar-open');
+  setSidebarOpen(false);
+}
+
+function setSidebarOpen(isOpen) {
+  document.body.classList.toggle('sidebar-open', isOpen);
 
   const menuButton = document.querySelector('.app-menu-toggle');
-  menuButton?.setAttribute('aria-expanded', 'false');
+  menuButton?.setAttribute('aria-expanded', String(isOpen));
 }
 
 window.addEventListener('message', (event) => {
@@ -158,6 +161,26 @@ window.addEventListener('message', (event) => {
 window.addEventListener('hashchange', () => {
   const tabId = getInitialTab();
   navigateTo(tabId);
+});
+
+document.addEventListener('click', (event) => {
+  if (!document.body.classList.contains('sidebar-open')) return;
+
+  const sidebar = document.getElementById('app-sidebar');
+  const menuButton = document.querySelector('.app-menu-toggle');
+  const target = event.target;
+  const clickedInsideSidebar = sidebar?.contains(target);
+  const clickedMenuButton = menuButton?.contains(target);
+
+  if (!clickedInsideSidebar && !clickedMenuButton) {
+    closeSidebarDrawer();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeSidebarDrawer();
+  }
 });
 
 document.addEventListener('DOMContentLoaded', initShell);
