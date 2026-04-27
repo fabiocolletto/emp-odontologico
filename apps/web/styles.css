@@ -4612,6 +4612,7 @@ select {
 }
 
 /* Financial legacy framework bridge */
+.inicio-legacy-frame,
 .financial-legacy-frame {
   padding: 0;
   border: 1px solid var(--financial-outline);
@@ -4620,6 +4621,7 @@ select {
   background: var(--financial-surface);
 }
 
+.inicio-legacy-frame__iframe,
 .financial-legacy-frame__iframe {
   width: 100%;
   min-height: 78vh;
@@ -4709,6 +4711,7 @@ select {
 }
 
 @media (max-width: 1024px) {
+  .inicio-legacy-frame__iframe,
   .agenda-legacy-frame__iframe,
   .clinic-legacy-frame__iframe,
   .patients-legacy-frame__iframe,
@@ -4720,6 +4723,7 @@ select {
 }
 
 @media (max-width: 767px) {
+  .inicio-legacy-frame__iframe,
   .agenda-legacy-frame__iframe,
   .clinic-legacy-frame__iframe,
   .patients-legacy-frame__iframe,
