@@ -74,6 +74,7 @@ const NAV_PRIMARY = [
   { id: 'agenda', label: 'Agenda', icon: 'calendar', tone: 'agenda', group: 'Atendimento' },
   { id: 'patients', label: 'Pacientes', icon: 'users', tone: 'patients', group: 'Cadastros' },
   { id: 'clinic', label: 'Clínica', icon: 'id-card', tone: 'account', group: 'Gestão' },
+  { id: 'team', label: 'Equipe', icon: 'users', tone: 'patients', group: 'Gestão' },
   { id: 'financial', label: 'Financeiro', icon: 'plan', tone: 'settings', group: 'Gestão' },
   { id: 'profile', label: 'Perfil', icon: 'id-card', tone: 'account', group: 'Gestão' }
 ];
@@ -338,6 +339,11 @@ if (!patientComponentFactories.createPatientsLegacyFrame) {
   throw new Error('Frame de pacientes não carregado. Verifique os scripts em index.html.');
 }
 const PatientsLegacyFrame = patientComponentFactories.createPatientsLegacyFrame();
+const teamComponentFactories = globalThis.OdontoFlowTeamComponents || {};
+if (!teamComponentFactories.createTeamLegacyFrame) {
+  throw new Error('Frame de equipe não carregado. Verifique os scripts em index.html.');
+}
+const TeamLegacyFrame = teamComponentFactories.createTeamLegacyFrame();
 const layoutPrimitiveFactories = globalThis.OdontoFlowLayoutPrimitives || {};
 if (!layoutPrimitiveFactories.createDataSection || !layoutPrimitiveFactories.createDataColumns) {
   throw new Error('Primitivos de layout não carregados. Verifique os scripts em index.html.');
@@ -2022,6 +2028,14 @@ function DashboardApp({
         ariaLabel: 'Abrir clínica',
         onClick: () => goToLevel1('clinic')
       },
+      team: {
+        key: 'team',
+        icon: 'users',
+        tone: 'patients',
+        label: 'Equipe',
+        ariaLabel: 'Abrir equipe',
+        onClick: () => goToLevel1('team')
+      },
       profile: {
         key: 'profile',
         icon: TAB_META.profile.icon,
@@ -2036,7 +2050,7 @@ function DashboardApp({
       overview: {
         level: 0,
         previous: null,
-        next: ['agenda', 'patients', 'clinic', 'financial', 'profile']
+        next: ['agenda', 'patients', 'clinic', 'team', 'financial', 'profile']
       },
       agenda: {
         level: 1,
@@ -2049,6 +2063,11 @@ function DashboardApp({
         next: ['new-patient', 'patients-search', 'patients-sort', 'patients-multi']
       },
       clinic: {
+        level: 1,
+        previous: 'overview',
+        next: []
+      },
+      team: {
         level: 1,
         previous: 'overview',
         next: []
@@ -2148,6 +2167,14 @@ function DashboardApp({
       );
     }
 
+    if (activeTab === 'team') {
+      return (
+        <div className="space-y-2">
+          <TeamLegacyFrame src="./apps/web/src/team/equipe.html" />
+        </div>
+      );
+    }
+
 
     if (activeTab === 'financial') {
       return (
@@ -2172,6 +2199,7 @@ function DashboardApp({
       ],
       center: { key: 'overview-clinic', icon: 'id-card', tone: 'account', label: 'Clínica', onClick: () => goToLevel1('clinic') },
       right: [
+        { key: 'overview-team', icon: 'users', tone: 'patients', label: 'Equipe', onClick: () => goToLevel1('team') },
         { key: 'overview-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') },
         { key: 'overview-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
       ]
@@ -2211,7 +2239,18 @@ function DashboardApp({
       ],
       center: { key: 'clinic-add', icon: 'plus', tone: 'account', label: 'Adicionar', onClick: handleOpenClinicCreateN2 },
       right: [
+        { key: 'clinic-team', icon: 'users', tone: 'patients', label: 'Equipe', onClick: () => goToLevel1('team') },
         { key: 'clinic-profile', icon: 'id-card', tone: 'account', label: 'Perfil', onClick: () => goToLevel1('profile') }
+      ]
+    },
+    team: {
+      left: [
+        { key: 'team-overview', icon: 'home', tone: 'overview', label: 'Início', onClick: () => goToLevel1('overview') },
+        { key: 'team-clinic', icon: 'id-card', tone: 'account', label: 'Clínica', onClick: () => goToLevel1('clinic') }
+      ],
+      center: { key: 'team-panel', icon: 'users', tone: 'patients', label: 'Painel', onClick: () => goToLevel1('team') },
+      right: [
+        { key: 'team-financial', icon: 'plan', tone: 'settings', label: 'Financeiro', onClick: () => goToLevel1('financial') }
       ]
     },
     profile: {

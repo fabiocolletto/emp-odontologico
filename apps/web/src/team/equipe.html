@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Equipe</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="../shared/html-widget-common.css" />
+    <link rel="stylesheet" href="./equipe.css" />
+  </head>
+  <body>
+    <main class="equipe-page of-main-inner of-view-level-1" data-equipe-app data-nav-level="1">
+      <header class="equipe-page__header financeiro-screen-header">
+        <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><span>Início</span><span>/</span><strong>Equipe</strong></p>
+        <div class="financeiro-screen-header__main">
+          <div class="financeiro-screen-header__icon" aria-hidden="true">👥</div>
+          <div class="financeiro-screen-header__content">
+            <p class="financeiro-eyebrow">Gestão de equipe multi-clínica</p>
+            <h1>Equipe da clínica</h1>
+            <p class="financeiro-subtitle">Cadastro objetivo para vínculo por e-mail, acesso, custos, repasses e contratos. Preparado para controle futuro de assentos por clínica.</p>
+            <p class="equipe-info" data-equipe-info></p>
+          </div>
+        </div>
+      </header>
+
+      <section class="equipe-kpi-grid" aria-label="Resumo da equipe">
+        <article class="equipe-kpi-card" data-kpi="members"></article>
+        <article class="equipe-kpi-card" data-kpi="invites"></article>
+        <article class="equipe-kpi-card" data-kpi="multiclinic"></article>
+      </section>
+
+      <section class="equipe-section">
+        <header class="equipe-section__header">
+          <h2>Profissionais e acessos</h2>
+          <div class="equipe-section__actions">
+            <button type="button" class="equipe-btn equipe-btn--ghost" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="equipe-btn" data-action="new-member">Novo vínculo</button>
+          </div>
+        </header>
+
+        <div class="equipe-filter-row">
+          <label for="team-clinic-filter">Clínica</label>
+          <select id="team-clinic-filter" data-filter="clinic"></select>
+        </div>
+
+        <div class="equipe-table-wrap">
+          <table class="equipe-table" aria-label="Tabela de profissionais">
+            <thead>
+              <tr>
+                <th>Profissional</th>
+                <th>E-mail vínculo</th>
+                <th>Clínica</th>
+                <th>Perfil de acesso</th>
+                <th>Contrato</th>
+                <th>Custo / Repasse</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody data-grid="members"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="equipe-section" data-legacy="true">
+        <header class="equipe-section__header">
+          <h2>Dados legados (obsoletos)</h2>
+        </header>
+        <p class="equipe-legacy-note">Marcadores preservados para facilitar limpeza futura após validação do módulo.</p>
+        <ul class="equipe-chip-row" data-grid="legacy"></ul>
+      </section>
+
+      <section class="equipe-section">
+        <header class="equipe-section__header">
+          <h2>Backend local (modelagem)</h2>
+        </header>
+        <form class="equipe-backend" data-backend-form>
+          <label>Endpoint local
+            <input type="url" name="endpoint" placeholder="http://localhost:3000/api/team-memberships" required />
+          </label>
+          <menu>
+            <button type="submit" class="equipe-btn">Sincronizar equipe</button>
+          </menu>
+          <p class="equipe-backend__status" data-backend-status>Pronto para testar integração local.</p>
+        </form>
+      </section>
+    </main>
+
+    <dialog class="equipe-dialog" data-dialog="member">
+      <form method="dialog" class="equipe-form" data-form="member">
+        <h3 data-form-title="member">Novo vínculo de equipe</h3>
+        <input type="hidden" name="id" />
+        <label>Nome do profissional
+          <input name="full_name" required maxlength="100" />
+        </label>
+        <label>E-mail (vínculo/login futuro)
+          <input type="email" name="email" required maxlength="100" />
+        </label>
+        <label>Clínica
+          <select name="clinic_id" required data-form-clinic></select>
+        </label>
+        <label>Função
+          <select name="role" required>
+            <option value="dentista">Dentista</option>
+            <option value="recepcionista">Recepcionista</option>
+            <option value="financeiro">Financeiro</option>
+            <option value="gestor">Gestor</option>
+            <option value="apoio">Apoio clínico</option>
+          </select>
+        </label>
+        <label>Nível de acesso
+          <select name="access_level" required>
+            <option value="admin">Administrador</option>
+            <option value="manager">Gestor</option>
+            <option value="operational">Operacional</option>
+            <option value="read_only">Somente leitura</option>
+          </select>
+        </label>
+        <label>Tipo de contrato
+          <select name="contract_type" required>
+            <option value="clt">CLT</option>
+            <option value="pj">PJ</option>
+            <option value="autonomo">Autônomo</option>
+            <option value="parceiro">Parceiro</option>
+          </select>
+        </label>
+        <label>Custo mensal (R$)
+          <input type="number" min="0" step="0.01" name="monthly_cost" />
+        </label>
+        <label>Repasse (%)
+          <input type="number" min="0" max="100" step="0.01" name="receivable_split" />
+        </label>
+        <label>Status
+          <select name="status" required>
+            <option value="active">Ativo</option>
+            <option value="pending_invite">Convite pendente</option>
+            <option value="inactive">Inativo</option>
+          </select>
+        </label>
+        <menu>
+          <button value="cancel" class="equipe-btn equipe-btn--ghost">Cancelar</button>
+          <button value="default" class="equipe-btn">Salvar vínculo</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./equipe.js"></script>
+  </body>
+</html>

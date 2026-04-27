@@ -4660,9 +4660,26 @@ select {
   background: var(--surface-page);
 }
 
+/* Team legacy framework bridge */
+.team-legacy-frame {
+  padding: 0;
+  border: 1px solid var(--financial-outline);
+  border-radius: var(--financial-radius);
+  overflow: hidden;
+  background: var(--financial-surface);
+}
+
+.team-legacy-frame__iframe {
+  width: 100%;
+  min-height: 78vh;
+  border: 0;
+  background: var(--surface-page);
+}
+
 @media (max-width: 1024px) {
   .clinic-legacy-frame__iframe,
   .patients-legacy-frame__iframe,
+  .team-legacy-frame__iframe,
   .financial-legacy-frame__iframe {
     min-height: 72vh;
   }
@@ -4671,6 +4688,7 @@ select {
 @media (max-width: 767px) {
   .clinic-legacy-frame__iframe,
   .patients-legacy-frame__iframe,
+  .team-legacy-frame__iframe,
   .financial-legacy-frame__iframe {
     min-height: 80vh;
   }
