@@ -7,6 +7,17 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.52 - 2026-04-27
+
+### Changed
+- Refinado o padding interno do gráfico temporal nos widgets do **Resumo financeiro estratégico** para evitar contato nas bordas laterais e no limite inferior do card.
+- Melhorado o espaçamento interno e a leitura dos eixos/labels (`M1`, `M2`, `M3`) com classes específicas de timeline (`__timeline-axis`, `__timeline-chart`, `__timeline-labels`).
+- Suavizada a transição entre o bloco superior (KPI + rosca) e o gráfico temporal por meio de divisória menos agressiva e respiro vertical mais intencional.
+- Rodapé dos widgets estratégicos ajustado para manter ancoragem na base com padding coerente, evitando proximidade excessiva com o gráfico.
+
+### Validation
+- Revisão responsiva validada para desktop amplo, tablet retrato e mobile, mantendo os três cards estratégicos com altura uniforme e leitura estável do gráfico inferior.
+
 ## v1.1.51 - 2026-04-27
 
 ### Changed

@@ -3091,19 +3091,19 @@ function DashboardApp({
                         </div>
                       </div>
                       <div className="financial-summary-widget__timeline financial-hero-widget__trend">
-                        <div className="financial-hero-widget__trend-axis">
+                        <div className="financial-summary-widget__timeline-axis financial-hero-widget__trend-axis">
                           {trendAxis.map((value, index) => (
                             <span key={`axis-${widget.key}-${index}`}>{formatMoney(value)}</span>
                           ))}
                         </div>
-                        <div className="financial-hero-widget__trend-bars">
+                        <div className="financial-summary-widget__timeline-chart financial-hero-widget__trend-bars">
                           <span className="financial-summary-widget__timeline-grid" aria-hidden="true" />
                           {widget.trendSeries.map((point, index) => {
                             const height = Math.max(18, (point / trendMax) * 100);
                             return (
                               <div key={`trend-${widget.key}-${index}`} className="financial-hero-widget__trend-bar-item">
                                 <span className="financial-hero-widget__trend-bar" style={{ height: `${height}%`, background: widget.chartTone }} />
-                                <small>M{index + 1}</small>
+                                <small className="financial-summary-widget__timeline-labels">M{index + 1}</small>
                               </div>
                             );
                           })}
