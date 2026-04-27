@@ -112,6 +112,13 @@ body.app-shell {
   gap: var(--of-space-2);
 }
 
+#app-sidebar .app-nav-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--of-space-1);
+}
+
 .app-nav-button {
   width: 100%;
   min-height: var(--of-touch-target);
