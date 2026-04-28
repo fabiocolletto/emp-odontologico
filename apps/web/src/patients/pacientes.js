@@ -112,6 +112,14 @@
     const root = global.document.querySelector('[data-pacientes-app]');
     if (!root) return;
 
+    import('../features/patients/patientsService.js')
+      .then(async ({ getPatients }) => {
+        console.log(await getPatients());
+      })
+      .catch((error) => {
+        console.error('Falha ao carregar pacientes via Supabase:', error);
+      });
+
     const tableBody = root.querySelector('[data-grid="patients"]');
     const legacyList = root.querySelector('[data-grid="legacy"]');
     const legacySection = root.querySelector('[data-legacy="true"]');
