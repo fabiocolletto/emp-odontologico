@@ -282,3 +282,15 @@ Classes globais do padrão:
 
 ### Compatibilidade
 - A camada V2 é **progressiva e opt-in**: não remove o V1 e não exige quebra de classes legadas `.of-*`.
+
+## Padrão oficial: Fluxo de acesso (não autenticado)
+
+Uso recomendado para jornadas de entrada e primeiro acesso (Login → Escolha de conta → Conectando → Boas-vindas):
+
+- Estrutura da tela com `data-nav-level="0"` e `.of-view-level-0`.
+- Desktop: grade com 4 colunas (`repeat(4, minmax(0, 1fr))`) para comparação simultânea das etapas.
+- Tablet: 2 colunas para preservar leitura e hierarquia.
+- Mobile: 1 coluna com segmentação por etapa (`.of-segmented` + estado `.is-active`) exibindo uma etapa por vez.
+- Cada etapa deve usar `.of-card` com cabeçalho (índice, título e subtítulo) e corpo com ação principal (`.of-button`).
+- Estados de carregamento devem usar indicador circular simples via tokens e animação leve.
+- Evitar overflow horizontal: todos os itens em grid/flex devem usar `min-width: 0`.

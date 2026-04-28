@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Fluxo de Acesso</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="../shared/html-widget-common.css" />
+    <link rel="stylesheet" href="./acesso.css" />
+  </head>
+  <body>
+    <main class="acesso-page of-main-inner of-view-level-0" data-acesso-app data-nav-level="0">
+      <section class="of-card acesso-overview" aria-label="Resumo do fluxo de acesso">
+        <p class="acesso-overview__kicker">Usuário não conectado</p>
+        <h1 class="acesso-overview__title">OdontoFlow • Fluxo de Acesso</h1>
+        <p class="acesso-overview__subtitle">4 etapas: Login → Escolha de Conta → Conectando → Primeiro Acesso.</p>
+      </section>
+
+      <section class="acesso-mobile-controls" aria-label="Navegação das telas no mobile">
+        <div class="of-segmented" role="tablist" aria-label="Etapas de acesso">
+          <button type="button" class="of-segmented__button is-active" data-step="1" role="tab" aria-selected="true">1</button>
+          <button type="button" class="of-segmented__button" data-step="2" role="tab" aria-selected="false">2</button>
+          <button type="button" class="of-segmented__button" data-step="3" role="tab" aria-selected="false">3</button>
+          <button type="button" class="of-segmented__button" data-step="4" role="tab" aria-selected="false">4</button>
+        </div>
+      </section>
+
+      <section class="acesso-grid" data-step-grid aria-label="Telas do fluxo de autenticação">
+        <article class="of-card acesso-step is-active" data-step-card="1">
+          <header class="acesso-step__header">
+            <span class="acesso-step__index">1</span>
+            <div>
+              <h2 class="acesso-step__title">Login</h2>
+              <p class="acesso-step__subtitle">Acesso com Google</p>
+            </div>
+          </header>
+          <div class="acesso-step__body">
+            <div class="acesso-brand">🦷 <strong>OdontoFlow</strong></div>
+            <p class="acesso-copy">Gestão inteligente para clínicas odontológicas.</p>
+            <ul class="acesso-list">
+              <li>Organize sua clínica</li>
+              <li>Atendimento mais eficiente</li>
+              <li>Informações seguras</li>
+            </ul>
+            <button type="button" class="of-button of-button--secondary acesso-button">Entrar com Google</button>
+          </div>
+        </article>
+
+        <article class="of-card acesso-step" data-step-card="2">
+          <header class="acesso-step__header">
+            <span class="acesso-step__index">2</span>
+            <div>
+              <h2 class="acesso-step__title">Escolha de Conta</h2>
+              <p class="acesso-step__subtitle">Seleção da conta Google</p>
+            </div>
+          </header>
+          <div class="acesso-step__body">
+            <p class="acesso-copy">Escolha uma conta para continuar no OdontoFlow.</p>
+            <ul class="acesso-account-list">
+              <li><span>Fabio Colletto</span><small>Conectado</small></li>
+              <li><span>Fabio Colletto (Trabalho)</span><small>Selecionar</small></li>
+              <li><span>Usar outra conta</span><small>Adicionar</small></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="of-card acesso-step" data-step-card="3">
+          <header class="acesso-step__header">
+            <span class="acesso-step__index">3</span>
+            <div>
+              <h2 class="acesso-step__title">Conectando</h2>
+              <p class="acesso-step__subtitle">Processando autenticação</p>
+            </div>
+          </header>
+          <div class="acesso-step__body acesso-step__body--center">
+            <div class="acesso-loader" aria-hidden="true"></div>
+            <p class="acesso-copy">Conectando ao OdontoFlow. Verificando suas informações.</p>
+            <p class="acesso-safe">🔒 Criptografia ponta a ponta ativa.</p>
+          </div>
+        </article>
+
+        <article class="of-card acesso-step" data-step-card="4">
+          <header class="acesso-step__header">
+            <span class="acesso-step__index">4</span>
+            <div>
+              <h2 class="acesso-step__title">Primeiro acesso</h2>
+              <p class="acesso-step__subtitle">Boas-vindas ao sistema</p>
+            </div>
+          </header>
+          <div class="acesso-step__body">
+            <p class="acesso-copy"><strong>Boas-vindas, Fabio! 👋</strong><br />Sua conta foi conectada com sucesso.</p>
+            <article class="of-card acesso-next-step">
+              <p class="acesso-next-step__title">Próximo passo</p>
+              <p>Complete informações básicas para personalizar sua experiência.</p>
+            </article>
+            <button type="button" class="of-button of-button--primary acesso-button">Vamos começar</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="./acesso.js"></script>
+  </body>
+</html>
