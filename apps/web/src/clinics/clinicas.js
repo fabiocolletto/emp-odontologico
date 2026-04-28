@@ -27,7 +27,7 @@
         status: 'trial'
       }
     ],
-    legacyMarkers: ['clinic-placeholder-v1', 'clinic-dados-estaticos-antigos', 'clinic-form-legado-react']
+    legacyMarkers: []
   };
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
@@ -39,7 +39,7 @@
       if (!raw) return deepClone(model);
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed?.clinics)) return deepClone(model);
-      return parsed;
+      return { ...parsed, legacyMarkers: [] };
     } catch {
       return deepClone(model);
     }
@@ -100,6 +100,7 @@
 
     const tableBody = root.querySelector('[data-grid="clinics"]');
     const legacyList = root.querySelector('[data-grid="legacy"]');
+    const legacySection = root.querySelector('[data-legacy="true"]');
     const backendForm = root.querySelector('[data-backend-form]');
     const backendStatus = root.querySelector('[data-backend-status]');
     const infoNode = root.querySelector('[data-clinic-info]');
@@ -150,11 +151,14 @@
     };
 
     const paintLegacy = () => {
-      legacyList.innerHTML = state.legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
+      legacyList.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      legacySection.hidden = legacyMarkers.length === 0;
     };
 
     const paintInfo = () => {
       const active = state.clinics.find((clinic) => clinic.id === state.activeClinicId);
+      if (!infoNode) return;
       infoNode.textContent = active
         ? `Clínica ativa atual: ${active.trade_name} (${active.city}/${active.state}).`
         : 'Selecione uma clínica ativa para o contexto de usuário.';

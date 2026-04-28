@@ -20,11 +20,7 @@
       '2 lançamentos financeiros pendentes de conciliação.',
       '1 atualização de cadastro da clínica recomendada.'
     ],
-    legacyMarkers: [
-      'overview-placeholder-section-v0 (obsoleto)',
-      'overview-inline-kpi-v0 (obsoleto)',
-      'overview-quicklinks-inline-v0 (obsoleto)'
-    ]
+    legacyMarkers: []
   };
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
@@ -33,8 +29,8 @@
       const raw = global.localStorage.getItem(STORAGE_KEY);
       if (!raw) return deepClone(model);
       const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed?.shortcuts) || !Array.isArray(parsed?.legacyMarkers)) return deepClone(model);
-      return parsed;
+      if (!Array.isArray(parsed?.shortcuts)) return deepClone(model);
+      return { ...parsed, legacyMarkers: [] };
     } catch {
       return deepClone(model);
     }
@@ -54,6 +50,7 @@
     const shortcutsGrid = root.querySelector('[data-grid="shortcuts"]');
     const feedGrid = root.querySelector('[data-grid="feed"]');
     const legacyGrid = root.querySelector('[data-grid="legacy"]');
+    const legacySection = root.querySelector('[data-legacy="true"]');
     const infoNode = root.querySelector('[data-inicio-info]');
 
     let state = read();
@@ -71,8 +68,10 @@
       `).join('');
 
       feedGrid.innerHTML = state.feed.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-      legacyGrid.innerHTML = state.legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
-      infoNode.textContent = 'Nível 0 ativo. Selecione um atalho para navegar ao respectivo módulo nível 1.';
+      const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
+      legacyGrid.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      legacySection.hidden = legacyMarkers.length === 0;
+      if (infoNode) infoNode.textContent = 'Nível 0 ativo. Selecione um atalho para navegar ao respectivo módulo nível 1.';
     };
 
     root.addEventListener('click', (event) => {
@@ -89,7 +88,7 @@
 
       if (action === 'nav') {
         const target = trigger.getAttribute('data-target') || '';
-        infoNode.textContent = `Atalho selecionado: ${target}. Integração de navegação será concluída pelo shell principal.`;
+        if (infoNode) infoNode.textContent = `Atalho selecionado: ${target}. Integração de navegação será concluída pelo shell principal.`;
       }
     });
 

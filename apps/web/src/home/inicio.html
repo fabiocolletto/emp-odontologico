@@ -10,42 +10,30 @@
   </head>
   <body>
     <main class="inicio-page of-main-inner of-view-level-0" data-inicio-app data-nav-level="0">
-      <header class="inicio-page__header financeiro-screen-header">
-        <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><strong>Início</strong></p>
-        <div class="financeiro-screen-header__main">
-          <div class="financeiro-screen-header__icon" aria-hidden="true">🏠</div>
-          <div class="financeiro-screen-header__content">
-            <p class="financeiro-eyebrow">Painel consolidado OdontoFlow</p>
-            <h1>Visão geral da operação</h1>
-            <p class="financeiro-subtitle">Tela de nível 0 com indicadores prioritários, atalhos para módulos de nível 1 e observabilidade dos blocos antigos em descontinuação.</p>
-            <p class="inicio-info" data-inicio-info></p>
-          </div>
-        </div>
-      </header>
 
       <section class="inicio-kpi-grid" aria-label="Resumo operacional">
-        <article class="inicio-kpi-card" data-kpi="appointments"></article>
-        <article class="inicio-kpi-card" data-kpi="patients"></article>
-        <article class="inicio-kpi-card" data-kpi="financial"></article>
+        <article class="inicio-kpi-card of-card of-kpi-card" data-kpi="appointments"></article>
+        <article class="inicio-kpi-card of-card of-kpi-card" data-kpi="patients"></article>
+        <article class="inicio-kpi-card of-card of-kpi-card" data-kpi="financial"></article>
       </section>
 
-      <section class="inicio-section">
+      <section class="inicio-section of-card">
         <header class="inicio-section__header">
           <h2>Atalhos de navegação nível 1</h2>
-          <button type="button" class="inicio-btn inicio-btn--ghost" data-action="reset-model">Recarregar modelo</button>
+          <button type="button" class="inicio-btn inicio-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
         </header>
         <p class="inicio-section__text">Os atalhos abaixo usam IDs oficiais dos módulos e são usados para acelerar acesso a Agenda, Pacientes, Clínica, Equipe, Financeiro e Perfil.</p>
         <div class="inicio-shortcut-grid" data-grid="shortcuts"></div>
       </section>
 
-      <section class="inicio-section">
+      <section class="inicio-section of-card">
         <header class="inicio-section__header"><h2>Feed operacional</h2></header>
         <ul class="inicio-feed" data-grid="feed"></ul>
       </section>
 
-      <section class="inicio-section" data-legacy="true">
-        <header class="inicio-section__header"><h2>Marcação de blocos obsoletos</h2></header>
-        <p class="inicio-legacy-note">Referências dos blocos antigos do shell que permanecem apenas para rastreabilidade durante a migração incremental.</p>
+      <section class="inicio-section of-card" data-legacy="true">
+        <header class="inicio-section__header"><h2>Rastreabilidade de limpeza</h2></header>
+        <p class="inicio-legacy-note">Se existirem pendências de migração, os identificadores aparecem aqui para rastreabilidade; a seção fica oculta quando não houver itens.</p>
         <ul class="inicio-chip-row" data-grid="legacy"></ul>
       </section>
     </main>

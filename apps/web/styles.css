@@ -366,6 +366,52 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Contrato estrutural das telas internas (iframe do shell):
+   a largura do viewport é controlada pelo shell; telas ocupam apenas o espaço recebido. */
+main[data-nav-level] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+main[data-nav-level] > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+main[data-nav-level] [class$='-section'],
+main[data-nav-level] [class$='-kpi-card'],
+main[data-nav-level] [class$='-table-wrap'],
+main[data-nav-level] .of-card,
+main[data-nav-level] .of-table-wrap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+main[data-nav-level] button:not(.of-button) {
+  min-height: var(--of-touch-target);
+  border-radius: var(--of-radius-pill);
+}
+
+main[data-nav-level] input:not(.of-input),
+main[data-nav-level] select:not(.of-select),
+main[data-nav-level] textarea:not(.of-textarea) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  main[data-nav-level] [class$='-kpi-grid'],
+  main[data-nav-level] [class$='-shortcut-grid'],
+  main[data-nav-level] .of-kpi-grid,
+  main[data-nav-level] .of-content-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 button,
 input,
 textarea,

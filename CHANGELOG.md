@@ -8,6 +8,65 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.60 - 2026-04-28
+
+### Changed
+- Padronização visual estrutural das telas internas para maturidade mobile consistente com `#inicio`, reforçando o uso de classes oficiais (`.of-card`, `.of-kpi-card`, `.of-table-wrap`, `.of-table`, `.of-button`, `.of-input`, `.of-select`) nos módulos principais.
+- `#agenda` atualizado para contrato visual oficial: ações em botões do design system, filtro de data padronizado e tabela encapsulada em wrapper de tabela oficial com overflow local.
+- Seções e cartões das telas `agenda`, `pacientes`, `clinicas`, `equipe`, `perfil` e `inicio` alinhados ao contrato de card oficial, mantendo identidade visual e reduzindo aparência de HTML nativo.
+- Reforço do contrato estrutural para evitar vazamento horizontal no body e manter scroll horizontal apenas em componentes locais quando necessário.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
+## v1.1.59 - 2026-04-28
+
+### Changed
+- Consolidado contrato estrutural global para telas internas (`main[data-nav-level]`) em `apps/web/styles.css`, garantindo `width: 100%`, `max-width: 100%`, `min-width: 0` e `box-sizing: border-box`.
+- Adicionadas proteções de `min-width: 0` e `max-width: 100%` para wrappers estruturais de conteúdo (`*-section`, `*-kpi-card`, `*-table-wrap`, `.of-card`, `.of-table-wrap`) para evitar estouro horizontal.
+- No mobile (`<=767px`), grids de conteúdo internos passam a colapsar para uma única coluna (`1fr`) via regra estrutural global.
+- Atualizada diretriz oficial da UI para reforçar que telas internas não controlam viewport (sem `100vw`/`calc(100vw-...)`) e devem ocupar somente o espaço entregue pelo shell.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
+## v1.1.58 - 2026-04-27
+
+### Changed
+- Removidos do sistema os headers internos das telas HTML (`Início`, `Agenda`, `Pacientes`, `Clínicas`, `Equipe`, `Perfil` e `Financeiro`), mantendo o header do shell como única camada de contexto.
+- Shell mantém header contextual por tela ativa (ícone, título e subtítulo), sem depender de header interno no conteúdo do iframe.
+- Ajustados scripts das telas para operação segura sem nós de info do header removido.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
+## v1.1.57 - 2026-04-27
+
+### Changed
+- Removido o header interno das telas no modo embed do shell (`iframe`) via classe `of-shell-embedded`, mantendo o header do shell como única referência visual global.
+- Header do shell passou a refletir a tela ativa (ícone, título e subtítulo por módulo) com atualização automática a cada navegação.
+- Ajustes finos de layout do header no mobile para manter hierarquia e legibilidade.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
+## v1.1.56 - 2026-04-27
+
+### Changed
+- Ajuste pontual do shell mobile para navbar em linha única com layout `icon-first` (ícone principal + texto secundário), mantendo botões lado a lado.
+- Navbar inferior agora suporta até 5 botões sem rolagem (ou 4 em telas muito pequenas) e ativa rolagem horizontal automaticamente quando há mais itens.
+- Botões da navbar passaram a usar estilo glassmorphism com cor por objetivo de tela (sempre coloridos em estados ativo e inativo), melhorando reconhecimento e acessibilidade contextual.
+- Registrado plano de finalização frontend tela por tela em `docs/FRONTEND_ETAPA2_PLAN.md`, iniciando pela navbar e seguindo checklist por módulo.
+- Marco de encerramento da Etapa 1 do framework registrado para transição formal da Etapa 2 (refinamentos visuais e consolidação de compartilhados).
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
 ## v1.1.55 - 2026-04-27
 
 ### Changed

@@ -10,41 +10,29 @@
   </head>
   <body>
     <main class="pacientes-page of-main-inner of-view-level-1" data-pacientes-app data-nav-level="1">
-      <header class="pacientes-page__header financeiro-screen-header">
-        <p class="financeiro-breadcrumb" aria-label="Navegação da tela"><span>Início</span><span>/</span><strong>Pacientes</strong></p>
-        <div class="financeiro-screen-header__main">
-          <div class="financeiro-screen-header__icon" aria-hidden="true">🦷</div>
-          <div class="financeiro-screen-header__content">
-            <p class="financeiro-eyebrow">Gestão de pacientes odontológicos</p>
-            <h1>Cadastro e edição de pacientes</h1>
-            <p class="financeiro-subtitle">Módulo inicial para cadastro, edição e resumo por clínica ativa com sincronização para backend local.</p>
-            <p class="pacientes-info" data-patient-info></p>
-          </div>
-        </div>
-      </header>
 
       <section class="pacientes-kpi-grid" aria-label="Resumo dos pacientes">
-        <article class="pacientes-kpi-card" data-kpi="total"></article>
-        <article class="pacientes-kpi-card" data-kpi="active"></article>
-        <article class="pacientes-kpi-card" data-kpi="new-month"></article>
+        <article class="pacientes-kpi-card of-card of-kpi-card" data-kpi="total"></article>
+        <article class="pacientes-kpi-card of-card of-kpi-card" data-kpi="active"></article>
+        <article class="pacientes-kpi-card of-card of-kpi-card" data-kpi="new-month"></article>
       </section>
 
-      <section class="pacientes-section">
+      <section class="pacientes-section of-card">
         <header class="pacientes-section__header">
           <h2>Pacientes cadastrados</h2>
           <div class="pacientes-section__actions">
-            <button type="button" class="pacientes-btn pacientes-btn--ghost" data-action="reset-model">Recarregar modelo</button>
-            <button type="button" class="pacientes-btn" data-action="new-patient">Novo paciente</button>
+            <button type="button" class="pacientes-btn pacientes-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="pacientes-btn of-button of-button--primary" data-action="new-patient">Novo paciente</button>
           </div>
         </header>
 
         <div class="pacientes-filter-row">
           <label for="patient-search">Pesquisar</label>
-          <input id="patient-search" type="search" placeholder="Nome, CPF ou telefone" data-filter="search" />
+          <input id="patient-search" class="of-input" type="search" placeholder="Nome, CPF ou telefone" data-filter="search" />
         </div>
 
-        <div class="pacientes-table-wrap">
-          <table class="pacientes-table" aria-label="Tabela de pacientes cadastrados">
+        <div class="pacientes-table-wrap of-table-wrap">
+          <table class="pacientes-table of-table" aria-label="Tabela de pacientes cadastrados">
             <thead>
               <tr>
                 <th>Nome</th>
@@ -61,15 +49,15 @@
         </div>
       </section>
 
-      <section class="pacientes-section" data-legacy="true">
+      <section class="pacientes-section of-card" data-legacy="true">
         <header class="pacientes-section__header">
-          <h2>Dados legados (obsoletos)</h2>
+          <h2>Rastreabilidade de limpeza</h2>
         </header>
-        <p class="pacientes-legacy-note">Marcadores preservados para facilitar limpeza futura após validar o novo fluxo de pacientes.</p>
+        <p class="pacientes-legacy-note">Se existirem pendências de migração, os identificadores aparecem aqui para rastreabilidade; a seção fica oculta quando não houver itens.</p>
         <ul class="pacientes-chip-row" data-grid="legacy"></ul>
       </section>
 
-      <section class="pacientes-section">
+      <section class="pacientes-section of-card">
         <header class="pacientes-section__header">
           <h2>Backend local (modelagem)</h2>
         </header>
@@ -78,7 +66,7 @@
             <input type="url" name="endpoint" placeholder="http://localhost:3000/api/patients" required />
           </label>
           <menu>
-            <button type="submit" class="pacientes-btn">Sincronizar pacientes</button>
+            <button type="submit" class="pacientes-btn of-button of-button--primary">Sincronizar pacientes</button>
           </menu>
           <p class="pacientes-backend__status" data-backend-status>Pronto para testar integração local.</p>
         </form>
@@ -115,8 +103,8 @@
           </select>
         </label>
         <menu>
-          <button value="cancel" class="pacientes-btn pacientes-btn--ghost">Cancelar</button>
-          <button value="default" class="pacientes-btn">Salvar</button>
+          <button value="cancel" class="pacientes-btn pacientes-btn--ghost of-button of-button--secondary">Cancelar</button>
+          <button value="default" class="pacientes-btn of-button of-button--primary">Salvar</button>
         </menu>
       </form>
     </dialog>

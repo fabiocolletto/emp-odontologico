@@ -27,6 +27,9 @@ body.app-shell {
   display: grid;
   grid-template-columns: var(--shell-sidebar-width) minmax(0, 1fr);
   min-height: 100dvh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
 }
 
 #app-sidebar {
@@ -53,6 +56,10 @@ body.app-shell {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 100dvh;
+  position: relative;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 #app-header {
@@ -81,6 +88,30 @@ body.app-shell {
   font-size: var(--of-font-size-sm);
 }
 
+.app-header-context {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--of-space-3);
+  min-width: 0;
+}
+
+.app-header-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--of-radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--of-primary) 14%, white);
+  border: 1px solid var(--of-primary-border);
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+
+.app-header-content {
+  min-width: 0;
+}
+
 .app-menu-toggle {
   display: none;
   min-width: var(--of-touch-target);
@@ -90,10 +121,14 @@ body.app-shell {
 #app-content {
   min-height: 0;
   padding: var(--of-space-4);
+  width: 100%;
+  max-width: 100%;
 }
 
 #app-frame {
+  display: block;
   width: 100%;
+  max-width: 100%;
   height: 100%;
   min-height: calc(100dvh - var(--shell-header-height) - (var(--of-space-8)));
   border: 0;
@@ -109,6 +144,13 @@ body.app-shell {
   display: flex;
   flex-direction: column;
   gap: var(--of-space-2);
+}
+
+#app-sidebar .app-nav-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--of-space-1);
 }
 
 .app-nav-button {
@@ -137,6 +179,9 @@ body.app-shell {
 }
 
 #app-bottom-nav {
+  --app-bottom-visible-count: 5;
+  --app-bottom-gap: var(--of-space-2);
+  --app-bottom-min-item: 86px;
   position: sticky;
   bottom: 0;
   z-index: var(--of-z-drawer);
@@ -146,37 +191,109 @@ body.app-shell {
   border-top: 1px solid var(--of-border);
   background: var(--of-surface-glass);
   backdrop-filter: var(--of-blur-glass);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 #app-bottom-nav .app-nav-list {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--of-space-2);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: var(--app-bottom-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#app-bottom-nav .app-nav-list::-webkit-scrollbar {
+  display: none;
 }
 
 #app-bottom-nav .app-nav-button {
+  --nav-accent: var(--of-primary);
+  width: 100%;
   min-height: var(--of-touch-target);
+  border-color: color-mix(in srgb, var(--nav-accent) 28%, white);
+  background: color-mix(in srgb, var(--nav-accent) 10%, rgba(255, 255, 255, 0.68));
+  color: color-mix(in srgb, var(--nav-accent) 78%, #0f172a);
+  backdrop-filter: var(--of-blur-glass);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 1px;
+  white-space: nowrap;
   text-align: center;
   font-size: var(--of-font-size-xs);
-  padding: var(--of-space-2);
+  padding: var(--of-space-1) var(--of-space-2);
+}
+
+#app-bottom-nav .app-nav-button__icon {
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+#app-bottom-nav .app-nav-button__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+#app-bottom-nav .app-nav-button.is-active {
+  border-color: color-mix(in srgb, var(--nav-accent) 60%, white);
+  background: color-mix(in srgb, var(--nav-accent) 20%, rgba(255, 255, 255, 0.82));
+  color: color-mix(in srgb, var(--nav-accent) 88%, #0f172a);
+}
+
+#app-bottom-nav:not(.is-scrollable) .app-nav-list > li {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#app-bottom-nav:not(.is-scrollable) .app-nav-button {
+  min-width: 0;
+}
+
+#app-bottom-nav.is-scrollable .app-nav-list > li {
+  flex: 0 0 var(--app-bottom-min-item);
 }
 
 @media (max-width: 1023px) {
   .of-app-shell {
     grid-template-columns: minmax(0, 1fr);
+    width: 100vw;
+    max-width: 100vw;
   }
 
   #app-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
     width: min(86vw, 320px);
+    max-width: calc(100vw - var(--of-space-6));
     transform: translateX(-100%);
     transition: transform 200ms ease;
     box-shadow: var(--of-shadow-md);
+    z-index: var(--of-z-modal);
   }
 
   .app-shell.sidebar-open #app-sidebar {
     transform: translateX(0);
+  }
+
+  .app-shell.sidebar-open #app-header,
+  .app-shell.sidebar-open #app-bottom-nav {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .app-shell.sidebar-open .app-main::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--of-z-modal) - 1);
+    background: color-mix(in srgb, var(--of-text-primary) 18%, transparent);
   }
 
   .app-menu-toggle {
@@ -187,11 +304,19 @@ body.app-shell {
 
   .app-main {
     grid-template-rows: auto minmax(0, 1fr) auto;
+    width: 100vw;
+    max-width: 100vw;
+  }
+
+  #app-header {
+    padding: var(--of-space-3);
   }
 
   #app-content {
-    padding: var(--of-space-3);
+    padding: 0;
     padding-bottom: var(--of-space-3);
+    width: 100vw;
+    max-width: 100vw;
   }
 
   #app-bottom-nav {
@@ -199,13 +324,20 @@ body.app-shell {
   }
 
   #app-frame {
+    width: 100vw;
+    max-width: 100vw;
     min-height: calc(100dvh - var(--shell-header-height) - var(--shell-bottom-nav-height) - (var(--of-space-6)));
-    border-radius: var(--of-radius-md);
+    border-radius: 0;
   }
 }
 
 @media (max-width: 767px) {
-  #app-bottom-nav .app-nav-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  #app-bottom-nav {
+    --app-bottom-visible-count: 4;
+    --app-bottom-min-item: 82px;
+  }
+
+  body.app-shell.sidebar-open {
+    overflow: hidden;
   }
 }

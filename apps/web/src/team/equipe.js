@@ -8,7 +8,7 @@
       { id: 'tm-002', clinic_id: 'cl-001', full_name: 'Paulo Mendes', email: 'paulo@odontoflow.com.br', role: 'financeiro', access_level: 'manager', contract_type: 'clt', monthly_cost: 4200, receivable_split: 0, status: 'active' },
       { id: 'tm-003', clinic_id: 'cl-002', full_name: 'Dra. Julia Martins', email: 'julia@odontoflow.com.br', role: 'dentista', access_level: 'operational', contract_type: 'pj', monthly_cost: 0, receivable_split: 35, status: 'pending_invite' }
     ],
-    legacyMarkers: ['team-v0-inline-list', 'team-modal-antigo', 'team-access-contract-legacy']
+    legacyMarkers: []
   };
 
   const deepClone = (value) => JSON.parse(JSON.stringify(value));
@@ -20,7 +20,7 @@
       if (!raw) return deepClone(model);
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed?.memberships)) return deepClone(model);
-      return parsed;
+      return { ...parsed, legacyMarkers: [] };
     } catch {
       return deepClone(model);
     }
@@ -63,6 +63,7 @@
 
     const tableBody = root.querySelector('[data-grid="members"]');
     const legacyList = root.querySelector('[data-grid="legacy"]');
+    const legacySection = root.querySelector('[data-legacy="true"]');
     const infoNode = root.querySelector('[data-equipe-info]');
     const clinicFilter = root.querySelector('[data-filter="clinic"]');
     const backendForm = root.querySelector('[data-backend-form]');
@@ -137,13 +138,16 @@
     };
 
     const paintInfo = () => {
+      if (!infoNode) return;
       infoNode.textContent = selectedClinicId === 'all'
         ? 'Visão consolidada de equipe para múltiplas clínicas.'
         : `Clínica selecionada: ${clinicNameById(selectedClinicId)}.`;
     };
 
     const paintLegacy = () => {
-      legacyList.innerHTML = state.legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      const legacyMarkers = Array.isArray(state.legacyMarkers) ? state.legacyMarkers : [];
+      legacyList.innerHTML = legacyMarkers.map((marker) => `<li>${escapeHtml(marker)}</li>`).join('');
+      legacySection.hidden = legacyMarkers.length === 0;
     };
 
     const paint = () => {

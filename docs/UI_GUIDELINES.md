@@ -49,6 +49,8 @@ Diretrizes:
 - Conteúdo com largura confortável: `--of-content-max-width`.
 - Sem overflow horizontal global.
 - Sidebar fixa em desktop; drawer/overlay em mobile/tablet retrato.
+- Em módulos HTML de nível 0/1, o contexto primário deve ser exibido no header do shell; headers internos das telas não devem existir.
+- Telas internas nunca controlam largura de viewport (`100vw`/`calc(100vw-...)`); elas ocupam `width: 100%` do espaço entregue pelo shell.
 
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:
@@ -69,6 +71,7 @@ Usar `data-nav-level` ou classes `.of-view-level-*`:
 - **Modal**: `.of-modal`, `.of-modal-panel`, `.of-modal-header`, `.of-modal-body`, `.of-modal-footer`
 - **Empty state**: `.of-empty-state`, `.of-empty-state-title`, `.of-empty-state-text`
 - **Page header**: `.of-page-header`, `.of-page-kicker`, `.of-page-title`, `.of-page-description`, `.of-page-actions`
+- **Bottom nav mobile (shell)**: botões lado a lado, estilo `icon-first` (ícone principal + rótulo secundário), até 5 itens visíveis sem rolagem (ou 4 em telas muito pequenas) e rolagem horizontal apenas quando exceder esse limite.
 
 ## Regras para novas telas
 1. Definir nível de navegação (`data-nav-level`).
@@ -115,7 +118,7 @@ Para evolução incremental via shell React + arquivos independentes:
 2. Declarar nível com `data-nav-level` e `.of-view-level-*` no `<main>`.
 3. Expor no JS um factory global `create*LegacyFrame` para o shell React montar via `<iframe>`.
 4. Garantir modo standalone: se existir root `[data-*-app]`, executar render local automático.
-5. Preservar seção de rastreabilidade de legados com marcador explícito `obsoleto` para facilitar limpeza futura.
+5. Preservar seção de rastreabilidade de legados em `[data-legacy="true"]`, ocultando automaticamente quando não houver pendências.
 6. Registrar script da tela em `index.html` antes do bootstrap React.
 
 ## Regras para alterar componentes existentes
