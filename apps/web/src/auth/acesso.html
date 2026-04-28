@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Acesso</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <link rel="stylesheet" href="../shared/html-widget-common.css" />
+    <link rel="stylesheet" href="./acesso.css" />
+  </head>
+  <body>
+    <main class="acesso-page of-main-inner of-view-level-1" data-acesso-app data-nav-level="1">
+      <section class="of-card acesso-card" aria-label="Autenticação de usuários">
+        <header class="acesso-card__header">
+          <p class="of-page-kicker">Conta</p>
+          <h1 class="of-page-title">Acesso e cadastro</h1>
+          <p class="of-page-description">Entre com Gmail ou email/senha. Novos usuários podem criar conta nesta tela.</p>
+        </header>
+
+        <div class="of-segmented" role="tablist" aria-label="Modo de autenticação">
+          <button type="button" class="of-segmented__button is-active" data-mode="login" role="tab" aria-selected="true">Acessar</button>
+          <button type="button" class="of-segmented__button" data-mode="signup" role="tab" aria-selected="false">Criar conta</button>
+        </div>
+
+        <button type="button" class="of-button of-button--secondary acesso-google" data-action="google">
+          <span aria-hidden="true">🔐</span>
+          Continuar com Google
+        </button>
+
+        <form class="acesso-form" data-form="auth" novalidate>
+          <label class="of-field">
+            <span class="of-label">Email</span>
+            <input class="of-input" type="email" name="email" autocomplete="email" required placeholder="voce@clinica.com" />
+          </label>
+
+          <label class="of-field">
+            <span class="of-label">Senha</span>
+            <input class="of-input" type="password" name="password" autocomplete="current-password" required minlength="6" placeholder="Mínimo de 6 caracteres" />
+          </label>
+
+          <p class="of-helper-text" data-mode-hint>Use suas credenciais existentes para entrar.</p>
+
+          <div class="acesso-actions">
+            <button type="submit" class="of-button of-button--primary" data-submit-label>Acessar com email</button>
+            <button type="button" class="of-button of-button--ghost" data-action="limpar">Limpar</button>
+          </div>
+        </form>
+
+        <p class="acesso-feedback" data-feedback role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="of-card acesso-session" data-session hidden>
+        <header class="acesso-session__header">
+          <div class="acesso-session__identity">
+            <img class="acesso-session__avatar" data-session-avatar alt="Foto do usuário" hidden />
+            <h2 class="of-card-title">Sessão ativa</h2>
+          </div>
+          <span class="of-chip of-chip--success">Autenticado</span>
+        </header>
+        <p class="of-card-subtitle" data-session-email></p>
+        <button type="button" class="of-button of-button--secondary" data-action="logout">Encerrar sessão</button>
+      </section>
+    </main>
+
+    <script src="../../env.js"></script>
+    <script type="module" src="./acesso.js"></script>
+  </body>
+</html>

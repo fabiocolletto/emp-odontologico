@@ -108,6 +108,33 @@ Usar `data-nav-level` ou classes `.of-view-level-*`:
 9. Atualizar esta documentação ao criar novo padrão.
 10. Não adicionar CDN/biblioteca sem justificativa e registro.
 
+## Padrão oficial para tela de acesso/cadastro
+Quando criar telas de autenticação, usar o contrato abaixo:
+
+1. Nível de navegação: `data-nav-level="1"` com `.of-view-level-1`.
+2. Estrutura mínima:
+   - Um `.of-card` com título/subtítulo.
+   - Controle `.of-segmented` para alternar **Acessar** e **Criar conta**.
+   - Formulário com `.of-field`, `.of-label`, `.of-input` para email/senha.
+   - Botão social com `.of-button of-button--secondary` para OAuth (Google).
+3. Integração com Supabase:
+   - Email+senha (login): `supabase.auth.signInWithPassword`.
+   - Email+senha (cadastro): `supabase.auth.signUp`.
+   - Social Google: `supabase.auth.signInWithOAuth({ provider: 'google' })`.
+   - Avatar do usuário logado: ler de `session.user.user_metadata.avatar_url` (ou `picture`) obtido via `supabase.auth.getSession()` / `getUser()`; não consultar `auth.users` diretamente no frontend.
+   - Em páginas de auth standalone (`acesso.html` e callback), carregar `apps/web/env.js` antes dos scripts de módulo.
+   - Em shell com `iframe`, usar `skipBrowserRedirect: true` e abrir `data.url` no `window.top`.
+   - O `redirectTo` do social login deve apontar para uma página de callback dedicada (ex.: `apps/web/src/auth/callback.html`) que confirma sessão e redireciona ao shell (`index.html#access`).
+4. Estados obrigatórios:
+   - feedback textual com `aria-live="polite"`,
+   - loading/desabilitação dos controles durante requisição,
+   - resumo de sessão ativa com opção de logout.
+5. Não esconder erros de API: exibir mensagens de falha de auth ao usuário.
+6. Guard de navegação:
+   - sem sessão ativa, somente a tela de acesso (`access`) pode ser aberta no shell;
+   - abas protegidas devem permanecer bloqueadas até autenticação válida;
+   - após login, o shell pode redirecionar para a aba originalmente solicitada.
+
 ## Padrão oficial de telas HTML modulares (nível 0 e 1)
 Para evolução incremental via shell React + arquivos independentes:
 

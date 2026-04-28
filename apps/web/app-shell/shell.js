@@ -18,18 +18,130 @@ const NAV_ITEMS = [
   { id: 'clinic', label: 'Clínica', subtitle: 'Dados institucionais', icon: '🏥', accent: '#7c3aed', src: './apps/web/src/clinics/clinicas.html' },
   { id: 'team', label: 'Equipe', subtitle: 'Profissionais', icon: '👥', accent: '#4f46e5', src: './apps/web/src/team/equipe.html' },
   { id: 'financial', label: 'Financeiro', subtitle: 'Gestão financeira', icon: '💳', accent: '#16a34a', src: './apps/web/src/financial/financeiro.html' },
-  { id: 'profile', label: 'Perfil', subtitle: 'Conta e preferências', icon: '🪪', accent: '#ea580c', src: './apps/web/src/profile/perfil.html' }
+  { id: 'profile', label: 'Perfil', subtitle: 'Conta e preferências', icon: '🪪', accent: '#ea580c', src: './apps/web/src/profile/perfil.html' },
+  { id: 'access', label: 'Acesso', subtitle: 'Login e cadastro', icon: '🔐', accent: '#1d4ed8', src: './apps/web/src/auth/acesso.html' }
 ];
 
 const DEFAULT_TAB_ID = 'inicio';
+const AUTH_FEEDBACK_KEY = 'odontoflow-auth-feedback';
+const AUTH_REDIRECT_TAB_KEY = 'odontoflow-auth-redirect-tab';
+const PUBLIC_TAB_IDS = new Set(['access']);
 
-function initShell() {
+const authGuardState = {
+  client: null,
+  session: null
+};
+
+async function initShell() {
   renderHeader();
   renderSidebar();
   renderBottomNav();
+  await setupAuthGuard();
 
   const initialTab = getInitialTab();
   navigateTo(initialTab);
+}
+
+function persistAuthFeedback(message, tone = 'error') {
+  try {
+    window.localStorage.setItem(AUTH_FEEDBACK_KEY, JSON.stringify({ message, tone }));
+  } catch {}
+}
+
+async function setupAuthGuard() {
+  try {
+    const module = await import('./apps/web/src/lib/supabaseClient.js');
+    authGuardState.client = module.supabase;
+    await refreshAuthSession();
+    authGuardState.client.auth.onAuthStateChange((_event, session) => {
+      authGuardState.session = session || null;
+      handlePostAuthNavigation();
+      applyAuthRestrictions();
+    });
+    applyAuthRestrictions();
+  } catch (error) {
+    console.warn('Auth guard indisponível:', error);
+  }
+}
+
+async function refreshAuthSession() {
+  if (!authGuardState.client?.auth?.getSession) return;
+  const { data } = await authGuardState.client.auth.getSession();
+  authGuardState.session = data?.session || null;
+  updateHeaderAuthIdentity();
+  applyAuthRestrictions();
+}
+
+function isAuthenticated() {
+  return Boolean(authGuardState.session?.user?.id);
+}
+
+function isPublicTab(tabId) {
+  return PUBLIC_TAB_IDS.has(tabId);
+}
+
+function applyAuthRestrictions() {
+  const blocked = !isAuthenticated();
+  document.querySelectorAll('[data-tab-id]').forEach((button) => {
+    const tabId = button.dataset.tabId;
+    const shouldBlock = blocked && !isPublicTab(tabId);
+    button.disabled = shouldBlock;
+    button.setAttribute('aria-disabled', String(shouldBlock));
+    button.classList.toggle('is-auth-blocked', shouldBlock);
+  });
+}
+
+function getAuthAvatarUrl() {
+  const metadata = authGuardState.session?.user?.user_metadata || {};
+  return metadata.avatar_url || metadata.picture || '';
+}
+
+function updateHeaderAuthIdentity() {
+  const avatarElement = document.querySelector('[data-app-header-avatar]');
+  const iconElement = document.querySelector('[data-app-header-icon]');
+  if (!avatarElement || !iconElement) return;
+
+  const avatarUrl = getAuthAvatarUrl();
+  if (!avatarUrl) {
+    avatarElement.hidden = true;
+    iconElement.hidden = false;
+    avatarElement.removeAttribute('src');
+    return;
+  }
+
+  avatarElement.src = avatarUrl;
+  avatarElement.hidden = false;
+  iconElement.hidden = true;
+}
+
+function getAuthorizedTabId(tabId) {
+  if (isPublicTab(tabId) || isAuthenticated()) {
+    return tabId;
+  }
+  window.sessionStorage.setItem(AUTH_REDIRECT_TAB_KEY, tabId);
+  persistAuthFeedback('Faça login ou cadastro para acessar os módulos da clínica.', 'error');
+  return 'access';
+}
+
+function handlePostAuthNavigation() {
+  if (!isAuthenticated()) {
+    const currentTab = getInitialTab();
+    if (!isPublicTab(currentTab)) {
+      navigateTo('access');
+    }
+    return;
+  }
+
+  const redirectTab = window.sessionStorage.getItem(AUTH_REDIRECT_TAB_KEY);
+  if (redirectTab) {
+    window.sessionStorage.removeItem(AUTH_REDIRECT_TAB_KEY);
+    navigateTo(redirectTab);
+    return;
+  }
+
+  if (getInitialTab() === 'access') {
+    navigateTo(DEFAULT_TAB_ID);
+  }
 }
 
 function renderHeader() {
@@ -40,6 +152,7 @@ function renderHeader() {
   header.innerHTML = `
     <button type="button" class="of-button of-button--secondary of-button--icon app-menu-toggle" aria-controls="app-sidebar" aria-expanded="false" aria-label="Abrir menu">☰</button>
     <div class="app-header-context">
+      <img class="app-header-avatar" data-app-header-avatar alt="Foto do usuário" hidden />
       <span class="app-header-icon" data-app-header-icon aria-hidden="true">🧭</span>
       <div class="app-header-content">
         <p class="app-header-subtitle" data-app-header-subtitle>OdontoFlow</p>
@@ -114,7 +227,8 @@ function bindNavEvents(rootElement) {
 }
 
 function navigateTo(tabId) {
-  const item = NAV_ITEMS.find((navItem) => navItem.id === tabId);
+  const targetTabId = getAuthorizedTabId(tabId);
+  const item = NAV_ITEMS.find((navItem) => navItem.id === targetTabId);
 
   if (!item) return;
 
@@ -123,9 +237,9 @@ function navigateTo(tabId) {
   if (!frame) return;
 
   frame.src = item.src;
-  setActiveState(tabId);
+  setActiveState(targetTabId);
   updateShellHeader(item);
-  updateHash(tabId);
+  updateHash(targetTabId);
   closeSidebarDrawer();
 }
 
@@ -180,6 +294,7 @@ function updateShellHeader(item) {
   if (title) title.textContent = item?.label || 'OdontoFlow';
   if (subtitle) subtitle.textContent = item?.subtitle || 'Shell modular';
   if (icon) icon.textContent = item?.icon || '🧭';
+  updateHeaderAuthIdentity();
 }
 
 window.addEventListener('message', (event) => {
@@ -187,12 +302,21 @@ window.addEventListener('message', (event) => {
 
   if (type === 'navigate') {
     navigateTo(payload);
+    return;
+  }
+
+  if (type === 'auth:changed') {
+    refreshAuthSession();
   }
 });
 
 window.addEventListener('hashchange', () => {
   const tabId = getInitialTab();
   navigateTo(tabId);
+});
+
+window.addEventListener('focus', () => {
+  refreshAuthSession();
 });
 
 window.addEventListener('resize', () => {
