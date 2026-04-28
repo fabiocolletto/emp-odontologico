@@ -341,3 +341,67 @@ body.app-shell {
     overflow: hidden;
   }
 }
+
+.app-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--of-space-2);
+}
+
+.app-auth-user {
+  font-size: var(--of-font-size-sm);
+  color: var(--of-text-muted);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-auth-shell {
+  display: grid;
+  place-items: center;
+  min-height: calc(100dvh - var(--shell-header-height) - var(--of-space-6));
+  padding: var(--of-space-4);
+}
+
+.app-auth-card {
+  width: min(100%, 460px);
+}
+
+.app-auth-form {
+  display: grid;
+  gap: var(--of-space-3);
+}
+
+.app-auth-actions {
+  display: grid;
+  gap: var(--of-space-2);
+}
+
+.app-auth-message {
+  margin: 0;
+  min-height: 1.5rem;
+  font-size: var(--of-font-size-sm);
+  color: var(--of-text-muted);
+}
+
+.app-auth-message[data-state='error'] {
+  color: var(--of-danger-text, #dc2626);
+}
+
+.app-auth-message[data-state='success'] {
+  color: var(--of-success-text, #15803d);
+}
+
+body.is-auth-gate-active #app-sidebar,
+body.is-auth-gate-active #app-bottom-nav {
+  display: none;
+}
+
+body.is-auth-gate-active .of-app-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body.is-auth-gate-active .app-menu-toggle {
+  display: none;
+}

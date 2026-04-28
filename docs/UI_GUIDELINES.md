@@ -52,6 +52,15 @@ Diretrizes:
 - Em módulos HTML de nível 0/1, o contexto primário deve ser exibido no header do shell; headers internos das telas não devem existir.
 - Telas internas nunca controlam largura de viewport (`100vw`/`calc(100vw-...)`); elas ocupam `width: 100%` do espaço entregue pelo shell.
 
+
+## Padrão oficial: Auth Gate no Shell
+Quando não houver sessão autenticada no Supabase, o shell deve entrar em modo de autenticação:
+- Ocultar sidebar e bottom nav até autenticar.
+- Renderizar formulário centralizado com componentes oficiais (`.of-card`, `.of-field`, `.of-input`, `.of-button`).
+- Manter nível de navegação declarado no container (`data-nav-level="1"` + `.of-view-level-1`).
+- Evitar classes de estilo paralelas para campos e botões; usar apenas variações oficiais existentes.
+- Após autenticação, restaurar navegação e carregar aba inicial normalmente.
+
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:
 - Nível 0: visão geral/dashboard.

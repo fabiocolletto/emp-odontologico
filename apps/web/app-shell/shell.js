@@ -22,12 +22,84 @@ const NAV_ITEMS = [
 ];
 
 const DEFAULT_TAB_ID = 'inicio';
+const AUTH_STORAGE_KEY = 'odontoflow:last-auth-email';
 
-function initShell() {
+let authClient = null;
+let authSubscription = null;
+let currentSession = null;
+
+async function initShell() {
   renderHeader();
   renderSidebar();
   renderBottomNav();
+  await initAuth();
+}
 
+async function initAuth() {
+  authClient = createAuthClient();
+
+  if (!authClient) {
+    setAuthState({ isAuthenticated: false, reason: 'missing-config' });
+    return;
+  }
+
+  const { data, error } = await authClient.auth.getSession();
+  if (error) {
+    setAuthMessage('Não foi possível carregar a sessão atual.', 'error');
+    setAuthState({ isAuthenticated: false, reason: 'session-error' });
+    return;
+  }
+
+  setAuthState({ isAuthenticated: Boolean(data?.session), session: data?.session || null });
+
+  const { data: listenerData } = authClient.auth.onAuthStateChange((_, session) => {
+    setAuthState({ isAuthenticated: Boolean(session), session: session || null });
+  });
+
+  authSubscription = listenerData?.subscription || null;
+}
+
+function createAuthClient() {
+  const env = globalThis.__APP_ENV__ || {};
+  const url = env.SUPABASE_URL || '';
+  const anon = env.SUPABASE_ANON || '';
+  const createClient = globalThis?.supabase?.createClient;
+
+  if (!url || !anon || typeof createClient !== 'function') {
+    return null;
+  }
+
+  return createClient(url, anon, {
+    auth: {
+      persistSession: true,
+      storageKey: 'odontoflow-supabase-auth'
+    }
+  });
+}
+
+function setAuthState({ isAuthenticated, session = null, reason = '' }) {
+  const frame = document.getElementById('app-frame');
+  const appContent = document.getElementById('app-content');
+  const bottomNav = document.getElementById('app-bottom-nav');
+
+  currentSession = session;
+  document.body.classList.toggle('is-authenticated', isAuthenticated);
+  document.body.classList.toggle('is-auth-gate-active', !isAuthenticated);
+
+  if (!isAuthenticated) {
+    closeSidebarDrawer();
+    setActiveState('');
+    if (frame) frame.src = 'about:blank';
+    appContent?.setAttribute('data-nav-level', '1');
+    renderAuthView(reason);
+    renderHeaderForAuth(session);
+    bottomNav?.setAttribute('aria-hidden', 'true');
+    return;
+  }
+
+  clearAuthView();
+  renderHeaderForApp(session);
+  bottomNav?.removeAttribute('aria-hidden');
   const initialTab = getInitialTab();
   navigateTo(initialTab);
 }
@@ -46,6 +118,7 @@ function renderHeader() {
         <h1 class="app-header-title" data-app-header-title>Shell modular</h1>
       </div>
     </div>
+    <div class="app-header-actions" data-app-header-actions></div>
   `;
 
   const menuButton = header.querySelector('.app-menu-toggle');
@@ -54,6 +127,161 @@ function renderHeader() {
     const isExpanded = document.body.classList.contains('sidebar-open');
     setSidebarOpen(!isExpanded);
   });
+}
+
+function renderHeaderForAuth() {
+  const title = document.querySelector('[data-app-header-title]');
+  const subtitle = document.querySelector('[data-app-header-subtitle]');
+  const icon = document.querySelector('[data-app-header-icon]');
+  const actions = document.querySelector('[data-app-header-actions]');
+
+  if (title) title.textContent = 'Acesso seguro';
+  if (subtitle) subtitle.textContent = 'Supabase Auth';
+  if (icon) icon.textContent = '🔐';
+  if (actions) actions.innerHTML = '';
+}
+
+function renderHeaderForApp(session) {
+  const actions = document.querySelector('[data-app-header-actions]');
+  if (!actions) return;
+
+  const userEmail = session?.user?.email || '';
+  actions.innerHTML = `
+    <span class="app-auth-user">${escapeHtml(userEmail)}</span>
+    <button type="button" class="of-button of-button--secondary" data-auth-signout>Sair</button>
+  `;
+
+  actions.querySelector('[data-auth-signout]')?.addEventListener('click', async () => {
+    if (!authClient) return;
+    const { error } = await authClient.auth.signOut();
+    if (error) setAuthMessage(error.message || 'Falha ao sair da sessão.', 'error');
+  });
+}
+
+function renderAuthView(reason = '') {
+  const appContent = document.getElementById('app-content');
+  if (!appContent) return;
+
+  const savedEmail = globalThis.localStorage?.getItem(AUTH_STORAGE_KEY) || '';
+
+  appContent.innerHTML = `
+    <main class="of-main-inner of-view-level-1 app-auth-shell" data-nav-level="1">
+      <section class="of-card app-auth-card" aria-live="polite">
+        <header class="of-card-header">
+          <h2 class="of-card-title">Entrar no OdontoFlow</h2>
+          <p class="of-card-subtitle">Use seu usuário Supabase para acessar os módulos clínicos.</p>
+        </header>
+        <form class="of-card-body app-auth-form" data-auth-form>
+          <label class="of-field">
+            <span class="of-label">E-mail</span>
+            <input class="of-input" type="email" name="email" autocomplete="email" value="${escapeHtml(savedEmail)}" required />
+          </label>
+          <label class="of-field">
+            <span class="of-label">Senha</span>
+            <input class="of-input" type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <div class="app-auth-actions">
+            <button type="submit" class="of-button of-button--primary">Entrar com e-mail</button>
+            <button type="button" class="of-button of-button--secondary" data-auth-signup>Criar conta</button>
+            <button type="button" class="of-button of-button--ghost" data-auth-google>Entrar com Google</button>
+          </div>
+          <p class="app-auth-message" data-auth-message></p>
+        </form>
+      </section>
+    </main>
+  `;
+
+  if (reason === 'missing-config') {
+    setAuthMessage('Configuração Supabase ausente. Atualize apps/web/env.js com SUPABASE_URL e SUPABASE_ANON.', 'error');
+  }
+
+  bindAuthFormEvents();
+}
+
+function bindAuthFormEvents() {
+  const form = document.querySelector('[data-auth-form]');
+  if (!form || !authClient) return;
+
+  const emailInput = form.elements.email;
+  const passwordInput = form.elements.password;
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setAuthMessage('Autenticando...', 'info');
+
+    const email = String(emailInput?.value || '').trim();
+    const password = String(passwordInput?.value || '').trim();
+
+    const { error } = await authClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setAuthMessage(error.message || 'Não foi possível entrar. Verifique e-mail e senha.', 'error');
+      return;
+    }
+
+    globalThis.localStorage?.setItem(AUTH_STORAGE_KEY, email);
+    setAuthMessage('Login realizado com sucesso. Redirecionando...', 'success');
+  });
+
+  form.querySelector('[data-auth-signup]')?.addEventListener('click', async () => {
+    setAuthMessage('Criando conta...', 'info');
+
+    const email = String(emailInput?.value || '').trim();
+    const password = String(passwordInput?.value || '').trim();
+
+    const { error } = await authClient.auth.signUp({ email, password });
+    if (error) {
+      setAuthMessage(error.message || 'Não foi possível criar conta.', 'error');
+      return;
+    }
+
+    globalThis.localStorage?.setItem(AUTH_STORAGE_KEY, email);
+    setAuthMessage('Conta criada. Confira seu e-mail para confirmar o cadastro.', 'success');
+  });
+
+  form.querySelector('[data-auth-google]')?.addEventListener('click', async () => {
+    setAuthMessage('Redirecionando para Google...', 'info');
+
+    const redirectTo = getOAuthRedirect();
+    const { error } = await authClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo }
+    });
+
+    if (error) {
+      setAuthMessage(error.message || 'Não foi possível iniciar login com Google.', 'error');
+    }
+  });
+}
+
+function getOAuthRedirect() {
+  const env = globalThis.__APP_ENV__ || {};
+  if (env.SUPABASE_AUTH_REDIRECT) return env.SUPABASE_AUTH_REDIRECT;
+
+  const { origin, pathname } = globalThis.location;
+  return `${origin}${pathname}`;
+}
+
+function setAuthMessage(message = '', type = 'info') {
+  const messageElement = document.querySelector('[data-auth-message]');
+  if (!messageElement) return;
+
+  messageElement.textContent = message;
+  messageElement.dataset.state = type;
+}
+
+function clearAuthView() {
+  const appContent = document.getElementById('app-content');
+  if (!appContent) return;
+
+  appContent.innerHTML = `
+    <iframe
+      id="app-frame"
+      title="Conteúdo da tela ativa"
+      loading="eager"
+      referrerpolicy="no-referrer"
+    ></iframe>
+  `;
 }
 
 function renderSidebar() {
@@ -107,6 +335,7 @@ function renderNavMarkup(scope, items = NAV_ITEMS) {
 function bindNavEvents(rootElement) {
   rootElement.querySelectorAll('[data-tab-id]').forEach((button) => {
     button.addEventListener('click', () => {
+      if (!currentSession?.user) return;
       const { tabId } = button.dataset;
       navigateTo(tabId);
     });
@@ -114,6 +343,8 @@ function bindNavEvents(rootElement) {
 }
 
 function navigateTo(tabId) {
+  if (!currentSession?.user) return;
+
   const item = NAV_ITEMS.find((navItem) => navItem.id === tabId);
 
   if (!item) return;
@@ -129,10 +360,9 @@ function navigateTo(tabId) {
   closeSidebarDrawer();
 }
 
-
 function setActiveState(tabId) {
   document.querySelectorAll('[data-tab-id]').forEach((button) => {
-    const isActive = button.dataset.tabId === tabId;
+    const isActive = tabId && button.dataset.tabId === tabId;
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
@@ -156,6 +386,8 @@ function closeSidebarDrawer() {
 }
 
 function setSidebarOpen(isOpen) {
+  if (!currentSession?.user) return;
+
   document.body.classList.toggle('sidebar-open', isOpen);
 
   const menuButton = document.querySelector('.app-menu-toggle');
@@ -182,6 +414,15 @@ function updateShellHeader(item) {
   if (icon) icon.textContent = item?.icon || '🧭';
 }
 
+function escapeHtml(raw = '') {
+  return String(raw)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 window.addEventListener('message', (event) => {
   const { type, payload } = event.data || {};
 
@@ -191,6 +432,7 @@ window.addEventListener('message', (event) => {
 });
 
 window.addEventListener('hashchange', () => {
+  if (!currentSession?.user) return;
   const tabId = getInitialTab();
   navigateTo(tabId);
 });
@@ -219,6 +461,10 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     closeSidebarDrawer();
   }
+});
+
+window.addEventListener('beforeunload', () => {
+  authSubscription?.unsubscribe?.();
 });
 
 document.addEventListener('DOMContentLoaded', initShell);
