@@ -282,3 +282,30 @@ Classes globais do padrão:
 
 ### Compatibilidade
 - A camada V2 é **progressiva e opt-in**: não remove o V1 e não exige quebra de classes legadas `.of-*`.
+
+## Fluxo oficial de acesso (Auth + Onboarding simplificado)
+
+Para o fluxo de autenticação no shell (`apps/web/app-shell`), usar padrão **Section Center** com as seguintes regras:
+
+1. Estados suportados no shell:
+   - `loading`
+   - `unauthenticated`
+   - `needs_profile`
+   - `needs_clinic`
+   - `ready`
+2. Em `loading`, exibir card central com spinner simples e mensagem de verificação de sessão.
+3. Em `unauthenticated`, exibir card central de login com CTA único “Entrar com Google”.
+4. Em onboarding, manter stepper de 4 etapas com classes reutilizáveis:
+   - `.app-onboarding-steps`
+   - `.app-choice-list`
+   - `.app-form-actions-sticky`
+5. Reusar modelos V2 já existentes:
+   - `.of-flat-page-header`
+   - `.of-form-section`
+   - `.of-flat-list`
+   - `.of-empty-state--flat`
+6. Mobile first obrigatório:
+   - ações full width,
+   - sem overflow horizontal,
+   - `min-width: 0` para itens de grid/lista.
+7. Em `ready`, o shell volta a exibir sidebar/header/bottom nav e o iframe principal.
