@@ -164,6 +164,7 @@ function renderAuthView(reason = '') {
 
   const savedEmail = globalThis.localStorage?.getItem(AUTH_STORAGE_KEY) || '';
   const appVersion = 'v0.4.0';
+  const diagnosticsMarkup = renderAuthDiagnostics(reason);
 
   appContent.innerHTML = `
     <main class="of-main-inner of-view-level-1 app-auth-shell" data-nav-level="1">
@@ -218,6 +219,7 @@ function renderAuthView(reason = '') {
               <span aria-hidden="true">·</span>
               <button type="button" class="app-auth-legal-link" data-legal-open data-legal-src="./apps/web/app-shell/legal/privacidade.html" data-legal-title="Política de Privacidade">Política de Privacidade</button>
             </p>
+            ${diagnosticsMarkup}
           </footer>
         </article>
       </section>
@@ -240,6 +242,38 @@ function renderAuthView(reason = '') {
   }
 
   bindAuthFormEvents();
+}
+
+function renderAuthDiagnostics(reason = '') {
+  const env = globalThis.__APP_ENV__ || {};
+  const hasUrl = Boolean(env.SUPABASE_URL);
+  const hasAnon = Boolean(env.SUPABASE_ANON);
+  const hasRedirect = Boolean(env.SUPABASE_AUTH_REDIRECT);
+  const hasSdk = typeof globalThis?.supabase?.createClient === 'function';
+
+  const statusItems = [
+    { label: 'SDK Supabase', ok: hasSdk, value: hasSdk ? 'carregado' : 'ausente' },
+    { label: 'SUPABASE_URL', ok: hasUrl, value: hasUrl ? env.SUPABASE_URL : 'não configurado' },
+    { label: 'SUPABASE_ANON', ok: hasAnon, value: hasAnon ? `***${String(env.SUPABASE_ANON).slice(-8)}` : 'não configurado' },
+    { label: 'AUTH_REDIRECT', ok: hasRedirect, value: hasRedirect ? env.SUPABASE_AUTH_REDIRECT : 'fallback automático' }
+  ];
+
+  const overallOk = statusItems.every((item) => item.ok || item.label === 'AUTH_REDIRECT');
+  const statusLabel = overallOk ? 'Auth conectado' : 'Auth pendente';
+  const statusClass = overallOk ? 'is-ok' : 'is-warning';
+  const reasonText = reason === 'missing-config' ? 'Ajuste variáveis públicas em apps/web/env.js.' : '';
+
+  const itemsMarkup = statusItems
+    .map((item) => `<li><strong>${item.label}:</strong> <span>${escapeHtml(item.value)}</span></li>`)
+    .join('');
+
+  return `
+    <section class="app-auth-diagnostic ${statusClass}" aria-live="polite">
+      <p class="app-auth-diagnostic-title">${statusLabel}</p>
+      <ul class="app-auth-diagnostic-list">${itemsMarkup}</ul>
+      ${reasonText ? `<p class="app-auth-diagnostic-note">${reasonText}</p>` : ''}
+    </section>
+  `;
 }
 
 function bindAuthFormEvents() {

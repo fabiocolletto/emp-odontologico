@@ -504,6 +504,46 @@ body.app-shell {
   border: 0;
 }
 
+.app-auth-diagnostic {
+  margin-top: var(--of-space-2);
+  border: 1px solid var(--of-border-subtle);
+  border-radius: var(--of-radius-md);
+  padding: var(--of-space-2) var(--of-space-3);
+  background: color-mix(in srgb, var(--of-bg-elevated) 90%, white);
+}
+
+.app-auth-diagnostic.is-ok {
+  border-color: color-mix(in srgb, var(--of-success) 45%, white);
+}
+
+.app-auth-diagnostic.is-warning {
+  border-color: color-mix(in srgb, var(--of-warning) 50%, white);
+}
+
+.app-auth-diagnostic-title {
+  margin: 0 0 var(--of-space-1);
+  font-size: var(--of-font-size-sm);
+  font-weight: 600;
+}
+
+.app-auth-diagnostic-list {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.app-auth-diagnostic-list li {
+  font-size: var(--of-font-size-xs);
+  color: var(--of-text-secondary);
+}
+
+.app-auth-diagnostic-note {
+  margin: var(--of-space-1) 0 0;
+  font-size: var(--of-font-size-xs);
+  color: var(--of-text-muted);
+}
+
 @media (min-width: 768px) {
   .app-auth-layout {
     position: fixed;
