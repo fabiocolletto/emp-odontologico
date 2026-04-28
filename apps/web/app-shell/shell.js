@@ -166,27 +166,34 @@ function renderAuthView(reason = '') {
 
   appContent.innerHTML = `
     <main class="of-main-inner of-view-level-1 app-auth-shell" data-nav-level="1">
-      <section class="of-card app-auth-card" aria-live="polite">
-        <header class="of-card-header">
-          <h2 class="of-card-title">Entrar no OdontoFlow</h2>
-          <p class="of-card-subtitle">Use seu usuário Supabase para acessar os módulos clínicos.</p>
-        </header>
-        <form class="of-card-body app-auth-form" data-auth-form>
-          <label class="of-field">
-            <span class="of-label">E-mail</span>
-            <input class="of-input" type="email" name="email" autocomplete="email" value="${escapeHtml(savedEmail)}" required />
-          </label>
-          <label class="of-field">
-            <span class="of-label">Senha</span>
-            <input class="of-input" type="password" name="password" autocomplete="current-password" required />
-          </label>
-          <div class="app-auth-actions">
-            <button type="submit" class="of-button of-button--primary">Entrar com e-mail</button>
-            <button type="button" class="of-button of-button--secondary" data-auth-signup>Criar conta</button>
-            <button type="button" class="of-button of-button--ghost" data-auth-google>Entrar com Google</button>
-          </div>
-          <p class="app-auth-message" data-auth-message></p>
-        </form>
+      <section class="of-drawer app-auth-layout" aria-label="Acesso OdontoFlow Material 3">
+        <div class="of-drawer-overlay app-auth-overlay" aria-hidden="true"></div>
+        <article class="of-drawer-panel of-card app-auth-surface" aria-live="polite">
+          <header class="of-card-header app-auth-header">
+            <p class="app-auth-kicker">OdontoFlow · Material 3</p>
+            <h2 class="of-card-title">Acessar sistema</h2>
+            <p class="of-card-subtitle">Visual minimalista e flat por dispositivo para autenticação Supabase.</p>
+          </header>
+          <form class="of-card-body app-auth-form" data-auth-form>
+            <label class="of-field">
+              <span class="of-label">E-mail</span>
+              <input class="of-input" type="email" name="email" autocomplete="email" value="${escapeHtml(savedEmail)}" required />
+            </label>
+            <label class="of-field">
+              <span class="of-label">Senha</span>
+              <input class="of-input" type="password" name="password" autocomplete="current-password" required />
+            </label>
+            <div class="app-auth-actions">
+              <button type="submit" class="of-button of-button--primary">Entrar com e-mail</button>
+              <button type="button" class="of-button of-button--secondary" data-auth-signup>Criar conta</button>
+              <button type="button" class="of-button of-button--ghost" data-auth-google>Entrar com Google</button>
+            </div>
+            <p class="app-auth-message" data-auth-message></p>
+          </form>
+          <footer class="of-card-footer app-auth-footer">
+            <p class="of-helper-text">No desktop, o acesso abre como drawer lateral; no tablet, como janela sobreposta.</p>
+          </footer>
+        </article>
       </section>
     </main>
   `;

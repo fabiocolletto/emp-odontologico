@@ -60,6 +60,10 @@ Quando não houver sessão autenticada no Supabase, o shell deve entrar em modo 
 - Manter nível de navegação declarado no container (`data-nav-level="1"` + `.of-view-level-1`).
 - Evitar classes de estilo paralelas para campos e botões; usar apenas variações oficiais existentes.
 - Após autenticação, restaurar navegação e carregar aba inicial normalmente.
+- Aplicar variação por breakpoint com linguagem Material Design 3 minimalista/flat:
+  - mobile: superfície full-width sem sombras pesadas;
+  - tablet: janela sobreposta central com overlay suave;
+  - desktop: painel em formato drawer lateral sobreposto.
 
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:

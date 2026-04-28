@@ -358,19 +358,47 @@ body.app-shell {
 }
 
 .app-auth-shell {
-  display: grid;
-  place-items: center;
-  min-height: calc(100dvh - var(--shell-header-height) - var(--of-space-6));
-  padding: var(--of-space-4);
-}
-
-.app-auth-card {
-  width: min(100%, 460px);
+  min-height: calc(100dvh - var(--shell-header-height));
+  padding: 0;
+  background: color-mix(in srgb, var(--of-bg-app) 92%, white);
 }
 
 .app-auth-form {
   display: grid;
   gap: var(--of-space-3);
+}
+
+.app-auth-layout {
+  position: static;
+  display: block;
+}
+
+.app-auth-overlay {
+  display: none;
+}
+
+.app-auth-surface {
+  width: 100%;
+  min-height: calc(100dvh - var(--shell-header-height));
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--of-surface-solid);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.app-auth-header {
+  border-bottom: 1px solid var(--of-border-subtle);
+}
+
+.app-auth-kicker {
+  margin: 0;
+  font-size: var(--of-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--of-text-muted);
 }
 
 .app-auth-actions {
@@ -391,6 +419,56 @@ body.app-shell {
 
 .app-auth-message[data-state='success'] {
   color: var(--of-success-text, #15803d);
+}
+
+.app-auth-footer {
+  border-top: 1px solid var(--of-border-subtle);
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .app-auth-layout {
+    position: fixed;
+    inset: var(--shell-header-height) 0 0 0;
+    display: grid;
+    place-items: center;
+    padding: var(--of-space-5);
+  }
+
+  .app-auth-overlay {
+    display: block;
+  }
+
+  .app-auth-surface {
+    width: min(560px, calc(100vw - (var(--of-space-8))));
+    min-height: min(680px, calc(100dvh - var(--shell-header-height) - (var(--of-space-10))));
+    max-height: calc(100dvh - var(--shell-header-height) - (var(--of-space-10)));
+    border: 1px solid var(--of-border);
+    border-radius: var(--of-radius-xl);
+    box-shadow: var(--of-shadow-md);
+    overflow: auto;
+    z-index: 1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .app-auth-layout {
+    position: fixed;
+    inset: var(--shell-header-height) 0 0 0;
+  }
+
+  .app-auth-overlay {
+    display: block;
+  }
+
+  .app-auth-surface {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(460px, 36vw);
+    min-height: calc(100dvh - var(--shell-header-height));
+    border-left: 1px solid var(--of-border);
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 
 body.is-auth-gate-active #app-sidebar,
