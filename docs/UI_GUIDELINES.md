@@ -238,3 +238,47 @@ Classes globais do padrão:
 - `.of-flat-list`, `.of-flat-list-item`, `.of-flat-list-icon`, `.of-flat-list-content`, `.of-flat-list-title`, `.of-flat-list-meta`
 - `.of-flat-metric-row`, `.of-flat-metric`
 - `.of-flat-action-row`, `.of-flat-button`, `.of-flat-input`
+
+## OdontoFlow Design System V2: Flat Clinical UI + Section Center
+
+### Conceitos-base
+- **Design System**: contrato visual e estrutural que organiza tokens, componentes e padrões responsivos para toda a plataforma.
+- **Section Center**: catálogo de modelos de seção reutilizáveis para compor telas internas com previsibilidade.
+
+### Regras de composição
+- **Tela = composição de seções** (não coleção de estilos locais isolados).
+- **Seção = modelo reutilizável com variações**.
+- **Modelo = contrato visual + dados esperados + comportamento responsivo**.
+
+### Estratégia mobile first
+1. Mobile (até 767px): layout flat, denso, divisórias suaves, uma coluna por padrão.
+2. Tablet retrato (768px a 1023px): mobile expandido com 1–2 colunas.
+3. Tablet paisagem / desktop médio (1024px a 1439px): grade de 12 colunas, seções leves e tabelas permitidas.
+4. Desktop largo (1440px+): grade completa com respiro maior, sem exagerar largura de leitura.
+
+### Grade oficial V2
+- Base: `.of-grid` + spans (`.of-span-*`).
+- Responsiva: `.of-md-span-*`, `.of-lg-span-*`, `.of-xl-span-*`.
+- Regra estrutural: filhos de grid/flex devem manter `min-width: 0` para evitar overflow horizontal.
+
+### Modelos iniciais de Section Center
+1. **Page Header Flat**
+2. **Metric Summary**
+3. **Section Header Actions**
+4. **Responsive Data View** (tabela desktop + lista mobile)
+5. **Flat List**
+6. **Segmented Control Compact**
+7. **Empty State (flat variant)**
+8. **Form Section**
+9. **Settings List**
+10. **Timeline List**
+
+### Regra de manutenção para Codex
+- Antes de criar CSS novo, localizar o bloco correto do índice em `apps/web/styles.css`.
+- Não adicionar CSS novo no final do arquivo sem justificativa técnica.
+- Tokens em blocos de tokens (01/02), grid em 04, componentes em 05, modelos em 06, compatibilidade em 08.
+- Evitar `!important`, salvo correção estrutural pontual e justificada.
+- Novas telas devem tentar modelos existentes antes de criar classes próprias.
+
+### Compatibilidade
+- A camada V2 é **progressiva e opt-in**: não remove o V1 e não exige quebra de classes legadas `.of-*`.

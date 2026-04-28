@@ -9,27 +9,18 @@
     <link rel="stylesheet" href="./equipe.css" />
   </head>
   <body>
-    <main class="equipe-page of-main-inner of-flat-page of-view-level-1" data-equipe-app data-nav-level="1">
-      <header class="of-flat-header">
-        <div class="of-flat-title-row">
-          <span class="of-flat-title-icon of-flat-title-icon--equipe" aria-hidden="true">◌</span>
-          <div>
-            <p class="of-flat-subtitle">Vínculos e acessos</p>
-            <h1 class="of-flat-title">Equipe</h1>
-          </div>
-        </div>
-      </header>
+    <main class="equipe-page of-main-inner of-view-level-1" data-equipe-app data-nav-level="1">
 
-      <section class="equipe-kpi-grid of-flat-metric-row" aria-label="Resumo da equipe">
+      <section class="equipe-kpi-grid" aria-label="Resumo da equipe">
         <article class="equipe-kpi-card of-card of-kpi-card" data-kpi="members"></article>
         <article class="equipe-kpi-card of-card of-kpi-card" data-kpi="invites"></article>
         <article class="equipe-kpi-card of-card of-kpi-card" data-kpi="multiclinic"></article>
       </section>
 
-      <section class="equipe-section of-card of-flat-section">
-        <header class="equipe-section__header of-flat-section-header">
+      <section class="equipe-section of-card">
+        <header class="equipe-section__header">
           <h2>Profissionais e acessos</h2>
-          <div class="equipe-section__actions of-flat-action-row">
+          <div class="equipe-section__actions">
             <button type="button" class="equipe-btn equipe-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
             <button type="button" class="equipe-btn of-button of-button--primary" data-action="new-member">Novo vínculo</button>
           </div>
@@ -59,16 +50,16 @@
         </div>
       </section>
 
-      <section class="equipe-section of-card of-flat-section" data-legacy="true">
-        <header class="equipe-section__header of-flat-section-header">
+      <section class="equipe-section of-card" data-legacy="true">
+        <header class="equipe-section__header">
           <h2>Rastreabilidade de limpeza</h2>
         </header>
         <p class="equipe-legacy-note">Se existirem pendências de migração, os identificadores aparecem aqui para rastreabilidade; a seção fica oculta quando não houver itens.</p>
         <ul class="equipe-chip-row" data-grid="legacy"></ul>
       </section>
 
-      <section class="equipe-section of-card of-flat-section">
-        <header class="equipe-section__header of-flat-section-header">
+      <section class="equipe-section of-card">
+        <header class="equipe-section__header">
           <h2>Backend local (modelagem)</h2>
         </header>
         <form class="equipe-backend" data-backend-form>

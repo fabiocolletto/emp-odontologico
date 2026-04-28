@@ -9,27 +9,18 @@
     <link rel="stylesheet" href="./clinicas.css" />
   </head>
   <body>
-    <main class="clinicas-page of-main-inner of-flat-page of-view-level-1" data-clinicas-app data-nav-level="1">
-      <header class="of-flat-header">
-        <div class="of-flat-title-row">
-          <span class="of-flat-title-icon of-flat-title-icon--clinica" aria-hidden="true">⌂</span>
-          <div>
-            <p class="of-flat-subtitle">Unidades e dados</p>
-            <h1 class="of-flat-title">Clínica</h1>
-          </div>
-        </div>
-      </header>
+    <main class="clinicas-page of-main-inner of-view-level-1" data-clinicas-app data-nav-level="1">
 
-      <section class="clinicas-kpi-grid of-flat-metric-row" aria-label="Resumo das clínicas">
+      <section class="clinicas-kpi-grid" aria-label="Resumo das clínicas">
         <article class="clinicas-kpi-card of-card of-kpi-card" data-kpi="total"></article>
         <article class="clinicas-kpi-card of-card of-kpi-card" data-kpi="active"></article>
         <article class="clinicas-kpi-card of-card of-kpi-card" data-kpi="status"></article>
       </section>
 
-      <section class="clinicas-section of-card of-flat-section">
-        <header class="clinicas-section__header of-flat-section-header">
+      <section class="clinicas-section of-card">
+        <header class="clinicas-section__header">
           <h2>Clínicas cadastradas</h2>
-          <div class="clinicas-section__actions of-flat-action-row">
+          <div class="clinicas-section__actions">
             <button type="button" class="clinicas-btn clinicas-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
             <button type="button" class="clinicas-btn of-button of-button--primary" data-action="new-clinic">Nova clínica</button>
           </div>
@@ -52,16 +43,16 @@
         </div>
       </section>
 
-      <section class="clinicas-section of-card of-flat-section" data-legacy="true">
-        <header class="clinicas-section__header of-flat-section-header">
+      <section class="clinicas-section of-card" data-legacy="true">
+        <header class="clinicas-section__header">
           <h2>Rastreabilidade de limpeza</h2>
         </header>
         <p class="clinicas-legacy-note">Se existirem pendências de migração, os identificadores aparecem aqui para rastreabilidade; a seção fica oculta quando não houver itens.</p>
         <ul class="clinicas-chip-row" data-grid="legacy"></ul>
       </section>
 
-      <section class="clinicas-section of-card of-flat-section">
-        <header class="clinicas-section__header of-flat-section-header">
+      <section class="clinicas-section of-card">
+        <header class="clinicas-section__header">
           <h2>Backend local (modelagem)</h2>
         </header>
         <form class="clinicas-backend" data-backend-form>
