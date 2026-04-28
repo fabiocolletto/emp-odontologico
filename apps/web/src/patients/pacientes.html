@@ -9,18 +9,27 @@
     <link rel="stylesheet" href="./pacientes.css" />
   </head>
   <body>
-    <main class="pacientes-page of-main-inner of-view-level-1" data-pacientes-app data-nav-level="1">
+    <main class="pacientes-page of-main-inner of-flat-page of-view-level-1" data-pacientes-app data-nav-level="1">
+      <header class="of-flat-header">
+        <div class="of-flat-title-row">
+          <span class="of-flat-title-icon of-flat-title-icon--pacientes" aria-hidden="true">◎</span>
+          <div>
+            <p class="of-flat-subtitle">Cadastros clínicos</p>
+            <h1 class="of-flat-title">Pacientes</h1>
+          </div>
+        </div>
+      </header>
 
-      <section class="pacientes-kpi-grid" aria-label="Resumo dos pacientes">
+      <section class="pacientes-kpi-grid of-flat-metric-row" aria-label="Resumo dos pacientes">
         <article class="pacientes-kpi-card of-card of-kpi-card" data-kpi="total"></article>
         <article class="pacientes-kpi-card of-card of-kpi-card" data-kpi="active"></article>
         <article class="pacientes-kpi-card of-card of-kpi-card" data-kpi="new-month"></article>
       </section>
 
-      <section class="pacientes-section of-card">
-        <header class="pacientes-section__header">
+      <section class="pacientes-section of-card of-flat-section">
+        <header class="pacientes-section__header of-flat-section-header">
           <h2>Pacientes cadastrados</h2>
-          <div class="pacientes-section__actions">
+          <div class="pacientes-section__actions of-flat-action-row">
             <button type="button" class="pacientes-btn pacientes-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
             <button type="button" class="pacientes-btn of-button of-button--primary" data-action="new-patient">Novo paciente</button>
           </div>
@@ -49,16 +58,16 @@
         </div>
       </section>
 
-      <section class="pacientes-section of-card" data-legacy="true">
-        <header class="pacientes-section__header">
+      <section class="pacientes-section of-card of-flat-section" data-legacy="true">
+        <header class="pacientes-section__header of-flat-section-header">
           <h2>Rastreabilidade de limpeza</h2>
         </header>
         <p class="pacientes-legacy-note">Se existirem pendências de migração, os identificadores aparecem aqui para rastreabilidade; a seção fica oculta quando não houver itens.</p>
         <ul class="pacientes-chip-row" data-grid="legacy"></ul>
       </section>
 
-      <section class="pacientes-section of-card">
-        <header class="pacientes-section__header">
+      <section class="pacientes-section of-card of-flat-section">
+        <header class="pacientes-section__header of-flat-section-header">
           <h2>Backend local (modelagem)</h2>
         </header>
         <form class="pacientes-backend" data-backend-form>

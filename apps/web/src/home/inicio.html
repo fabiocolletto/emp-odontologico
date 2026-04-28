@@ -9,16 +9,25 @@
     <link rel="stylesheet" href="./inicio.css" />
   </head>
   <body>
-    <main class="inicio-page of-main-inner of-view-level-0" data-inicio-app data-nav-level="0">
+    <main class="inicio-page of-main-inner of-flat-page of-view-level-0" data-inicio-app data-nav-level="0">
+      <header class="of-flat-header">
+        <div class="of-flat-title-row">
+          <span class="of-flat-title-icon of-flat-title-icon--inicio" aria-hidden="true">◉</span>
+          <div>
+            <p class="of-flat-subtitle">Painel operacional</p>
+            <h1 class="of-flat-title">Início</h1>
+          </div>
+        </div>
+      </header>
 
-      <section class="inicio-kpi-grid" aria-label="Resumo operacional">
+      <section class="inicio-kpi-grid of-flat-metric-row" aria-label="Resumo operacional">
         <article class="inicio-kpi-card of-card of-kpi-card" data-kpi="appointments"></article>
         <article class="inicio-kpi-card of-card of-kpi-card" data-kpi="patients"></article>
         <article class="inicio-kpi-card of-card of-kpi-card" data-kpi="financial"></article>
       </section>
 
-      <section class="inicio-section of-card">
-        <header class="inicio-section__header">
+      <section class="inicio-section of-card of-flat-section">
+        <header class="inicio-section__header of-flat-section-header">
           <h2>Atalhos de navegação nível 1</h2>
           <button type="button" class="inicio-btn inicio-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
         </header>
@@ -26,13 +35,13 @@
         <div class="inicio-shortcut-grid" data-grid="shortcuts"></div>
       </section>
 
-      <section class="inicio-section of-card">
-        <header class="inicio-section__header"><h2>Feed operacional</h2></header>
+      <section class="inicio-section of-card of-flat-section">
+        <header class="inicio-section__header of-flat-section-header"><h2>Feed operacional</h2></header>
         <ul class="inicio-feed" data-grid="feed"></ul>
       </section>
 
-      <section class="inicio-section of-card" data-legacy="true">
-        <header class="inicio-section__header"><h2>Rastreabilidade de limpeza</h2></header>
+      <section class="inicio-section of-card of-flat-section" data-legacy="true">
+        <header class="inicio-section__header of-flat-section-header"><h2>Rastreabilidade de limpeza</h2></header>
         <p class="inicio-legacy-note">Se existirem pendências de migração, os identificadores aparecem aqui para rastreabilidade; a seção fica oculta quando não houver itens.</p>
         <ul class="inicio-chip-row" data-grid="legacy"></ul>
       </section>

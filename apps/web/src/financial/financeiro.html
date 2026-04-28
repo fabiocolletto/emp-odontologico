@@ -9,18 +9,27 @@
     <link rel="stylesheet" href="./financeiro.css" />
   </head>
   <body>
-    <main class="financeiro-page of-main-inner of-view-level-1" data-financeiro-app data-nav-level="1">
+    <main class="financeiro-page of-main-inner of-flat-page of-view-level-1" data-financeiro-app data-nav-level="1">
+      <header class="of-flat-header">
+        <div class="of-flat-title-row">
+          <span class="of-flat-title-icon of-flat-title-icon--financeiro" aria-hidden="true">◈</span>
+          <div>
+            <p class="of-flat-subtitle">Movimento financeiro</p>
+            <h1 class="of-flat-title">Financeiro</h1>
+          </div>
+        </div>
+      </header>
 
-      <section class="kpi-grid of-kpi-grid" aria-label="Indicadores financeiros">
+      <section class="kpi-grid of-kpi-grid of-flat-metric-row" aria-label="Indicadores financeiros">
         <article class="kpi-card of-card of-kpi-card" data-kpi="receitas"></article>
         <article class="kpi-card of-card of-kpi-card" data-kpi="despesas"></article>
         <article class="kpi-card of-card of-kpi-card" data-kpi="saldo"></article>
       </section>
 
-      <section class="financeiro-section of-card">
-        <header class="financeiro-section__header">
+      <section class="financeiro-section of-card of-flat-section">
+        <header class="financeiro-section__header of-flat-section-header">
           <h2>Lançamentos</h2>
-          <div class="financeiro-section__actions">
+          <div class="financeiro-section__actions of-flat-action-row">
             <button type="button" class="financeiro-btn financeiro-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
             <button type="button" class="financeiro-btn of-button of-button--primary" data-action="novo-lancamento">Novo lançamento</button>
           </div>
@@ -43,8 +52,8 @@
         </div>
       </section>
 
-      <section class="financeiro-section of-card">
-        <header class="financeiro-section__header">
+      <section class="financeiro-section of-card of-flat-section">
+        <header class="financeiro-section__header of-flat-section-header">
           <h2>Contas recorrentes</h2>
           <button type="button" class="financeiro-btn of-button of-button--primary" data-action="nova-recorrencia">Nova recorrência</button>
         </header>
@@ -64,8 +73,8 @@
         </div>
       </section>
 
-      <section class="financeiro-section of-card">
-        <header class="financeiro-section__header">
+      <section class="financeiro-section of-card of-flat-section">
+        <header class="financeiro-section__header of-flat-section-header">
           <h2>Categorias de gastos</h2>
           <button type="button" class="financeiro-btn of-button of-button--primary" data-action="nova-categoria">Nova categoria</button>
         </header>
@@ -83,8 +92,8 @@
         </div>
       </section>
 
-      <section class="financeiro-section of-card">
-        <header class="financeiro-section__header">
+      <section class="financeiro-section of-card of-flat-section">
+        <header class="financeiro-section__header of-flat-section-header">
           <h2>Contas financeiras</h2>
           <button type="button" class="financeiro-btn of-button of-button--primary" data-action="nova-conta">Nova conta</button>
         </header>

@@ -9,18 +9,27 @@
     <link rel="stylesheet" href="./agenda.css" />
   </head>
   <body>
-    <main class="agenda-page of-main-inner of-view-level-1" data-agenda-app data-nav-level="1">
+    <main class="agenda-page of-main-inner of-flat-page of-view-level-1" data-agenda-app data-nav-level="1">
+      <header class="of-flat-header">
+        <div class="of-flat-title-row">
+          <span class="of-flat-title-icon of-flat-title-icon--agenda" aria-hidden="true">◷</span>
+          <div>
+            <p class="of-flat-subtitle">Atendimentos</p>
+            <h1 class="of-flat-title">Agenda</h1>
+          </div>
+        </div>
+      </header>
 
-      <section class="agenda-kpi-grid" aria-label="Resumo da agenda">
+      <section class="agenda-kpi-grid of-flat-metric-row" aria-label="Resumo da agenda">
         <article class="agenda-kpi-card of-card of-kpi-card" data-kpi="today"></article>
         <article class="agenda-kpi-card of-card of-kpi-card" data-kpi="confirmed"></article>
         <article class="agenda-kpi-card of-card of-kpi-card" data-kpi="queue"></article>
       </section>
 
-      <section class="agenda-section of-card">
-        <header class="agenda-section__header">
+      <section class="agenda-section of-card of-flat-section">
+        <header class="agenda-section__header of-flat-section-header">
           <h2>Atendimentos</h2>
-          <div class="agenda-section__actions">
+          <div class="agenda-section__actions of-flat-action-row">
             <button type="button" class="agenda-btn agenda-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
             <button type="button" class="agenda-btn of-button of-button--primary" data-action="new-item">Novo atendimento</button>
           </div>
@@ -49,8 +58,8 @@
         </div>
       </section>
 
-      <section class="agenda-section of-card" data-legacy="true">
-        <header class="agenda-section__header"><h2>Rastreabilidade de limpeza</h2></header>
+      <section class="agenda-section of-card of-flat-section" data-legacy="true">
+        <header class="agenda-section__header of-flat-section-header"><h2>Rastreabilidade de limpeza</h2></header>
         <p class="agenda-legacy-note">Se existirem pendências de migração, os identificadores aparecem aqui para rastreabilidade; a seção fica oculta quando não houver itens.</p>
         <ul class="agenda-chip-row" data-grid="legacy"></ul>
       </section>

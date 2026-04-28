@@ -213,3 +213,28 @@ Antes de criar novo componente visual ou serviço de suporte em tela HTML, consu
 Diretriz de reuso:
 - Reutilizar primeiro `page-header`, `filter-panel`, `date-range-picker`, `modal`, `drawer`, `status-badge`, `empty-state` e `action-bar`.
 - Auth/Sessão/Clínica/Storage/Eventos devem usar serviços da camada `apps/web/shared/services`.
+
+## OdontoFlow Flat Clinical UI
+
+Padrão oficial para evolução do **body** das telas internas, mantendo shell/header/bottom nav existentes.
+
+Diretrizes:
+- Mobile prioriza `flat list` com divisórias (`--of-flat-line-soft`) no lugar de cards empilhados.
+- Desktop pode manter agrupamento leve por seção (`.of-flat-section`) com borda suave e sem sombra pesada.
+- Sombras passam a ser exceção; preferir superfícies brancas ou quase brancas.
+- Cards altos não devem ser usados para listas mobile (Agenda, Pacientes, Perfil, Configurações e afins).
+- Ícones e títulos coloridos orientam hierarquia por módulo (`.of-flat-title-icon--*`).
+- Conteúdo do body deve ser mais denso, limpo e acessível, com foco em reduzir containers visuais redundantes.
+
+Tokens base do padrão:
+- `--of-flat-bg`, `--of-flat-bg-soft`
+- `--of-flat-line`, `--of-flat-line-soft`
+- `--of-flat-text`, `--of-flat-muted`
+- `--of-flat-blue`, `--of-flat-green`, `--of-flat-purple`, `--of-flat-orange`, `--of-flat-red`, `--of-flat-cyan`
+
+Classes globais do padrão:
+- `.of-flat-page`, `.of-flat-header`, `.of-flat-title-row`, `.of-flat-title-icon`, `.of-flat-title`, `.of-flat-subtitle`
+- `.of-flat-section`, `.of-flat-section-header`, `.of-flat-section-title`
+- `.of-flat-list`, `.of-flat-list-item`, `.of-flat-list-icon`, `.of-flat-list-content`, `.of-flat-list-title`, `.of-flat-list-meta`
+- `.of-flat-metric-row`, `.of-flat-metric`
+- `.of-flat-action-row`, `.of-flat-button`, `.of-flat-input`
