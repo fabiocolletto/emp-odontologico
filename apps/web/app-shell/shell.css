@@ -360,7 +360,7 @@ body.app-shell {
 .app-auth-shell {
   min-height: calc(100dvh - var(--shell-header-height));
   padding: 0;
-  background: color-mix(in srgb, var(--of-bg-app) 92%, white);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--of-bg-app) 84%, white), color-mix(in srgb, var(--of-bg-app) 70%, #e2e8f0));
 }
 
 .app-auth-form {
@@ -391,6 +391,7 @@ body.app-shell {
 
 .app-auth-header {
   border-bottom: 1px solid var(--of-border-subtle);
+  background: color-mix(in srgb, var(--of-primary-soft) 30%, white);
 }
 
 .app-auth-kicker {
@@ -404,6 +405,21 @@ body.app-shell {
 .app-auth-actions {
   display: grid;
   gap: var(--of-space-2);
+}
+
+.app-auth-form .of-input {
+  background: color-mix(in srgb, var(--of-bg-elevated) 92%, white);
+}
+
+.app-auth-form .of-input:focus-visible {
+  outline: none;
+  border-color: var(--of-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--of-primary) 22%, white);
+}
+
+.app-auth-form .of-button {
+  min-height: 3.1rem;
+  border-radius: var(--of-radius-pill);
 }
 
 .app-auth-message {
@@ -431,7 +447,7 @@ body.app-shell {
     inset: var(--shell-header-height) 0 0 0;
     display: grid;
     place-items: center;
-    padding: var(--of-space-5);
+    padding: var(--of-space-6);
   }
 
   .app-auth-overlay {
@@ -440,17 +456,17 @@ body.app-shell {
 
   .app-auth-surface {
     width: min(560px, calc(100vw - (var(--of-space-8))));
-    min-height: min(680px, calc(100dvh - var(--shell-header-height) - (var(--of-space-10))));
-    max-height: calc(100dvh - var(--shell-header-height) - (var(--of-space-10)));
+    min-height: min(690px, calc(100dvh - var(--shell-header-height) - (var(--of-space-12))));
+    max-height: calc(100dvh - var(--shell-header-height) - (var(--of-space-12)));
     border: 1px solid var(--of-border);
     border-radius: var(--of-radius-xl);
-    box-shadow: var(--of-shadow-md);
+    box-shadow: var(--of-shadow-lg);
     overflow: auto;
     z-index: 1;
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .app-auth-layout {
     position: fixed;
     inset: var(--shell-header-height) 0 0 0;
@@ -458,16 +474,23 @@ body.app-shell {
 
   .app-auth-overlay {
     display: block;
+    background: color-mix(in srgb, #0f172a 26%, transparent);
   }
 
   .app-auth-surface {
     position: absolute;
     inset: 0 0 0 auto;
-    width: min(460px, 36vw);
+    width: min(480px, 38vw);
     min-height: calc(100dvh - var(--shell-header-height));
     border-left: 1px solid var(--of-border);
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: -12px 0 36px rgba(15, 23, 42, 0.14);
+  }
+}
+
+@media (min-width: 1440px) {
+  .app-auth-surface {
+    width: min(520px, 34vw);
   }
 }
 
@@ -482,4 +505,8 @@ body.is-auth-gate-active .of-app-shell {
 
 body.is-auth-gate-active .app-menu-toggle {
   display: none;
+}
+
+body.is-auth-gate-active #app-header {
+  padding-inline: var(--of-space-4);
 }

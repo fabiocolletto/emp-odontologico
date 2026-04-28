@@ -172,7 +172,7 @@ function renderAuthView(reason = '') {
           <header class="of-card-header app-auth-header">
             <p class="app-auth-kicker">OdontoFlow · Material 3</p>
             <h2 class="of-card-title">Acessar sistema</h2>
-            <p class="of-card-subtitle">Visual minimalista e flat por dispositivo para autenticação Supabase.</p>
+            <p class="of-card-subtitle">Entre para abrir Agenda, Pacientes, Clínica, Equipe e Financeiro.</p>
           </header>
           <form class="of-card-body app-auth-form" data-auth-form>
             <label class="of-field">
@@ -186,12 +186,12 @@ function renderAuthView(reason = '') {
             <div class="app-auth-actions">
               <button type="submit" class="of-button of-button--primary">Entrar com e-mail</button>
               <button type="button" class="of-button of-button--secondary" data-auth-signup>Criar conta</button>
-              <button type="button" class="of-button of-button--ghost" data-auth-google>Entrar com Google</button>
+              <button type="button" class="of-button of-button--ghost" data-auth-google>Continuar com Google</button>
             </div>
             <p class="app-auth-message" data-auth-message></p>
           </form>
           <footer class="of-card-footer app-auth-footer">
-            <p class="of-helper-text">No desktop, o acesso abre como drawer lateral; no tablet, como janela sobreposta.</p>
+            <p class="of-helper-text">Sessão protegida por Supabase Auth.</p>
           </footer>
         </article>
       </section>
