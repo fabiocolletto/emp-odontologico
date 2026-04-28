@@ -23,14 +23,101 @@ const NAV_ITEMS = [
 ];
 
 const DEFAULT_TAB_ID = 'inicio';
+const AUTH_FEEDBACK_KEY = 'odontoflow-auth-feedback';
+const AUTH_REDIRECT_TAB_KEY = 'odontoflow-auth-redirect-tab';
+const PUBLIC_TAB_IDS = new Set(['access']);
 
-function initShell() {
+const authGuardState = {
+  client: null,
+  session: null
+};
+
+async function initShell() {
   renderHeader();
   renderSidebar();
   renderBottomNav();
+  await setupAuthGuard();
 
   const initialTab = getInitialTab();
   navigateTo(initialTab);
+}
+
+function persistAuthFeedback(message, tone = 'error') {
+  try {
+    window.localStorage.setItem(AUTH_FEEDBACK_KEY, JSON.stringify({ message, tone }));
+  } catch {}
+}
+
+async function setupAuthGuard() {
+  try {
+    const module = await import('./apps/web/src/lib/supabaseClient.js');
+    authGuardState.client = module.supabase;
+    await refreshAuthSession();
+    authGuardState.client.auth.onAuthStateChange((_event, session) => {
+      authGuardState.session = session || null;
+      handlePostAuthNavigation();
+      applyAuthRestrictions();
+    });
+    applyAuthRestrictions();
+  } catch (error) {
+    console.warn('Auth guard indisponível:', error);
+  }
+}
+
+async function refreshAuthSession() {
+  if (!authGuardState.client?.auth?.getSession) return;
+  const { data } = await authGuardState.client.auth.getSession();
+  authGuardState.session = data?.session || null;
+  applyAuthRestrictions();
+}
+
+function isAuthenticated() {
+  return Boolean(authGuardState.session?.user?.id);
+}
+
+function isPublicTab(tabId) {
+  return PUBLIC_TAB_IDS.has(tabId);
+}
+
+function applyAuthRestrictions() {
+  const blocked = !isAuthenticated();
+  document.querySelectorAll('[data-tab-id]').forEach((button) => {
+    const tabId = button.dataset.tabId;
+    const shouldBlock = blocked && !isPublicTab(tabId);
+    button.disabled = shouldBlock;
+    button.setAttribute('aria-disabled', String(shouldBlock));
+    button.classList.toggle('is-auth-blocked', shouldBlock);
+  });
+}
+
+function getAuthorizedTabId(tabId) {
+  if (isPublicTab(tabId) || isAuthenticated()) {
+    return tabId;
+  }
+  window.sessionStorage.setItem(AUTH_REDIRECT_TAB_KEY, tabId);
+  persistAuthFeedback('Faça login ou cadastro para acessar os módulos da clínica.', 'error');
+  return 'access';
+}
+
+function handlePostAuthNavigation() {
+  if (!isAuthenticated()) {
+    const currentTab = getInitialTab();
+    if (!isPublicTab(currentTab)) {
+      navigateTo('access');
+    }
+    return;
+  }
+
+  const redirectTab = window.sessionStorage.getItem(AUTH_REDIRECT_TAB_KEY);
+  if (redirectTab) {
+    window.sessionStorage.removeItem(AUTH_REDIRECT_TAB_KEY);
+    navigateTo(redirectTab);
+    return;
+  }
+
+  if (getInitialTab() === 'access') {
+    navigateTo(DEFAULT_TAB_ID);
+  }
 }
 
 function renderHeader() {
@@ -115,7 +202,8 @@ function bindNavEvents(rootElement) {
 }
 
 function navigateTo(tabId) {
-  const item = NAV_ITEMS.find((navItem) => navItem.id === tabId);
+  const targetTabId = getAuthorizedTabId(tabId);
+  const item = NAV_ITEMS.find((navItem) => navItem.id === targetTabId);
 
   if (!item) return;
 
@@ -124,9 +212,9 @@ function navigateTo(tabId) {
   if (!frame) return;
 
   frame.src = item.src;
-  setActiveState(tabId);
+  setActiveState(targetTabId);
   updateShellHeader(item);
-  updateHash(tabId);
+  updateHash(targetTabId);
   closeSidebarDrawer();
 }
 
@@ -188,12 +276,21 @@ window.addEventListener('message', (event) => {
 
   if (type === 'navigate') {
     navigateTo(payload);
+    return;
+  }
+
+  if (type === 'auth:changed') {
+    refreshAuthSession();
   }
 });
 
 window.addEventListener('hashchange', () => {
   const tabId = getInitialTab();
   navigateTo(tabId);
+});
+
+window.addEventListener('focus', () => {
+  refreshAuthSession();
 });
 
 window.addEventListener('resize', () => {

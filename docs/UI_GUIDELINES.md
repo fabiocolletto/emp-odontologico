@@ -128,6 +128,10 @@ Quando criar telas de autenticação, usar o contrato abaixo:
    - loading/desabilitação dos controles durante requisição,
    - resumo de sessão ativa com opção de logout.
 5. Não esconder erros de API: exibir mensagens de falha de auth ao usuário.
+6. Guard de navegação:
+   - sem sessão ativa, somente a tela de acesso (`access`) pode ser aberta no shell;
+   - abas protegidas devem permanecer bloqueadas até autenticação válida;
+   - após login, o shell pode redirecionar para a aba originalmente solicitada.
 
 ## Padrão oficial de telas HTML modulares (nível 0 e 1)
 Para evolução incremental via shell React + arquivos independentes:

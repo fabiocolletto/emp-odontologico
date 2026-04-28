@@ -21,6 +21,12 @@ const state = {
 
 const AUTH_FEEDBACK_KEY = 'odontoflow-auth-feedback';
 
+function notifyShellAuthChanged() {
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'auth:changed' }, '*');
+  }
+}
+
 function buildShellUrl() {
   const currentUrl = new URL(window.location.href);
   const authPath = '/apps/web/src/auth/acesso.html';
@@ -162,6 +168,7 @@ async function handleEmailAuth(event) {
 
   setFeedback(successMessage, 'success');
   await refreshSession();
+  notifyShellAuthChanged();
   setLoading(false);
 }
 
@@ -175,6 +182,7 @@ async function handleLogout() {
   }
   setFeedback('Sessão encerrada.', 'success');
   await refreshSession();
+  notifyShellAuthChanged();
   setLoading(false);
 }
 
