@@ -50,6 +50,7 @@ Diretrizes:
 - Sem overflow horizontal global.
 - Sidebar fixa em desktop; drawer/overlay em mobile/tablet retrato.
 - Em módulos HTML de nível 0/1, o contexto primário deve ser exibido no header do shell; headers internos das telas não devem existir.
+- Telas internas nunca controlam largura de viewport (`100vw`/`calc(100vw-...)`); elas ocupam `width: 100%` do espaço entregue pelo shell.
 
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:

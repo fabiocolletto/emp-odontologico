@@ -8,6 +8,18 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.59 - 2026-04-28
+
+### Changed
+- Consolidado contrato estrutural global para telas internas (`main[data-nav-level]`) em `apps/web/styles.css`, garantindo `width: 100%`, `max-width: 100%`, `min-width: 0` e `box-sizing: border-box`.
+- Adicionadas proteções de `min-width: 0` e `max-width: 100%` para wrappers estruturais de conteúdo (`*-section`, `*-kpi-card`, `*-table-wrap`, `.of-card`, `.of-table-wrap`) para evitar estouro horizontal.
+- No mobile (`<=767px`), grids de conteúdo internos passam a colapsar para uma única coluna (`1fr`) via regra estrutural global.
+- Atualizada diretriz oficial da UI para reforçar que telas internas não controlam viewport (sem `100vw`/`calc(100vw-...)`) e devem ocupar somente o espaço entregue pelo shell.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
 ## v1.1.58 - 2026-04-27
 
 ### Changed
