@@ -52,6 +52,24 @@ Diretrizes:
 - Em módulos HTML de nível 0/1, o contexto primário deve ser exibido no header do shell; headers internos das telas não devem existir.
 - Telas internas nunca controlam largura de viewport (`100vw`/`calc(100vw-...)`); elas ocupam `width: 100%` do espaço entregue pelo shell.
 
+
+## Padrão oficial: Auth Gate no Shell
+Quando não houver sessão autenticada no Supabase, o shell deve entrar em modo de autenticação:
+- Ocultar sidebar e bottom nav até autenticar.
+- Renderizar formulário centralizado com componentes oficiais (`.of-card`, `.of-field`, `.of-input`, `.of-button`).
+- Manter nível de navegação declarado no container (`data-nav-level="1"` + `.of-view-level-1`).
+- Evitar classes de estilo paralelas para campos e botões; usar apenas variações oficiais existentes.
+- Após autenticação, restaurar navegação e carregar aba inicial normalmente.
+- Aplicar variação por breakpoint com linguagem Material Design 3 minimalista/flat:
+  - mobile: superfície full-width sem sombras pesadas;
+  - tablet (retrato e paisagem): janela sobreposta central com overlay suave;
+  - desktop: manter janela sobreposta (não usar drawer lateral) com largura/altura adequadas ao viewport.
+- A UI de acesso deve separar fluxos em abas (`Acesso` e `Cadastro`) usando segmented control oficial.
+- O cabeçalho da janela de acesso deve manter apenas ícone e título (sem textos longos de apoio).
+- Rodapé da janela deve incluir versão e links legais (`Termos do Usuário` e `Política de Privacidade`) abertos em modal interno, sem navegação externa.
+- Em ambientes de implantação estática, exibir diagnóstico leve no rodapé com estado de conexão Auth (SDK, URL, ANON e Redirect) sem expor segredo completo.
+- Login social Google deve usar seleção explícita de conta (`prompt=select_account`) para evitar reutilizar sessão errada automaticamente.
+
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:
 - Nível 0: visão geral/dashboard.

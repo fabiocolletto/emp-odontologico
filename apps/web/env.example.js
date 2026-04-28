@@ -8,5 +8,6 @@
  */
 window.__APP_ENV__ = {
   SUPABASE_URL: 'https://SEU-PROJETO.supabase.co',
-  SUPABASE_ANON: 'SUA_CHAVE_ANON_PUBLICA'
+  SUPABASE_ANON: 'SUA_CHAVE_ANON_PUBLICA',
+  SUPABASE_AUTH_REDIRECT: 'https://seu-dominio.com/'
 };
