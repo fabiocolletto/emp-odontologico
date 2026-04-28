@@ -18,7 +18,8 @@ const NAV_ITEMS = [
   { id: 'clinic', label: 'Clínica', subtitle: 'Dados institucionais', icon: '🏥', accent: '#7c3aed', src: './apps/web/src/clinics/clinicas.html' },
   { id: 'team', label: 'Equipe', subtitle: 'Profissionais', icon: '👥', accent: '#4f46e5', src: './apps/web/src/team/equipe.html' },
   { id: 'financial', label: 'Financeiro', subtitle: 'Gestão financeira', icon: '💳', accent: '#16a34a', src: './apps/web/src/financial/financeiro.html' },
-  { id: 'profile', label: 'Perfil', subtitle: 'Conta e preferências', icon: '🪪', accent: '#ea580c', src: './apps/web/src/profile/perfil.html' }
+  { id: 'profile', label: 'Perfil', subtitle: 'Conta e preferências', icon: '🪪', accent: '#ea580c', src: './apps/web/src/profile/perfil.html' },
+  { id: 'access', label: 'Acesso', subtitle: 'Login e cadastro', icon: '🔐', accent: '#1d4ed8', src: './apps/web/src/auth/acesso.html' }
 ];
 
 const DEFAULT_TAB_ID = 'inicio';

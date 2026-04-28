@@ -108,6 +108,25 @@ Usar `data-nav-level` ou classes `.of-view-level-*`:
 9. Atualizar esta documentação ao criar novo padrão.
 10. Não adicionar CDN/biblioteca sem justificativa e registro.
 
+## Padrão oficial para tela de acesso/cadastro
+Quando criar telas de autenticação, usar o contrato abaixo:
+
+1. Nível de navegação: `data-nav-level="1"` com `.of-view-level-1`.
+2. Estrutura mínima:
+   - Um `.of-card` com título/subtítulo.
+   - Controle `.of-segmented` para alternar **Acessar** e **Criar conta**.
+   - Formulário com `.of-field`, `.of-label`, `.of-input` para email/senha.
+   - Botão social com `.of-button of-button--secondary` para OAuth (Google).
+3. Integração com Supabase:
+   - Email+senha (login): `supabase.auth.signInWithPassword`.
+   - Email+senha (cadastro): `supabase.auth.signUp`.
+   - Social Google: `supabase.auth.signInWithOAuth({ provider: 'google' })`.
+4. Estados obrigatórios:
+   - feedback textual com `aria-live="polite"`,
+   - loading/desabilitação dos controles durante requisição,
+   - resumo de sessão ativa com opção de logout.
+5. Não esconder erros de API: exibir mensagens de falha de auth ao usuário.
+
 ## Padrão oficial de telas HTML modulares (nível 0 e 1)
 Para evolução incremental via shell React + arquivos independentes:
 
