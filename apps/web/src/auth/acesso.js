@@ -10,6 +10,7 @@ const form = root.querySelector('[data-form="auth"]');
 const feedback = root.querySelector('[data-feedback]');
 const sessionPanel = root.querySelector('[data-session]');
 const sessionEmail = root.querySelector('[data-session-email]');
+const sessionAvatar = root.querySelector('[data-session-avatar]');
 const modeHint = root.querySelector('[data-mode-hint]');
 const submitLabel = root.querySelector('[data-submit-label]');
 const modeButtons = Array.from(root.querySelectorAll('[data-mode]'));
@@ -102,8 +103,19 @@ async function refreshSession() {
   }
 
   const currentEmail = data?.session?.user?.email || '';
+  const metadata = data?.session?.user?.user_metadata || {};
+  const avatarUrl = metadata.avatar_url || metadata.picture || '';
   sessionPanel.hidden = !currentEmail;
   sessionEmail.textContent = currentEmail ? `Conectado como ${currentEmail}` : '';
+  if (sessionAvatar) {
+    if (avatarUrl) {
+      sessionAvatar.src = avatarUrl;
+      sessionAvatar.hidden = false;
+    } else {
+      sessionAvatar.hidden = true;
+      sessionAvatar.removeAttribute('src');
+    }
+  }
 }
 
 async function handleGoogleLogin() {

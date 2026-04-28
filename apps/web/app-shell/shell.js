@@ -68,6 +68,7 @@ async function refreshAuthSession() {
   if (!authGuardState.client?.auth?.getSession) return;
   const { data } = await authGuardState.client.auth.getSession();
   authGuardState.session = data?.session || null;
+  updateHeaderAuthIdentity();
   applyAuthRestrictions();
 }
 
@@ -88,6 +89,29 @@ function applyAuthRestrictions() {
     button.setAttribute('aria-disabled', String(shouldBlock));
     button.classList.toggle('is-auth-blocked', shouldBlock);
   });
+}
+
+function getAuthAvatarUrl() {
+  const metadata = authGuardState.session?.user?.user_metadata || {};
+  return metadata.avatar_url || metadata.picture || '';
+}
+
+function updateHeaderAuthIdentity() {
+  const avatarElement = document.querySelector('[data-app-header-avatar]');
+  const iconElement = document.querySelector('[data-app-header-icon]');
+  if (!avatarElement || !iconElement) return;
+
+  const avatarUrl = getAuthAvatarUrl();
+  if (!avatarUrl) {
+    avatarElement.hidden = true;
+    iconElement.hidden = false;
+    avatarElement.removeAttribute('src');
+    return;
+  }
+
+  avatarElement.src = avatarUrl;
+  avatarElement.hidden = false;
+  iconElement.hidden = true;
 }
 
 function getAuthorizedTabId(tabId) {
@@ -128,6 +152,7 @@ function renderHeader() {
   header.innerHTML = `
     <button type="button" class="of-button of-button--secondary of-button--icon app-menu-toggle" aria-controls="app-sidebar" aria-expanded="false" aria-label="Abrir menu">☰</button>
     <div class="app-header-context">
+      <img class="app-header-avatar" data-app-header-avatar alt="Foto do usuário" hidden />
       <span class="app-header-icon" data-app-header-icon aria-hidden="true">🧭</span>
       <div class="app-header-content">
         <p class="app-header-subtitle" data-app-header-subtitle>OdontoFlow</p>
@@ -269,6 +294,7 @@ function updateShellHeader(item) {
   if (title) title.textContent = item?.label || 'OdontoFlow';
   if (subtitle) subtitle.textContent = item?.subtitle || 'Shell modular';
   if (icon) icon.textContent = item?.icon || '🧭';
+  updateHeaderAuthIdentity();
 }
 
 window.addEventListener('message', (event) => {

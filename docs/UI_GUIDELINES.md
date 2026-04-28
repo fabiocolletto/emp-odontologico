@@ -121,6 +121,7 @@ Quando criar telas de autenticação, usar o contrato abaixo:
    - Email+senha (login): `supabase.auth.signInWithPassword`.
    - Email+senha (cadastro): `supabase.auth.signUp`.
    - Social Google: `supabase.auth.signInWithOAuth({ provider: 'google' })`.
+   - Avatar do usuário logado: ler de `session.user.user_metadata.avatar_url` (ou `picture`) obtido via `supabase.auth.getSession()` / `getUser()`; não consultar `auth.users` diretamente no frontend.
    - Em páginas de auth standalone (`acesso.html` e callback), carregar `apps/web/env.js` antes dos scripts de módulo.
    - Em shell com `iframe`, usar `skipBrowserRedirect: true` e abrir `data.url` no `window.top`.
    - O `redirectTo` do social login deve apontar para uma página de callback dedicada (ex.: `apps/web/src/auth/callback.html`) que confirma sessão e redireciona ao shell (`index.html#access`).

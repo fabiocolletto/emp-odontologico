@@ -74,6 +74,21 @@ body {
   gap: var(--of-space-2);
 }
 
+.acesso-session__identity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--of-space-2);
+}
+
+.acesso-session__avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--of-radius-pill);
+  object-fit: cover;
+  border: 1px solid var(--of-border);
+  background: var(--of-surface-solid);
+}
+
 @media (max-width: 767px) {
   .acesso-page {
     padding: var(--of-space-3);
