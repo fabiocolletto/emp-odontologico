@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OdontoFlow • Finalizando acesso</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <style>
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--of-bg-app); color: var(--of-text-primary); font-family: var(--font-family-sans); }
+      .callback-card { width: min(420px, calc(100% - 2rem)); background: var(--of-surface-solid); border: 1px solid var(--of-border); border-radius: var(--of-radius-lg); box-shadow: var(--of-shadow-sm); padding: var(--of-space-5); }
+      .callback-card p { margin: 0; color: var(--of-text-muted); }
+    </style>
+  </head>
+  <body>
+    <article class="callback-card">
+      <h1 class="of-page-title">Finalizando autenticação…</h1>
+      <p data-callback-status>Aguarde enquanto validamos sua sessão.</p>
+    </article>
+    <script type="module" src="./callback.js"></script>
+  </body>
+</html>

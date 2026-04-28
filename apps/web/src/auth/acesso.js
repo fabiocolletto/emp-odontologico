@@ -19,12 +19,34 @@ const state = {
   loading: false
 };
 
-function buildShellRedirectUrl() {
+const AUTH_FEEDBACK_KEY = 'odontoflow-auth-feedback';
+
+function buildShellUrl() {
   const currentUrl = new URL(window.location.href);
   const authPath = '/apps/web/src/auth/acesso.html';
   const authPathIndex = currentUrl.pathname.indexOf(authPath);
   const basePath = authPathIndex >= 0 ? currentUrl.pathname.slice(0, authPathIndex) : '';
   return `${currentUrl.origin}${basePath}/index.html#access`;
+}
+
+function buildCallbackUrl() {
+  const shellUrl = new URL(buildShellUrl());
+  return `${shellUrl.origin}${shellUrl.pathname.replace('/index.html', '')}/apps/web/src/auth/callback.html`;
+}
+
+function consumeAuthFeedback() {
+  try {
+    const raw = window.localStorage.getItem(AUTH_FEEDBACK_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    window.localStorage.removeItem(AUTH_FEEDBACK_KEY);
+    const tone = parsed?.tone === 'error' ? 'error' : 'success';
+    const message = String(parsed?.message || '').trim();
+    if (!message) return;
+    setFeedback(message, tone);
+  } catch {
+    window.localStorage.removeItem(AUTH_FEEDBACK_KEY);
+  }
 }
 
 function setFeedback(message, tone = 'neutral') {
@@ -85,7 +107,7 @@ async function handleGoogleLogin() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: buildShellRedirectUrl(),
+      redirectTo: buildCallbackUrl(),
       skipBrowserRedirect: true
     }
   });
@@ -190,4 +212,5 @@ supabase.auth.onAuthStateChange(() => {
 });
 
 setMode('login');
+consumeAuthFeedback();
 refreshSession();
