@@ -441,7 +441,7 @@ body.app-shell {
   border-top: 1px solid var(--of-border-subtle);
 }
 
-@media (min-width: 768px) and (max-width: 1279px) {
+@media (min-width: 768px) {
   .app-auth-layout {
     position: fixed;
     inset: var(--shell-header-height) 0 0 0;
@@ -452,10 +452,12 @@ body.app-shell {
 
   .app-auth-overlay {
     display: block;
+    background: color-mix(in srgb, #0f172a 22%, transparent);
   }
 
   .app-auth-surface {
-    width: min(560px, calc(100vw - (var(--of-space-8))));
+    position: relative;
+    width: min(560px, calc(100vw - (var(--of-space-10))));
     min-height: min(690px, calc(100dvh - var(--shell-header-height) - (var(--of-space-12))));
     max-height: calc(100dvh - var(--shell-header-height) - (var(--of-space-12)));
     border: 1px solid var(--of-border);
@@ -467,30 +469,16 @@ body.app-shell {
 }
 
 @media (min-width: 1024px) {
-  .app-auth-layout {
-    position: fixed;
-    inset: var(--shell-header-height) 0 0 0;
-  }
-
-  .app-auth-overlay {
-    display: block;
-    background: color-mix(in srgb, #0f172a 26%, transparent);
-  }
-
   .app-auth-surface {
-    position: absolute;
-    inset: 0 0 0 auto;
-    width: min(480px, 38vw);
-    min-height: calc(100dvh - var(--shell-header-height));
-    border-left: 1px solid var(--of-border);
-    border-radius: 0;
-    box-shadow: -12px 0 36px rgba(15, 23, 42, 0.14);
+    width: min(620px, calc(100vw - (var(--of-space-12))));
+    min-height: min(720px, calc(100dvh - var(--shell-header-height) - (var(--of-space-12))));
   }
 }
 
 @media (min-width: 1440px) {
   .app-auth-surface {
-    width: min(520px, 34vw);
+    width: min(700px, calc(100vw - (var(--of-space-16))));
+    min-height: min(760px, calc(100dvh - var(--shell-header-height) - (var(--of-space-14))));
   }
 }
 

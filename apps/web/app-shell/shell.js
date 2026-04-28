@@ -191,7 +191,7 @@ function renderAuthView(reason = '') {
             <p class="app-auth-message" data-auth-message></p>
           </form>
           <footer class="of-card-footer app-auth-footer">
-            <p class="of-helper-text">Sessão protegida por Supabase Auth.</p>
+            <p class="of-helper-text">Sessão protegida por Supabase Auth com janela sobreposta responsiva.</p>
           </footer>
         </article>
       </section>
