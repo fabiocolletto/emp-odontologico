@@ -57,13 +57,23 @@ const appState = {
 const authApi = {
   client: null,
   initialized: false,
+  initError: null,
 
   async ensure() {
     if (this.initialized && this.client) return this.client;
-    const mod = await import('./../src/lib/supabaseClient.js');
-    this.client = mod.supabase;
-    this.initialized = true;
-    return this.client;
+    if (this.initialized && this.initError) throw this.initError;
+
+    try {
+      const mod = await import('./apps/web/src/lib/supabaseClient.js');
+      this.client = mod.supabase;
+      this.initialized = true;
+      this.initError = null;
+      return this.client;
+    } catch (error) {
+      this.initialized = true;
+      this.initError = error;
+      throw error;
+    }
   },
 
   async signInWithGoogle() {
@@ -99,6 +109,7 @@ function initShell() {
   renderHeader();
   renderSidebar();
   renderBottomNav();
+  renderAuthGate();
   bindAuthUiEvents();
   bootstrapCurrentUser();
 }
@@ -275,7 +286,12 @@ function setAuthStatus(status, message = '') {
     signOutButton.hidden = !shouldShowShellNav;
   }
 
-  renderAuthGate();
+  try {
+    renderAuthGate();
+  } catch (error) {
+    console.error('Falha ao renderizar gate de autenticação:', error);
+    renderAuthGateFallback('Não foi possível renderizar o fluxo de acesso. Recarregue a página.');
+  }
 }
 
 async function bootstrapCurrentUser() {
@@ -493,19 +509,25 @@ function bindAuthUiEvents() {
     }
   });
 
-  authApi.ensure().then(() => {
-    authApi.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session?.user) {
-        appState.user = null;
-        setAuthStatus('unauthenticated');
-        return;
-      }
+  authApi
+    .ensure()
+    .then(() => {
+      authApi.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || !session?.user) {
+          appState.user = null;
+          setAuthStatus('unauthenticated');
+          return;
+        }
 
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        bootstrapCurrentUser();
-      }
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          bootstrapCurrentUser();
+        }
+      });
+    })
+    .catch((error) => {
+      console.error('Auth listener indisponível:', error);
+      setAuthStatus('unauthenticated', 'Autenticação indisponível no momento. Verifique o env.js.');
     });
-  });
 }
 
 async function startGoogleLogin() {
@@ -708,6 +730,26 @@ function renderAuthGate() {
   }
 
   gate.innerHTML = getAuthViewMarkup();
+}
+
+function renderAuthGateFallback(message) {
+  const content = document.getElementById('app-content');
+  const frame = document.getElementById('app-frame');
+  if (!content || !frame) return;
+
+  frame.hidden = true;
+  content.innerHTML = `
+    <section class="app-auth-gate of-v2-scope ui-empty-state" data-auth-gate="true">
+      <main class="app-auth-center of-main-inner of-view-level-1" data-nav-level="1">
+        <section class="app-auth-card of-flat-surface">
+          <div class="of-empty-state of-empty-state--flat">
+            <span class="of-empty-state-title">Ops! Tivemos um problema ao abrir o acesso.</span>
+            <p class="of-empty-state-text">${escapeHtml(message)}</p>
+          </div>
+        </section>
+      </main>
+    </section>
+  `;
 }
 
 function getAuthViewMarkup() {
