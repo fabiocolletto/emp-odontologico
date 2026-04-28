@@ -328,12 +328,12 @@ function bindAuthFormEvents() {
 
   signInForm.querySelector('[data-auth-google]')?.addEventListener('click', async () => {
     if (!authClient) return;
-    setAuthMessage('Redirecionando para Google...', 'info');
+    setAuthMessage('Abrindo seleção de conta Google...', 'info');
 
-    const redirectTo = getOAuthRedirect();
+    const options = getGoogleOAuthOptions();
     const { error } = await authClient.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo }
+      options
     });
 
     if (error) {
@@ -342,6 +342,15 @@ function bindAuthFormEvents() {
   });
 
   bindLegalModalEvents();
+}
+
+function getGoogleOAuthOptions() {
+  return {
+    redirectTo: getOAuthRedirect(),
+    queryParams: {
+      prompt: 'select_account'
+    }
+  };
 }
 
 function setAuthTab(tab) {

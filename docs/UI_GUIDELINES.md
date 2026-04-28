@@ -68,6 +68,7 @@ Quando não houver sessão autenticada no Supabase, o shell deve entrar em modo 
 - O cabeçalho da janela de acesso deve manter apenas ícone e título (sem textos longos de apoio).
 - Rodapé da janela deve incluir versão e links legais (`Termos do Usuário` e `Política de Privacidade`) abertos em modal interno, sem navegação externa.
 - Em ambientes de implantação estática, exibir diagnóstico leve no rodapé com estado de conexão Auth (SDK, URL, ANON e Redirect) sem expor segredo completo.
+- Login social Google deve usar seleção explícita de conta (`prompt=select_account`) para evitar reutilizar sessão errada automaticamente.
 
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:
