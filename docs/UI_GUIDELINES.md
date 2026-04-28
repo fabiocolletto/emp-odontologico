@@ -121,6 +121,7 @@ Quando criar telas de autenticação, usar o contrato abaixo:
    - Email+senha (login): `supabase.auth.signInWithPassword`.
    - Email+senha (cadastro): `supabase.auth.signUp`.
    - Social Google: `supabase.auth.signInWithOAuth({ provider: 'google' })`.
+   - Em shell com `iframe`, usar `skipBrowserRedirect: true` e abrir `data.url` no `window.top` com `redirectTo` apontando para a URL do shell (`index.html#access`).
 4. Estados obrigatórios:
    - feedback textual com `aria-live="polite"`,
    - loading/desabilitação dos controles durante requisição,

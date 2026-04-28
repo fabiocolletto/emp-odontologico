@@ -19,6 +19,14 @@ const state = {
   loading: false
 };
 
+function buildShellRedirectUrl() {
+  const currentUrl = new URL(window.location.href);
+  const authPath = '/apps/web/src/auth/acesso.html';
+  const authPathIndex = currentUrl.pathname.indexOf(authPath);
+  const basePath = authPathIndex >= 0 ? currentUrl.pathname.slice(0, authPathIndex) : '';
+  return `${currentUrl.origin}${basePath}/index.html#access`;
+}
+
 function setFeedback(message, tone = 'neutral') {
   feedback.textContent = message;
   feedback.classList.remove('is-error', 'is-success');
@@ -74,16 +82,28 @@ async function handleGoogleLogin() {
   setLoading(true);
   setFeedback('Redirecionando para autenticação Google...');
 
-  const redirectTo = window.location.href;
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo }
+    options: {
+      redirectTo: buildShellRedirectUrl(),
+      skipBrowserRedirect: true
+    }
   });
 
   if (error) {
     setFeedback(error.message, 'error');
     setLoading(false);
+    return;
   }
+
+  if (data?.url) {
+    const topWindow = window.top || window;
+    topWindow.location.assign(data.url);
+    return;
+  }
+
+  setFeedback('Não foi possível iniciar o login Google.', 'error');
+  setLoading(false);
 }
 
 async function handleEmailAuth(event) {
