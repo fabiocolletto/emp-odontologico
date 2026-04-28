@@ -66,8 +66,6 @@
     const legacySection = root.querySelector('[data-legacy="true"]');
     const infoNode = root.querySelector('[data-equipe-info]');
     const clinicFilter = root.querySelector('[data-filter="clinic"]');
-    const backendForm = root.querySelector('[data-backend-form]');
-    const backendStatus = root.querySelector('[data-backend-status]');
 
     const dialog = root.ownerDocument.querySelector('[data-dialog="member"]');
     const form = root.ownerDocument.querySelector('[data-form="member"]');
@@ -213,26 +211,6 @@
       write(state);
       dialog.close();
       paint();
-    });
-
-    backendForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const endpoint = String(new FormData(backendForm).get('endpoint') || '').trim();
-      if (!endpoint) return;
-      backendStatus.textContent = 'Sincronizando com backend local...';
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clinicId: selectedClinicId, memberships: filteredRows() })
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        backendStatus.textContent = `Sincronização concluída em ${new Date().toLocaleTimeString('pt-BR')}.`;
-      } catch (error) {
-        backendStatus.textContent = `Falha na sincronização local: ${error?.message || 'erro desconhecido'}.`;
-      }
     });
 
     paint();

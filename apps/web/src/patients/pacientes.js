@@ -115,8 +115,6 @@
     const tableBody = root.querySelector('[data-grid="patients"]');
     const legacyList = root.querySelector('[data-grid="legacy"]');
     const legacySection = root.querySelector('[data-legacy="true"]');
-    const backendForm = root.querySelector('[data-backend-form]');
-    const backendStatus = root.querySelector('[data-backend-status]');
     const infoNode = root.querySelector('[data-patient-info]');
     const searchInput = root.querySelector('[data-filter="search"]');
 
@@ -245,26 +243,6 @@
     searchInput.addEventListener('input', (event) => {
       query = String(event.target.value || '');
       paintTable();
-    });
-
-    backendForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const endpoint = String(new FormData(backendForm).get('endpoint') || '').trim();
-      if (!endpoint) return;
-      backendStatus.textContent = 'Sincronizando com backend local...';
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clinicId: clinicContext.activeClinicId, patients: patientsFromActiveClinic() })
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        backendStatus.textContent = `Sincronização concluída em ${new Date().toLocaleTimeString('pt-BR')}.`;
-      } catch (error) {
-        backendStatus.textContent = `Falha na sincronização local: ${error?.message || 'erro desconhecido'}.`;
-      }
     });
 
     paint();
