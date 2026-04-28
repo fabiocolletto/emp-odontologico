@@ -17,19 +17,18 @@
         <article class="equipe-kpi-card of-card of-kpi-card" data-kpi="multiclinic"></article>
       </section>
 
-      <section class="equipe-section of-card">
+      <section class="equipe-section equipe-section--plain">
         <header class="equipe-section__header">
           <h2>Profissionais e acessos</h2>
           <div class="equipe-section__actions">
+            <label for="team-clinic-filter" class="equipe-filter-inline" aria-label="Filtrar por clínica">
+              <span>Clínica:</span>
+              <select id="team-clinic-filter" class="of-select" data-filter="clinic"></select>
+            </label>
             <button type="button" class="equipe-btn equipe-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
             <button type="button" class="equipe-btn of-button of-button--primary" data-action="new-member">Novo vínculo</button>
           </div>
         </header>
-
-        <div class="equipe-filter-row">
-          <label for="team-clinic-filter">Clínica</label>
-          <select id="team-clinic-filter" class="of-select" data-filter="clinic"></select>
-        </div>
 
         <div class="equipe-table-wrap of-table-wrap">
           <table class="equipe-table of-table" aria-label="Tabela de profissionais">
@@ -58,20 +57,6 @@
         <ul class="equipe-chip-row" data-grid="legacy"></ul>
       </section>
 
-      <section class="equipe-section of-card">
-        <header class="equipe-section__header">
-          <h2>Backend local (modelagem)</h2>
-        </header>
-        <form class="equipe-backend" data-backend-form>
-          <label>Endpoint local
-            <input type="url" name="endpoint" placeholder="http://localhost:3000/api/team-memberships" required />
-          </label>
-          <menu>
-            <button type="submit" class="equipe-btn of-button of-button--primary">Sincronizar equipe</button>
-          </menu>
-          <p class="equipe-backend__status" data-backend-status>Pronto para testar integração local.</p>
-        </form>
-      </section>
     </main>
 
     <dialog class="equipe-dialog" data-dialog="member">

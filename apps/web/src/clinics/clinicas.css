@@ -138,23 +138,6 @@ body {
 }
 .clinicas-form menu { margin: 0; padding: 0; display: flex; justify-content: flex-end; gap: .5rem; }
 
-.clinicas-backend {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.clinicas-backend label {
-  display: grid;
-  gap: .35rem;
-}
-
-.clinicas-backend input {
-  border: 1px solid var(--clinicas-border);
-  border-radius: var(--radius-sm);
-  padding: .5rem .7rem;
-}
-
-.clinicas-backend__status,
 .clinicas-sample-info,
 .clinicas-legacy-note {
   margin: 0;
@@ -207,8 +190,7 @@ body {
   }
 
   .clinicas-form input,
-  .clinicas-form select,
-  .clinicas-backend input {
+  .clinicas-form select {
     font-size: 16px;
     min-height: 44px;
   }
@@ -226,7 +208,6 @@ body {
   }
 
   .clinicas-section__actions,
-  .clinicas-backend menu,
   .clinicas-form menu {
     display: grid;
     grid-template-columns: 1fr;

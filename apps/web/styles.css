@@ -1,3 +1,34 @@
+/*
+===============================================================================
+ODONTOFLOW DESIGN SYSTEM
+Versão: V2 Flat Clinical UI + Section Center
+
+Índice:
+00. Regras de manutenção
+01. Tokens globais existentes
+02. Tokens Flat Clinical UI
+03. Reset e contrato estrutural
+04. Grid responsivo e colunas
+05. Componentes base
+06. Section Center
+07. Templates de tela
+08. Compatibilidade V1
+09. Utilitários
+10. Breakpoints e ajustes finais
+
+00. Regras de manutenção
+- Antes de criar CSS novo, localizar o bloco correto no índice.
+- Não adicionar CSS novo no fim do arquivo sem motivo técnico claro.
+- Tokens entram em 01 ou 02.
+- Grid entra em 04.
+- Componentes base entram em 05.
+- Modelos de seção entram em 06.
+- Ajustes temporários e compatibilidade entram em 08.
+- Evitar !important, salvo correção estrutural justificada.
+- Novas telas devem reutilizar modelos existentes antes de criar classes próprias.
+===============================================================================
+*/
+
 /* ===============================
    Design System Visual V1 (oficial)
    =============================== */
@@ -4778,4 +4809,389 @@ select {
   .financial-legacy-frame__iframe {
     min-height: 80vh;
   }
+}
+
+
+/* ===========================================================================
+02. Tokens Flat Clinical UI (camada V2 progressiva)
+=========================================================================== */
+:root {
+  --of-flat-bg: #ffffff;
+  --of-flat-bg-soft: #f8fafc;
+  --of-flat-line: #e5e7eb;
+  --of-flat-line-soft: #eef2f7;
+  --of-flat-text: #111827;
+  --of-flat-muted: #6b7280;
+  --of-flat-blue: #2563eb;
+  --of-flat-green: #16a34a;
+  --of-flat-purple: #7c3aed;
+  --of-flat-orange: #f97316;
+  --of-flat-red: #dc2626;
+  --of-flat-cyan: #0891b2;
+  --of-flat-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --of-flat-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --of-flat-radius-sm: 10px;
+  --of-flat-radius-md: 14px;
+  --of-flat-radius-lg: 16px;
+  --of-density-compact: 8px;
+  --of-density-comfortable: 12px;
+}
+
+/* ===========================================================================
+03. Reset e contrato estrutural V2
+=========================================================================== */
+.of-v2-scope,
+.of-v2-scope * { box-sizing: border-box; }
+
+.of-v2-scope {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  color: var(--of-flat-text);
+}
+
+.of-v2-scope :is(.of-grid, .of-section-header, .of-flat-page-title-row, .of-flat-list-item, .of-settings-item, .of-timeline-item, .of-form-row) > * {
+  min-width: 0;
+}
+
+/* ===========================================================================
+04. Grid responsivo e colunas
+=========================================================================== */
+.of-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--of-space-3, 0.75rem);
+  width: 100%;
+}
+
+.of-grid > * { min-width: 0; }
+
+.of-span-12 { grid-column: span 12; }
+.of-span-8 { grid-column: span 8; }
+.of-span-6 { grid-column: span 6; }
+.of-span-4 { grid-column: span 4; }
+.of-span-3 { grid-column: span 3; }
+
+@media (max-width: 767px) {
+  .of-grid { grid-template-columns: 1fr; }
+  .of-span-12,
+  .of-span-8,
+  .of-span-6,
+  .of-span-4,
+  .of-span-3 { grid-column: span 1; }
+}
+
+@media (min-width: 768px) {
+  .of-md-span-12 { grid-column: span 12; }
+  .of-md-span-6 { grid-column: span 6; }
+}
+
+@media (min-width: 1024px) {
+  .of-lg-span-12 { grid-column: span 12; }
+  .of-lg-span-8 { grid-column: span 8; }
+  .of-lg-span-6 { grid-column: span 6; }
+  .of-lg-span-4 { grid-column: span 4; }
+}
+
+@media (min-width: 1440px) {
+  .of-xl-span-12 { grid-column: span 12; }
+  .of-xl-span-8 { grid-column: span 8; }
+  .of-xl-span-6 { grid-column: span 6; }
+  .of-xl-span-4 { grid-column: span 4; }
+  .of-xl-span-3 { grid-column: span 3; }
+}
+
+/* ===========================================================================
+05. Componentes base Flat Clinical UI (opt-in / não quebra V1)
+=========================================================================== */
+.of-flat-surface {
+  background: var(--of-flat-bg);
+  border: 1px solid var(--of-flat-line-soft);
+  border-radius: var(--of-flat-radius-lg);
+  box-shadow: none;
+}
+
+.of-flat-button {
+  border: 1px solid transparent;
+  border-radius: var(--of-flat-radius-sm);
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: var(--of-font-size-sm, 0.875rem);
+  font-weight: 600;
+  background: var(--of-flat-blue);
+  color: #fff;
+  box-shadow: none;
+}
+
+.of-flat-button--secondary {
+  background: var(--of-flat-bg-soft);
+  color: var(--of-flat-text);
+  border-color: var(--of-flat-line);
+}
+
+.of-flat-button--ghost {
+  background: transparent;
+  color: var(--of-flat-blue);
+}
+
+.of-flat-input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid var(--of-flat-line);
+  border-radius: var(--of-flat-radius-sm);
+  background: var(--of-flat-bg);
+  color: var(--of-flat-text);
+  padding: 7px 10px;
+}
+
+/* ===========================================================================
+06. Section Center (modelos base)
+=========================================================================== */
+/* 06.01 Page Header Flat */
+.of-flat-page-header { display: grid; gap: 8px; margin-bottom: 12px; }
+.of-flat-page-title-row { display: flex; align-items: flex-start; gap: 10px; }
+.of-flat-page-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--of-flat-blue);
+  background: color-mix(in srgb, var(--of-flat-blue) 12%, white);
+}
+.of-flat-page-kicker { margin: 0; font-size: 12px; color: var(--of-flat-muted); }
+.of-flat-page-title { margin: 0; font-size: clamp(1.25rem, 1.6vw, 1.7rem); color: var(--of-flat-text); line-height: 1.15; }
+.of-flat-page-subtitle { margin: 2px 0 0; font-size: 12px; color: var(--of-flat-muted); }
+.of-flat-page-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 06.02 Metric Summary */
+.of-metric-grid { display: grid; gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.of-metric-card {
+  border: 1px solid var(--of-flat-line-soft);
+  border-radius: var(--of-flat-radius-md);
+  background: var(--of-flat-bg);
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+.of-metric-card--compact { padding: 8px 10px; }
+.of-metric-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.of-metric-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+.of-metric-label { font-size: 12px; color: var(--of-flat-muted); }
+.of-metric-value { font-size: 1rem; font-weight: 700; color: var(--of-flat-text); }
+.of-metric-meta { font-size: 12px; color: var(--of-flat-muted); }
+.of-metric-icon { color: var(--of-flat-blue); }
+
+/* 06.03 Section Header Actions */
+.of-section-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+.of-section-title-group { display: grid; gap: 2px; }
+.of-section-title { margin: 0; font-size: 1rem; color: var(--of-flat-text); }
+.of-section-subtitle { margin: 0; font-size: 12px; color: var(--of-flat-muted); }
+.of-section-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 06.04 Responsive Data View */
+.of-data-view { width: 100%; max-width: 100%; min-width: 0; }
+.of-data-table-wrap { width: 100%; max-width: 100%; overflow: auto; }
+.of-data-table { width: 100%; border-collapse: collapse; }
+.of-data-table th,
+.of-data-table td { padding: 10px; border-bottom: 1px solid var(--of-flat-line-soft); text-align: left; }
+.of-data-table th { font-size: 12px; color: var(--of-flat-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+.of-data-list { list-style: none; margin: 0; padding: 0; display: none; }
+.of-data-list-item { border-bottom: 1px solid var(--of-flat-line-soft); padding: 10px 0; }
+
+/* 06.05 Flat List */
+.of-flat-list { list-style: none; margin: 0; padding: 0; }
+.of-flat-list-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--of-flat-line-soft);
+}
+.of-flat-list-icon,
+.of-flat-list-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--of-flat-bg-soft);
+  color: var(--of-flat-blue);
+}
+.of-flat-list-content { min-width: 0; }
+.of-flat-list-title { margin: 0; color: var(--of-flat-text); font-size: 14px; font-weight: 650; }
+.of-flat-list-meta { margin: 0; color: var(--of-flat-muted); font-size: 12px; }
+.of-flat-list-side { justify-self: end; text-align: right; }
+.of-flat-list-value { font-size: 13px; font-weight: 600; color: var(--of-flat-text); }
+.of-flat-list-action { color: var(--of-flat-blue); font-size: 12px; }
+
+/* 06.06 Segmented Control Compact */
+.of-segmented-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--of-flat-line);
+  background: var(--of-flat-bg-soft);
+}
+.of-segmented-compact__button {
+  border: 0;
+  background: transparent;
+  color: var(--of-flat-muted);
+  padding: 6px 10px;
+  border-radius: 999px;
+  min-height: 30px;
+  font-size: 12px;
+}
+.of-segmented-compact__button.is-active {
+  background: var(--of-flat-bg);
+  color: var(--of-flat-text);
+  box-shadow: var(--of-flat-shadow-xs);
+}
+
+/* 06.07 Empty State */
+.of-empty-state--flat {
+  border: 1px dashed var(--of-flat-line);
+  border-radius: var(--of-flat-radius-md);
+  background: var(--of-flat-bg-soft);
+}
+
+/* 06.08 Form Section */
+.of-form-section { display: grid; gap: 10px; }
+.of-form-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; }
+.of-form-grid > * { min-width: 0; }
+.of-form-row { display: grid; gap: 6px; }
+.of-form-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+/* 06.09 Settings List */
+.of-settings-list { list-style: none; margin: 0; padding: 0; }
+.of-settings-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--of-flat-line-soft);
+}
+.of-settings-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--of-flat-bg-soft);
+  color: var(--of-flat-blue);
+}
+.of-settings-content { min-width: 0; }
+.of-settings-title { margin: 0; font-size: 14px; font-weight: 650; color: var(--of-flat-text); }
+.of-settings-meta { margin: 0; font-size: 12px; color: var(--of-flat-muted); }
+.of-settings-action { color: var(--of-flat-muted); }
+
+/* 06.10 Timeline List */
+.of-timeline-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.of-timeline-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--of-flat-line-soft);
+}
+.of-timeline-marker {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--of-flat-blue);
+}
+.of-timeline-content { min-width: 0; }
+
+/* ===========================================================================
+07. Templates de tela (estruturas opcionais)
+=========================================================================== */
+.of-template-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: var(--of-density-comfortable);
+}
+
+.of-template-section {
+  background: var(--of-flat-bg);
+  border: 1px solid var(--of-flat-line-soft);
+  border-radius: var(--of-flat-radius-lg);
+  padding: var(--of-density-comfortable);
+}
+
+/* ===========================================================================
+08. Compatibilidade V1
+=========================================================================== */
+.of-v2-scope .of-card,
+.of-v2-scope .of-table-wrap,
+.of-v2-scope .of-button,
+.of-v2-scope .of-input,
+.of-v2-scope .of-select,
+.of-v2-scope .of-textarea {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ===========================================================================
+09. Utilitários
+=========================================================================== */
+.of-w-full { width: 100%; }
+.of-min-w-0 { min-width: 0; }
+.of-max-w-full { max-width: 100%; }
+.of-text-muted { color: var(--of-flat-muted); }
+.of-divider-bottom { border-bottom: 1px solid var(--of-flat-line-soft); }
+
+/* ===========================================================================
+10. Breakpoints e ajustes finais
+=========================================================================== */
+@media (max-width: 767px) {
+  .of-flat-page-header { gap: 6px; }
+  .of-flat-page-title { font-size: 20px; }
+
+  .of-metric-grid { grid-template-columns: 1fr; }
+  .of-metric-card,
+  .of-template-section {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    padding: var(--of-density-compact) 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .of-flat-page-actions,
+  .of-section-actions,
+  .of-form-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .of-flat-button,
+  .of-flat-input { min-height: 34px; }
+
+  .of-data-table-wrap { display: none; }
+  .of-data-list { display: block; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .of-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .of-template-page { gap: 14px; }
+}
+
+@media (min-width: 1440px) {
+  .of-template-page { gap: 16px; }
 }

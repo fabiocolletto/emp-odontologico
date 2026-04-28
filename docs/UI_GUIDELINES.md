@@ -213,3 +213,72 @@ Antes de criar novo componente visual ou serviço de suporte em tela HTML, consu
 Diretriz de reuso:
 - Reutilizar primeiro `page-header`, `filter-panel`, `date-range-picker`, `modal`, `drawer`, `status-badge`, `empty-state` e `action-bar`.
 - Auth/Sessão/Clínica/Storage/Eventos devem usar serviços da camada `apps/web/shared/services`.
+
+## OdontoFlow Flat Clinical UI
+
+Padrão oficial para evolução do **body** das telas internas, mantendo shell/header/bottom nav existentes.
+
+Diretrizes:
+- Mobile prioriza `flat list` com divisórias (`--of-flat-line-soft`) no lugar de cards empilhados.
+- Desktop pode manter agrupamento leve por seção (`.of-flat-section`) com borda suave e sem sombra pesada.
+- Sombras passam a ser exceção; preferir superfícies brancas ou quase brancas.
+- Cards altos não devem ser usados para listas mobile (Agenda, Pacientes, Perfil, Configurações e afins).
+- Ícones e títulos coloridos orientam hierarquia por módulo (`.of-flat-title-icon--*`).
+- Conteúdo do body deve ser mais denso, limpo e acessível, com foco em reduzir containers visuais redundantes.
+
+Tokens base do padrão:
+- `--of-flat-bg`, `--of-flat-bg-soft`
+- `--of-flat-line`, `--of-flat-line-soft`
+- `--of-flat-text`, `--of-flat-muted`
+- `--of-flat-blue`, `--of-flat-green`, `--of-flat-purple`, `--of-flat-orange`, `--of-flat-red`, `--of-flat-cyan`
+
+Classes globais do padrão:
+- `.of-flat-page`, `.of-flat-header`, `.of-flat-title-row`, `.of-flat-title-icon`, `.of-flat-title`, `.of-flat-subtitle`
+- `.of-flat-section`, `.of-flat-section-header`, `.of-flat-section-title`
+- `.of-flat-list`, `.of-flat-list-item`, `.of-flat-list-icon`, `.of-flat-list-content`, `.of-flat-list-title`, `.of-flat-list-meta`
+- `.of-flat-metric-row`, `.of-flat-metric`
+- `.of-flat-action-row`, `.of-flat-button`, `.of-flat-input`
+
+## OdontoFlow Design System V2: Flat Clinical UI + Section Center
+
+### Conceitos-base
+- **Design System**: contrato visual e estrutural que organiza tokens, componentes e padrões responsivos para toda a plataforma.
+- **Section Center**: catálogo de modelos de seção reutilizáveis para compor telas internas com previsibilidade.
+
+### Regras de composição
+- **Tela = composição de seções** (não coleção de estilos locais isolados).
+- **Seção = modelo reutilizável com variações**.
+- **Modelo = contrato visual + dados esperados + comportamento responsivo**.
+
+### Estratégia mobile first
+1. Mobile (até 767px): layout flat, denso, divisórias suaves, uma coluna por padrão.
+2. Tablet retrato (768px a 1023px): mobile expandido com 1–2 colunas.
+3. Tablet paisagem / desktop médio (1024px a 1439px): grade de 12 colunas, seções leves e tabelas permitidas.
+4. Desktop largo (1440px+): grade completa com respiro maior, sem exagerar largura de leitura.
+
+### Grade oficial V2
+- Base: `.of-grid` + spans (`.of-span-*`).
+- Responsiva: `.of-md-span-*`, `.of-lg-span-*`, `.of-xl-span-*`.
+- Regra estrutural: filhos de grid/flex devem manter `min-width: 0` para evitar overflow horizontal.
+
+### Modelos iniciais de Section Center
+1. **Page Header Flat**
+2. **Metric Summary**
+3. **Section Header Actions**
+4. **Responsive Data View** (tabela desktop + lista mobile)
+5. **Flat List**
+6. **Segmented Control Compact**
+7. **Empty State (flat variant)**
+8. **Form Section**
+9. **Settings List**
+10. **Timeline List**
+
+### Regra de manutenção para Codex
+- Antes de criar CSS novo, localizar o bloco correto do índice em `apps/web/styles.css`.
+- Não adicionar CSS novo no final do arquivo sem justificativa técnica.
+- Tokens em blocos de tokens (01/02), grid em 04, componentes em 05, modelos em 06, compatibilidade em 08.
+- Evitar `!important`, salvo correção estrutural pontual e justificada.
+- Novas telas devem tentar modelos existentes antes de criar classes próprias.
+
+### Compatibilidade
+- A camada V2 é **progressiva e opt-in**: não remove o V1 e não exige quebra de classes legadas `.of-*`.
