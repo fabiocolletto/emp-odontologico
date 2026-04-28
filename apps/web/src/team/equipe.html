@@ -12,27 +12,27 @@
     <main class="equipe-page of-main-inner of-view-level-1" data-equipe-app data-nav-level="1">
 
       <section class="equipe-kpi-grid" aria-label="Resumo da equipe">
-        <article class="equipe-kpi-card" data-kpi="members"></article>
-        <article class="equipe-kpi-card" data-kpi="invites"></article>
-        <article class="equipe-kpi-card" data-kpi="multiclinic"></article>
+        <article class="equipe-kpi-card of-card of-kpi-card" data-kpi="members"></article>
+        <article class="equipe-kpi-card of-card of-kpi-card" data-kpi="invites"></article>
+        <article class="equipe-kpi-card of-card of-kpi-card" data-kpi="multiclinic"></article>
       </section>
 
-      <section class="equipe-section">
+      <section class="equipe-section of-card">
         <header class="equipe-section__header">
           <h2>Profissionais e acessos</h2>
           <div class="equipe-section__actions">
-            <button type="button" class="equipe-btn equipe-btn--ghost" data-action="reset-model">Recarregar modelo</button>
-            <button type="button" class="equipe-btn" data-action="new-member">Novo vínculo</button>
+            <button type="button" class="equipe-btn equipe-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="equipe-btn of-button of-button--primary" data-action="new-member">Novo vínculo</button>
           </div>
         </header>
 
         <div class="equipe-filter-row">
           <label for="team-clinic-filter">Clínica</label>
-          <select id="team-clinic-filter" data-filter="clinic"></select>
+          <select id="team-clinic-filter" class="of-select" data-filter="clinic"></select>
         </div>
 
-        <div class="equipe-table-wrap">
-          <table class="equipe-table" aria-label="Tabela de profissionais">
+        <div class="equipe-table-wrap of-table-wrap">
+          <table class="equipe-table of-table" aria-label="Tabela de profissionais">
             <thead>
               <tr>
                 <th>Profissional</th>
@@ -50,7 +50,7 @@
         </div>
       </section>
 
-      <section class="equipe-section" data-legacy="true">
+      <section class="equipe-section of-card" data-legacy="true">
         <header class="equipe-section__header">
           <h2>Rastreabilidade de limpeza</h2>
         </header>
@@ -58,7 +58,7 @@
         <ul class="equipe-chip-row" data-grid="legacy"></ul>
       </section>
 
-      <section class="equipe-section">
+      <section class="equipe-section of-card">
         <header class="equipe-section__header">
           <h2>Backend local (modelagem)</h2>
         </header>
@@ -67,7 +67,7 @@
             <input type="url" name="endpoint" placeholder="http://localhost:3000/api/team-memberships" required />
           </label>
           <menu>
-            <button type="submit" class="equipe-btn">Sincronizar equipe</button>
+            <button type="submit" class="equipe-btn of-button of-button--primary">Sincronizar equipe</button>
           </menu>
           <p class="equipe-backend__status" data-backend-status>Pronto para testar integração local.</p>
         </form>
@@ -126,8 +126,8 @@
           </select>
         </label>
         <menu>
-          <button value="cancel" class="equipe-btn equipe-btn--ghost">Cancelar</button>
-          <button value="default" class="equipe-btn">Salvar vínculo</button>
+          <button value="cancel" class="equipe-btn equipe-btn--ghost of-button of-button--secondary">Cancelar</button>
+          <button value="default" class="equipe-btn of-button of-button--primary">Salvar vínculo</button>
         </menu>
       </form>
     </dialog>

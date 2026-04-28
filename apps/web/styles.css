@@ -373,6 +373,7 @@ main[data-nav-level] {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  overflow-x: clip;
 }
 
 main[data-nav-level] > * {
@@ -387,6 +388,19 @@ main[data-nav-level] .of-card,
 main[data-nav-level] .of-table-wrap {
   min-width: 0;
   max-width: 100%;
+}
+
+main[data-nav-level] button:not(.of-button) {
+  min-height: var(--of-touch-target);
+  border-radius: var(--of-radius-pill);
+}
+
+main[data-nav-level] input:not(.of-input),
+main[data-nav-level] select:not(.of-select),
+main[data-nav-level] textarea:not(.of-textarea) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 @media (max-width: 767px) {

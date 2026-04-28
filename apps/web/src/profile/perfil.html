@@ -12,24 +12,24 @@
     <main class="perfil-page of-main-inner of-view-level-1" data-perfil-app data-nav-level="1">
 
       <section class="perfil-kpi-grid" aria-label="Resumo de conta">
-        <article class="perfil-kpi-card" data-kpi="clinics"></article>
-        <article class="perfil-kpi-card" data-kpi="active"></article>
-        <article class="perfil-kpi-card" data-kpi="security"></article>
+        <article class="perfil-kpi-card of-card of-kpi-card" data-kpi="clinics"></article>
+        <article class="perfil-kpi-card of-card of-kpi-card" data-kpi="active"></article>
+        <article class="perfil-kpi-card of-card of-kpi-card" data-kpi="security"></article>
       </section>
 
-      <section class="perfil-section">
+      <section class="perfil-section of-card">
         <header class="perfil-section__header">
           <h2>Dados de acesso</h2>
           <div class="perfil-section__actions">
-            <button type="button" class="perfil-btn perfil-btn--ghost" data-action="reset-model">Recarregar modelo</button>
-            <button type="button" class="perfil-btn" data-action="edit-account">Editar conta</button>
+            <button type="button" class="perfil-btn perfil-btn--ghost of-button of-button--secondary" data-action="reset-model">Recarregar modelo</button>
+            <button type="button" class="perfil-btn of-button of-button--primary" data-action="edit-account">Editar conta</button>
           </div>
         </header>
 
         <div class="perfil-grid" data-grid="summary"></div>
       </section>
 
-      <section class="perfil-section">
+      <section class="perfil-section of-card">
         <header class="perfil-section__header"><h2>Preferências</h2></header>
         <form class="perfil-preferences" data-form="preferences">
           <label><input type="checkbox" name="notify_whatsapp" /> Notificações via WhatsApp</label>
@@ -43,13 +43,13 @@
             </select>
           </label>
           <menu>
-            <button type="submit" class="perfil-btn">Salvar preferências</button>
+            <button type="submit" class="perfil-btn of-button of-button--primary">Salvar preferências</button>
           </menu>
           <p class="perfil-feedback" data-feedback></p>
         </form>
       </section>
 
-      <section class="perfil-section" data-legacy="true">
+      <section class="perfil-section of-card" data-legacy="true">
         <header class="perfil-section__header"><h2>Rastreabilidade de limpeza</h2></header>
         <ul class="perfil-chip-row" data-grid="legacy"></ul>
       </section>
@@ -76,8 +76,8 @@
           </select>
         </label>
         <menu>
-          <button value="cancel" class="perfil-btn perfil-btn--ghost">Cancelar</button>
-          <button value="default" class="perfil-btn">Salvar</button>
+          <button value="cancel" class="perfil-btn perfil-btn--ghost of-button of-button--secondary">Cancelar</button>
+          <button value="default" class="perfil-btn of-button of-button--primary">Salvar</button>
         </menu>
       </form>
     </dialog>

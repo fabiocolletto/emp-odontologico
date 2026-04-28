@@ -8,6 +8,18 @@ Todos os ajustes relevantes de deploy devem ser registrados aqui para facilitar 
 
 
 
+## v1.1.60 - 2026-04-28
+
+### Changed
+- Padronização visual estrutural das telas internas para maturidade mobile consistente com `#inicio`, reforçando o uso de classes oficiais (`.of-card`, `.of-kpi-card`, `.of-table-wrap`, `.of-table`, `.of-button`, `.of-input`, `.of-select`) nos módulos principais.
+- `#agenda` atualizado para contrato visual oficial: ações em botões do design system, filtro de data padronizado e tabela encapsulada em wrapper de tabela oficial com overflow local.
+- Seções e cartões das telas `agenda`, `pacientes`, `clinicas`, `equipe`, `perfil` e `inicio` alinhados ao contrato de card oficial, mantendo identidade visual e reduzindo aparência de HTML nativo.
+- Reforço do contrato estrutural para evitar vazamento horizontal no body e manter scroll horizontal apenas em componentes locais quando necessário.
+
+### Validation
+- Execução de `bash ./scripts/check-framework.sh` com sucesso.
+- Execução de `bash ./scripts/smoke-runtime.sh` com sucesso.
+
 ## v1.1.59 - 2026-04-28
 
 ### Changed
