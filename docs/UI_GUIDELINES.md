@@ -64,6 +64,9 @@ Quando não houver sessão autenticada no Supabase, o shell deve entrar em modo 
   - mobile: superfície full-width sem sombras pesadas;
   - tablet (retrato e paisagem): janela sobreposta central com overlay suave;
   - desktop: manter janela sobreposta (não usar drawer lateral) com largura/altura adequadas ao viewport.
+- A UI de acesso deve separar fluxos em abas (`Acesso` e `Cadastro`) usando segmented control oficial.
+- O cabeçalho da janela de acesso deve manter apenas ícone e título (sem textos longos de apoio).
+- Rodapé da janela deve incluir versão e links legais (`Termos do Usuário` e `Política de Privacidade`) abertos em modal interno, sem navegação externa.
 
 ## Níveis de navegação
 Usar `data-nav-level` ou classes `.of-view-level-*`:

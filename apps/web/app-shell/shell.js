@@ -163,6 +163,7 @@ function renderAuthView(reason = '') {
   if (!appContent) return;
 
   const savedEmail = globalThis.localStorage?.getItem(AUTH_STORAGE_KEY) || '';
+  const appVersion = 'v0.4.0';
 
   appContent.innerHTML = `
     <main class="of-main-inner of-view-level-1 app-auth-shell" data-nav-level="1">
@@ -170,29 +171,65 @@ function renderAuthView(reason = '') {
         <div class="of-drawer-overlay app-auth-overlay" aria-hidden="true"></div>
         <article class="of-drawer-panel of-card app-auth-surface" aria-live="polite">
           <header class="of-card-header app-auth-header">
-            <p class="app-auth-kicker">OdontoFlow · Material 3</p>
+            <p class="app-auth-kicker" aria-hidden="true">🔐</p>
             <h2 class="of-card-title">Acessar sistema</h2>
-            <p class="of-card-subtitle">Entre para abrir Agenda, Pacientes, Clínica, Equipe e Financeiro.</p>
           </header>
-          <form class="of-card-body app-auth-form" data-auth-form>
-            <label class="of-field">
-              <span class="of-label">E-mail</span>
-              <input class="of-input" type="email" name="email" autocomplete="email" value="${escapeHtml(savedEmail)}" required />
-            </label>
-            <label class="of-field">
-              <span class="of-label">Senha</span>
-              <input class="of-input" type="password" name="password" autocomplete="current-password" required />
-            </label>
-            <div class="app-auth-actions">
-              <button type="submit" class="of-button of-button--primary">Entrar com e-mail</button>
-              <button type="button" class="of-button of-button--secondary" data-auth-signup>Criar conta</button>
-              <button type="button" class="of-button of-button--ghost" data-auth-google>Continuar com Google</button>
+          <div class="of-card-body app-auth-form">
+            <div class="of-segmented app-auth-tabs" role="tablist" aria-label="Acesso e cadastro">
+              <button type="button" class="of-segmented__button is-active" role="tab" aria-selected="true" data-auth-tab-trigger data-tab="signin">Acesso</button>
+              <button type="button" class="of-segmented__button" role="tab" aria-selected="false" data-auth-tab-trigger data-tab="signup">Cadastro</button>
             </div>
+
+            <form class="app-auth-pane is-active" data-auth-pane="signin" data-auth-form-signin>
+              <label class="of-field">
+                <span class="of-label">E-mail</span>
+                <input class="of-input" type="email" name="email" autocomplete="email" value="${escapeHtml(savedEmail)}" required />
+              </label>
+              <label class="of-field">
+                <span class="of-label">Senha</span>
+                <input class="of-input" type="password" name="password" autocomplete="current-password" required />
+              </label>
+              <div class="app-auth-actions">
+                <button type="submit" class="of-button of-button--primary">Entrar com e-mail</button>
+                <button type="button" class="of-button of-button--ghost" data-auth-google>Continuar com Google</button>
+              </div>
+            </form>
+
+            <form class="app-auth-pane" data-auth-pane="signup" data-auth-form-signup>
+              <label class="of-field">
+                <span class="of-label">E-mail</span>
+                <input class="of-input" type="email" name="email" autocomplete="email" value="${escapeHtml(savedEmail)}" required />
+              </label>
+              <label class="of-field">
+                <span class="of-label">Senha</span>
+                <input class="of-input" type="password" name="password" autocomplete="new-password" required />
+              </label>
+              <div class="app-auth-actions">
+                <button type="submit" class="of-button of-button--secondary">Criar conta</button>
+              </div>
+            </form>
+
             <p class="app-auth-message" data-auth-message></p>
-          </form>
+          </div>
           <footer class="of-card-footer app-auth-footer">
-            <p class="of-helper-text">Sessão protegida por Supabase Auth com janela sobreposta responsiva.</p>
+            <p class="of-helper-text">Versão ${appVersion}</p>
+            <p class="app-auth-legal-links">
+              <button type="button" class="app-auth-legal-link" data-legal-open data-legal-src="./apps/web/app-shell/legal/termos.html" data-legal-title="Termos do Usuário">Termos do Usuário</button>
+              <span aria-hidden="true">·</span>
+              <button type="button" class="app-auth-legal-link" data-legal-open data-legal-src="./apps/web/app-shell/legal/privacidade.html" data-legal-title="Política de Privacidade">Política de Privacidade</button>
+            </p>
           </footer>
+        </article>
+      </section>
+
+      <section class="of-modal app-auth-legal-modal" data-legal-modal hidden>
+        <div class="of-drawer-overlay" data-legal-close></div>
+        <article class="of-modal-panel app-auth-legal-panel" role="dialog" aria-modal="true" aria-labelledby="legal-title">
+          <header class="app-auth-legal-header">
+            <h3 id="legal-title" class="of-card-title" data-legal-title>Documento legal</h3>
+            <button type="button" class="of-button of-button--secondary of-button--icon" data-legal-close aria-label="Fechar">✕</button>
+          </header>
+          <iframe title="Documento legal" class="app-auth-legal-frame" data-legal-frame loading="lazy"></iframe>
         </article>
       </section>
     </main>
@@ -206,18 +243,25 @@ function renderAuthView(reason = '') {
 }
 
 function bindAuthFormEvents() {
-  const form = document.querySelector('[data-auth-form]');
-  if (!form || !authClient) return;
+  const signInForm = document.querySelector('[data-auth-form-signin]');
+  const signUpForm = document.querySelector('[data-auth-form-signup]');
+  const tabTriggers = Array.from(document.querySelectorAll('[data-auth-tab-trigger]'));
+  if (!signInForm || !signUpForm) return;
 
-  const emailInput = form.elements.email;
-  const passwordInput = form.elements.password;
+  tabTriggers.forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      const tab = trigger.dataset.tab;
+      setAuthTab(tab);
+    });
+  });
 
-  form.addEventListener('submit', async (event) => {
+  signInForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (!authClient) return;
     setAuthMessage('Autenticando...', 'info');
 
-    const email = String(emailInput?.value || '').trim();
-    const password = String(passwordInput?.value || '').trim();
+    const email = String(signInForm.elements.email?.value || '').trim();
+    const password = String(signInForm.elements.password?.value || '').trim();
 
     const { error } = await authClient.auth.signInWithPassword({ email, password });
 
@@ -230,11 +274,13 @@ function bindAuthFormEvents() {
     setAuthMessage('Login realizado com sucesso. Redirecionando...', 'success');
   });
 
-  form.querySelector('[data-auth-signup]')?.addEventListener('click', async () => {
+  signUpForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!authClient) return;
     setAuthMessage('Criando conta...', 'info');
 
-    const email = String(emailInput?.value || '').trim();
-    const password = String(passwordInput?.value || '').trim();
+    const email = String(signUpForm.elements.email?.value || '').trim();
+    const password = String(signUpForm.elements.password?.value || '').trim();
 
     const { error } = await authClient.auth.signUp({ email, password });
     if (error) {
@@ -246,7 +292,8 @@ function bindAuthFormEvents() {
     setAuthMessage('Conta criada. Confira seu e-mail para confirmar o cadastro.', 'success');
   });
 
-  form.querySelector('[data-auth-google]')?.addEventListener('click', async () => {
+  signInForm.querySelector('[data-auth-google]')?.addEventListener('click', async () => {
+    if (!authClient) return;
     setAuthMessage('Redirecionando para Google...', 'info');
 
     const redirectTo = getOAuthRedirect();
@@ -258,6 +305,46 @@ function bindAuthFormEvents() {
     if (error) {
       setAuthMessage(error.message || 'Não foi possível iniciar login com Google.', 'error');
     }
+  });
+
+  bindLegalModalEvents();
+}
+
+function setAuthTab(tab) {
+  const validTab = tab === 'signup' ? 'signup' : 'signin';
+
+  document.querySelectorAll('[data-auth-tab-trigger]').forEach((trigger) => {
+    const isActive = trigger.dataset.tab === validTab;
+    trigger.classList.toggle('is-active', isActive);
+    trigger.setAttribute('aria-selected', String(isActive));
+  });
+
+  document.querySelectorAll('[data-auth-pane]').forEach((pane) => {
+    pane.classList.toggle('is-active', pane.dataset.authPane === validTab);
+  });
+}
+
+function bindLegalModalEvents() {
+  const modal = document.querySelector('[data-legal-modal]');
+  const frame = document.querySelector('[data-legal-frame]');
+  const title = document.querySelector('[data-legal-title]');
+  if (!modal || !frame || !title) return;
+
+  document.querySelectorAll('[data-legal-open]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const src = button.dataset.legalSrc || '';
+      const documentTitle = button.dataset.legalTitle || 'Documento legal';
+      title.textContent = documentTitle;
+      frame.src = src;
+      modal.hidden = false;
+    });
+  });
+
+  document.querySelectorAll('[data-legal-close]').forEach((button) => {
+    button.addEventListener('click', () => {
+      modal.hidden = true;
+      frame.src = 'about:blank';
+    });
   });
 }
 
